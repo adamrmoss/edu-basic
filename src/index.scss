@@ -1,19 +1,31 @@
 @use './_reset.scss' as *;
 @use './_z-layers.scss' as *;
+@use './_palette.scss' as *;
+@use './_fonts.scss' as *;
 
 html
 {
-    background: #232433;
+    background: $dark-blue-gray;
 }
 
 body
 {
-    font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
-    color: #f5f7fa;
-    background: #232433;
+    font-family: $font-serif;
+    color: $light-gray-off-white;
+    background: $dark-blue-gray;
     max-width: 1280px;
     margin: 0 auto;
     min-height: 100vh; // Ensure body takes full height even when content is short
+}
+
+h1, h2, h3, h4, h5, h6
+{
+    font-family: $font-sans;
+}
+
+code, pre
+{
+    font-family: $font-mono;
 }
 
 a
