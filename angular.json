@@ -54,9 +54,10 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
-            ],
-            "scripts": []
+              "@angular/material/prebuilt-themes/azure-blue.css",
+              "src/index.scss"
+          ],
+          "scripts": []
           },
           "configurations": {
             "production": {

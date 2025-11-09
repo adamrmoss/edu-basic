@@ -1,0 +1,23 @@
+@use './_reset.scss' as *;
+@use './_z-layers.scss' as *;
+
+html
+{
+    background: #232433;
+}
+
+body
+{
+    font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+    color: #f5f7fa;
+    background: #232433;
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: 100vh; // Ensure body takes full height even when content is short
+}
+
+a
+{
+    color: inherit;
+    text-decoration: none;
+}
