@@ -1,0 +1,193 @@
+@use '@angular/material' as mat;
+
+// ====================================================================
+// IBM CARBON DESIGN COLOR SYSTEM (Full Palette)
+// Reference: https://carbondesignsystem.com/guidelines/color/overview
+// ====================================================================
+
+// --- Blue ---
+$ibm-blue-10:  #edf5ff;
+$ibm-blue-20:  #d0e2ff;
+$ibm-blue-30:  #a6c8ff;
+$ibm-blue-40:  #78a9ff;
+$ibm-blue-50:  #4589ff;
+$ibm-blue-60:  #0f62fe; // IBM brand blue
+$ibm-blue-70:  #0043ce;
+$ibm-blue-80:  #002d9c;
+$ibm-blue-90:  #001d6c;
+$ibm-blue-100: #001141;
+
+// --- Gray (Neutral) ---
+$ibm-gray-10:  #f4f4f4;
+$ibm-gray-20:  #e0e0e0;
+$ibm-gray-30:  #c6c6c6;
+$ibm-gray-40:  #a8a8a8;
+$ibm-gray-50:  #8d8d8d;
+$ibm-gray-60:  #6f6f6f;
+$ibm-gray-70:  #525252;
+$ibm-gray-80:  #393939;
+$ibm-gray-90:  #262626;
+$ibm-gray-100: #161616; // default dark background
+
+// --- Teal ---
+$ibm-teal-10:  #d9fbfb;
+$ibm-teal-20:  #9ef0f0;
+$ibm-teal-30:  #3ddbd9;
+$ibm-teal-40:  #08bdba;
+$ibm-teal-50:  #009d9a;
+$ibm-teal-60:  #007d79;
+$ibm-teal-70:  #005d5d;
+$ibm-teal-80:  #004144;
+$ibm-teal-90:  #022b30;
+$ibm-teal-100: #081a1c;
+
+// --- Purple ---
+$ibm-purple-10:  #f6f2ff;
+$ibm-purple-20:  #e8daff;
+$ibm-purple-30:  #d4bbff;
+$ibm-purple-40:  #be95ff;
+$ibm-purple-50:  #a56eff;
+$ibm-purple-60:  #8a3ffc;
+$ibm-purple-70:  #6929c4;
+$ibm-purple-80:  #491d8b;
+$ibm-purple-90:  #31135e;
+$ibm-purple-100: #1c0f30;
+
+// --- Green ---
+$ibm-green-10:  #defbe6;
+$ibm-green-20:  #a7f0ba;
+$ibm-green-30:  #6fdc8c;
+$ibm-green-40:  #42be65;
+$ibm-green-50:  #24a148;
+$ibm-green-60:  #198038;
+$ibm-green-70:  #0e6027;
+$ibm-green-80:  #044317;
+$ibm-green-90:  #022d0d;
+$ibm-green-100: #071908;
+
+// --- Red ---
+$ibm-red-10:  #fff1f1;
+$ibm-red-20:  #ffd7d9;
+$ibm-red-30:  #ffb3b8;
+$ibm-red-40:  #ff8389;
+$ibm-red-50:  #fa4d56;
+$ibm-red-60:  #da1e28;
+$ibm-red-70:  #a2191f;
+$ibm-red-80:  #750e13;
+$ibm-red-90:  #520408;
+$ibm-red-100: #2d0709;
+
+// --- Magenta ---
+$ibm-magenta-10:  #fff0f7;
+$ibm-magenta-20:  #ffd6e8;
+$ibm-magenta-30:  #ffafd2;
+$ibm-magenta-40:  #ff7eb6;
+$ibm-magenta-50:  #ee5396;
+$ibm-magenta-60:  #d02670;
+$ibm-magenta-70:  #9f1853;
+$ibm-magenta-80:  #740937;
+$ibm-magenta-90:  #510224;
+$ibm-magenta-100: #2a0a18;
+
+// --- Orange ---
+$ibm-orange-10:  #fff2e8;
+$ibm-orange-20:  #ffd9be;
+$ibm-orange-30:  #ffb784;
+$ibm-orange-40:  #ff832b;
+$ibm-orange-50:  #eb6200;
+$ibm-orange-60:  #ba4e00;
+$ibm-orange-70:  #8a3800;
+$ibm-orange-80:  #5e2900;
+$ibm-orange-90:  #3e1a00;
+$ibm-orange-100: #231000;
+
+// --- Cyan ---
+$ibm-cyan-10:  #e5f6ff;
+$ibm-cyan-20:  #bae6ff;
+$ibm-cyan-30:  #82cfff;
+$ibm-cyan-40:  #33b1ff;
+$ibm-cyan-50:  #1192e8;
+$ibm-cyan-60:  #0072c3;
+$ibm-cyan-70:  #00539a;
+$ibm-cyan-80:  #003a6d;
+$ibm-cyan-90:  #012749;
+$ibm-cyan-100: #061727;
+
+// --- Yellow ---
+$ibm-yellow-10:  #fcf4d6;
+$ibm-yellow-20:  #fddc69;
+$ibm-yellow-30:  #f1c21b;
+$ibm-yellow-40:  #d2a106;
+$ibm-yellow-50:  #b28600;
+$ibm-yellow-60:  #8e6a00;
+$ibm-yellow-70:  #684e00;
+$ibm-yellow-80:  #483700;
+$ibm-yellow-90:  #302400;
+$ibm-yellow-100: #1c1500;
+
+// ====================================================================
+// MATERIAL PALETTES (Dark Mode)
+// ====================================================================
+
+$ibm-primary: mat.define-palette((
+    50 : $ibm-blue-20,
+    100: $ibm-blue-30,
+    200: $ibm-blue-50,
+    500: $ibm-blue-60,
+    700: $ibm-blue-70,
+    contrast: (
+        50 : mat.$dark-primary-text,
+        100: mat.$dark-primary-text,
+        200: mat.$light-primary-text,
+        500: mat.$light-primary-text,
+        700: mat.$light-primary-text,
+    )
+));
+
+$ibm-accent: mat.define-palette((
+    100: $ibm-teal-30,
+    200: $ibm-teal-40,
+    500: $ibm-teal-60,
+    contrast: (
+        100: mat.$dark-primary-text,
+        200: mat.$dark-primary-text,
+        500: mat.$light-primary-text,
+    )
+));
+
+$ibm-warn: mat.define-palette((
+    100: $ibm-red-30,
+    200: $ibm-red-50,
+    500: $ibm-red-60,
+    contrast: (
+        100: mat.$dark-primary-text,
+        200: mat.$light-primary-text,
+        500: mat.$light-primary-text,
+    )
+));
+
+// ====================================================================
+// THEME & TYPOGRAPHY
+// ====================================================================
+
+$ibm-dark-theme: mat.define-dark-theme((
+    color: (
+        primary: $ibm-primary,
+        accent: $ibm-accent,
+        warn: $ibm-warn,
+        background: (
+            background: $ibm-gray-100,
+            card: $ibm-gray-90,
+        ),
+    ),
+    typography: mat.define-typography-config((
+        font-family: 'IBM Plex Sans, Segoe UI, sans-serif'
+    )),
+));
+
+// ====================================================================
+// APPLY GLOBAL THEME
+// ====================================================================
+@include mat.core();
+@include mat.all-component-themes($ibm-dark-theme);
+@include mat.all-component-typographies($ibm-dark-theme);

@@ -54,9 +54,9 @@
               }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/azure-blue.css",
+              "@angular/material/prebuilt-themes/none.css",
               "src/index.scss"
-          ],
+            ],
           "scripts": []
           },
           "configurations": {
@@ -114,6 +114,7 @@
               }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/none.css",
               "src/styles.scss"
             ],
             "scripts": []
