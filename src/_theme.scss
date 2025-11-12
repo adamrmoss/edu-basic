@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use './_fonts.scss' as *;
 
 // ====================================================================
 // IBM CARBON DESIGN COLOR SYSTEM (Full Palette)
@@ -181,7 +182,16 @@ $ibm-dark-theme: mat.define-dark-theme((
         ),
     ),
     typography: mat.define-typography-config((
-        font-family: 'IBM Plex Sans, Segoe UI, sans-serif'
+        font-family: $font-serif,
+        headline: mat.define-typography-level((font-family: $font-sans)),
+        title: mat.define-typography-level((font-family: $font-sans)),
+        subheading-2: mat.define-typography-level((font-family: $font-sans)),
+        subheading-1: mat.define-typography-level((font-family: $font-sans)),
+        body-1: mat.define-typography-level((font-family: $font-serif)),
+        body-2: mat.define-typography-level((font-family: $font-serif)),
+        caption: mat.define-typography-level((font-family: $font-serif)),
+        button: mat.define-typography-level((font-family: $font-sans)),
+        input: mat.define-typography-level((font-family: $font-mono)),
     )),
 ));
 
