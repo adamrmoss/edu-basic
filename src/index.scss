@@ -1,19 +1,19 @@
-@use './_reset.scss' as *;
-@use './_z-layers.scss' as *;
-@use './_palette.scss' as *;
-@use './_fonts.scss' as *;
-@use './_theme.scss' as *;
+@use 'ng-luna/theme/_breakpoints.scss' as *;
+@use 'ng-luna/theme/_fonts.scss' as *;
+@use 'ng-luna/theme/_reset.scss' as *;
+@use 'ng-luna/theme/_palette.scss' as *;
+@use 'ng-luna/theme/_z-layers.scss' as *;
 
 html
 {
-    background: $dark-blue-gray;
+    background: $navy;
 }
 
 body
 {
     font-family: $font-serif;
-    color: $light-gray-off-white;
-    background: $dark-blue-gray;
+    color: $off-white;
+    background: $navy;
     max-width: 1280px;
     margin: 0 auto;
     min-height: 100vh; // Ensure body takes full height even when content is short
