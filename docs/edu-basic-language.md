@@ -400,6 +400,657 @@ LET randomInRange# = RND * 100
 
 ## Control Flow
 
+EduBASIC supports both structured programming constructs and traditional BASIC flow control. While GOTO and GOSUB are available for backwards compatibility and educational purposes, modern structured programming approaches are encouraged for maintainable code.
+
+### Labels
+
+Labels mark specific locations in code that can be targeted by GOTO and GOSUB statements. Unlike traditional BASIC which uses line numbers, EduBASIC uses descriptive labels.
+
+**Syntax:**
+```
+LABEL labelName
+```
+
+**Rules:**
+- Label names follow the same rules as variable names (alphanumeric, starting with a letter)
+- Label names are case-insensitive
+- Labels do **not** use type sigils
+- Each label must be unique within its scope
+- Labels can only appear at the beginning of a statement
+
+**Example:**
+```
+LABEL StartProgram
+PRINT "Beginning program..."
+
+LABEL MainLoop
+LET counter% = counter% + 1
+IF counter% < 10 THEN GOTO MainLoop
+
+LABEL EndProgram
+PRINT "Program complete!"
+```
+
+### GOTO Statement
+
+The GOTO statement transfers control unconditionally to a labeled location.
+
+**Syntax:**
+```
+GOTO labelName
+```
+
+**Note:** While GOTO is supported, excessive use creates "spaghetti code" that is difficult to read and maintain. Prefer structured alternatives like loops and procedures when possible.
+
+**Example:**
+```
+LET count% = 0
+
+LABEL LoopStart
+PRINT count%
+LET count% = count% + 1
+IF count% < 5 THEN GOTO LoopStart
+
+PRINT "Done!"
+```
+
+### GOSUB and RETURN Statements
+
+GOSUB calls a subroutine at a labeled location. RETURN returns control to the statement following the GOSUB call.
+
+**Syntax:**
+```
+GOSUB labelName
+...
+LABEL labelName
+    ' subroutine code
+RETURN
+```
+
+**Example:**
+```
+PRINT "Starting..."
+GOSUB PrintHeader
+PRINT "Main program"
+GOSUB PrintFooter
+END
+
+LABEL PrintHeader
+    PRINT "===================="
+    PRINT "  PROGRAM HEADER"
+    PRINT "===================="
+RETURN
+
+LABEL PrintFooter
+    PRINT "===================="
+    PRINT "  PROGRAM FOOTER"
+    PRINT "===================="
+RETURN
+```
+
+**Note:** For modern code, prefer SUB and FUNCTION procedures (described later) over GOSUB.
+
+### IF Statement
+
+The IF statement executes code conditionally based on a boolean expression.
+
+**Single-line IF:**
+```
+IF condition THEN statement
+```
+
+**Block IF:**
+```
+IF condition THEN
+    statements
+END IF
+```
+
+**IF-ELSE:**
+```
+IF condition THEN
+    statements
+ELSE
+    statements
+END IF
+```
+
+**IF-ELSEIF-ELSE:**
+```
+IF condition1 THEN
+    statements
+ELSEIF condition2 THEN
+    statements
+ELSEIF condition3 THEN
+    statements
+ELSE
+    statements
+END IF
+```
+
+**Examples:**
+```
+IF score% >= 90 THEN PRINT "Grade: A"
+
+IF temperature# > 100 THEN
+    PRINT "Water is boiling!"
+    LET state$ = "gas"
+END IF
+
+IF age% < 13 THEN
+    PRINT "Child"
+ELSEIF age% < 20 THEN
+    PRINT "Teenager"
+ELSEIF age% < 65 THEN
+    PRINT "Adult"
+ELSE
+    PRINT "Senior"
+END IF
+```
+
+### UNLESS Statement
+
+The UNLESS statement is syntactic sugar for IF NOT, making negative conditions more readable.
+
+**Syntax:**
+```
+UNLESS condition THEN statement
+
+UNLESS condition THEN
+    statements
+END UNLESS
+
+UNLESS condition THEN
+    statements
+ELSE
+    statements
+END UNLESS
+```
+
+**Examples:**
+```
+UNLESS gameOver% THEN GOSUB UpdateGame
+
+UNLESS password$ = "secret" THEN
+    PRINT "Access denied!"
+    END
+END UNLESS
+
+UNLESS balance# >= price# THEN
+    PRINT "Insufficient funds"
+ELSE
+    LET balance# -= price#
+    PRINT "Purchase complete"
+END UNLESS
+```
+
+**Note:** `UNLESS condition` is exactly equivalent to `IF NOT condition`.
+
+### SELECT CASE Statement
+
+The SELECT CASE statement provides multi-way branching based on the value of an expression. This is EduBASIC's implementation of QuickBASIC's SELECT CASE.
+
+**Syntax:**
+```
+SELECT CASE expression
+    CASE value1
+        statements
+    CASE value2
+        statements
+    CASE value3, value4, value5
+        statements
+    CASE IS > value6
+        statements
+    CASE value7 TO value8
+        statements
+    CASE ELSE
+        statements
+END SELECT
+```
+
+**CASE Clauses:**
+- **Single value:** `CASE 5` matches when expression equals 5
+- **Multiple values:** `CASE 1, 2, 3` matches when expression equals 1, 2, or 3
+- **Relational:** `CASE IS > 10` matches when expression is greater than 10
+  - Available operators: `=`, `<>`, `<`, `>`, `<=`, `>=`
+- **Range:** `CASE 10 TO 20` matches when expression is between 10 and 20 (inclusive)
+- **Default:** `CASE ELSE` matches when no other case matches (optional)
+
+**Examples:**
+
+```
+SELECT CASE grade%
+    CASE 90 TO 100
+        PRINT "A"
+    CASE 80 TO 89
+        PRINT "B"
+    CASE 70 TO 79
+        PRINT "C"
+    CASE 60 TO 69
+        PRINT "D"
+    CASE ELSE
+        PRINT "F"
+END SELECT
+```
+
+```
+SELECT CASE command$
+    CASE "QUIT", "EXIT", "Q"
+        PRINT "Goodbye!"
+        END
+    CASE "HELP", "?"
+        GOSUB ShowHelp
+    CASE "SAVE"
+        GOSUB SaveGame
+    CASE ELSE
+        PRINT "Unknown command"
+END SELECT
+```
+
+```
+SELECT CASE age%
+    CASE IS < 0
+        PRINT "Invalid age"
+    CASE 0 TO 2
+        PRINT "Infant"
+    CASE 3 TO 12
+        PRINT "Child"
+    CASE 13 TO 19
+        PRINT "Teenager"
+    CASE IS >= 20
+        PRINT "Adult"
+END SELECT
+```
+
+### FOR Loop
+
+The FOR loop iterates a counter variable through a range of values.
+
+**Syntax:**
+```
+FOR variable = startValue TO endValue
+    statements
+NEXT variable
+
+FOR variable = startValue TO endValue STEP stepValue
+    statements
+NEXT variable
+```
+
+**Rules:**
+- The loop variable must be numeric (integer or real)
+- STEP is optional (defaults to 1)
+- STEP can be positive or negative
+- The loop variable can be used inside the loop
+- The NEXT statement can optionally specify the variable name for clarity
+
+**Examples:**
+
+```
+FOR i% = 1 TO 10
+    PRINT i%
+NEXT i%
+```
+
+```
+FOR count% = 0 TO 100 STEP 10
+    PRINT count%
+NEXT count%
+```
+
+```
+FOR x# = 1.0 TO 0.0 STEP -0.1
+    PRINT x#
+NEXT x#
+```
+
+```
+FOR row% = 1 TO 5
+    FOR col% = 1 TO 5
+        PRINT "*";
+    NEXT col%
+    PRINT
+NEXT row%
+```
+
+### WHILE Loop
+
+The WHILE loop repeats while a condition is true, testing the condition before each iteration.
+
+**Syntax:**
+```
+WHILE condition
+    statements
+WEND
+```
+
+**Examples:**
+
+```
+LET count% = 0
+WHILE count% < 10
+    PRINT count%
+    LET count% += 1
+WEND
+```
+
+```
+LET input$ = ""
+WHILE input$ <> "quit"
+    INPUT "Enter command: ", input$
+    PRINT "You entered: "; input$
+WEND
+```
+
+```
+WHILE NOT EOF(fileHandle%)
+    LINE INPUT #fileHandle%, line$
+    PRINT line$
+WEND
+```
+
+### UNTIL Loop
+
+The UNTIL loop is syntactic sugar for WHILE NOT, repeating until a condition becomes true.
+
+**Syntax:**
+```
+UNTIL condition
+    statements
+WEND
+```
+
+**Examples:**
+
+```
+LET count% = 0
+UNTIL count% >= 10
+    PRINT count%
+    LET count% += 1
+WEND
+```
+
+```
+LET input$ = ""
+UNTIL input$ = "quit"
+    INPUT "Enter command (or 'quit'): ", input$
+    PRINT "You entered: "; input$
+WEND
+```
+
+**Note:** `UNTIL condition` is exactly equivalent to `WHILE NOT condition`.
+
+### DO Loop
+
+The DO loop provides flexible looping with conditions that can be tested at the beginning or end of the loop.
+
+**DO WHILE (condition tested at top):**
+```
+DO WHILE condition
+    statements
+LOOP
+```
+
+**DO UNTIL (condition tested at top):**
+```
+DO UNTIL condition
+    statements
+LOOP
+```
+
+**DO-LOOP WHILE (condition tested at bottom):**
+```
+DO
+    statements
+LOOP WHILE condition
+```
+
+**DO-LOOP UNTIL (condition tested at bottom):**
+```
+DO
+    statements
+LOOP UNTIL condition
+```
+
+**Unconditional DO:**
+```
+DO
+    statements
+LOOP
+```
+
+**Key Difference:**
+- Top-tested loops (`DO WHILE`/`DO UNTIL`) may never execute if the condition is initially false/true
+- Bottom-tested loops (`DO...LOOP WHILE`/`DO...LOOP UNTIL`) always execute at least once
+
+**Examples:**
+
+```
+LET password$ = ""
+DO WHILE password$ <> "secret"
+    INPUT "Enter password: ", password$
+LOOP
+```
+
+```
+DO
+    INPUT "Enter a number (0 to quit): ", num%
+    PRINT "You entered: "; num%
+LOOP UNTIL num% = 0
+```
+
+```
+DO
+    PRINT "Press ESC to exit..."
+    LET key$ = INKEY$
+    IF key$ = CHR$(27) THEN EXIT DO
+LOOP
+```
+
+### EXIT Statement
+
+The EXIT statement immediately exits from a loop or procedure.
+
+**Syntax:**
+```
+EXIT FOR
+EXIT WHILE
+EXIT DO
+EXIT SUB
+EXIT FUNCTION
+```
+
+**Examples:**
+
+```
+FOR i% = 1 TO 100
+    IF numbers%[i%] = target% THEN
+        PRINT "Found at position: "; i%
+        EXIT FOR
+    END IF
+NEXT i%
+```
+
+```
+DO
+    INPUT "Enter value (negative to quit): ", value#
+    IF value# < 0 THEN EXIT DO
+    LET sum# += value#
+LOOP
+```
+
+### SUB Procedures
+
+SUB defines a subroutine (procedure) that performs an action but does not return a value.
+
+**Syntax:**
+```
+SUB procedureName (parameter1, parameter2, ...)
+    statements
+END SUB
+```
+
+**Calling a SUB:**
+```
+CALL procedureName(argument1, argument2, ...)
+```
+
+or simply:
+
+```
+procedureName argument1, argument2, ...
+```
+
+**Rules:**
+- Parameters must include type sigils
+- Parameters are passed by value by default
+- SUBs do not return values
+- Use EXIT SUB to return early
+- SUBs can call other SUBs and FUNCTIONs
+
+**Examples:**
+
+```
+SUB DrawBox (width%, height%, char$)
+    FOR row% = 1 TO height%
+        FOR col% = 1 TO width%
+            PRINT char$;
+        NEXT col%
+        PRINT
+    NEXT row%
+END SUB
+
+CALL DrawBox(10, 5, "*")
+DrawBox 20, 3, "#"
+```
+
+```
+SUB InitializeGame ()
+    LET score% = 0
+    LET level% = 1
+    LET lives% = 3
+    PRINT "Game initialized!"
+END SUB
+
+CALL InitializeGame()
+```
+
+### FUNCTION Procedures
+
+FUNCTION defines a function that performs a calculation and returns a value.
+
+**Syntax:**
+```
+FUNCTION functionName (parameter1, parameter2, ...) AS type
+    statements
+    RETURN value
+END FUNCTION
+```
+
+**Calling a FUNCTION:**
+```
+LET result = functionName(argument1, argument2, ...)
+```
+
+**Rules:**
+- The return type must be specified with AS keyword (INTEGER, REAL, STRING, COMPLEX)
+- Functions must return a value using RETURN
+- Parameters must include type sigils
+- Parameters are passed by value by default
+- Use EXIT FUNCTION to return early
+- Functions can call other SUBs and FUNCTIONs
+
+**Examples:**
+
+```
+FUNCTION Factorial (n%) AS INTEGER
+    IF n% <= 1 THEN
+        RETURN 1
+    ELSE
+        RETURN n% * Factorial(n% - 1)
+    END IF
+END FUNCTION
+
+LET result% = Factorial(5)
+PRINT result%
+```
+
+```
+FUNCTION Distance (x1#, y1#, x2#, y2#) AS REAL
+    LET dx# = x2# - x1#
+    LET dy# = y2# - y1#
+    RETURN SQRT(dx# * dx# + dy# * dy#)
+END FUNCTION
+
+LET dist# = Distance(0, 0, 3, 4)
+PRINT "Distance: "; dist#
+```
+
+```
+FUNCTION FormatName (firstName$, lastName$) AS STRING
+    RETURN lastName$ + ", " + firstName$
+END FUNCTION
+
+PRINT FormatName("John", "Smith")
+```
+
+### Parameter Passing
+
+By default, parameters are passed **by value**, meaning the function/subroutine receives a copy of the argument.
+
+To pass by reference (allowing the function/subroutine to modify the original variable), use the `BYREF` keyword:
+
+**Example:**
+```
+SUB Swap (BYREF a%, BYREF b%)
+    LET temp% = a%
+    LET a% = b%
+    LET b% = temp%
+END SUB
+
+LET x% = 5
+LET y% = 10
+CALL Swap(x%, y%)
+PRINT x%, y%
+```
+
+### END Statement
+
+The END statement terminates program execution immediately.
+
+**Syntax:**
+```
+END
+```
+
+**Example:**
+```
+IF criticalError% THEN
+    PRINT "Fatal error occurred"
+    END
+END IF
+```
+
+**Note:** END is different from RETURN, which returns from a subroutine. END terminates the entire program.
+
+### Summary: Structured vs. Unstructured Flow Control
+
+EduBASIC provides both structured and unstructured control flow:
+
+**Structured (Recommended):**
+- IF/THEN/ELSE and UNLESS
+- SELECT CASE
+- FOR loops
+- WHILE and UNTIL loops
+- DO loops
+- SUB and FUNCTION procedures
+
+**Unstructured (Use Sparingly):**
+- GOTO
+- GOSUB/RETURN
+
+While GOTO and GOSUB are available for educational purposes and backwards compatibility, structured programming constructs produce more readable, maintainable code. Use labels and GOTO only when necessary or when demonstrating the evolution of programming techniques.
+
 ## Console I/O
 
 ## File I/O

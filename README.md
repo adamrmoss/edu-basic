@@ -6,6 +6,10 @@ Education-focused BASIC dialect that runs in web browser.
 
 EduBASIC is an Angular-based web application that provides a BASIC programming environment designed for educational purposes. The application runs entirely in the browser, making it accessible and easy to use for learning programming fundamentals.
 
+**Documentation:**
+- [EduBASIC Language Reference](docs/edu-basic-language.md) - Complete language specification and reference
+- [EduBASIC Tutorial](docs/edu-basic-tutorial.md) - Getting started guide and examples
+
 ## Tech Stack
 
 - **Angular 19** - Modern Angular framework with standalone components
