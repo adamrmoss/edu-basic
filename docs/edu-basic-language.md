@@ -17,13 +17,13 @@ Additionally, user-defined **structures** can be created to group related data t
 
 EduBASIC uses type sigils (special characters) at the end of variable names to indicate the variable's type. Sigils are **required** for all variables and apply **only** to variable identifiers—they are never used in literals.
 
-| Data Type | Sigil | Example Variable | Size |
-|-----------|-------|------------------|------|
-| Integer   | `%`   | `Count%`         | 32-bit |
-| Real      | `#`   | `Value#`         | 64-bit |
-| String    | `$`   | `Name$`          | Variable |
-| Complex   | `&`   | `Z&`             | 128-bit |
-| Structure | *(none)* | `Player`     | Variable |
+| Data Type  | Sigil      | Example Variable | Size     |
+|------------|------------|------------------|----------|
+| Integer    | `%`        | `count%`         | 32-bit   |
+| Real       | `#`        | `value#`         | 64-bit   |
+| String     | `$`        | `name$`          | Variable |
+| Complex    | `&`        | `z&`             | 128-bit  |
+| Structure  | *(none)*   | `player`         | Variable |
 
 **Rules:**
 - Sigils are suffixes (appear at the end of the variable name)
@@ -41,10 +41,10 @@ Variable names must:
 
 Examples:
 ```
-LET count% = 10
-LET temperature# = 98.6
-LET name$ = "Alice"
-LET result& = 3+4i
+LET studentCount% = 10
+LET roomTemperature# = 98.6
+LET playerName$ = "Alice"
+LET impedance& = 3+4i
 ```
 
 ### Variable Declaration
@@ -176,40 +176,34 @@ DIM grid%[1 TO 10, 1 TO 20]
 
 #### Basic Arithmetic Operators
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `+`      | Addition    | `LET sum% = 5 + 3` |
-| `-`      | Subtraction | `LET diff% = 10 - 4` |
-| `*`      | Multiplication | `LET product% = 6 * 7` |
-| `/`      | Division    | `LET quotient# = 15 / 4` |
-| `^` or `**` | Exponentiation | `LET power# = 2 ^ 8` |
-| `!`      | Factorial   | `LET fact% = 5!` |
+| Operator    | Description    | Example                        |
+|-------------|----------------|--------------------------------|
+| `+`         | Addition       | `LET totalSum% = 5 + 3`        |
+| `-`         | Subtraction    | `LET difference% = 10 - 4`     |
+| `*`         | Multiplication | `LET product% = 6 * 7`         |
+| `/`         | Division       | `LET quotient# = 15 / 4`       |
+| `^` or `**` | Exponentiation | `LET powerResult# = 2 ^ 8`     |
+| `!`         | Factorial      | `LET factorialNum% = 5!`       |
 
 #### Assignment Operators
 
 The `LET` keyword is **required** for all assignments. EduBASIC also supports C-style compound assignment operators:
 
 ```
-LET count% = 10
-LET count% += 5
-LET count% -= 3
-LET count% *= 2
-LET count% /= 4
-LET count% ^= 2
-```
-
-Increment and decrement operators:
-```
-LET count%++
-LET count%--
+LET totalCount% = 10
+LET totalCount% += 5
+LET totalCount% -= 3
+LET totalCount% *= 2
+LET totalCount% /= 4
+LET totalCount% ^= 2
 ```
 
 #### Absolute Value / Norm
 
 Use vertical bars for absolute value (for reals) or norm (for complex numbers):
 ```
-LET absValue# = | -5 |
-LET norm# = | 3+4i |
+LET absoluteValue# = | -5 |
+LET complexNorm# = | 3+4i |
 ```
 
 #### Advanced Arithmetic Functions
@@ -226,12 +220,12 @@ There is no separate boolean data type.
 
 #### Boolean Operators
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `AND`    | Logical AND | `IF (x% > 0) AND (y% < 10) THEN` |
-| `OR`     | Logical OR  | `IF (x% = 0) OR (y% = 0) THEN` |
-| `NOT`    | Logical NOT | `IF NOT (x% = 0) THEN` |
-| `XOR`    | Exclusive OR | `IF (a% XOR b%) THEN` |
+| Operator | Description  | Example                                   |
+|----------|--------------|-------------------------------------------|
+| `AND`    | Logical AND  | `IF (xValue% > 0) AND (yValue% < 10) THEN` |
+| `OR`     | Logical OR   | `IF (xValue% = 0) OR (yValue% = 0) THEN`   |
+| `NOT`    | Logical NOT  | `IF NOT (xValue% = 0) THEN`               |
+| `XOR`    | Exclusive OR | `IF (flagA% XOR flagB%) THEN`             |
 
 Boolean operations return integer values (0 for false, 1 for true).
 
@@ -239,14 +233,14 @@ Boolean operations return integer values (0 for false, 1 for true).
 
 Standard comparison operators are available for all data types:
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `=`      | Equal to    | `IF x% = 5 THEN` |
-| `<>`     | Not equal to | `IF x% <> 0 THEN` |
-| `<`      | Less than   | `IF x% < 10 THEN` |
-| `>`      | Greater than | `IF x% > 0 THEN` |
-| `<=`     | Less than or equal | `IF x% <= 100 THEN` |
-| `>=`     | Greater than or equal | `IF x% >= 0 THEN` |
+| Operator | Description            | Example                      |
+|----------|------------------------|------------------------------|
+| `=`      | Equal to               | `IF testScore% = 5 THEN`     |
+| `<>`     | Not equal to           | `IF testScore% <> 0 THEN`    |
+| `<`      | Less than              | `IF testScore% < 10 THEN`    |
+| `>`      | Greater than           | `IF testScore% > 0 THEN`     |
+| `<=`     | Less than or equal     | `IF testScore% <= 100 THEN`  |
+| `>=`     | Greater than or equal  | `IF testScore% >= 0 THEN`    |
 
 Comparison operations return integer values (0 for false, 1 for true).
 
