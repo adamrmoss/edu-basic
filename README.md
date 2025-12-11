@@ -2,6 +2,30 @@
 
 Education-focused BASIC dialect that runs in web browser.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Dependencies](#dependencies)
+  - [Core Dependencies](#core-dependencies)
+  - [UI Library](#ui-library)
+  - [Typography](#typography)
+  - [Version Management](#version-management)
+- [Development](#development)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Development Server](#development-server)
+  - [Build](#build)
+  - [Watch Mode](#watch-mode)
+  - [Testing](#testing)
+- [Component Architecture](#component-architecture)
+- [Using ng-luna Components](#using-ng-luna-components)
+  - [Example Usage](#example-usage)
+- [License](#license)
+
+---
+
 ## Overview
 
 EduBASIC is an Angular-based web application that provides a BASIC programming environment designed for educational purposes. The application runs entirely in the browser, making it accessible and easy to use for learning programming fundamentals.
@@ -148,4 +172,4 @@ All form components (input, checkbox, radio, select, textarea, slider) support A
 
 ## License
 
-[To be determined]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

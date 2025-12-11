@@ -1,6 +1,8 @@
 {
   "name": "edu-basic",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "Education-focused BASIC dialect that runs in web browser",
+  "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

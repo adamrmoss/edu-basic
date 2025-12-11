@@ -1,5 +1,46 @@
 # EduBASIC Language Reference
 
+*Copyright © 2025 Adam R Moss / Fuzzy Logic Publishing. Licensed under the MIT License.*
+
+## Table of Contents
+
+- [Data Types, Variables, Arithmetic, and Boolean Operations](#data-types-variables-arithmetic-and-boolean-operations)
+  - [Data Types](#data-types)
+  - [Type Sigils](#type-sigils)
+  - [Variable Names](#variable-names)
+  - [Variable Declaration](#variable-declaration)
+  - [Literals](#literals)
+  - [Type Coercion](#type-coercion)
+  - [Arrays](#arrays)
+  - [Arithmetic Operations](#arithmetic-operations)
+  - [Boolean Operations](#boolean-operations)
+  - [Comparison Operations](#comparison-operations)
+  - [Operator Precedence](#operator-precedence)
+  - [Random Number Generation](#random-number-generation)
+- [Control Flow](#control-flow)
+  - [Labels](#labels)
+  - [GOTO Statement](#goto-statement)
+  - [GOSUB and RETURN Statements](#gosub-and-return-statements)
+  - [IF Statement](#if-statement)
+  - [UNLESS Statement](#unless-statement)
+  - [SELECT CASE Statement](#select-case-statement)
+  - [FOR Loop](#for-loop)
+  - [WHILE Loop](#while-loop)
+  - [UNTIL Loop](#until-loop)
+  - [DO Loop](#do-loop)
+  - [EXIT Statement](#exit-statement)
+  - [SUB Procedures](#sub-procedures)
+  - [END Statement](#end-statement)
+  - [Summary: Structured vs. Unstructured Flow Control](#summary-structured-vs-unstructured-flow-control)
+- [Console I/O](#console-io)
+- [File I/O](#file-io)
+- [Graphics](#graphics)
+- [Audio](#audio)
+- [Command and Function Reference](#command-and-function-reference)
+  - (Alphabetical listing of 70+ commands, functions, and operators)
+
+---
+
 ## Data Types, Variables, Arithmetic, and Boolean Operations
 
 ### Data Types
