@@ -2,9 +2,37 @@
 
 Education-focused BASIC dialect that runs in web browser.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Dependencies](#dependencies)
+  - [Core Dependencies](#core-dependencies)
+  - [UI Library](#ui-library)
+  - [Typography](#typography)
+  - [Version Management](#version-management)
+- [Development](#development)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Development Server](#development-server)
+  - [Build](#build)
+  - [Watch Mode](#watch-mode)
+  - [Testing](#testing)
+- [Component Architecture](#component-architecture)
+- [Using ng-luna Components](#using-ng-luna-components)
+  - [Example Usage](#example-usage)
+- [License](#license)
+
+---
+
 ## Overview
 
 EduBASIC is an Angular-based web application that provides a BASIC programming environment designed for educational purposes. The application runs entirely in the browser, making it accessible and easy to use for learning programming fundamentals.
+
+**Documentation:**
+- [EduBASIC Tutorial](docs/edu-basic-tutorial.md) - Introduction to language and development environment, with examples
+- [EduBASIC Language Reference](docs/edu-basic-language.md) - Complete language specification and reference
 
 ## Tech Stack
 
@@ -106,29 +134,7 @@ npm run watch
 npm test
 ```
 
-## Styling & Theming
-
-### Color System
-
-The project uses the **IBM Carbon Design System** color palette, providing a comprehensive set of colors organized by hue:
-
-- **Blue** - Primary brand colors (IBM brand blue: `#0f62fe`)
-- **Gray** - Neutral colors (dark background: `#161616`)
-- **Teal, Purple, Green, Red, Magenta, Orange, Cyan, Yellow** - Accent colors
-
-All color variables are defined in `src/_theme.scss` and follow the IBM Carbon Design naming convention (e.g., `$ibm-blue-60`, `$ibm-gray-100`).
-
-### Typography
-
-The application uses **IBM Plex** font families:
-
-- **IBM Plex Sans** - Default sans-serif font for headings and UI elements
-- **IBM Plex Serif** - Serif font for body text
-- **IBM Plex Mono** - Monospace font for code and technical content
-
-Fonts are loaded via `@fontsource` packages and configured in `src/_fonts.scss`.
-
-### Component Architecture
+## Component Architecture
 
 - All Angular components are **standalone** (no NgModules)
 - Components use separate template (`.html`) and stylesheet (`.scss`) files
@@ -166,4 +172,4 @@ All form components (input, checkbox, radio, select, textarea, slider) support A
 
 ## License
 
-[To be determined]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
