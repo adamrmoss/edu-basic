@@ -66,9 +66,9 @@ describe('Expression Evaluator (Example)', () => {
         private parseFactor(): number {
             if (this.expression[ this.pos ] === '(')
             {
-                this.pos++; // Skip '('
+                this.pos++;
                 const result = this.parseExpression();
-                this.pos++; // Skip ')'
+                this.pos++;
                 return result;
             }
 
