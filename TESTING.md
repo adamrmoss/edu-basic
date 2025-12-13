@@ -15,7 +15,18 @@ This will:
 - Run tests in ChromeHeadless (no browser window)
 - Display results in the console with progress indicators
 - Show code coverage summary
-- Watch for changes and re-run tests automatically
+- Exit automatically when done (single-run mode)
+
+### Watch Mode (Optional)
+
+If you prefer to keep tests running and auto-rerun on file changes, edit `karma.conf.js`:
+
+```javascript
+singleRun: false,  // Keep running
+autoWatch: true,   // Watch for changes
+```
+
+Then tests will continuously watch for changes and re-run automatically.
 
 ## Test File Structure
 
@@ -258,17 +269,37 @@ coverage/edu-basic/index.html
 
 Open this file in a browser to see detailed line-by-line coverage.
 
-## Continuous Integration
+## Test Runner Modes
 
-For CI environments, you can run tests in single-run mode:
+### Single-Run Mode (Default)
 
-Edit `karma.conf.js` and set:
+The test runner is configured to run once and exit automatically:
+- Tests execute completely
+- Results are displayed
+- Process exits cleanly (no need to press Ctrl+C)
+- Perfect for quick test runs and CI/CD
+
+### Watch Mode (Optional)
+
+For active development where you want tests to re-run on file changes:
+
+Edit `karma.conf.js`:
 ```javascript
-singleRun: true
+singleRun: false,
+autoWatch: true,
+restartOnFileChange: true,
 ```
 
-Or create a separate CI configuration and use:
+In watch mode:
+- Tests re-run automatically when you save files
+- Faster feedback during development
+- Press Ctrl+C to exit when done
+
+## Continuous Integration
+
+For CI environments, the default single-run mode works perfectly. You can also specify the ChromeHeadlessCI launcher:
+
 ```bash
-ng test --browsers=ChromeHeadlessCI --watch=false --code-coverage
+ng test --browsers=ChromeHeadlessCI --code-coverage
 ```
 

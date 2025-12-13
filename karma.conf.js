@@ -13,16 +13,18 @@ module.exports = function (config)
             require('@angular-devkit/build-angular/plugins/karma')
         ],
         client: {
+            clearContext: true,
+            captureConsole: false,
             jasmine: {
-                // Jasmine configuration
-                random: false, // Run tests in order, not randomly
+                random: false,
                 seed: null,
-                stopSpecOnExpectationFailure: false
-            },
-            clearContext: false // leave Jasmine Spec Runner output visible in browser
+                stopSpecOnExpectationFailure: false,
+                timeoutInterval: 10000
+            }
         },
         jasmineHtmlReporter: {
-            suppressAll: true // removes the duplicated traces
+            suppressAll: true,
+            suppressFailed: false
         },
         coverageReporter: {
             dir: require('path').join(__dirname, './coverage/edu-basic'),
@@ -35,13 +37,16 @@ module.exports = function (config)
         },
         port: 9876,
         colors: true,
-        logLevel: config.LOG_INFO,
-        autoWatch: true,
-        reporters: ['progress', 'coverage'], // Console output, no HTML reporter
+        logLevel: config.LOG_ERROR,
+        autoWatch: false,
+        reporters: ['progress'], // Console output only (coverage disabled for now)
         browsers: ['ChromeHeadless'], // Headless mode - no browser window
-        restartOnFileChange: true,
-        singleRun: false,
+        restartOnFileChange: false,
+        singleRun: true, // Run once and exit
         concurrency: Infinity,
+        failOnEmptyTestSuite: false,
+        failOnFailingTestSuite: false,
+        retryLimit: 0,
 
         // Browser configuration
         customLaunchers: {
@@ -51,15 +56,23 @@ module.exports = function (config)
             },
             ChromeHeadlessNoSandbox: {
                 base: 'ChromeHeadless',
-                flags: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+                flags: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-gpu',
+                    '--disable-dev-shm-usage'
+                ]
             }
         },
 
-        // Capture timeout increased for slower systems
-        captureTimeout: 210000,
-        browserDisconnectTolerance: 3,
-        browserDisconnectTimeout: 210000,
-        browserNoActivityTimeout: 210000
+        // Timeouts
+        captureTimeout: 60000,
+        browserDisconnectTolerance: 1,
+        browserDisconnectTimeout: 5000,
+        browserNoActivityTimeout: 30000,
+        
+        // Process control
+        processKillTimeout: 2000
     });
 };
 

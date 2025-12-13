@@ -13,4 +13,3 @@ getTestBed().initTestEnvironment(
     BrowserDynamicTestingModule,
     platformBrowserDynamicTesting(),
 );
-
