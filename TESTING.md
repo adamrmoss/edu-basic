@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project uses **Jasmine** and **Karma** for TypeScript unit testing. Tests are configured to output results directly to the console in headless Chrome.
+This project uses **Jest** for TypeScript unit testing. Jest is a fast, modern test runner with excellent TypeScript support and clean console output.
 
 ## Running Tests
 
@@ -12,21 +12,18 @@ npm test
 
 This will:
 - Compile TypeScript files
-- Run tests in ChromeHeadless (no browser window)
-- Display results in the console with progress indicators
-- Show code coverage summary
-- Exit automatically when done (single-run mode)
+- Run all tests
+- Display results in the console with clean output
+- Show pass/fail summary
+- Exit automatically when done
 
-### Watch Mode (Optional)
+### Watch Mode
 
-If you prefer to keep tests running and auto-rerun on file changes, edit `karma.conf.js`:
+To run tests in watch mode (auto-rerun on file changes):
 
-```javascript
-singleRun: false,  // Keep running
-autoWatch: true,   // Watch for changes
+```bash
+npm run test:watch
 ```
-
-Then tests will continuously watch for changes and re-run automatically.
 
 ## Test File Structure
 
@@ -97,7 +94,7 @@ describe('ExpressionEvaluator', () => {
 });
 ```
 
-## Jasmine Matchers
+## Jest Matchers
 
 Common assertions:
 - `expect(x).toBe(y)` - Strict equality (===)
@@ -107,6 +104,8 @@ Common assertions:
 - `expect(x).toContain(y)` - For arrays/strings
 - `expect(x).toMatch(/regex/)` - Regex matching
 - `expect(() => fn()).toThrow()` - Function throws error
+- `expect(x).toHaveLength(n)` - Array/string length
+- `expect(x).toBeCloseTo(y, digits)` - Floating point comparison
 
 ## EduBASIC Testing Focus Areas
 
@@ -145,48 +144,45 @@ Common assertions:
 
 ## Configuration Files
 
-- **karma.conf.js** - Test runner configuration
-- **src/test.ts** - Test environment bootstrap
+- **jest.config.js** - Jest test runner configuration
+- **setup-jest.ts** - Jest environment setup
 - **tsconfig.spec.json** - TypeScript config for tests
-- **angular.json** - Angular CLI test configuration
 
-## Headless vs Regular Browser
+## Jest Advantages
 
-The test runner is configured with **ChromeHeadless** by default. Here's when to use each:
+Jest provides several advantages for algorithm testing:
 
-### Use Headless (Current Setup)
-- **Unit testing**: Testing algorithms, classes, functions, utilities
-- **No visual inspection needed**: You're testing logic, not UI
-- **Faster execution**: No GUI rendering overhead
-- **CI/CD**: Automated testing in environments without displays
-- **Console-focused workflow**: Results go straight to terminal
-
-### Use Regular Browser
-If you need to visually inspect component rendering or debug UI tests, edit `karma.conf.js`:
-```javascript
-browsers: ['Chrome'], // Opens visible browser window
-```
-
-For unit testing algorithms (lexer, parser, evaluator, runtime), **headless is perfect**. You only need a visible browser when testing visual components or debugging tricky test failures.
+- **Fast**: Runs tests in parallel for speed
+- **Clean output**: No browser overhead, pure console output
+- **Built-in coverage**: No additional configuration needed
+- **Watch mode**: Intelligent test re-running based on changed files
+- **Snapshot testing**: Useful for testing parser/AST output
+- **Easy mocking**: Built-in mock functions and modules
 
 ## Console Output
 
-The test runner is configured with:
-- `progress` reporter - Shows test progress with symbols
-- `coverage` reporter - Shows code coverage summary
-- ChromeHeadless - No browser window
-- No styles loaded - Faster compilation for algorithm tests
+Jest provides clean, readable output:
 
-Example output:
+Example successful run:
 ```
-Chrome Headless 120.0.0.0 (Mac OS 10.15.7): Executed 15 of 15 SUCCESS (0.234 secs / 0.189 secs)
+PASS  src/app/lexer-example.spec.ts
+PASS  src/app/expression-evaluator.spec.ts
+PASS  src/app/variable-store.spec.ts
 
-=============================== Coverage summary ===============================
-Statements   : 85.5% ( 123/144 )
-Branches     : 78.2% ( 43/55 )
-Functions    : 90.0% ( 18/20 )
-Lines        : 84.7% ( 122/144 )
-================================================================================
+Test Suites: 3 passed, 3 total
+Tests:       74 passed, 74 total
+Time:        2.5s
+```
+
+Example with failures:
+```
+FAIL  src/app/lexer-example.spec.ts
+  ● Lexer › should tokenize integer variable
+  
+    expect(received).toBe(expected)
+    
+    Expected: "INTEGER"
+    Received: "UNKNOWN"
 ```
 
 ## Tips for Testing Algorithms
@@ -269,37 +265,13 @@ coverage/edu-basic/index.html
 
 Open this file in a browser to see detailed line-by-line coverage.
 
-## Test Runner Modes
-
-### Single-Run Mode (Default)
-
-The test runner is configured to run once and exit automatically:
-- Tests execute completely
-- Results are displayed
-- Process exits cleanly (no need to press Ctrl+C)
-- Perfect for quick test runs and CI/CD
-
-### Watch Mode (Optional)
-
-For active development where you want tests to re-run on file changes:
-
-Edit `karma.conf.js`:
-```javascript
-singleRun: false,
-autoWatch: true,
-restartOnFileChange: true,
-```
-
-In watch mode:
-- Tests re-run automatically when you save files
-- Faster feedback during development
-- Press Ctrl+C to exit when done
-
 ## Continuous Integration
 
-For CI environments, the default single-run mode works perfectly. You can also specify the ChromeHeadlessCI launcher:
+For CI environments, Jest works perfectly out of the box:
 
 ```bash
-ng test --browsers=ChromeHeadlessCI --code-coverage
+npm test -- --ci --coverage --maxWorkers=2
 ```
+
+The `--ci` flag optimizes Jest for CI environments.
 
