@@ -3,30 +3,35 @@
  * Demonstrates testing data structures and type management
  */
 
-describe('Variable Store (Example)', () => {
-
-    enum DataType {
+describe('Variable Store (Example)', () =>
+{
+    enum DataType
+    {
         INTEGER = 'INTEGER',
         REAL = 'REAL',
         STRING = 'STRING',
         COMPLEX = 'COMPLEX'
     }
 
-    interface Variable {
+    interface Variable
+    {
         name: string;
         type: DataType;
         value: number | string | ComplexNumber;
     }
 
-    interface ComplexNumber {
+    interface ComplexNumber
+    {
         real: number;
         imag: number;
     }
 
-    class VariableStore {
+    class VariableStore
+    {
         private variables: Map<string, Variable> = new Map();
 
-        set(name: string, type: DataType, value: number | string | ComplexNumber): void {
+        public set(name: string, type: DataType, value: number | string | ComplexNumber): void
+        {
             const normalizedName = name.toLowerCase();
 
             this.variables.set(normalizedName, {
@@ -36,43 +41,51 @@ describe('Variable Store (Example)', () => {
             });
         }
 
-        get(name: string): Variable | undefined {
+        public get(name: string): Variable | undefined
+        {
             const normalizedName = name.toLowerCase();
             return this.variables.get(normalizedName);
         }
 
-        has(name: string): boolean {
+        public has(name: string): boolean
+        {
             const normalizedName = name.toLowerCase();
             return this.variables.has(normalizedName);
         }
 
-        delete(name: string): boolean {
+        public delete(name: string): boolean
+        {
             const normalizedName = name.toLowerCase();
             return this.variables.delete(normalizedName);
         }
 
-        clear(): void {
+        public clear(): void
+        {
             this.variables.clear();
         }
 
-        getAll(): Variable[] {
+        public getAll(): Variable[]
+        {
             return Array.from(this.variables.values());
         }
 
-        getByType(type: DataType): Variable[] {
+        public getByType(type: DataType): Variable[]
+        {
             return this.getAll().filter(v => v.type === type);
         }
     }
 
     let store: VariableStore;
 
-    beforeEach(() => {
+    beforeEach(() =>
+    {
         store = new VariableStore();
     });
 
-    describe('Basic Operations', () => {
-
-        it('should store integer variable', () => {
+    describe('Basic Operations', () =>
+    {
+        it('should store integer variable', () =>
+        {
             store.set('count%', DataType.INTEGER, 42);
 
             const variable = store.get('count%');
@@ -81,7 +94,8 @@ describe('Variable Store (Example)', () => {
             expect(variable?.type).toBe(DataType.INTEGER);
         });
 
-        it('should store real variable', () => {
+        it('should store real variable', () =>
+        {
             store.set('temperature#', DataType.REAL, 98.6);
 
             const variable = store.get('temperature#');
@@ -90,7 +104,8 @@ describe('Variable Store (Example)', () => {
             expect(variable?.type).toBe(DataType.REAL);
         });
 
-        it('should store string variable', () => {
+        it('should store string variable', () =>
+        {
             store.set('name$', DataType.STRING, 'Alice');
 
             const variable = store.get('name$');
@@ -99,7 +114,8 @@ describe('Variable Store (Example)', () => {
             expect(variable?.type).toBe(DataType.STRING);
         });
 
-        it('should store complex variable', () => {
+        it('should store complex variable', () =>
+        {
             const complex: ComplexNumber = { real: 3, imag: 4 };
             store.set('impedance&', DataType.COMPLEX, complex);
 
@@ -110,9 +126,10 @@ describe('Variable Store (Example)', () => {
         });
     });
 
-    describe('Case Insensitivity', () => {
-
-        it('should treat variable names as case-insensitive', () => {
+    describe('Case Insensitivity', () =>
+    {
+        it('should treat variable names as case-insensitive', () =>
+        {
             store.set('Count%', DataType.INTEGER, 10);
 
             expect(store.get('count%')?.value).toBe(10);
@@ -120,7 +137,8 @@ describe('Variable Store (Example)', () => {
             expect(store.get('CouNT%')?.value).toBe(10);
         });
 
-        it('should overwrite variable with different case', () => {
+        it('should overwrite variable with different case', () =>
+        {
             store.set('Value%', DataType.INTEGER, 10);
             store.set('value%', DataType.INTEGER, 20);
 
@@ -128,16 +146,18 @@ describe('Variable Store (Example)', () => {
         });
     });
 
-    describe('Variable Updates', () => {
-
-        it('should update existing variable', () => {
+    describe('Variable Updates', () =>
+    {
+        it('should update existing variable', () =>
+        {
             store.set('count%', DataType.INTEGER, 10);
             store.set('count%', DataType.INTEGER, 20);
 
             expect(store.get('count%')?.value).toBe(20);
         });
 
-        it('should allow changing value type (dynamic typing)', () => {
+        it('should allow changing value type (dynamic typing)', () =>
+        {
             store.set('x%', DataType.INTEGER, 10);
 
             const firstValue = store.get('x%');
@@ -146,23 +166,26 @@ describe('Variable Store (Example)', () => {
         });
     });
 
-    describe('Variable Existence', () => {
-
-        it('should check if variable exists', () => {
+    describe('Variable Existence', () =>
+    {
+        it('should check if variable exists', () =>
+        {
             store.set('test%', DataType.INTEGER, 5);
 
             expect(store.has('test%')).toBe(true);
             expect(store.has('nonexistent%')).toBe(false);
         });
 
-        it('should return undefined for non-existent variable', () => {
+        it('should return undefined for non-existent variable', () =>
+        {
             expect(store.get('missing%')).toBeUndefined();
         });
     });
 
-    describe('Variable Deletion', () => {
-
-        it('should delete variable', () => {
+    describe('Variable Deletion', () =>
+    {
+        it('should delete variable', () =>
+        {
             store.set('temp%', DataType.INTEGER, 100);
             expect(store.has('temp%')).toBe(true);
 
@@ -171,15 +194,17 @@ describe('Variable Store (Example)', () => {
             expect(store.has('temp%')).toBe(false);
         });
 
-        it('should return false when deleting non-existent variable', () => {
+        it('should return false when deleting non-existent variable', () =>
+        {
             const deleted = store.delete('nonexistent%');
             expect(deleted).toBe(false);
         });
     });
 
-    describe('Store Management', () => {
-
-        it('should clear all variables', () => {
+    describe('Store Management', () =>
+    {
+        it('should clear all variables', () =>
+        {
             store.set('a%', DataType.INTEGER, 1);
             store.set('b%', DataType.INTEGER, 2);
             store.set('c%', DataType.INTEGER, 3);
@@ -192,7 +217,8 @@ describe('Variable Store (Example)', () => {
             expect(store.has('a%')).toBe(false);
         });
 
-        it('should get all variables', () => {
+        it('should get all variables', () =>
+        {
             store.set('x%', DataType.INTEGER, 10);
             store.set('y#', DataType.REAL, 3.14);
             store.set('name$', DataType.STRING, 'Test');
@@ -201,7 +227,8 @@ describe('Variable Store (Example)', () => {
             expect(all.length).toBe(3);
         });
 
-        it('should filter variables by type', () => {
+        it('should filter variables by type', () =>
+        {
             store.set('a%', DataType.INTEGER, 1);
             store.set('b%', DataType.INTEGER, 2);
             store.set('c#', DataType.REAL, 3.14);
@@ -218,9 +245,10 @@ describe('Variable Store (Example)', () => {
         });
     });
 
-    describe('Multiple Variables', () => {
-
-        it('should store multiple variables independently', () => {
+    describe('Multiple Variables', () =>
+    {
+        it('should store multiple variables independently', () =>
+        {
             store.set('count%', DataType.INTEGER, 42);
             store.set('sum%', DataType.INTEGER, 100);
             store.set('average#', DataType.REAL, 50.5);
@@ -230,7 +258,8 @@ describe('Variable Store (Example)', () => {
             expect(store.get('average#')?.value).toBe(50.5);
         });
 
-        it('should handle many variables', () => {
+        it('should handle many variables', () =>
+        {
             for (let i = 0; i < 100; i++)
             {
                 store.set(`var${i}%`, DataType.INTEGER, i);
@@ -241,9 +270,11 @@ describe('Variable Store (Example)', () => {
         });
     });
 
-    describe('Complex Number Operations', () => {
+    describe('Complex Number Operations', () =>
+    {
 
-        it('should store and retrieve complex numbers', () => {
+        it('should store and retrieve complex numbers', () =>
+        {
             const z1: ComplexNumber = { real: 3, imag: 4 };
             const z2: ComplexNumber = { real: -2, imag: 1 };
 
@@ -254,13 +285,12 @@ describe('Variable Store (Example)', () => {
             expect(store.get('z2&')?.value).toEqual({ real: -2, imag: 1 });
         });
 
-        it('should handle zero complex number', () => {
+        it('should handle zero complex number', () =>
+        {
             const zero: ComplexNumber = { real: 0, imag: 0 };
             store.set('zero&', DataType.COMPLEX, zero);
 
             expect(store.get('zero&')?.value).toEqual({ real: 0, imag: 0 });
         });
     });
-
 });
-

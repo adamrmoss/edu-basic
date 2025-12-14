@@ -7,6 +7,7 @@ import { RouterOutlet } from '@angular/router';
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })
-export class AppComponent {
-    title = 'edu-basic';
+export class AppComponent
+{
+    public title = 'edu-basic';
 }
