@@ -1,12 +1,13 @@
 @use 'sass:map';
 @use 'ng-luna/theme/_breakpoints.scss' as *;
 
-luna-window
+#main-window
 {
     display: block;
     margin: 48px auto;
     max-width: map.get($breakpoints, lg);
 
+    // Temporary min-height until we populate the insides
     ::ng-deep .window-body
     {
         min-height: 512px;
