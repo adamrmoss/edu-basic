@@ -1,0 +1,9 @@
+@use 'sass:map';
+@use 'ng-luna/theme/_breakpoints.scss' as *;
+
+luna-window
+{
+    max-width: map.get($breakpoints, xl);
+    margin: 0 auto;
+    display: block;
+}
