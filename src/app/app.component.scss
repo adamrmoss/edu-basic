@@ -3,7 +3,12 @@
 
 luna-window
 {
-    max-width: map.get($breakpoints, xl);
-    margin: 0 auto;
     display: block;
+    margin: 48px auto;
+    max-width: map.get($breakpoints, lg);
+
+    ::ng-deep .window-body
+    {
+        min-height: 512px;
+    }
 }
