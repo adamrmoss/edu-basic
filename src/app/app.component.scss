@@ -8,27 +8,4 @@
     margin: 48px auto;
     max-width: map.get($breakpoints, lg);
 
-
-    ::ng-deep luna-tab
-    {
-        background-color: $navy-darkest;
-        color: $off-white;
-        padding: 16px;
-        display: block;
-
-        h3
-        {
-            color: $off-white;
-            margin-top: 0;
-        }
-
-        pre
-        {
-            background-color: $navy-darker;
-            color: $green-lightest;
-            padding: 12px;
-            border-radius: 4px;
-            overflow-x: auto;
-        }
-    }
 }
