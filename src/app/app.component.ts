@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { WindowComponent } from 'ng-luna';
+import { WindowComponent, TabsComponent, TabComponent } from 'ng-luna';
+import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-root',
-    imports: [ WindowComponent ],
+    imports: [ CommonModule, WindowComponent, TabsComponent, TabComponent ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })

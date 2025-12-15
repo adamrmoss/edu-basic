@@ -1,5 +1,6 @@
 @use 'sass:map';
 @use 'ng-luna/theme/_breakpoints.scss' as *;
+@use 'ng-luna/theme/_palette.scss' as *;
 
 #main-window
 {
@@ -7,9 +8,27 @@
     margin: 48px auto;
     max-width: map.get($breakpoints, lg);
 
-    // Temporary min-height until we populate the insides
-    ::ng-deep .window-body
+
+    ::ng-deep luna-tab
     {
-        min-height: 512px;
+        background-color: $navy-darkest;
+        color: $off-white;
+        padding: 16px;
+        display: block;
+
+        h3
+        {
+            color: $off-white;
+            margin-top: 0;
+        }
+
+        pre
+        {
+            background-color: $navy-darker;
+            color: $green-lightest;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
     }
 }
