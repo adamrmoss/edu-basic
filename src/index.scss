@@ -1,15 +1,8 @@
 @use 'ng-luna/theme/_breakpoints.scss' as *;
+@use 'ng-luna/theme/_fonts.scss' as *;
 @use 'ng-luna/theme/_reset.scss' as *;
 @use 'ng-luna/theme/_palette.scss' as *;
 @use 'ng-luna/theme/_z-layers.scss' as *;
-
-@use '@fontsource/ibm-plex-mono';
-@use '@fontsource/ibm-plex-sans';
-@use '@fontsource/ibm-plex-serif';
-
-$font-mono: 'IBM Plex Mono', monospace;
-$font-sans: 'IBM Plex Sans', sans-serif;
-$font-serif: 'IBM Plex Serif', serif;
 
 html
 {
