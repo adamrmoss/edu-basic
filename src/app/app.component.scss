@@ -5,7 +5,6 @@
 #main-window
 {
     display: block;
-    margin: 48px auto;
-    max-width: map.get($breakpoints, lg);
-
+    margin: 48px 48px;
+    max-width: map.get($breakpoints, sm);
 }
