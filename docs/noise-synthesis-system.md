@@ -12,6 +12,7 @@
 9. [Implementation Notes](#implementation-notes)
 10. [Worked Examples](#worked-examples)
 11. [Preset System](#preset-system)
+12. [Comparison with POKEY](#comparison-with-pokey)
 
 ---
 
@@ -43,12 +44,22 @@ The Atari POKEY chip was a sound generator used in Atari 8-bit computers and arc
 - High/low noise selection modes
 - Periodic noise modes created by clocking one LFSR with another
 
+**POKEY's Frequency Generation:**
+- POKEY used a master clock that was divided by a frequency divider (AUDCTL register)
+- The divided clock directly controlled the LFSR stepping rate
+- LFSR bits were output as pulse waves at the divided clock rate
+- Changing the frequency divider changed how fast the LFSR stepped, which changed both:
+  - The pitch of periodic noise (when pattern was short enough to be audible)
+  - The character of the noise (faster stepping = higher frequency content)
+- **Key limitation**: Frequency and noise character were coupled - you couldn't change pitch without changing the noise timbre
+
 ### Limitations of Classic PSGs
 - Fixed register sizes (often 15-bit or 17-bit LFSRs)
 - Limited clock routing options
 - Binary high/low noise selection
 - Hardware-specific tap configurations
 - Inflexible modulation capabilities
+- Frequency and noise character coupled together
 
 ### This System's Approach
 Rather than emulating POKEY exactly, this system:
@@ -56,6 +67,7 @@ Rather than emulating POKEY exactly, this system:
 - Replaces hardware clock routing with decimation and toggle operations
 - Provides a unified 32-bit LFSR architecture with user-selectable taps
 - Enables phase-destructive operations (XOR_SQUARE) for unique timbres
+- **Decouples frequency from noise character** - pitch and timbre can be controlled independently
 - Maintains compatibility with classic sounds while enabling new expressions
 
 ---
@@ -65,16 +77,38 @@ Rather than emulating POKEY exactly, this system:
 ### Signal Flow Overview
 ```
 [4x 32-bit LFSRs] → [Decimation] → [Logical Combination (COMB)] → 
-[Shape Modulation (SHAPE)] → [Toggle Operation] → [Output]
+[Shape Modulation (SHAPE)] → [Toggle Operation] → [Pulse Wave Conversion] → [Output]
 ```
 
 ### Key Components
 1. **Four Independent LFSRs (A, B, C, D)**: Each generates a pseudo-random bitstream
 2. **Decimation Unit**: Selectively samples LFSR outputs at reduced rates
 3. **Combination Logic (COMB)**: Combines LFSR outputs using logical operations
-4. **Shape Modulation**: Applies carrier-based shaping (XOR_SQUARE, etc.)
+4. **Shape Modulation (SHAPE)**: Applies carrier-based shaping (XOR_SQUARE, etc.)
 5. **Toggle Operation**: Deterministic polarity flipping for periodic noise effects
-6. **AudioWorkletNode**: Real-time DSP processing in a separate thread
+6. **Pulse Wave Conversion**: Converts bitstream to audio samples
+7. **AudioWorkletNode**: Real-time DSP processing in a separate thread
+
+### Pulse Wave Generation (Core Concept)
+
+**How This System Works:**
+- **We generate pulse waves directly from LFSR bitstreams** (not by dividing a master clock)
+- Each LFSR bit (0 or 1) is converted to a pulse wave sample: `bit ? +1.0 : -1.0`
+- Frequency parameter controls the **playback rate** of these pulse waves (pitch)
+- Decimation factor controls **how often LFSRs step** (noise character)
+- These are **decoupled** - you can change pitch without changing noise character
+
+**The Process:**
+1. LFSRs step at: `audio_sample_rate / decimation_factor` (generates bitstream)
+2. Bits are combined and shaped through COMB, SHAPE, and TOGGLE operations
+3. Each final bit becomes a pulse wave sample: `(bit === 1) ? +1.0 : -1.0`
+4. Frequency controls sample rate conversion or playback rate of these pulses
+5. Result: Pulse waves with noise-like character, pitch controlled independently
+
+**Key Difference from POKEY:**
+- POKEY: Frequency divider = LFSR clock rate = pulse wave rate (all coupled)
+- This system: Frequency = pulse wave playback rate, Decimation = LFSR stepping rate (decoupled)
+- We're not dividing a master clock - we're generating pulse waves from bitstreams
 
 ### Why AudioWorkletNode
 - Runs in a dedicated real-time audio thread (AudioWorkletGlobalScope)
@@ -82,6 +116,7 @@ Rather than emulating POKEY exactly, this system:
 - Enables sample-accurate LFSR stepping
 - Provides deterministic, reproducible audio generation
 - Similar performance characteristics to VST plugin process loops
+- Allows sample-by-sample processing required for LFSR-based noise generation
 
 ---
 
@@ -152,10 +187,12 @@ function stepLFSR(lfsr: number, taps: number): number {
 - Common choices include maximal-length sequences (period = 2^n - 1)
 - Non-maximal polynomials can create shorter, more musical periods
 
-### Stepping Rate vs Audio Sample Rate
-- LFSRs step at a rate determined by frequency and decimation
-- Frequency does NOT directly clock LFSRs (unlike POKEY)
-- Decimation factor divides the stepping rate
+### Stepping Rate Control
+- LFSRs step at: `audio_sample_rate / decimation_factor`
+- Decimation factor divides the effective stepping rate
+- Higher decimation = slower stepping = slower patterns (pitched noise)
+- Lower decimation = faster stepping = faster, noisier patterns
+- Frequency parameter does NOT control LFSR stepping rate (unlike POKEY)
 - This separation allows smooth frequency control without affecting noise character
 
 ---
@@ -166,14 +203,16 @@ function stepLFSR(lfsr: number, taps: number): number {
 Each enabled LFSR generates a bitstream:
 - Steps according to its polynomial and current state
 - Outputs a single bit per step (0 or 1)
-- Can be inverted before combination
+- Can be inverted before combination (via invert bits)
+- Stepping rate controlled by decimation factor
 
 ### 2. Decimation
 Decimation selectively samples LFSR outputs:
 - **Purpose**: Create sub-audio-rate patterns for pitched noise
-- **Mechanism**: Only every Nth sample is taken from the LFSR stream
+- **Mechanism**: Only every Nth sample is taken from the LFSR stream (where N = decimation factor)
 - **Effect**: When decimation is high (e.g., ÷16), the pattern repeats at an audible rate, creating pitched noise
 - **Interaction**: Decimation applies before combination, so each LFSR can have independent decimation (if supported)
+- **Relationship to POKEY**: Similar to POKEY's clock division, but decoupled from frequency control
 
 ### 3. Logical Combination (COMB)
 The COMB field defines how LFSR outputs are combined:
@@ -204,12 +243,18 @@ Toggle is a deterministic polarity flip operation:
 - **Periodic noise**: When combined with decimation, creates periodic noise without secondary clocks
 - **Interaction with frequency**: Toggle rate may be tied to frequency or decimation factor
 
-### 6. Output Generation
+### 6. Pulse Wave Conversion (Output Generation)
 The final processed signal:
-- Is a bitstream (0/1 or -1/+1)
-- May be converted to audio samples (bit ? 1.0 : -1.0)
+- Starts as a bitstream (0/1) from the LFSR combination and shaping operations
+- **Is converted to pulse waves**: Each bit becomes an audio sample
+  - `bit === 1` → `+1.0` (or `+0.5` for lower amplitude)
+  - `bit === 0` → `-1.0` (or `-0.5` for lower amplitude)
+- This creates a pulse wave with duty cycle determined by the bitstream pattern
+- Frequency parameter controls the playback rate of these pulse waves (pitch)
 - Can be filtered, gain-controlled, or further processed
 - Maintains deterministic behavior for reproducible results
+
+**Important**: We are generating pulse waves, not using frequency dividers. The pulse wave rate (frequency) is independent from the LFSR stepping rate (decimation).
 
 ---
 
@@ -264,6 +309,7 @@ The final processed signal:
 - Higher values create slower patterns (pitched noise)
 - Lower values create faster, noisier patterns
 - Applied before combination (affects all LFSRs uniformly, or per-LFSR if supported)
+- Decoupled from frequency control (unlike POKEY's clock division)
 
 ### LFSR Enable Bits (A_EN, B_EN, C_EN, D_EN)
 **Purpose**: Enable/disable individual LFSRs
@@ -347,9 +393,12 @@ The 64-entry preset table provides:
 
 ### Floating-Point Considerations
 - LFSR state is maintained as integers (32-bit)
-- Conversion to audio samples: `(bit ? 1.0 : -1.0)` or `(bit ? 0.5 : -0.5)`
+- **Pulse wave conversion**: Each LFSR bit becomes an audio sample
+  - `(bit === 1) ? +1.0 : -1.0` (full amplitude pulse wave)
+  - Or `(bit === 1) ? +0.5 : -0.5` (half amplitude)
+- This creates a pulse wave with duty cycle determined by the bitstream pattern
 - No precision loss expected (32-bit fits in 53-bit mantissa)
-- Avoid floating-point operations in the LFSR stepping loop
+- Avoid floating-point operations in the LFSR stepping loop (keep it integer-based)
 
 ### Determinism Guarantees
 - LFSR state is fully deterministic given initial state and polynomial
@@ -374,10 +423,13 @@ class NoiseProcessor extends AudioWorkletProcessor {
 ```
 
 ### Frequency Control
-- Frequency parameter controls output sample rate, not LFSR clock rate directly
-- Decimation factor divides the effective stepping rate
+- Frequency parameter controls **pulse wave playback rate** (pitch), not LFSR stepping rate
+- The LFSR bitstream is converted to pulse waves: `(bit ? +1.0 : -1.0)`
+- Frequency determines how fast these pulse wave samples are played back
+- Decimation factor controls LFSR stepping rate (how often bits are generated)
 - Smooth frequency changes don't affect noise character (unlike POKEY)
 - Frequency automation can create pitch sweeps in pitched noise modes
+- **We are not using frequency dividers** - we generate pulse waves directly from bitstreams
 
 ### Performance Considerations
 - LFSR stepping is extremely fast (bit operations)
@@ -492,6 +544,7 @@ Each preset is a single NoiseCode value that can be:
 - High/low noise selection
 - Hardware-specific tap configurations
 - Fixed register sizes
+- Frequency divider controlled both pitch and noise character (coupled)
 
 ### What This System Does Differently
 1. **Logical Combination vs Clock Coupling**
@@ -499,10 +552,13 @@ Each preset is a single NoiseCode value that can be:
    - This system: LFSRs run independently, combined logically
    - Result: More flexible, can reproduce POKEY sounds plus new possibilities
 
-2. **Decimation vs Clock Division**
-   - POKEY: Clock division built into hardware
-   - This system: Decimation as a separate, flexible parameter
-   - Result: Smooth frequency control without affecting noise character
+2. **Pulse Wave Generation vs Clock Division**
+   - POKEY: Clock division → LFSR clock → pulse wave output (all coupled)
+   - This system: LFSR bitstream → pulse wave conversion → frequency-controlled playback (decoupled)
+   - **Key difference**: We generate pulse waves from bitstreams, not by dividing a master clock
+   - Decimation controls LFSR stepping rate (noise character)
+   - Frequency controls pulse wave playback rate (pitch)
+   - Result: Smooth frequency control without affecting noise character, plus ability to change noise character independently
 
 3. **Toggle vs Secondary Clocking**
    - POKEY: Periodic noise via secondary LFSR clocking
@@ -522,6 +578,7 @@ Each preset is a single NoiseCode value that can be:
 ### Why This Surpasses POKEY
 - **More Expressive**: Can create sounds POKEY cannot
 - **More Flexible**: Parameter control not limited by hardware
+- **Decoupled Control**: Frequency and noise character are independent
 - **Reproducible**: Can still create classic POKEY sounds
 - **Extensible**: New operations can be added
 - **Deterministic**: Reproducible results for game audio
@@ -557,6 +614,8 @@ This noise synthesis system represents a modern evolution of classic PSG technol
 
 The NoiseCode bitfield provides a compact representation of the entire synthesis configuration, making it suitable for storage, transmission, and real-time modification. The 64-entry preset table offers curated starting points for common sound types, while the underlying architecture supports unlimited creative exploration.
 
+**Key Innovation**: The decoupling of frequency (pitch) from decimation (noise character) allows independent control of these parameters, something POKEY could not achieve due to its hardware design.
+
 ---
 
 ## Appendix: Key Design Decisions
@@ -573,12 +632,19 @@ The NoiseCode bitfield provides a compact representation of the entire synthesis
 - Sample-accurate processing
 - Deterministic behavior
 - VST-like performance characteristics
+- Required for sample-by-sample LFSR stepping
 
 ### Why Not PeriodicWave?
 - PeriodicWave is static (coefficients can't change in real-time)
 - LFSR noise is pseudorandom, not periodic in Fourier sense
 - AudioWorkletNode allows sample-by-sample LFSR stepping
 - True POKEY noise requires algorithmic generation
+
+### Why Pulse Waves Instead of Frequency Dividers?
+- Pulse waves provide direct control over pitch (frequency) independent of noise character (decimation)
+- Allows decoupling that POKEY's hardware design couldn't achieve
+- More flexible - can change pitch without affecting timbre
+- Matches the bitstream nature of LFSR output naturally
 
 ### Why Logical Combination?
 - More flexible than hardware clock coupling
@@ -595,4 +661,3 @@ The NoiseCode bitfield provides a compact representation of the entire synthesis
 ---
 
 *This document captures the complete design intent and architectural decisions for the noise synthesis system. It should serve as the authoritative reference for implementation and future development.*
-
