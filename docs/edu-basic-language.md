@@ -32,9 +32,51 @@
   - [SUB Procedures](#sub-procedures)
   - [END Statement](#end-statement)
   - [Summary: Structured vs. Unstructured Flow Control](#summary-structured-vs-unstructured-flow-control)
-- [Console I/O](#console-io)
+- [Text I/O](#text-io)
+  - [PRINT Statement](#print-statement)
+  - [INPUT Statement](#input-statement)
+  - [LOCATE Statement](#locate-statement)
+  - [COLOR Statement](#color-statement)
+  - [SET Statement](#set-statement)
+  - [String Operations](#string-operations)
+    - [String Concatenation](#string-concatenation)
+    - [String Slicing](#string-slicing)
+    - [String Length](#string-length)
+    - [String Comparison](#string-comparison)
+    - [String Functions](#string-functions)
 - [File I/O](#file-io)
+  - [Opening and Closing Files](#opening-and-closing-files)
+    - [OPEN Statement](#open-statement)
+    - [CLOSE Statement](#close-statement)
+  - [Reading from Files](#reading-from-files)
+    - [LINE INPUT Statement (Text)](#line-input-statement-text)
+    - [READ Statement (Binary)](#read-statement-binary)
+  - [Writing to Files](#writing-to-files)
+    - [WRITE Statement (Text and Binary)](#write-statement-text-and-binary)
+  - [File Navigation](#file-navigation)
+    - [SEEK Statement](#seek-statement)
+    - [EOF Function](#eof-function)
+    - [LOC Function](#loc-function)
+  - [Convenience File Operations](#convenience-file-operations)
+    - [READFILE Statement](#readfile-statement)
+    - [WRITEFILE Statement](#writefile-statement)
+    - [LISTDIR Statement](#listdir-statement)
+    - [MKDIR Statement](#mkdir-statement)
+    - [RMDIR Statement](#rmdir-statement)
+    - [COPY Statement](#copy-statement)
+    - [MOVE Statement](#move-statement)
+    - [DELETE Statement](#delete-statement)
+  - [File I/O Examples](#file-io-examples)
 - [Graphics](#graphics)
+  - [CLS Statement](#cls-statement)
+  - [PSET Statement](#pset-statement)
+  - [LINE Statement](#line-statement)
+  - [CIRCLE Statement](#circle-statement)
+  - [PAINT Statement](#paint-statement)
+  - [GET Statement](#get-statement)
+  - [PUT Statement](#put-statement)
+  - [COLOR Statement (Graphics)](#color-statement-graphics)
+  - [Graphics Examples](#graphics-examples)
 - [Audio](#audio)
 - [Command and Function Reference](#command-and-function-reference)
   - (Alphabetical listing of 70+ commands, functions, and operators)
@@ -246,19 +288,19 @@ The `SWAP` command exchanges the values of two variables. Both variables must be
 
 **Syntax:**
 ```
-SWAP variable1, variable2
+SWAP variable1 WITH variable2
 ```
 
 **Example:**
 ```
 LET x% = 5
 LET y% = 10
-SWAP x%, y%
+SWAP x% WITH y%
 PRINT x%, y%        ' Prints: 10    5
 
 LET firstName$ = "John"
 LET lastName$ = "Doe"
-SWAP firstName$, lastName$
+SWAP firstName$ WITH lastName$
 PRINT firstName$, lastName$    ' Prints: Doe    John
 ```
 
@@ -808,8 +850,8 @@ WEND
 ```
 
 ```
-WHILE NOT EOF(fileHandle%)
-    LINE INPUT #fileHandle%, line$
+WHILE NOT EOF fileHandle%
+    LINE INPUT line$ FROM #fileHandle%
     PRINT line$
 WEND
 ```
@@ -1120,11 +1162,1105 @@ While `GOTO` and `GOSUB` are available for educational purposes and backwards co
 
 **Note:** EduBASIC does not have user-defined functions. Use `SUB` procedures with `BYREF` parameters to return computed values.
 
-## Console I/O
+## Text I/O
+
+EduBASIC provides a text output system that is separate from the 640×480 graphics system. The text system is rendered as an overlay on top of the graphics display, allowing you to combine text output with graphics operations. Text is displayed in a character grid, and you can control the position, color, and formatting of text output.
+
+**Note:** All colors in EduBASIC use 32-bit RGBA format, where each component (Red, Green, Blue, Alpha) is 8 bits, allowing for 256 levels per channel and full transparency control.
+
+### PRINT Statement
+
+The `PRINT` statement outputs text and values to the text display.
+
+**Syntax:**
+```
+PRINT expression1, expression2, ...
+PRINT expression1; expression2; ...
+PRINT
+```
+
+**Output Formatting:**
+- **Comma (`,`):** Separates items with tab spacing
+- **Semicolon (`;`):** Separates items with no spacing (concatenated)
+- **No separator:** Ends the line (same as semicolon followed by newline)
+- **Ending with semicolon:** Suppresses the newline, so the next `PRINT` continues on the same line
+- **Empty `PRINT`:** Outputs a blank line (newline only)
+
+**Controlling Newlines:**
+- To avoid a newline at the end of output, end the `PRINT` statement with a semicolon
+- To output a blank line, use an empty `PRINT` statement (no arguments)
+
+**Examples:**
+```
+PRINT "Hello, world!"
+PRINT "Name: "; name$; " Age: "; age%
+PRINT "X:", x%, "Y:", y%
+
+' Suppress newline to continue on same line
+PRINT "Enter your name: ";
+INPUT name$
+
+' Print blank lines for spacing
+PRINT
+PRINT "Line 1"
+PRINT
+PRINT "Line 3"
+
+' Multiple items on same line
+PRINT "Count: "; count%; "  ";
+PRINT "Total: "; total#
+```
+
+**Special Characters:**
+- `\n` - Newline
+- `\t` - Tab
+- `\"` - Literal double quote
+- `\\` - Literal backslash
+
+### INPUT Statement
+
+The `INPUT` statement reads a value from the user and assigns it to a variable. Unlike traditional BASIC dialects, `INPUT` is separate from the prompt, allowing you to use `PRINT` for more flexible prompt formatting.
+
+**Syntax:**
+```
+INPUT variable
+```
+
+**Rules:**
+- `INPUT` can read any data type (integer, real, string, complex)
+- The variable's type sigil determines what type of value is expected
+- The prompt is displayed separately using `PRINT` before the `INPUT` statement
+- After the user enters a value and presses Enter, the value is assigned to the variable
+- If the input cannot be converted to the variable's type, an error occurs
+
+**Examples:**
+```
+' Reading an integer
+PRINT "Enter your age: ";
+INPUT age%
+PRINT "You are "; age%; " years old"
+
+' Reading a real number
+PRINT "Enter temperature: ";
+INPUT temperature#
+PRINT "Temperature is "; temperature#
+
+' Reading a string
+PRINT "Enter your name: ";
+INPUT name$
+PRINT "Hello, "; name$; "!"
+
+' Reading a complex number
+PRINT "Enter complex number (e.g., 3+4i): ";
+INPUT z&
+PRINT "You entered: "; z&
+
+' Reading multiple values
+PRINT "Enter X coordinate: ";
+INPUT x%
+PRINT "Enter Y coordinate: ";
+INPUT y%
+PRINT "Position: ("; x%; ", "; y%; ")"
+
+' Using LOCATE for formatted input
+LOCATE 10, 1
+PRINT "Name: ";
+INPUT playerName$
+LOCATE 11, 1
+PRINT "Score: ";
+INPUT score%
+```
+
+**Note:** Since `INPUT` is separate from the prompt, you have full control over how prompts are displayed. Use `PRINT` with a semicolon at the end to keep the cursor on the same line as the prompt, or use `LOCATE` to position prompts precisely.
+
+### LOCATE Statement
+
+The `LOCATE` statement positions the text cursor at a specific row and column in the text display.
+
+**Syntax:**
+```
+LOCATE row%, column%
+```
+
+**Rules:**
+- Row and column are 1-based (row 1, column 1 is the top-left corner)
+- The text display has a fixed character grid size
+- After `LOCATE`, subsequent `PRINT` statements output at the specified position
+
+**Examples:**
+```
+LOCATE 10, 20
+PRINT "This text appears at row 10, column 20"
+
+LOCATE 1, 1
+PRINT "Top-left corner"
+
+FOR row% = 1 TO 10
+    LOCATE row%, row%
+    PRINT "*"
+NEXT row%
+```
+
+### COLOR Statement
+
+The `COLOR` statement sets the foreground and/or background color for subsequent text output.
+
+**Syntax:**
+```
+COLOR foregroundColor%
+COLOR foregroundColor%, backgroundColor%
+```
+
+**Color Format:**
+- Colors are specified as 32-bit RGBA integers
+- Format: `0xRRGGBBAA` (hexadecimal) or decimal
+- Each component (R, G, B, A) ranges from 0-255
+- Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
+
+**Common Colors (examples):**
+```
+LET black% = &H000000FF      ' Black (opaque)
+LET white% = &HFFFFFFFF      ' White (opaque)
+LET red% = &HFF0000FF        ' Red (opaque)
+LET green% = &H00FF00FF      ' Green (opaque)
+LET blue% = &H0000FFFF       ' Blue (opaque)
+LET yellow% = &HFFFF00FF     ' Yellow (opaque)
+LET transparent% = &HFFFFFF00 ' White (fully transparent)
+```
+
+**Examples:**
+```
+COLOR &HFF0000FF        ' Red text
+PRINT "This is red text"
+
+COLOR &HFFFFFF00, &H000000FF  ' Transparent text on black background
+PRINT "Invisible text on black"
+
+LET myColor% = &H00FF00FF
+COLOR myColor%
+PRINT "Green text"
+```
+
+**Note:** The default text color is white on a transparent background. Colors persist until changed by another `COLOR` statement.
+
+### SET Statement
+
+The `SET` statement configures system-wide settings for the text display system.
+
+**Syntax:**
+```
+SET LINE SPACING ON
+SET LINE SPACING OFF
+```
+
+**Text Grid Dimensions:**
+
+EduBASIC uses IBM Plex Mono font, where each character is rendered at exactly 8×16 graphics pixels. The text display grid dimensions depend on the line spacing setting:
+
+- **With line spacing OFF (default):** The text grid is **80×30 characters**
+  - Width: 640 pixels ÷ 8 pixels per character = 80 columns
+  - Height: 480 pixels ÷ 16 pixels per character = 30 rows
+  - Characters are rendered with no extra spacing between lines
+
+- **With line spacing ON:** The text grid is **80×24 characters**
+  - Width: 640 pixels ÷ 8 pixels per character = 80 columns (unchanged)
+  - Height: 480 pixels ÷ (16 pixels per character + 4 pixels spacing) = 24 rows
+  - Each line of text has 4 additional pixels of spacing after it, making text more readable but reducing the number of available rows
+
+**Examples:**
+```
+SET LINE SPACING OFF    ' Use 80×30 character grid (default)
+LOCATE 30, 1
+PRINT "Bottom row"
+
+SET LINE SPACING ON     ' Use 80×24 character grid
+LOCATE 24, 1
+PRINT "Bottom row with spacing"
+```
+
+**Note:** The line spacing setting affects the entire text display and persists until changed. When line spacing is enabled, the additional 4 pixels of vertical spacing are added after each character row, creating more readable text at the cost of fewer available rows.
+
+### String Operations
+
+EduBASIC provides several operations for working with string data.
+
+#### String Concatenation
+
+Strings can be concatenated using the `+` operator or by using semicolons in `PRINT` statements.
+
+**Syntax:**
+```
+LET result$ = string1$ + string2$
+LET result$ = string1$ + "literal" + string2$
+```
+
+**Examples:**
+```
+LET firstName$ = "John"
+LET lastName$ = "Doe"
+LET fullName$ = firstName$ + " " + lastName$
+PRINT fullName$    ' Prints: John Doe
+
+LET greeting$ = "Hello, " + name$ + "!"
+LET message$ = "Value: " + STR$(number%)
+```
+
+#### String Slicing
+
+Strings can be sliced to extract substrings using square bracket notation with index ranges.
+
+**Syntax:**
+```
+LET substring$ = string$[startIndex TO endIndex]
+LET substring$ = string$[startIndex]
+LET substring$ = string$[... TO endIndex]
+LET substring$ = string$[startIndex TO ...]
+LET substring$ = string$[... TO ...]
+```
+
+**Rules:**
+- String indices are **1-based** (first character is at index 1)
+- `string$[startIndex TO endIndex]` extracts characters from `startIndex` to `endIndex` (inclusive)
+- `string$[startIndex]` extracts a single character at `startIndex`
+- `...` (ellipsis) can be used in place of `startIndex` or `endIndex` to mean the start or end of the string respectively
+  - `string$[... TO endIndex]` extracts from the beginning of the string to `endIndex`
+  - `string$[startIndex TO ...]` extracts from `startIndex` to the end of the string
+  - `string$[... TO ...]` extracts the entire string
+- Out-of-range indices result in an empty string or error
+
+**Examples:**
+```
+LET text$ = "Hello, world!"
+
+LET firstChar$ = text$[1]              ' "H"
+LET firstWord$ = text$[1 TO 5]         ' "Hello"
+LET world$ = text$[8 TO 12]            ' "world"
+LET lastChar$ = text$[LEN(text$)]      ' "!"
+
+LET name$ = "Alice"
+LET firstThree$ = name$[1 TO 3]        ' "Ali"
+LET lastTwo$ = name$[4 TO 5]           ' "ce"
+
+' Using ellipsis for start/end of string
+LET fromStart$ = text$[... TO 5]       ' "Hello" (from start to position 5)
+LET toEnd$ = text$[8 TO ...]            ' "world!" (from position 8 to end)
+LET entire$ = text$[... TO ...]         ' "Hello, world!" (entire string)
+LET suffix$ = name$[3 TO ...]          ' "ice" (from position 3 to end)
+```
+
+#### String Length
+
+Use the `LEN` function to get the length of a string.
+
+**Syntax:**
+```
+LET length% = LEN(string$)
+```
+
+**Example:**
+```
+LET text$ = "Hello"
+LET size% = LEN(text$)    ' size% = 5
+```
+
+#### String Comparison
+
+Strings can be compared using standard comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`). Comparisons are case-sensitive and use lexicographic (alphabetical) ordering.
+
+**Examples:**
+```
+IF name$ = "Alice" THEN PRINT "Found Alice"
+IF text1$ <> text2$ THEN PRINT "Different"
+IF word$ < "middle" THEN PRINT "Comes before 'middle'"
+```
+
+#### String Functions
+
+**`STR$` - Convert number to string:**
+```
+LET num% = 42
+LET numStr$ = STR$(num%)    ' "42"
+LET piStr$ = STR$(3.14159)  ' "3.14159"
+```
+
+**`VAL` - Convert string to number:**
+```
+LET text$ = "123"
+LET number% = VAL(text$)    ' 123
+LET decimal$ = "3.14"
+LET value# = VAL(decimal$)  ' 3.14
+```
+
+**`CHR$` - Convert ASCII code to character:**
+```
+LET char$ = CHR$(65)        ' "A"
+LET newline$ = CHR$(10)     ' Newline character
+```
+
+**`ASC` - Convert character to ASCII code:**
+```
+LET code% = ASC("A")        ' 65
+LET code% = ASC("a")        ' 97
+```
+
+**`UCASE$` - Convert to uppercase:**
+```
+LET upper$ = UCASE$("hello")    ' "HELLO"
+```
+
+**`LCASE$` - Convert to lowercase:**
+```
+LET lower$ = LCASE$("WORLD")    ' "world"
+```
+
+**`LTRIM$` - Remove leading spaces:**
+```
+LET trimmed$ = LTRIM$("  text")    ' "text"
+```
+
+**`RTRIM$` - Remove trailing spaces:**
+```
+LET trimmed$ = RTRIM$("text  ")    ' "text"
+```
+
+**`TRIM$` - Remove leading and trailing spaces:**
+```
+LET trimmed$ = TRIM$("  text  ")   ' "text"
+```
+
+**`INSTR` - Find substring position:**
+```
+LET pos% = INSTR("Hello world", "world")    ' 7
+LET pos% = INSTR(5, "Hello world", "o")    ' 5 (start search at position 5)
+```
+
+**`REPLACE$` - Replace substring:**
+```
+LET new$ = REPLACE$("Hello world", "world", "EduBASIC")    ' "Hello EduBASIC"
+```
+
+**Note:** Functions like `LEFT$`, `RIGHT$`, and `MID$` are not provided as built-in functions since they can be easily implemented using string slicing:
+- `LEFT$(text$, n)` is equivalent to `text$[1 TO n]`
+- `RIGHT$(text$, n)` is equivalent to `text$[LEN(text$) - n + 1 TO LEN(text$)]`
+- `MID$(text$, start, length)` is equivalent to `text$[start TO start + length - 1]`
 
 ## File I/O
 
+EduBASIC provides comprehensive file input/output operations for reading and writing both text and binary data. All file operations use UTF-8 encoding for text data, and files can mix text and binary operations seamlessly.
+
+**Note:** File handles are integer identifiers that reference open files. You must explicitly open files before use and close them when finished.
+
+### Opening and Closing Files
+
+#### OPEN Statement
+
+The `OPEN` statement opens a file and assigns a handle to a variable.
+
+**Syntax:**
+```
+OPEN "filename" FOR mode AS fileHandle%
+```
+
+**Modes:**
+- `READ` - Open file for reading only
+- `APPEND` - Open file for writing, appending to the end
+- `OVERWRITE` - Open file for writing, replacing existing content
+
+**Rules:**
+- The file handle variable receives an integer identifier
+- Files must be opened before any read/write operations
+- Attempting to open a non-existent file in `READ` mode causes an error
+- Opening a non-existent file in `APPEND` or `OVERWRITE` mode creates the file
+- The file handle is just an integer ID; it does not store file state
+
+**Examples:**
+```
+OPEN "data.txt" FOR READ AS inputFile%
+OPEN "output.txt" FOR OVERWRITE AS outputFile%
+OPEN "log.txt" FOR APPEND AS logFile%
+```
+
+#### CLOSE Statement
+
+The `CLOSE` statement closes an open file.
+
+**Syntax:**
+```
+CLOSE fileHandle%
+```
+
+**Examples:**
+```
+OPEN "data.txt" FOR READ AS file%
+' ... read operations ...
+CLOSE file%
+```
+
+### Reading from Files
+
+EduBASIC supports both text and binary reading operations.
+
+#### LINE INPUT Statement (Text)
+
+The `LINE INPUT` statement reads a complete line of text from a file.
+
+**Syntax:**
+```
+LINE INPUT lineVariable$ FROM #fileHandle%
+```
+
+**Rules:**
+- Reads one line including the newline character
+- The newline character is included in the string
+- At end of file, an error occurs (check with `EOF` first)
+
+**Examples:**
+```
+OPEN "data.txt" FOR READ AS file%
+
+WHILE NOT EOF file%
+    LINE INPUT line$ FROM #file%
+    PRINT line$
+WEND
+
+CLOSE file%
+```
+
+#### READ Statement (Binary)
+
+The `READ` statement reads binary data from a file based on the variable's type.
+
+**Syntax:**
+```
+READ variable FROM fileHandle%
+```
+
+**Rules:**
+- Reads binary data matching the variable's type
+- Integer: reads 4 bytes (32-bit signed integer)
+- Real: reads 8 bytes (64-bit floating-point)
+- Complex: reads 16 bytes (128-bit complex number)
+- String: reads the string's length prefix and data
+- Reading advances the file position
+- At end of file, an error occurs (check with `EOF` first)
+
+**Examples:**
+```
+OPEN "data.bin" FOR READ AS file%
+
+READ count% FROM file%
+DIM numbers%[count%]
+
+FOR i% = 1 TO count%
+    READ numbers%[i%] FROM file%
+NEXT i%
+
+CLOSE file%
+```
+
+### Writing to Files
+
+EduBASIC supports both text and binary writing operations.
+
+#### WRITE Statement (Text and Binary)
+
+The `WRITE` statement writes data to a file. For text, it writes the string representation. For binary, it writes the raw binary data.
+
+**Syntax:**
+```
+WRITE expression TO fileHandle%
+WRITE "text" TO fileHandle%
+WRITE variable TO fileHandle%
+```
+
+**Rules:**
+- For strings: writes the text followed by a newline
+- For numbers: writes the binary representation (not text)
+- Multiple `WRITE` statements can be used to build file content
+- Text and binary operations can be mixed in the same file
+
+**Examples:**
+```
+OPEN "output.txt" FOR OVERWRITE AS file%
+
+WRITE "Name: " TO file%
+WRITE playerName$ TO file%
+WRITE "Score: " TO file%
+WRITE score% TO file%
+
+CLOSE file%
+```
+
+**Binary Writing Example:**
+```
+OPEN "data.bin" FOR OVERWRITE AS file%
+
+LET count% = 5
+WRITE count% TO file%    ' Write binary integer
+
+FOR i% = 1 TO count%
+    WRITE numbers%[i%] TO file%    ' Write binary integers
+NEXT i%
+
+CLOSE file%
+```
+
+### File Navigation
+
+#### SEEK Statement
+
+The `SEEK` statement positions the file pointer at a specific byte position.
+
+**Syntax:**
+```
+SEEK position% IN #fileHandle%
+```
+
+**Rules:**
+- Position is always in bytes (0-based)
+- Position 0 is the beginning of the file
+- For text files, positions refer to UTF-8 byte positions
+- Seeking past end of file is allowed (file will extend on write)
+
+**Examples:**
+```
+OPEN "data.bin" FOR READ AS file%
+
+SEEK 100 IN #file%    ' Jump to byte 100
+READ value% FROM file%
+
+SEEK 0 IN #file%      ' Return to beginning
+CLOSE file%
+```
+
+#### EOF Function
+
+The `EOF` function checks if the file pointer is at the end of the file.
+
+**Syntax:**
+```
+EOF fileHandle%
+```
+
+**Returns:** Integer (0 = false, -1 = true)
+
+**Examples:**
+```
+OPEN "data.txt" FOR READ AS file%
+
+WHILE NOT EOF file%
+    LINE INPUT line$ FROM #file%
+    PRINT line$
+WEND
+
+CLOSE file%
+```
+
+#### LOC Function
+
+The `LOC` function returns the current byte position in the file.
+
+**Syntax:**
+```
+LOC fileHandle%
+```
+
+**Returns:** Integer (current byte position, 0-based)
+
+**Examples:**
+```
+OPEN "data.bin" FOR READ AS file%
+
+LET startPos% = LOC file%
+READ value% FROM file%
+LET endPos% = LOC file%
+LET bytesRead% = endPos% - startPos%
+
+CLOSE file%
+```
+
+### Convenience File Operations
+
+EduBASIC provides convenient statements for common file operations.
+
+#### READFILE Statement
+
+The `READFILE` statement reads an entire file into a string variable.
+
+**Syntax:**
+```
+READFILE "filename" INTO contentVariable$
+```
+
+**Examples:**
+```
+READFILE "config.txt" INTO config$
+PRINT config$
+
+READFILE "data.json" INTO jsonData$
+' Process jsonData$
+```
+
+#### WRITEFILE Statement
+
+The `WRITEFILE` statement writes an entire string to a file.
+
+**Syntax:**
+```
+WRITEFILE "filename" FROM contentVariable$
+WRITEFILE contentVariable$ TO "filename"
+```
+
+**Examples:**
+```
+LET report$ = "Sales Report" + CHR$(10) + "Total: $1000"
+WRITEFILE "report.txt" FROM report$
+
+WRITEFILE output$ TO "results.txt"
+```
+
+#### LISTDIR Statement
+
+The `LISTDIR` statement lists files in a directory.
+
+**Syntax:**
+```
+LISTDIR "path" INTO filesArray$[]
+```
+
+**Rules:**
+- Returns an array of filenames (strings)
+- Array is 1-based
+- Includes files and subdirectories
+- Use `DIM` to declare the array first, or it will be created automatically
+
+**Examples:**
+```
+LISTDIR "." INTO files$[]
+FOR i% = 1 TO LEN(files$[])
+    PRINT files$[i%]
+NEXT i%
+
+LISTDIR "/Users/name/Documents" INTO docs$[]
+```
+
+#### MKDIR Statement
+
+The `MKDIR` statement creates a directory.
+
+**Syntax:**
+```
+MKDIR "path"
+```
+
+**Examples:**
+```
+MKDIR "backups"
+MKDIR "/Users/name/data"
+```
+
+#### RMDIR Statement
+
+The `RMDIR` statement removes an empty directory.
+
+**Syntax:**
+```
+RMDIR "path"
+```
+
+**Examples:**
+```
+RMDIR "temp"
+RMDIR "/Users/name/old_data"
+```
+
+#### COPY Statement
+
+The `COPY` statement copies a file.
+
+**Syntax:**
+```
+COPY "source" TO "destination"
+```
+
+**Examples:**
+```
+COPY "data.txt" TO "backup.txt"
+COPY "/source/file.bin" TO "/dest/file.bin"
+```
+
+#### MOVE Statement
+
+The `MOVE` statement moves or renames a file.
+
+**Syntax:**
+```
+MOVE "source" TO "destination"
+```
+
+**Examples:**
+```
+MOVE "oldname.txt" TO "newname.txt"
+MOVE "/temp/file.txt" TO "/final/file.txt"
+```
+
+#### DELETE Statement
+
+The `DELETE` statement deletes a file.
+
+**Syntax:**
+```
+DELETE "filename"
+```
+
+**Examples:**
+```
+DELETE "temp.txt"
+DELETE "/Users/name/old_data.bin"
+```
+
+### File I/O Examples
+
+**Example: Reading and Writing Text:**
+```
+OPEN "students.txt" FOR READ AS inputFile%
+OPEN "grades.txt" FOR OVERWRITE AS outputFile%
+
+WHILE NOT EOF inputFile%
+    LINE INPUT line$ FROM #inputFile%
+    ' Parse line$ to extract name$ and score%
+    ' (parsing logic here)
+    
+    IF score% >= 90 THEN
+        WRITE name$ TO outputFile%
+        WRITE "A" TO outputFile%
+    END IF
+WEND
+
+CLOSE inputFile%
+CLOSE outputFile%
+```
+
+**Example: Binary Data Storage:**
+```
+' Write binary data
+OPEN "scores.bin" FOR OVERWRITE AS file%
+LET count% = 3
+WRITE count% TO file%
+WRITE 95 TO file%
+WRITE 87 TO file%
+WRITE 92 TO file%
+CLOSE file%
+
+' Read binary data
+OPEN "scores.bin" FOR READ AS file%
+READ count% FROM file%
+DIM scores%[count%]
+FOR i% = 1 TO count%
+    READ scores%[i%] FROM file%
+NEXT i%
+CLOSE file%
+```
+
+**Example: Mixed Text and Binary:**
+```
+OPEN "mixed.dat" FOR OVERWRITE AS file%
+
+' Write text header
+WRITE "Data File v1.0" TO file%
+
+' Write binary data
+LET recordCount% = 10
+WRITE recordCount% TO file%
+FOR i% = 1 TO recordCount%
+    WRITE data%[i%] TO file%
+NEXT i%
+
+' Write text footer
+WRITE "End of file" TO file%
+
+CLOSE file%
+```
+
 ## Graphics
+
+EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, and images. The graphics display is separate from the text system and is rendered at a fixed resolution of 640×480 pixels.
+
+**Coordinate System:**
+- Graphics coordinates use **(0, 0) at the bottom-left corner** (mathematical convention)
+- X increases to the right (0 to 639)
+- Y increases upward (0 to 479)
+- This is different from the text grid, which uses 1-based coordinates with top-left origin
+
+**Color Format:**
+- All graphics operations use **32-bit RGBA** color format
+- Format: `0xRRGGBBAA` (hexadecimal) or decimal
+- Each component (R, G, B, A) ranges from 0-255
+- Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
+
+**Note:** The text display system overlays the graphics display, allowing you to combine text and graphics in the same program.
+
+### CLS Statement
+
+The `CLS` statement clears the graphics screen.
+
+**Syntax:**
+```
+CLS
+CLS WITH backgroundColor%
+```
+
+**Rules:**
+- Without a color, clears to black (0x000000FF)
+- With a color, clears to the specified background color
+- Does not affect the text display
+
+**Examples:**
+```
+CLS    ' Clear to black
+
+CLS WITH &H000033FF    ' Clear to dark blue
+```
+
+### PSET Statement
+
+The `PSET` statement sets a single pixel to a specified color.
+
+**Syntax:**
+```
+PSET (x%, y%) WITH color%
+```
+
+**Rules:**
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+- X ranges from 0 to 639
+- Y ranges from 0 to 479
+- Color is a 32-bit RGBA integer
+
+**Examples:**
+```
+PSET (100, 200) WITH &HFF0000FF    ' Red pixel
+
+FOR i% = 0 TO 639
+    PSET (i%, 240) WITH &HFFFFFFFF    ' White horizontal line
+NEXT i%
+```
+
+### LINE Statement
+
+The `LINE` statement draws a line between two points.
+
+**Syntax:**
+```
+LINE FROM (x1%, y1%) TO (x2%, y2%) WITH color%
+LINE FROM (x1%, y1%) TO (x2%, y2%) WITH color% FILLED
+```
+
+**Rules:**
+- Draws a line from point (x1%, y1%) to point (x2%, y2%)
+- With `FILLED`, draws a filled rectangle (useful for drawing boxes)
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+
+**Examples:**
+```
+LINE FROM (10, 10) TO (100, 50) WITH &H00FF00FF    ' Green line
+
+' Draw a rectangle outline
+LINE FROM (50, 50) TO (150, 150) WITH &HFFFFFFFF
+
+' Draw a filled rectangle
+LINE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED
+```
+
+### CIRCLE Statement
+
+The `CIRCLE` statement draws a circle or ellipse.
+
+**Syntax:**
+```
+CIRCLE AT (x%, y%) RADIUS radius# WITH color%
+CIRCLE AT (x%, y%) RADIUS radius# WITH color% FILLED
+CIRCLE AT (x%, y%) RADIUS radius# WITH color% ASPECT aspectRatio#
+```
+
+**Rules:**
+- Center point is at (x%, y%)
+- Radius is a real number (can be fractional)
+- With `FILLED`, draws a filled circle
+- With `ASPECT`, draws an ellipse with the specified aspect ratio (width/height)
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+
+**Examples:**
+```
+CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF    ' Yellow circle
+
+CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
+
+CIRCLE AT (200, 200) RADIUS 40 WITH &HFF00FFFF ASPECT 2.0    ' Ellipse (2:1 width:height)
+```
+
+### PAINT Statement
+
+The `PAINT` statement fills a bounded area with a color.
+
+**Syntax:**
+```
+PAINT (x%, y%) WITH color%
+PAINT (x%, y%) WITH color% BORDER borderColor%
+```
+
+**Rules:**
+- Fills the area starting at point (x%, y%)
+- Fills until it reaches a boundary
+- With `BORDER`, fills until it reaches pixels of the specified border color
+- Without `BORDER`, fills until it reaches pixels of a different color than the starting point
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+
+**Examples:**
+```
+' Fill area starting at (100, 100) with red
+PAINT (100, 100) WITH &HFF0000FF
+
+' Fill area bounded by blue pixels
+PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF
+```
+
+### GET Statement
+
+The `GET` statement captures a rectangular region of the screen into an integer array (sprite).
+
+**Syntax:**
+```
+GET spriteArray%[] FROM (x1%, y1%) TO (x2%, y2%)
+```
+
+**Rules:**
+- Captures the rectangular region from (x1%, y1%) to (x2%, y2%)
+- Stores the sprite data in an integer array
+- Array format: `[width, height, pixel1, pixel2, ...]`
+  - First integer: width in pixels
+  - Second integer: height in pixels
+  - Remaining integers: pixel colors (32-bit RGBA, row by row)
+- The array must be large enough or will be automatically sized
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+
+**Examples:**
+```
+' Capture a 32x32 sprite
+DIM sprite%[32 * 32 + 2]
+GET sprite%[] FROM (100, 100) TO (131, 131)
+
+' Capture entire screen
+DIM screen%[640 * 480 + 2]
+GET screen%[] FROM (0, 0) TO (639, 479)
+```
+
+### PUT Statement
+
+The `PUT` statement draws a sprite (from a `GET` array) onto the screen.
+
+**Syntax:**
+```
+PUT spriteArray%[] AT (x%, y%)
+PUT spriteArray%[] AT (x%, y%) WITH mode$
+```
+
+**Rules:**
+- Draws the sprite at position (x%, y%)
+- The sprite's bottom-left corner is positioned at (x%, y%)
+- Sprite array format must match `GET` format: `[width, height, pixel1, pixel2, ...]`
+- Optional `mode$` controls how pixels are combined:
+  - `"PSET"` - Replace pixels (default)
+  - `"PRESET"` - Invert colors
+  - `"AND"` - Bitwise AND with existing pixels
+  - `"OR"` - Bitwise OR with existing pixels
+  - `"XOR"` - Bitwise XOR with existing pixels
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+
+**Examples:**
+```
+' Draw sprite normally
+PUT sprite%[] AT (200, 150)
+
+' Draw sprite with XOR mode (for animation)
+PUT sprite%[] AT (x%, y%) WITH "XOR"
+
+' Draw sprite with transparency (using AND mode)
+PUT sprite%[] AT (100, 100) WITH "AND"
+```
+
+### COLOR Statement (Graphics)
+
+The `COLOR` statement sets the current drawing color for graphics operations.
+
+**Syntax:**
+```
+COLOR color%
+```
+
+**Rules:**
+- Sets the default color for subsequent graphics operations
+- Color is a 32-bit RGBA integer
+- Affects `PSET`, `LINE`, `CIRCLE`, and other drawing operations
+- Does not affect `PUT` operations (which use the sprite's stored colors)
+- Persists until changed by another `COLOR` statement
+
+**Examples:**
+```
+COLOR &HFF0000FF    ' Set to red
+PSET (100, 100) WITH &HFF0000FF    ' Red pixel (color specified explicitly)
+
+COLOR &H00FF00FF    ' Set to green
+LINE FROM (0, 0) TO (100, 100) WITH &H00FF00FF    ' Green line
+```
+
+**Note:** The graphics `COLOR` statement is separate from the text `COLOR` statement. They operate independently.
+
+### Graphics Examples
+
+**Example: Drawing a Simple Scene:**
+```
+CLS WITH &H000033FF    ' Dark blue background
+
+' Draw ground
+LINE FROM (0, 50) TO (639, 50) WITH &H00FF00FF FILLED
+
+' Draw sun
+CIRCLE AT (550, 400) RADIUS 40 WITH &HFFFF00FF FILLED
+
+' Draw house
+LINE FROM (200, 50) TO (400, 200) WITH &HFF0000FF FILLED    ' Red roof
+LINE FROM (250, 50) TO (350, 150) WITH &HFFFFFFFF FILLED    ' White walls
+```
+
+**Example: Sprite Animation:**
+```
+' Capture sprite
+DIM player%[32 * 32 + 2]
+GET player%[] FROM (0, 0) TO (31, 31)
+
+LET x% = 100
+LET y% = 100
+
+' Animation loop
+DO
+    CLS
+    
+    ' Erase old position (XOR mode)
+    PUT player%[] AT (x%, y%) WITH "XOR"
+    
+    ' Update position
+    LET x% += 2
+    IF x% > 600 THEN LET x% = 0
+    
+    ' Draw new position (XOR mode)
+    PUT player%[] AT (x%, y%) WITH "XOR"
+    
+    ' Small delay
+    FOR i% = 1 TO 1000
+    NEXT i%
+LOOP
+```
 
 ## Audio
 
@@ -2041,13 +3177,13 @@ END SUB
 ### SWAP
 
 **Type:** Command (Variable Operation)  
-**Syntax:** `SWAP variable1, variable2`  
+**Syntax:** `SWAP variable1 WITH variable2`  
 **Description:** Exchanges the values of two variables of the same type.  
 **Example:**
 ```
 LET x% = 5
 LET y% = 10
-SWAP x%, y%
+SWAP x% WITH y%
 PRINT x%, y%    ' Prints: 10    5
 ```
 
