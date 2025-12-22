@@ -72,6 +72,7 @@
   - [PSET Statement](#pset-statement)
   - [LINE Statement](#line-statement)
   - [CIRCLE Statement](#circle-statement)
+  - [TRIANGLE Statement](#triangle-statement)
   - [PAINT Statement](#paint-statement)
   - [GET Statement](#get-statement)
   - [PUT Statement](#put-statement)
@@ -1998,6 +1999,11 @@ EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, a
 - Each component (R, G, B, A) ranges from 0-255
 - Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
 
+**Coordinate Syntax:**
+- Graphics commands use parentheses to denote planar points: `(x, y)`
+- This is an exception to EduBASIC's general rule that parentheses are only for grouping expressions
+- Coordinates are always written as `(x%, y%)` or `(x#, y#)` in graphics commands
+
 **Note:** The text display system overlays the graphics display, allowing you to combine text and graphics in the same program.
 
 ### CLS Statement
@@ -2099,6 +2105,31 @@ CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
 CIRCLE AT (200, 200) RADIUS 40 WITH &HFF00FFFF ASPECT 2.0    ' Ellipse (2:1 width:height)
 ```
 
+### TRIANGLE Statement
+
+The `TRIANGLE` statement draws a triangle or filled triangle.
+
+**Syntax:**
+```
+TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%) WITH color%
+TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%) WITH color% FILLED
+```
+
+**Rules:**
+- Draws a triangle with vertices at (x1%, y1%), (x2%, y2%), and (x3%, y3%)
+- With `FILLED`, draws a filled triangle
+- Without `FILLED`, draws only the triangle outline
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+
+**Examples:**
+```
+' Draw triangle outline
+TRIANGLE (100, 100) TO (200, 200) TO (150, 250) WITH &HFFFFFFFF
+
+' Draw filled triangle
+TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED
+```
+
 ### PAINT Statement
 
 The `PAINT` statement fills a bounded area with a color.
@@ -2162,31 +2193,24 @@ The `PUT` statement draws a sprite (from a `GET` array) onto the screen.
 **Syntax:**
 ```
 PUT spriteArray%[] AT (x%, y%)
-PUT spriteArray%[] AT (x%, y%) WITH mode$
 ```
 
 **Rules:**
 - Draws the sprite at position (x%, y%)
 - The sprite's bottom-left corner is positioned at (x%, y%)
 - Sprite array format must match `GET` format: `[width, height, pixel1, pixel2, ...]`
-- Optional `mode$` controls how pixels are combined:
-  - `"PSET"` - Replace pixels (default)
-  - `"PRESET"` - Invert colors
-  - `"AND"` - Bitwise AND with existing pixels
-  - `"OR"` - Bitwise OR with existing pixels
-  - `"XOR"` - Bitwise XOR with existing pixels
+- Pixels are alpha-blended automatically using the alpha channel from the sprite data
+- Transparent pixels (alpha = 0) are not drawn
+- Semi-transparent pixels are blended with the background
 - Coordinates are in graphics pixels (0-based, bottom-left origin)
 
 **Examples:**
 ```
-' Draw sprite normally
+' Draw sprite with automatic alpha blending
 PUT sprite%[] AT (200, 150)
 
-' Draw sprite with XOR mode (for animation)
-PUT sprite%[] AT (x%, y%) WITH "XOR"
-
-' Draw sprite with transparency (using AND mode)
-PUT sprite%[] AT (100, 100) WITH "AND"
+' Animate sprite
+PUT player%[] AT (x%, y%)
 ```
 
 ### COLOR Statement (Graphics)
@@ -2201,8 +2225,8 @@ COLOR color%
 **Rules:**
 - Sets the default color for subsequent graphics operations
 - Color is a 32-bit RGBA integer
-- Affects `PSET`, `LINE`, `CIRCLE`, and other drawing operations
-- Does not affect `PUT` operations (which use the sprite's stored colors)
+- Affects `PSET`, `LINE`, `CIRCLE`, `TRIANGLE`, and other drawing operations
+- Does not affect `PUT` operations (which use the sprite's stored colors with alpha blending)
 - Persists until changed by another `COLOR` statement
 
 **Examples:**
@@ -2246,15 +2270,12 @@ LET y% = 100
 DO
     CLS
     
-    ' Erase old position (XOR mode)
-    PUT player%[] AT (x%, y%) WITH "XOR"
+    ' Draw sprite at current position (alpha blending handles transparency)
+    PUT player%[] AT (x%, y%)
     
     ' Update position
     LET x% += 2
     IF x% > 600 THEN LET x% = 0
-    
-    ' Draw new position (XOR mode)
-    PUT player%[] AT (x%, y%) WITH "XOR"
     
     ' Small delay
     FOR i% = 1 TO 1000
