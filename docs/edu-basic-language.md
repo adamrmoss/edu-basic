@@ -78,6 +78,12 @@
   - [PUT Statement](#put-statement)
   - [Graphics Examples](#graphics-examples)
 - [Audio](#audio)
+  - [TEMPO Statement](#tempo-statement)
+  - [VOLUME Statement](#volume-statement)
+  - [VOICE Statement](#voice-statement)
+  - [PLAY Statement](#play-statement)
+  - [MML Examples](#mml-examples)
+  - [Audio Examples](#audio-examples)
 - [Command and Function Reference](#command-and-function-reference)
   - (Alphabetical listing of 70+ commands, functions, and operators)
 
@@ -2271,6 +2277,242 @@ LOOP
 ```
 
 ## Audio
+
+EduBASIC provides audio capabilities using both Music Macro Language (MML) for note control and GRIT (General Random Iteration Tones) for timbre (sound character). All voices use both systems together.
+
+**Note Numbers:**
+- Note numbers use MIDI standard: 0-127
+- Middle C (C4) is note number 60
+- Lower numbers are lower pitches, higher numbers are higher pitches
+
+**How Audio Works:**
+- **MML** controls frequency (which notes to play) and timing for ALL voices
+- **GRIT** determines the timbre (sound character) for ALL voices
+- Every voice uses both MML (for notes) and GRIT (for timbre)
+- The `VOICE` statement configures the GRIT timbre for each voice
+- The `PLAY` statement uses MML to specify which notes to play
+
+### TEMPO Statement
+
+The `TEMPO` statement sets the playback tempo for MML music.
+
+**Syntax:**
+```
+TEMPO beatsPerMinute%
+```
+
+**Rules:**
+- Sets the tempo in beats per minute (BPM)
+- Affects all subsequent `PLAY` statements using MML
+- Default tempo is typically 120 BPM
+- Tempo persists until changed by another `TEMPO` statement
+
+**Examples:**
+```
+TEMPO 120    ' Set to 120 BPM (moderate tempo)
+TEMPO 60     ' Set to 60 BPM (slow)
+TEMPO 180    ' Set to 180 BPM (fast)
+```
+
+### VOLUME Statement
+
+The `VOLUME` statement sets the global volume for all audio output.
+
+**Syntax:**
+```
+VOLUME volumeLevel%
+```
+
+**Rules:**
+- Sets the global volume level (0-127)
+- 0 = silent, 127 = maximum volume
+- Default volume is typically 64 (50%)
+- Affects all voices regardless of their configuration (MML or GRIT)
+- Volume persists until changed by another `VOLUME` statement
+- Individual voice velocity (V in MML) is relative to the global volume
+
+**Examples:**
+```
+VOLUME 127    ' Maximum volume
+VOLUME 64     ' Half volume (default)
+VOLUME 32     ' Quarter volume
+VOLUME 0      ' Silent
+```
+
+### VOICE Statement
+
+The `VOICE` statement configures the GRIT timbre (sound character) of a voice. All voices use both MML (for notes) and GRIT (for timbre).
+
+**Syntax:**
+```
+VOICE voiceNumber% PRESET presetNumber%
+VOICE voiceNumber% WITH noiseCode%
+```
+
+**Rules:**
+- `voiceNumber%` is an integer identifying the voice (typically 0-15 or similar range)
+- All voices use GRIT for timbre and MML for notes
+- `PRESET presetNumber%`: Use a preset from the 64-entry GRIT preset table (0-63)
+- `WITH noiseCode%`: Use a custom NoiseCode value (32-bit integer bitfield)
+- All voices use MML (via `PLAY`) to control which notes to play and when
+- The `VOICE` statement configures the GRIT timbre only
+- Each voice operates independently
+- Voices must be created before use in `PLAY` statements
+
+**Examples:**
+```
+' Create voice with GRIT preset (e.g., engine sound)
+VOICE 0 PRESET 5
+
+' Create voice with another GRIT preset (e.g., weapon sound)
+VOICE 1 PRESET 10
+
+' Create voice with custom GRIT NoiseCode
+LET myNoiseCode% = &H12345678
+VOICE 2 WITH myNoiseCode%
+```
+
+### PLAY Statement
+
+The `PLAY` statement plays music or sound on a specific voice.
+
+**Syntax:**
+```
+PLAY voiceNumber%, mmlString$
+```
+
+**Rules:**
+- `voiceNumber%` must be a voice created with `VOICE` statement
+- `mmlString$` contains the Music Macro Language sequence
+- MML controls the frequency (notes) and timing for ALL voices
+- The voice's timbre (configured by `VOICE`) determines what the notes sound like
+- Each `PLAY` statement plays on the specified voice
+- Multiple voices can play simultaneously
+
+**MML Syntax:**
+- **Notes:** `C`, `D`, `E`, `F`, `G`, `A`, `B` (or `c`, `d`, `e`, `f`, `g`, `a`, `b`)
+- **Sharps/Flats:** `#` (sharp), `b` (flat) - note: lowercase `b` is both B note and flat
+- **Octaves:** `O` followed by number (0-9, default is usually 4)
+- **Note Length:** `L` followed by number (1=whole note, 2=half, 4=quarter, 8=eighth, etc.)
+- **Dotted Notes:** `.` after note length (adds half the duration)
+- **Rests:** `R` followed by length
+- **Ties:** `&` connects notes
+- **Velocity:** `V` followed by number (0-127, default 64)
+- **Note Numbers:** `N` followed by MIDI note number (0-127)
+
+**Examples:**
+```
+' Set up voices with GRIT timbres
+VOICE 0 PRESET 5    ' Engine sound timbre
+VOICE 1 PRESET 10   ' Weapon sound timbre
+
+TEMPO 120
+
+' Play melody - MML controls notes, GRIT preset 5 controls timbre
+PLAY 0, "CDEFGAB C"
+
+' Play with velocity
+PLAY 0, "V100 CDEF V64 GAB"
+
+' Play with note numbers (MIDI)
+PLAY 0, "N60 N62 N64 N65 N67"
+
+' Play on different voice - same MML, different GRIT timbre
+PLAY 1, "N60 L4"    ' Play note 60 (middle C) for quarter note duration
+```
+
+### MML Examples
+
+**Simple Scale:**
+```
+VOICE 0 PRESET 0    ' Use preset 0 for timbre
+TEMPO 120
+PLAY 0, "CDEFGAB C"    ' MML controls notes
+```
+
+**Song with Velocity:**
+```
+VOICE 0 PRESET 0
+TEMPO 100
+PLAY 0, "V80 C L4 D L4 E L2 V100 F L4 G L4 A L2"
+```
+
+**Using Note Numbers:**
+```
+VOICE 0 PRESET 0
+TEMPO 120
+' Play C major chord (C=60, E=64, G=67)
+PLAY 0, "N60 N64 N67 L2"
+```
+
+**Multiple Voices:**
+```
+VOICE 0 PRESET 0    ' Timbre for voice 0
+VOICE 1 PRESET 5    ' Different timbre for voice 1
+TEMPO 120
+
+' Melody on voice 0
+PLAY 0, "CDEFGAB C"
+
+' Harmony on voice 1
+PLAY 1, "CEG CEG"
+```
+
+**GRIT Noise Example:**
+```
+VOICE 0 PRESET 5    ' Engine sound preset
+TEMPO 120
+
+' Play noise at different pitches
+PLAY 0, "N60 L4 N65 L4 N67 L4"    ' Rising pitch pattern
+```
+
+### Audio Examples
+
+**Example: Simple Melody:**
+```
+VOICE 0 PRESET 0    ' Use preset 0 for timbre
+TEMPO 120
+PLAY 0, "C D E F G A B C"    ' MML controls notes
+```
+
+**Example: Song with Dynamics:**
+```
+VOICE 0 PRESET 0
+TEMPO 100
+
+' Play with varying velocity
+PLAY 0, "V64 C L4 V80 D L4 V96 E L4 V112 F L2"
+```
+
+**Example: Different GRIT Timbres:**
+```
+' Create voices with different GRIT timbres
+VOICE 0 PRESET 10    ' Weapon sound timbre
+VOICE 1 PRESET 15    ' Engine sound timbre
+VOICE 2 PRESET 20    ' Ambience timbre
+
+TEMPO 120
+
+' Play notes with weapon sound timbre
+PLAY 0, "N80 L8"
+
+' Play notes with engine sound timbre
+PLAY 1, "N40 L1"    ' Low rumble
+
+' Play notes with ambience timbre
+PLAY 2, "N50 L1"    ' Background texture
+```
+
+**Example: Custom GRIT Voice:**
+```
+' Create custom GRIT voice with NoiseCode
+LET customNoise% = &HABCD1234
+VOICE 0 WITH customNoise%
+
+TEMPO 120
+PLAY 0, "N60 L4 N65 L4 N67 L4"
+```
 
 ## Command and Function Reference
 
