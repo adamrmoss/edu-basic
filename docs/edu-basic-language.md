@@ -76,7 +76,6 @@
   - [PAINT Statement](#paint-statement)
   - [GET Statement](#get-statement)
   - [PUT Statement](#put-statement)
-  - [COLOR Statement (Graphics)](#color-statement-graphics)
   - [Graphics Examples](#graphics-examples)
 - [Audio](#audio)
 - [Command and Function Reference](#command-and-function-reference)
@@ -1304,7 +1303,7 @@ NEXT row%
 
 ### COLOR Statement
 
-The `COLOR` statement sets the foreground and/or background color for subsequent text output.
+The `COLOR` statement sets the foreground and/or background color for both text and graphics operations.
 
 **Syntax:**
 ```
@@ -1317,6 +1316,17 @@ COLOR foregroundColor%, backgroundColor%
 - Format: `0xRRGGBBAA` (hexadecimal) or decimal
 - Each component (R, G, B, A) ranges from 0-255
 - Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
+
+**Text Usage:**
+- Sets the foreground color for subsequent `PRINT` statements
+- With two arguments, sets both foreground and background colors
+- Background color is only used for text output
+
+**Graphics Usage:**
+- Sets the default drawing color for subsequent graphics operations
+- Affects `PSET`, `LINE`, `CIRCLE`, `TRIANGLE`, and other drawing operations
+- Does not affect `PUT` operations (which use the sprite's stored colors with alpha blending)
+- Only the foreground color is used for graphics (background color parameter is ignored)
 
 **Common Colors (examples):**
 ```
@@ -1331,18 +1341,22 @@ LET transparent% = &HFFFFFF00 ' White (fully transparent)
 
 **Examples:**
 ```
+' Text usage
 COLOR &HFF0000FF        ' Red text
 PRINT "This is red text"
 
 COLOR &HFFFFFF00, &H000000FF  ' Transparent text on black background
 PRINT "Invisible text on black"
 
-LET myColor% = &H00FF00FF
-COLOR myColor%
-PRINT "Green text"
+' Graphics usage
+COLOR &HFF0000FF    ' Set to red
+PSET (100, 100) WITH &HFF0000FF    ' Red pixel (color specified explicitly)
+
+COLOR &H00FF00FF    ' Set to green
+LINE FROM (0, 0) TO (100, 100) WITH &H00FF00FF    ' Green line
 ```
 
-**Note:** The default text color is white on a transparent background. Colors persist until changed by another `COLOR` statement.
+**Note:** The `COLOR` statement is unified for both text and graphics. The default text color is white on a transparent background. Colors persist until changed by another `COLOR` statement.
 
 ### SET Statement
 
@@ -2212,33 +2226,6 @@ PUT sprite%[] AT (200, 150)
 ' Animate sprite
 PUT player%[] AT (x%, y%)
 ```
-
-### COLOR Statement (Graphics)
-
-The `COLOR` statement sets the current drawing color for graphics operations.
-
-**Syntax:**
-```
-COLOR color%
-```
-
-**Rules:**
-- Sets the default color for subsequent graphics operations
-- Color is a 32-bit RGBA integer
-- Affects `PSET`, `LINE`, `CIRCLE`, `TRIANGLE`, and other drawing operations
-- Does not affect `PUT` operations (which use the sprite's stored colors with alpha blending)
-- Persists until changed by another `COLOR` statement
-
-**Examples:**
-```
-COLOR &HFF0000FF    ' Set to red
-PSET (100, 100) WITH &HFF0000FF    ' Red pixel (color specified explicitly)
-
-COLOR &H00FF00FF    ' Set to green
-LINE FROM (0, 0) TO (100, 100) WITH &H00FF00FF    ' Green line
-```
-
-**Note:** The graphics `COLOR` statement is separate from the text `COLOR` statement. They operate independently.
 
 ### Graphics Examples
 
