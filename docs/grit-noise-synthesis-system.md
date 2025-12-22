@@ -1,4 +1,4 @@
-# Noise Synthesis System - Authoritative Design Document
+# GRIT (General Random Iteration Tones) - Authoritative Design Document
 
 ## Table of Contents
 1. [Design Goals and Non-Goals](#design-goals-and-non-goals)
@@ -18,6 +18,8 @@
 
 ## Design Goals and Non-Goals
 
+**GRIT** (General Random Iteration Tones) is a noise synthesis system that generates procedural audio through LFSR-based bitstream manipulation and pulse wave conversion.
+
 ### Goals
 - Create a noise synthesis system that surpasses classic PSG (Programmable Sound Generator) chips like the Atari POKEY
 - Provide a compact, expressive language for procedural sound generation
@@ -29,8 +31,6 @@
 ### Non-Goals
 - Not attempting to be a general-purpose synthesizer (focused on noise/chaotic sounds)
 - Not emulating specific hardware exactly (rather, capturing and extending the spirit)
-- Not requiring external sample libraries (pure procedural generation)
-- Not supporting real-time waveform coefficient changes (static PeriodicWave limitations)
 
 ---
 
@@ -61,8 +61,8 @@ The Atari POKEY chip was a sound generator used in Atari 8-bit computers and arc
 - Inflexible modulation capabilities
 - Frequency and noise character coupled together
 
-### This System's Approach
-Rather than emulating POKEY exactly, this system:
+### GRIT's Approach
+Rather than emulating POKEY exactly, GRIT:
 - Generalizes clock coupling into logical composition operations
 - Replaces hardware clock routing with decimation and toggle operations
 - Provides a unified 32-bit LFSR architecture with user-selectable taps
@@ -91,7 +91,7 @@ Rather than emulating POKEY exactly, this system:
 
 ### Pulse Wave Generation (Core Concept)
 
-**How This System Works:**
+**How GRIT Works:**
 - **We generate pulse waves directly from LFSR bitstreams** (not by dividing a master clock)
 - Each LFSR bit (0 or 1) is converted to a pulse wave sample: `bit ? +1.0 : -1.0`
 - Frequency parameter controls the **playback rate** of these pulse waves (pitch)
@@ -107,7 +107,7 @@ Rather than emulating POKEY exactly, this system:
 
 **Key Difference from POKEY:**
 - POKEY: Frequency divider = LFSR clock rate = pulse wave rate (all coupled)
-- This system: Frequency = pulse wave playback rate, Decimation = LFSR stepping rate (decoupled)
+- GRIT: Frequency = pulse wave playback rate, Decimation = LFSR stepping rate (decoupled)
 - We're not dividing a master clock - we're generating pulse waves from bitstreams
 
 ### Why AudioWorkletNode
@@ -167,7 +167,7 @@ All LFSRs use 32-bit registers, regardless of their effective period. This desig
 2. **User-Selectable Taps**: Periodicity is controlled by polynomial choice, not register size
 3. **IEEE-754 Mantissa Safety**: 32-bit integers fit safely in JavaScript's Number type (53-bit mantissa)
 4. **Precision Avoidance**: 32 bits avoids precision loss that could occur with larger registers
-5. **Signedness Independence**: The system explicitly does not care about signedness - LFSRs operate on unsigned bit patterns
+5. **Signedness Independence**: GRIT explicitly does not care about signedness - LFSRs operate on unsigned bit patterns
 
 ### LFSR Stepping Algorithm
 ```typescript
@@ -340,7 +340,7 @@ The final processed signal:
 
 ## Sound Design Intent
 
-This system is not a neutral DSP block - it is a **sound language** designed for specific aesthetic goals.
+GRIT is not a neutral DSP block - it is a **sound language** designed for specific aesthetic goals.
 
 ### Target Sound Categories
 
@@ -369,7 +369,7 @@ This system is not a neutral DSP block - it is a **sound language** designed for
 - Rapid toggle or shape changes
 
 ### Historical References
-The system can reproduce sounds from:
+GRIT can reproduce sounds from:
 - **Pitfall!**: Periodic noise patterns
 - **Defender**: Engine and weapon sounds
 - **Other classic games**: Any POKEY-based sound can be approximated
@@ -378,7 +378,7 @@ The system can reproduce sounds from:
 The 64-entry preset table provides:
 - Curated starting points for common sounds
 - Examples of effective parameter combinations
-- Teaching tool for understanding the system
+- Teaching tool for understanding GRIT
 - Quick access to proven configurations
 
 ---
@@ -511,7 +511,7 @@ class NoiseProcessor extends AudioWorkletProcessor {
 ## Preset System
 
 ### 64-Entry Preset Table
-The system includes a table of 64 predefined NoiseCode values, each optimized for specific sound types.
+GRIT includes a table of 64 predefined NoiseCode values, each optimized for specific sound types.
 
 ### Preset Categories (inferred)
 - **Engines** (multiple entries for different engine types)
@@ -546,15 +546,15 @@ Each preset is a single NoiseCode value that can be:
 - Fixed register sizes
 - Frequency divider controlled both pitch and noise character (coupled)
 
-### What This System Does Differently
+### What GRIT Does Differently
 1. **Logical Combination vs Clock Coupling**
    - POKEY: One LFSR's output clocks another LFSR
-   - This system: LFSRs run independently, combined logically
+   - GRIT: LFSRs run independently, combined logically
    - Result: More flexible, can reproduce POKEY sounds plus new possibilities
 
 2. **Pulse Wave Generation vs Clock Division**
    - POKEY: Clock division → LFSR clock → pulse wave output (all coupled)
-   - This system: LFSR bitstream → pulse wave conversion → frequency-controlled playback (decoupled)
+   - GRIT: LFSR bitstream → pulse wave conversion → frequency-controlled playback (decoupled)
    - **Key difference**: We generate pulse waves from bitstreams, not by dividing a master clock
    - Decimation controls LFSR stepping rate (noise character)
    - Frequency controls pulse wave playback rate (pitch)
@@ -562,17 +562,17 @@ Each preset is a single NoiseCode value that can be:
 
 3. **Toggle vs Secondary Clocking**
    - POKEY: Periodic noise via secondary LFSR clocking
-   - This system: Toggle operation for periodic effects
+   - GRIT: Toggle operation for periodic effects
    - Result: Simpler mechanism, same expressive power
 
 4. **Shape Modulation**
    - POKEY: No equivalent
-   - This system: XOR_SQUARE and other shape operations
+   - GRIT: XOR_SQUARE and other shape operations
    - Result: Unique timbres not possible on POKEY
 
 5. **32-Bit Standardization**
    - POKEY: Fixed register sizes
-   - This system: Unified 32-bit with selectable polynomials
+   - GRIT: Unified 32-bit with selectable polynomials
    - Result: More flexible periodicity control
 
 ### Why This Surpasses POKEY
@@ -610,7 +610,7 @@ Each preset is a single NoiseCode value that can be:
 
 ## Conclusion
 
-This noise synthesis system represents a modern evolution of classic PSG technology. By generalizing and extending the concepts from chips like the Atari POKEY, it provides a compact, expressive language for procedural sound generation. The system maintains compatibility with classic sounds while enabling new creative possibilities through logical combination, shape modulation, and flexible decimation.
+GRIT represents a modern evolution of classic PSG technology. By generalizing and extending the concepts from chips like the Atari POKEY, it provides a compact, expressive language for procedural sound generation. GRIT maintains compatibility with classic sounds while enabling new creative possibilities through logical combination, shape modulation, and flexible decimation.
 
 The NoiseCode bitfield provides a compact representation of the entire synthesis configuration, making it suitable for storage, transmission, and real-time modification. The 64-entry preset table offers curated starting points for common sound types, while the underlying architecture supports unlimited creative exploration.
 
@@ -660,4 +660,4 @@ The NoiseCode bitfield provides a compact representation of the entire synthesis
 
 ---
 
-*This document captures the complete design intent and architectural decisions for the noise synthesis system. It should serve as the authoritative reference for implementation and future development.*
+*This document captures the complete design intent and architectural decisions for GRIT. It should serve as the authoritative reference for implementation and future development.*
