@@ -1,24 +1,23 @@
-# GRIT (General Random Iteration Tones) - Authoritative Design Document
+# GRIT (Generative Random Iteration Tones) - Authoritative Design Document
 
 ## Table of Contents
 1. [Design Goals and Non-Goals](#design-goals-and-non-goals)
-2. [Historical Context](#historical-context)
-3. [Core Architecture](#core-architecture)
+2. [Voice Architecture](#voice-architecture)
+3. [Primary LFSR Set](#primary-lfsr-set)
 4. [NoiseCode Bitfield Structure](#noisecode-bitfield-structure)
-5. [LFSR Implementation](#lfsr-implementation)
-6. [Signal Flow and Operations](#signal-flow-and-operations)
-7. [NoiseCode Field Semantics](#noisecode-field-semantics)
+5. [LFSR Selection and Combination](#lfsr-selection-and-combination)
+6. [Clock Coupling Mechanism](#clock-coupling-mechanism)
+7. [Signal Flow and Operations](#signal-flow-and-operations)
 8. [Sound Design Intent](#sound-design-intent)
 9. [Implementation Notes](#implementation-notes)
 10. [Worked Examples](#worked-examples)
-11. [Preset System](#preset-system)
-12. [Comparison with POKEY](#comparison-with-pokey)
+11. [Comparison with POKEY](#comparison-with-pokey)
 
 ---
 
 ## Design Goals and Non-Goals
 
-**GRIT** (General Random Iteration Tones) is a noise synthesis system that generates procedural audio through LFSR-based bitstream manipulation and pulse wave conversion.
+**GRIT** (Generative Random Iteration Tones) is a noise synthesis system that generates procedural audio through LFSR-based bitstream manipulation and pulse wave conversion. GRIT represents **the ultimate evolution of POKEY**, taking the classic Atari POKEY chip's noise synthesis capabilities and extending them with modern flexibility and expressive power.
 
 ### Goals
 - Create a noise synthesis system that surpasses classic PSG (Programmable Sound Generator) chips like the Atari POKEY
@@ -26,7 +25,7 @@
 - Enable reproduction of classic game sounds (Pitfall, Defender, etc.) while allowing new creative possibilities
 - Support real-time audio generation suitable for engines, weapons, ambience, and glitch effects
 - Maintain deterministic behavior for reproducible results
-- Use 32-bit LFSRs for precision and flexibility
+- Each voice defined by a single 32-bit NoiseCode plus frequency and ADSR envelope
 
 ### Non-Goals
 - Not attempting to be a general-purpose synthesizer (focused on noise/chaotic sounds)
@@ -34,307 +33,463 @@
 
 ---
 
-## Historical Context
+## Voice Architecture
 
-### Atari POKEY
-The Atari POKEY chip was a sound generator used in Atari 8-bit computers and arcade games. It featured:
-- Four independent audio channels
-- LFSR-based noise generation
-- Clock coupling between channels (one LFSR could clock another)
-- High/low noise selection modes
-- Periodic noise modes created by clocking one LFSR with another
+Each GRIT voice is defined by three components:
+1. **NoiseCode** (32-bit unsigned integer): Encodes the complete synthesis configuration
+2. **Frequency** (float, Hz): Controls pitch/playback rate of the pulse waves
+3. **ADSR Envelope** (4 floats): Attack, Decay, Sustain level, Release time
 
-**POKEY's Frequency Generation:**
-- POKEY used a master clock that was divided by a frequency divider (AUDCTL register)
-- The divided clock directly controlled the LFSR stepping rate
-- LFSR bits were output as pulse waves at the divided clock rate
-- Changing the frequency divider changed how fast the LFSR stepped, which changed both:
-  - The pitch of periodic noise (when pattern was short enough to be audible)
-  - The character of the noise (faster stepping = higher frequency content)
-- **Key limitation**: Frequency and noise character were coupled - you couldn't change pitch without changing the noise timbre
-
-### Limitations of Classic PSGs
-- Fixed register sizes (often 15-bit or 17-bit LFSRs)
-- Limited clock routing options
-- Binary high/low noise selection
-- Hardware-specific tap configurations
-- Inflexible modulation capabilities
-- Frequency and noise character coupled together
-
-### GRIT's Approach
-Rather than emulating POKEY exactly, GRIT:
-- Generalizes clock coupling into logical composition operations
-- Replaces hardware clock routing with decimation and toggle operations
-- Provides a unified 32-bit LFSR architecture with user-selectable taps
-- Enables phase-destructive operations (XOR_SQUARE) for unique timbres
-- **Decouples frequency from noise character** - pitch and timbre can be controlled independently
-- Maintains compatibility with classic sounds while enabling new expressions
-
----
-
-## Core Architecture
+The NoiseCode determines the timbre and character; frequency controls pitch; ADSR controls amplitude over time.
 
 ### Signal Flow Overview
 ```
-[4x 32-bit LFSRs] → [Decimation] → [Logical Combination (COMB)] → 
-[Shape Modulation (SHAPE)] → [Toggle Operation] → [Pulse Wave Conversion] → [Output]
+[Primary LFSR Selection] → [Clock Coupling] → [Decimation] → [Logical Combination (COMB)] → 
+[Shape Modulation (SHAPE)] → [Pulse Wave Conversion] → [ADSR Envelope] → [Output]
 ```
 
-### Key Components
-1. **Four Independent LFSRs (A, B, C, D)**: Each generates a pseudo-random bitstream
-2. **Decimation Unit**: Selectively samples LFSR outputs at reduced rates
-3. **Combination Logic (COMB)**: Combines LFSR outputs using logical operations
-4. **Shape Modulation (SHAPE)**: Applies carrier-based shaping (XOR_SQUARE, etc.)
-5. **Toggle Operation**: Deterministic polarity flipping for periodic noise effects
-6. **Pulse Wave Conversion**: Converts bitstream to audio samples
-7. **AudioWorkletNode**: Real-time DSP processing in a separate thread
+---
 
-### Pulse Wave Generation (Core Concept)
+## Primary LFSR Set
 
-**How GRIT Works:**
-- **We generate pulse waves directly from LFSR bitstreams** (not by dividing a master clock)
-- Each LFSR bit (0 or 1) is converted to a pulse wave sample: `bit ? +1.0 : -1.0`
-- Frequency parameter controls the **playback rate** of these pulse waves (pitch)
-- Decimation factor controls **how often LFSRs step** (noise character)
-- These are **decoupled** - you can change pitch without changing noise character
+GRIT provides a set of **primary LFSRs** that can be selected and combined. Each primary LFSR is defined by its length and polynomial configuration.
 
-**The Process:**
-1. LFSRs step at: `audio_sample_rate / decimation_factor` (generates bitstream)
-2. Bits are combined and shaped through COMB, SHAPE, and TOGGLE operations
-3. Each final bit becomes a pulse wave sample: `(bit === 1) ? +1.0 : -1.0`
-4. Frequency controls sample rate conversion or playback rate of these pulses
-5. Result: Pulse waves with noise-like character, pitch controlled independently
+### Primary LFSR Definitions
 
-**Key Difference from POKEY:**
-- POKEY: Frequency divider = LFSR clock rate = pulse wave rate (all coupled)
-- GRIT: Frequency = pulse wave playback rate, Decimation = LFSR stepping rate (decoupled)
-- We're not dividing a master clock - we're generating pulse waves from bitstreams
+The primary LFSR set includes all classic POKEY LFSR configurations plus additional useful configurations:
 
-### Why AudioWorkletNode
-- Runs in a dedicated real-time audio thread (AudioWorkletGlobalScope)
-- Avoids JavaScript timing jitter from the main thread
-- Enables sample-accurate LFSR stepping
-- Provides deterministic, reproducible audio generation
-- Similar performance characteristics to VST plugin process loops
-- Allows sample-by-sample processing required for LFSR-based noise generation
+**Polynomial 0: 1-bit Square Wave (50/50)**
+- Length: 1 bit (special case)
+- Pattern: Alternating 0/1
+- Period: 2
+- Characteristics: Pure square wave, 50% duty cycle, fundamental tone
+
+**Polynomial 1: 25/75 Pulse Wave**
+- Pattern: Repeating 1,0,0,0 (25% high, 75% low)
+- Period: 4
+- Characteristics: Fixed 25/75 duty cycle pulse wave, creates distinct harmonic character
+
+**Polynomial 2: 4-bit Maximal (POKEY-style)**
+- Length: 4 bits
+- Polynomial: 1 + x^3 + x^4
+- Period: 2^4 - 1 = 15
+- Characteristics: Very short period, creates distinct pitched tones, classic POKEY configuration
+
+**Polynomial 3: 5-bit Maximal (POKEY-style)**
+- Length: 5 bits
+- Polynomial: 1 + x^2 + x^5
+- Period: 2^5 - 1 = 31
+- Characteristics: Very short period, creates distinct pitched tones
+
+**Polynomial 4: 9-bit Maximal (POKEY-style, also used in TIA)**
+- Length: 9 bits
+- Polynomial: 1 + x^4 + x^9
+- Period: 2^9 - 1 = 511
+- Characteristics: Short period, creates pitched/periodic noise
+
+**Polynomial 5: 15-bit Maximal**
+- Length: 15 bits
+- Polynomial: 1 + x^14 + x^15
+- Period: 2^15 - 1 = 32,767
+- Characteristics: Medium period, good for rhythmic patterns
+
+**Polynomial 6: 17-bit Maximal (POKEY-style)**
+- Length: 17 bits
+- Polynomial: 1 + x^12 + x^17
+- Period: 2^17 - 1 = 131,071
+- Characteristics: Classic POKEY noise, long period, rich spectrum
+
+**Polynomial 7: 31-bit Maximal**
+- Length: 31 bits
+- Polynomial: 1 + x^28 + x^31
+- Period: 2^31 - 1 = 2,147,483,647
+- Characteristics: Very long period, white noise character
+
+### LFSR Slots (A, B, C)
+
+Each voice has **3 LFSR slots** (labeled A, B, C). Each slot can:
+- Select one of the 8 primary LFSRs (via polynomial selector, 3 bits)
+- Be enabled or disabled
+- Have its output inverted
+- Be clock-coupled to another LFSR
+
+The slots are independent - each can select a different primary LFSR, allowing complex combinations.
 
 ---
 
 ## NoiseCode Bitfield Structure
 
-The NoiseCode is a compact bitfield that encodes the entire synthesis configuration. The exact bit layout must be verified against the 64-entry preset table, but the structure includes:
+The NoiseCode is a **32-bit unsigned integer** that encodes the entire synthesis configuration for a single voice.
 
-### Core Fields
-- **COMB**: Logical combination operation selector
-  - Defines how LFSR outputs are combined (XOR, AND, OR, etc.)
-  - Replaces POKEY's channel coupling mechanism
-  
-- **SHAPE**: Shape modulation type
-  - Controls how the combined noise is shaped by a carrier signal
-  - Includes XOR_SQUARE (phase-destructive operation)
-  
-- **SHAPE_PARAM**: Shape modulation parameter
-  - Additional control for shape operations
-  - May control carrier frequency, phase offset, or modulation depth
-  
-- **DECIM**: Decimation factor
-  - Controls how often LFSR outputs are sampled
-  - Enables sub-audio-rate stepping for pitched noise effects
-  
-### LFSR Control Fields (per LFSR: A, B, C, D)
-- **Enable**: Whether this LFSR contributes to the output
-- **Invert**: Polarity inversion of the LFSR output
-- **Poly**: Polynomial/tap selection for this LFSR
+### 32-Bit NoiseCode Layout
 
-### Bit Layout (to be finalized)
-The exact bit positions and widths need to be determined from the preset table analysis. The structure should accommodate:
-- 4 LFSR enable bits
-- 4 LFSR invert bits
-- 4 LFSR polynomial selectors (width depends on available polynomials)
-- COMB operation selector (3-4 bits for operation types)
-- SHAPE selector (2-3 bits)
-- SHAPE_PARAM (variable width, depends on SHAPE type)
-- DECIM factor (4-5 bits for reasonable decimation ranges)
-
----
-
-## LFSR Implementation
-
-### 32-Bit Standardization
-All LFSRs use 32-bit registers, regardless of their effective period. This design decision provides:
-
-1. **Single Standardized Width**: Simplifies implementation and avoids width-dependent code paths
-2. **User-Selectable Taps**: Periodicity is controlled by polynomial choice, not register size
-3. **IEEE-754 Mantissa Safety**: 32-bit integers fit safely in JavaScript's Number type (53-bit mantissa)
-4. **Precision Avoidance**: 32 bits avoids precision loss that could occur with larger registers
-5. **Signedness Independence**: GRIT explicitly does not care about signedness - LFSRs operate on unsigned bit patterns
-
-### LFSR Stepping Algorithm
-```typescript
-// Pseudo-code for LFSR step
-function stepLFSR(lfsr: number, taps: number): number {
-  // Calculate feedback bit using XOR of tapped positions
-  const feedback = ((lfsr ^ (lfsr >> 1)) & 1);
-  // Shift right and insert feedback at MSB
-  lfsr = (lfsr >> 1) | (feedback << 31);
-  return lfsr;
-}
+```
+Bits 31-30: Reserved (2 bits) - for future expansion
+Bits 29-27: DECIM - Decimation factor (3 bits, values 1-8, stored as 0-7, actual = value + 1)
+Bits 26-24: SHAPE - Shape modulation type (3 bits, 0-7)
+Bits 23-21: COMB - Logical combination operation (3 bits, 0-7)
+Bits 20-18: LFSR C polynomial selector (3 bits, 0-7 = selects from 8 primary LFSRs)
+Bits 17-15: LFSR B polynomial selector (3 bits, 0-7)
+Bits 14-12: LFSR A polynomial selector (3 bits, 0-7)
+Bits 11-10: Clock coupling (2 bits: C_CLK_B, B_CLK_A)
+Bits 9-7:   LFSR invert flags (3 bits: C_INV, B_INV, A_INV)
+Bits 6-4:   LFSR enable flags (3 bits: C_EN, B_EN, A_EN)
+Bits 3-0:   Reserved (4 bits)
 ```
 
-### Polynomial Selection
-- Each LFSR can select from a set of predefined polynomials
-- Polynomials determine tap positions and effective period
-- Common choices include maximal-length sequences (period = 2^n - 1)
-- Non-maximal polynomials can create shorter, more musical periods
+### Field Definitions
 
-### Stepping Rate Control
-- LFSRs step at: `audio_sample_rate / decimation_factor`
-- Decimation factor divides the effective stepping rate
-- Higher decimation = slower stepping = slower patterns (pitched noise)
-- Lower decimation = faster stepping = faster, noisier patterns
-- Frequency parameter does NOT control LFSR stepping rate (unlike POKEY)
-- This separation allows smooth frequency control without affecting noise character
+#### LFSR Enable Flags (Bits 6-4)
+The enable flags control which LFSR slots are active and contribute to the output:
+- **Bit 6**: LFSR C enable (1 = enabled, 0 = disabled)
+- **Bit 5**: LFSR B enable (1 = enabled, 0 = disabled)
+- **Bit 4**: LFSR A enable (1 = enabled, 0 = disabled)
 
----
+**How Many LFSRs Can Be Active:**
+- You can enable 1, 2, or all 3 LFSRs independently
+- At least one LFSR must be enabled for output (otherwise there's no sound)
+- Only enabled LFSRs contribute to the COMB operation
+- Disabled LFSRs are completely inactive (they don't step, don't consume CPU)
 
-## Signal Flow and Operations
+**Examples:**
+- `A_EN=1, B_EN=0, C_EN=0`: Only LFSR A is active (single LFSR, COMB has no effect)
+- `A_EN=1, B_EN=1, C_EN=0`: LFSRs A and B are active (COMB applied to A and B)
+- `A_EN=1, B_EN=1, C_EN=1`: All three LFSRs are active (COMB applied to A, B, and C)
 
-### 1. LFSR Generation
-Each enabled LFSR generates a bitstream:
-- Steps according to its polynomial and current state
-- Outputs a single bit per step (0 or 1)
-- Can be inverted before combination (via invert bits)
-- Stepping rate controlled by decimation factor
+#### LFSR Invert Flags (Bits 9-7)
+- **Bit 9**: LFSR C invert
+- **Bit 8**: LFSR B invert
+- **Bit 7**: LFSR A invert
+- When set, inverts the LFSR output before combination
 
-### 2. Decimation
-Decimation selectively samples LFSR outputs:
-- **Purpose**: Create sub-audio-rate patterns for pitched noise
-- **Mechanism**: Only every Nth sample is taken from the LFSR stream (where N = decimation factor)
-- **Effect**: When decimation is high (e.g., ÷16), the pattern repeats at an audible rate, creating pitched noise
-- **Interaction**: Decimation applies before combination, so each LFSR can have independent decimation (if supported)
-- **Relationship to POKEY**: Similar to POKEY's clock division, but decoupled from frequency control
+#### Clock Coupling (Bits 11-10)
+POKEY-style clock coupling: one LFSR can be clocked by another's output transitions.
+- **Bit 11**: C_CLK_B - LFSR C clocked by LFSR B
+- **Bit 10**: B_CLK_A - LFSR B clocked by LFSR A
 
-### 3. Logical Combination (COMB)
-The COMB field defines how LFSR outputs are combined:
-- **XOR**: Exclusive OR - creates complex, uncorrelated noise
-- **AND**: Logical AND - creates sparse, gated patterns
-- **OR**: Logical OR - creates dense, filled patterns
-- **Other operations**: May include NAND, NOR, XNOR, or more complex compositions
+**Clock Coupling Behavior:**
+- When an LFSR is clock-coupled, it only steps when its clock source LFSR's output bit transitions (0→1 or 1→0)
+- This creates periodic noise patterns similar to POKEY
+- Clock coupling takes precedence over normal stepping
 
-**Key Insight**: COMB replaces POKEY's channel coupling. Instead of one LFSR clocking another, we combine statistically independent bitstreams logically.
+#### LFSR Polynomial Selectors (Bits 14-12, 17-15, 20-18)
+Each LFSR slot selects from the 8 primary LFSRs (3 bits each):
+- **Bits 14-12**: LFSR A polynomial selector (0-7)
+- **Bits 17-15**: LFSR B polynomial selector (0-7)
+- **Bits 20-18**: LFSR C polynomial selector (0-7)
 
-### 4. Shape Modulation (SHAPE)
-Shape operations modify the combined noise using a carrier signal:
+**Mapping:**
+- `0`: 1-bit Square Wave (50/50 duty cycle, pure square wave)
+- `1`: 25/75 Pulse Wave (25% high, 75% low, fixed duty cycle)
+- `2`: 4-bit Maximal (POKEY-style, period 15)
+- `3`: 5-bit Maximal (POKEY-style, period 31)
+- `4`: 9-bit Maximal (POKEY-style, also TIA, period 511)
+- `5`: 15-bit Maximal (period 32,767)
+- `6`: 17-bit Maximal (POKEY-style, period 131,071)
+- `7`: 31-bit Maximal (period 2,147,483,647)
 
-#### XOR_SQUARE
-- **Operation**: XOR between carrier phase and noise phase
-- **Effect**: Phase-destructive operation that creates hollow, nasal, metallic tones
-- **Why "metallic"**: The phase cancellation creates spectral notches and resonances
-- **Not accidental**: This is an explicit design choice for unique timbres
-
-#### Other Shape Types
-- Additional shape operations may include amplitude modulation, phase modulation, or other carrier-based effects
-- SHAPE_PARAM provides fine control over these operations
-
-### 5. Toggle Operation (TOGGLE)
-Toggle is a deterministic polarity flip operation:
-- **Not abstract modulation**: It's a specific, deterministic operation
-- **Generalization of clocking**: Replaces "LFSR clocked by another LFSR" with a simpler mechanism
-- **Periodic noise**: When combined with decimation, creates periodic noise without secondary clocks
-- **Interaction with frequency**: Toggle rate may be tied to frequency or decimation factor
-
-### 6. Pulse Wave Conversion (Output Generation)
-The final processed signal:
-- Starts as a bitstream (0/1) from the LFSR combination and shaping operations
-- **Is converted to pulse waves**: Each bit becomes an audio sample
-  - `bit === 1` → `+1.0` (or `+0.5` for lower amplitude)
-  - `bit === 0` → `-1.0` (or `-0.5` for lower amplitude)
-- This creates a pulse wave with duty cycle determined by the bitstream pattern
-- Frequency parameter controls the playback rate of these pulse waves (pitch)
-- Can be filtered, gain-controlled, or further processed
-- Maintains deterministic behavior for reproducible results
-
-**Important**: We are generating pulse waves, not using frequency dividers. The pulse wave rate (frequency) is independent from the LFSR stepping rate (decimation).
-
----
-
-## NoiseCode Field Semantics
-
-### COMB Field
-**Purpose**: Defines logical combination of LFSR outputs
-
-**Values** (examples, exact encoding TBD):
+#### COMB - Logical Combination (Bits 23-21)
+Defines how enabled LFSR outputs are combined:
 - `0`: XOR (default, most common)
 - `1`: AND
 - `2`: OR
 - `3`: NAND
 - `4`: NOR
 - `5`: XNOR
-- `6+`: Reserved or custom operations
+- `6`: Reserved
+- `7`: Reserved
 
-**Semantics**: 
-- Combines enabled LFSR outputs using the specified logical operation
-- Replaces POKEY's channel coupling mechanism
-- Creates statistically independent or correlated noise depending on operation
+#### SHAPE - Shape Modulation (Bits 26-24)
+Modulates the combined noise using a carrier signal:
+- `0`: None (pass-through, no modulation)
+- `1`: XOR_SQUARE - XOR with square wave carrier
+- `2`: XOR_SINE - XOR with sine wave carrier
+- `3`: XOR_TRIANGLE - XOR with triangle wave carrier
+- `4`: XOR_SAW - XOR with sawtooth wave carrier
+- `5`: AM - Amplitude modulation with sine carrier
+- `6`: RING - Ring modulation (multiply with sine carrier)
+- `7`: Reserved
 
-### SHAPE Field
-**Purpose**: Selects shape modulation type
+#### DECIM - Decimation Factor (Bits 29-27)
+Controls LFSR stepping rate (stored as 0-7, actual value = stored + 1):
+- `0`: Decimation ÷1 (full rate)
+- `1`: Decimation ÷2
+- `2`: Decimation ÷3
+- ...
+- `7`: Decimation ÷8
 
-**Values** (examples):
-- `0`: None (pass-through)
-- `1`: XOR_SQUARE (phase-destructive with square carrier)
-- `2`: XOR_SINE (phase-destructive with sine carrier)
-- `3+`: Other modulation types
+Higher decimation = slower stepping = slower patterns (pitched noise)
+Lower decimation = faster stepping = faster, noisier patterns
 
-**Semantics**:
-- Modulates the combined noise using a carrier signal
-- XOR_SQUARE creates metallic/hollow tones through phase cancellation
-- Carrier frequency may be derived from the main frequency parameter
+### Bit Extraction Helpers
 
-### SHAPE_PARAM Field
-**Purpose**: Provides additional control for shape operations
+```typescript
+// Example bit extraction (TypeScript)
+const A_EN = (noiseCode >> 4) & 1;
+const B_EN = (noiseCode >> 5) & 1;
+const C_EN = (noiseCode >> 6) & 1;
 
-**Semantics**:
-- Interpretation depends on SHAPE type
-- May control: carrier phase offset, modulation depth, carrier frequency multiplier
-- Width depends on required precision for each shape type
+const A_INV = (noiseCode >> 7) & 1;
+const B_INV = (noiseCode >> 8) & 1;
+const C_INV = (noiseCode >> 9) & 1;
 
-### DECIM Field
-**Purpose**: Controls decimation factor
+const B_CLK_A = (noiseCode >> 10) & 1;
+const C_CLK_B = (noiseCode >> 11) & 1;
 
-**Values**: Typically 1-32 or similar range
+const A_POLY = (noiseCode >> 12) & 7;
+const B_POLY = (noiseCode >> 15) & 7;
+const C_POLY = (noiseCode >> 18) & 7;
 
-**Semantics**:
-- Divides the LFSR stepping rate
-- Higher values create slower patterns (pitched noise)
-- Lower values create faster, noisier patterns
-- Applied before combination (affects all LFSRs uniformly, or per-LFSR if supported)
-- Decoupled from frequency control (unlike POKEY's clock division)
+const COMB = (noiseCode >> 21) & 7;
+const SHAPE = (noiseCode >> 24) & 7;
+const DECIM = ((noiseCode >> 27) & 7) + 1; // +1 to get actual decimation value
+```
 
-### LFSR Enable Bits (A_EN, B_EN, C_EN, D_EN)
-**Purpose**: Enable/disable individual LFSRs
+---
 
-**Semantics**:
-- `0`: LFSR does not contribute to output
-- `1`: LFSR contributes to output
-- At least one LFSR should be enabled for output
+## LFSR Selection and Combination
 
-### LFSR Invert Bits (A_INV, B_INV, C_INV, D_INV)
-**Purpose**: Invert LFSR output polarity
+### Selection Process
 
-**Semantics**:
-- `0`: Normal polarity (bit 0 → -1, bit 1 → +1)
-- `1`: Inverted polarity (bit 0 → +1, bit 1 → -1)
-- Applied before combination
+1. **Polynomial Selection**: Each of the 3 slots (A, B, C) selects one of the 8 primary LFSRs via its polynomial selector
+2. **Enable/Disable**: Each slot can be enabled or disabled independently
+3. **Inversion**: Each enabled slot's output can be inverted before combination
 
-### LFSR Polynomial Selectors (A_POLY, B_POLY, C_POLY, D_POLY)
-**Purpose**: Select polynomial/tap configuration for each LFSR
+### Combination Methods
 
-**Semantics**:
-- Index into a table of predefined polynomials
-- Each polynomial defines tap positions and effective period
-- Allows different LFSRs to have different characteristics
-- Width depends on number of available polynomials (typically 4-8 bits)
+GRIT provides two complementary mechanisms for combining LFSRs:
+
+#### Method 1: Logical Combination (COMB field)
+The COMB field defines how enabled LFSR outputs are combined using bitwise logical operations.
+
+**Operation Details:**
+- COMB is applied to all enabled LFSRs simultaneously, bit-by-bit
+- With 1 LFSR enabled: Output = that LFSR (COMB has no effect)
+- With 2 LFSRs enabled: Output = COMB(A, B) for each bit
+- With 3 LFSRs enabled: Output = COMB(COMB(A, B), C) for each bit (left-associative)
+
+**Available Operations:**
+- **XOR** (0): Exclusive OR - creates complex, uncorrelated noise (most common)
+- **AND** (1): Logical AND - creates sparse, gated patterns
+- **OR** (2): Logical OR - creates dense, filled patterns
+- **NAND** (3): Negated AND - inverts AND result, different spectral character than AND
+- **NOR** (4): Negated OR - inverts OR result, different spectral character than OR
+- **XNOR** (5): Exclusive NOR - inverts XOR result, different spectral character than XOR
+
+**Why Inverted Operators Sound Different:**
+Inverted operators (NAND, NOR, XNOR) produce different timbres than their non-inverted counterparts:
+- **NAND** inverts the AND result, creating denser patterns (opposite of AND's sparsity)
+- **NOR** inverts the OR result, creating sparser patterns (opposite of OR's density)
+- **XNOR** inverts the XOR result, creating correlated patterns (opposite of XOR's uncorrelation)
+- These create distinct duty cycles and spectral characteristics that cannot be achieved by simply inverting inputs
+
+**Purpose**: Logical combination determines HOW bitstreams are merged (logical relationship).
+
+#### Method 2: Clock Coupling (POKEY-style)
+Clock coupling creates timing relationships between LFSRs:
+- One LFSR's output transitions clock another LFSR
+- This creates periodic noise patterns
+- Clock coupling works alongside logical combination - the clock-coupled LFSR still contributes to the COMB operation
+
+**Purpose**: Clock coupling determines WHEN an LFSR steps (temporal relationship).
+
+**Why Separate from COMB?**
+Clock coupling and logical combination operate at different levels:
+- **Clock coupling** is a **temporal** operation - it controls when an LFSR steps (timing)
+- **COMB** is a **logical** operation - it controls how outputs are combined (logic)
+
+These are fundamentally different operations that work together:
+1. Clock coupling determines the stepping pattern (temporal)
+2. COMB determines how the resulting bitstreams are merged (logical)
+
+**Example**: If B_CLK_A is enabled:
+- LFSR B only steps when LFSR A's output transitions (0→1 or 1→0) - **temporal relationship**
+- LFSR B's output is still combined with other enabled LFSRs via COMB - **logical relationship**
+- This creates periodic patterns based on LFSR A's behavior, then logically combined
+
+#### Combining Both Methods
+Clock coupling and logical combination work together:
+1. LFSRs step according to their clock coupling configuration (temporal)
+2. Enabled LFSR outputs are combined using the COMB operation (logical)
+3. The combined result is shaped by SHAPE modulation (if enabled)
+
+This allows complex interactions: clock coupling creates timing relationships, while COMB creates logical relationships.
+
+---
+
+## Clock Coupling Mechanism
+
+### POKEY's Clock Coupling
+
+POKEY allowed one LFSR to be clocked by another LFSR's output. When an LFSR is clock-coupled:
+- It only steps when its clock source's output bit transitions (0→1 or 1→0)
+- This creates periodic noise patterns because the clock source's pattern determines when the coupled LFSR steps
+- The coupled LFSR's output is still used in the final audio output
+
+**POKEY Example**: If channel B is clocked by channel A:
+- Channel B's LFSR only steps when channel A's LFSR output changes
+- This creates periodic noise that repeats based on channel A's pattern
+- Both channels contribute to the audio output
+
+### GRIT's Clock Coupling
+
+GRIT replicates POKEY's clock coupling mechanism with additional flexibility:
+
+**Available Clock Couplings:**
+- **B_CLK_A**: LFSR B clocked by LFSR A
+- **C_CLK_B**: LFSR C clocked by LFSR B
+- **D_CLK_C**: LFSR D clocked by LFSR C
+- **D_CLK_A**: LFSR D clocked by LFSR A
+
+**Behavior:**
+- When clock coupling is enabled, the target LFSR only steps on transitions of its clock source
+- Clock coupling takes precedence over normal stepping (decimation-based stepping)
+- Multiple clock couplings can be enabled simultaneously
+- Clock-coupled LFSRs still contribute to the COMB operation
+
+**Key Difference from POKEY:**
+- POKEY: Clock coupling was the primary way to create periodic noise
+- GRIT: Clock coupling works alongside logical combination (COMB), allowing both timing and logical relationships
+
+---
+
+## Signal Flow and Operations
+
+### 1. LFSR Selection and Generation
+Each of the 3 slots (A, B, C):
+- Selects one of the 8 primary LFSRs based on its polynomial selector
+- Generates a bitstream according to its LFSR's characteristics
+- Can be enabled or disabled
+- Can have its output inverted
+
+### 2. Clock Coupling
+Clock-coupled LFSRs:
+- Step only when their clock source's output transitions (0→1 or 1→0)
+- Create periodic noise patterns based on the clock source's behavior
+- Still contribute their output to the combination stage
+
+Independent LFSRs:
+- Step at `audio_sample_rate / decimation_factor`
+- Generate continuous bitstreams
+
+### 3. Decimation
+Decimation divides the stepping rate for independent LFSRs:
+- **Purpose**: Create sub-audio-rate patterns for pitched noise
+- **Mechanism**: Independent LFSRs step at `audio_sample_rate / decimation_factor` (where decimation = 1-8)
+- **Effect**: When decimation is high (e.g., ÷8), patterns repeat at audible rates, creating pitched noise
+- **Applied to**: Independent LFSRs only (clock-coupled LFSRs inherit timing from their clock source)
+- **Key Difference from POKEY**: Decoupled from frequency control - can change pitch without changing noise character
+
+### 4. Logical Combination (COMB)
+The COMB field defines how enabled LFSR outputs are combined using bitwise logical operations.
+
+**How COMB Works:**
+COMB is applied to all enabled LFSRs simultaneously. The operation is applied bit-by-bit across the enabled LFSR outputs:
+- If 1 LFSR is enabled: Output = that LFSR's bitstream (COMB has no effect)
+- If 2 LFSRs are enabled: Output = COMB(A, B) applied bitwise
+- If 3 LFSRs are enabled: Output = COMB(COMB(A, B), C) applied bitwise (left-associative)
+
+**Example with 3 enabled LFSRs (A, B, C) and XOR:**
+- For each sample: `output = A XOR B XOR C`
+- This is equivalent to: `output = (A XOR B) XOR C`
+
+**COMB Operations:**
+- **XOR** (0): Exclusive OR - creates complex, uncorrelated noise (most common)
+  - With 2 LFSRs: Output is 1 when inputs differ
+  - With 3 LFSRs: Output is 1 when odd number of inputs are 1
+- **AND** (1): Logical AND - creates sparse, gated patterns
+  - With 2 LFSRs: Output is 1 only when both are 1
+  - With 3 LFSRs: Output is 1 only when all three are 1
+- **OR** (2): Logical OR - creates dense, filled patterns
+  - With 2 LFSRs: Output is 1 when either is 1
+  - With 3 LFSRs: Output is 1 when any are 1
+- **NAND** (3): Negated AND - inverted AND pattern
+  - With 2 LFSRs: Output is 0 only when both are 1 (inverse of AND)
+  - Creates different spectral characteristics than AND due to different duty cycle
+- **NOR** (4): Negated OR - inverted OR pattern
+  - With 2 LFSRs: Output is 0 when either is 1 (inverse of OR)
+  - Creates different spectral characteristics than OR
+- **XNOR** (5): Exclusive NOR - inverted XOR pattern
+  - With 2 LFSRs: Output is 1 when inputs are the same (inverse of XOR)
+  - Creates different spectral characteristics than XOR
+
+**Why Include Inverted Operators?**
+While invert flags can flip individual LFSR inputs, the inverted operators (NAND, NOR, XNOR) produce different results:
+- **NAND(A, B)** ≠ **AND(NOT(A), NOT(B))** (which equals NOR(A, B) by De Morgan's law)
+- **NAND** inverts the AND result, creating different duty cycles and spectral content
+- The inverted operators provide direct access to complementary patterns without needing to invert all inputs
+- They create distinct timbres: NAND produces denser patterns than AND, NOR produces sparser patterns than OR
+
+**Key Insight**: COMB works alongside clock coupling. Clock coupling creates timing relationships; COMB creates logical relationships between bitstreams.
+
+### 5. Shape Modulation (SHAPE)
+Shape operations modify the combined noise using a carrier signal. The carrier frequency is derived from the voice frequency parameter.
+
+#### None (0)
+- **Operation**: Pass-through, no modulation
+- **Effect**: Combined noise output unchanged
+- **Use cases**: When no shape modulation is desired
+
+#### XOR_SQUARE (1)
+- **Operation**: XOR between noise bitstream and square wave carrier
+- **Effect**: Creates hollow, nasal, metallic tones with spectral notches
+- **Use cases**: Metallic weapon impacts, hollow percussive sounds, unique textural effects
+
+#### XOR_SINE (2)
+- **Operation**: XOR between noise bitstream and sine wave carrier
+- **Effect**: Softer modulation than XOR_SQUARE, creates smoother metallic tones
+- **Use cases**: Softer metallic textures, smoother modulated noise
+
+#### XOR_TRIANGLE (3)
+- **Operation**: XOR between noise bitstream and triangle wave carrier
+- **Effect**: Moderate modulation character between square and sine
+- **Use cases**: Varied metallic textures, intermediate modulation character
+
+#### XOR_SAW (4)
+- **Operation**: XOR between noise bitstream and sawtooth wave carrier
+- **Effect**: Asymmetric modulation with distinct harmonic character
+- **Use cases**: Unique textural effects, asymmetric modulation patterns
+
+#### AM (5)
+- **Operation**: Amplitude modulation - noise multiplied by sine carrier (0-1 range)
+- **Effect**: Tremolo-like effect, creates rhythmic amplitude variation
+- **Use cases**: Rhythmic textures, tremolo effects, amplitude-based modulation
+
+#### RING (6)
+- **Operation**: Ring modulation - noise multiplied by sine carrier (bipolar)
+- **Effect**: Creates sum and difference frequencies, metallic bell-like tones
+- **Use cases**: Metallic bell sounds, frequency-shifted textures, ring mod effects
+
+### 6. Pulse Wave Conversion
+The final processed signal:
+- Starts as a bitstream (0/1) from the LFSR combination and shaping operations
+- **Is converted to pulse waves**: Each bit becomes an audio sample
+  - `bit === 1` → `+1.0`
+  - `bit === 0` → `-1.0`
+- Duty cycle is determined by the selected LFSR:
+  - **1-bit Square Wave (polynomial 0)**: Fixed 50/50 duty cycle (alternating pattern)
+  - **25/75 Pulse Wave (polynomial 1)**: Fixed 25/75 duty cycle (repeating 1,0,0,0 pattern)
+  - **All other LFSRs**: Duty cycle determined by the LFSR bitstream pattern
+- Frequency parameter controls the playback rate of these pulse waves (pitch)
+- Maintains deterministic behavior for reproducible results
+
+**Important**: We are generating pulse waves, not using frequency dividers. The pulse wave rate (frequency) is independent from the LFSR stepping rate (decimation). Fixed duty cycle LFSRs (1-bit square, 25/75 pulse) enable pure tones and predictable waveforms, while other LFSRs preserve their natural duty cycle patterns.
+
+### 7. ADSR Envelope
+Amplitude control over time (applied after pulse wave conversion):
+- **Attack**: Time to reach full amplitude from zero
+- **Decay**: Time to fall from full amplitude to sustain level
+- **Sustain**: Level to hold after decay (0.0 to 1.0)
+- **Release**: Time to fall from sustain level to zero
+
+The envelope multiplies the pulse wave output, enabling percussive sounds, sustained tones, and smooth fade-outs.
+
+### 8. Effects (Reverb/Delay)
+Post-processing effects applied to the final output:
+- **Reverb**: Spatial depth and room simulation
+- **Delay**: Echo and feedback effects
+- Effects are applied per-voice or globally (implementation detail)
+- Effects parameters are separate from NoiseCode (not encoded in the 32-bit format)
 
 ---
 
@@ -347,13 +502,13 @@ GRIT is not a neutral DSP block - it is a **sound language** designed for specif
 #### Engines
 - Rhythmic, mechanical noise
 - Combines multiple LFSRs with decimation
-- Uses toggle for periodic elements
+- Uses clock coupling for periodic elements
 - COMB operations create complex, layered textures
 
 #### Weapons
 - Sharp, aggressive noise bursts
 - High-frequency, uncorrelated LFSRs
-- XOR_SQUARE for metallic impact sounds
+- Shape modulation (XOR_SQUARE, RING) for metallic impact sounds
 - Sparse patterns via AND operations
 
 #### Ambience
@@ -366,7 +521,7 @@ GRIT is not a neutral DSP block - it is a **sound language** designed for specif
 - Chaotic, unpredictable patterns
 - Fast LFSR stepping
 - XOR combinations for maximum complexity
-- Rapid toggle or shape changes
+- Rapid clock coupling or shape changes
 
 ### Historical References
 GRIT can reproduce sounds from:
@@ -374,31 +529,21 @@ GRIT can reproduce sounds from:
 - **Defender**: Engine and weapon sounds
 - **Other classic games**: Any POKEY-based sound can be approximated
 
-### Preset Philosophy
-The 64-entry preset table provides:
-- Curated starting points for common sounds
-- Examples of effective parameter combinations
-- Teaching tool for understanding GRIT
-- Quick access to proven configurations
-
 ---
 
 ## Implementation Notes
 
-### TypeScript Bitwise Behavior
-- JavaScript/TypeScript bitwise operations work on 32-bit signed integers
-- For LFSR operations, treat values as unsigned conceptually
-- Use `>>>` (unsigned right shift) instead of `>>` (signed right shift) when appropriate
-- Mask operations ensure values stay in 32-bit range: `value & 0xFFFFFFFF`
+### LFSR Implementation
+- Each primary LFSR is implemented according to its polynomial definition
+- LFSR state is maintained as integers
+- Stepping is deterministic given initial state and polynomial
+- Use `>>>` (unsigned right shift) for bit operations in TypeScript
 
-### Floating-Point Considerations
-- LFSR state is maintained as integers (32-bit)
-- **Pulse wave conversion**: Each LFSR bit becomes an audio sample
-  - `(bit === 1) ? +1.0 : -1.0` (full amplitude pulse wave)
-  - Or `(bit === 1) ? +0.5 : -0.5` (half amplitude)
-- This creates a pulse wave with duty cycle determined by the bitstream pattern
-- No precision loss expected (32-bit fits in 53-bit mantissa)
-- Avoid floating-point operations in the LFSR stepping loop (keep it integer-based)
+### Pulse Wave Generation
+- Each LFSR bit (0 or 1) is converted to a pulse wave sample: `(bit === 1) ? +1.0 : -1.0`
+- Frequency parameter controls the playback rate of these pulse waves (pitch)
+- Decimation factor controls LFSR stepping rate (how often bits are generated)
+- These are decoupled - can change pitch without affecting noise character
 
 ### Determinism Guarantees
 - LFSR state is fully deterministic given initial state and polynomial
@@ -406,21 +551,13 @@ The 64-entry preset table provides:
 - Useful for reproducible sound effects
 - Initial state can be seeded for variation
 
-### AudioWorkletNode Structure
-```typescript
-// Main thread
-const audioCtx = new AudioContext();
-await audioCtx.audioWorklet.addModule('noise-processor.js');
-const noiseNode = new AudioWorkletNode(audioCtx, 'noise-processor');
-
-// In noise-processor.js (AudioWorkletGlobalScope)
-class NoiseProcessor extends AudioWorkletProcessor {
-  process(inputs, outputs, parameters) {
-    // LFSR stepping and audio generation
-    // Runs in real-time audio thread
-  }
-}
-```
+### AudioWorkletNode
+- Runs in a dedicated real-time audio thread (AudioWorkletGlobalScope)
+- Avoids JavaScript timing jitter from the main thread
+- Enables sample-accurate LFSR stepping
+- Provides deterministic, reproducible audio generation
+- Similar performance characteristics to VST plugin process loops
+- Allows sample-by-sample processing required for LFSR-based noise generation
 
 ### Frequency Control
 - Frequency parameter controls **pulse wave playback rate** (pitch), not LFSR stepping rate
@@ -433,7 +570,7 @@ class NoiseProcessor extends AudioWorkletProcessor {
 
 ### Performance Considerations
 - LFSR stepping is extremely fast (bit operations)
-- Four LFSRs + combination logic is negligible CPU cost
+- Three LFSR slots + combination logic is negligible CPU cost
 - AudioWorkletNode ensures real-time performance
 - No memory allocation in audio processing loop
 
@@ -444,63 +581,98 @@ class NoiseProcessor extends AudioWorkletProcessor {
 ### Example 1: Pitfall-Like Periodic Noise
 **Goal**: Reproduce the periodic noise from Pitfall!
 
-**Configuration**:
+**Configuration:**
 - Enable LFSR A only
-- Use decimation factor of 16 (÷16)
+- LFSR A: 9-bit Maximal (polynomial 4)
+- Use decimation factor of 8 (÷8)
 - COMB: XOR (single LFSR, so no effect)
 - SHAPE: None
-- TOGGLE: Off
-- Polynomial: Short period (e.g., 15-bit maximal)
+- No clock coupling
 
-**How it works**:
-- LFSR A generates a repeating pattern
-- Decimation ÷16 makes the pattern repeat at an audible rate
+**How it works:**
+- LFSR A (9-bit) generates a repeating pattern with period 511
+- Decimation ÷8 makes the pattern repeat at an audible rate
 - The repeating pattern creates a pitched noise tone
 - This approximates POKEY's "periodic noise" mode
 
 ### Example 2: Metallic Weapon Impact
 **Goal**: Create a sharp, metallic impact sound
 
-**Configuration**:
+**Configuration:**
 - Enable LFSRs A and B
+- LFSR A: 17-bit Maximal (polynomial 6)
+- LFSR B: 17-bit Maximal (polynomial 6)
 - COMB: XOR (uncorrelated combination)
-- SHAPE: XOR_SQUARE (phase-destructive)
+- SHAPE: XOR_SQUARE
 - DECIM: 1 (no decimation, full noise)
 - High-frequency setting
 
-**How it works**:
-- Two uncorrelated LFSRs create complex noise
+**How it works:**
+- Two uncorrelated 17-bit LFSRs create complex noise
 - XOR_SQUARE introduces phase cancellation
 - Phase cancellation creates spectral notches (metallic character)
 - High frequency makes it sharp and percussive
 
-### Example 3: Engine Rumble
-**Goal**: Create a rhythmic, mechanical engine sound
+### Example 3: Engine Rumble (POKEY-style)
+**Goal**: Create a rhythmic, mechanical engine sound using clock coupling
 
-**Configuration**:
+**Configuration:**
 - Enable LFSRs A, B, C
+- LFSR A: 17-bit Maximal (polynomial 6)
+- LFSR B: 9-bit Maximal (polynomial 4)
+- LFSR C: 4-bit Maximal (polynomial 2)
 - COMB: XOR (complex layering)
 - DECIM: 8 (moderate decimation for rhythm)
-- TOGGLE: On, synchronized with decimation
+- Clock coupling: C_CLK_B enabled (C clocked by B)
 - Lower frequency range
 
-**How it works**:
-- Multiple LFSRs create layered texture
-- Decimation creates rhythmic patterns
-- Toggle adds periodic emphasis
+**How it works:**
+- LFSR A runs independently with decimation
+- LFSR B runs independently with decimation
+- LFSR C is clocked by LFSR B's transitions, creating periodic patterns
+- XOR combination creates complex, layered texture
+- Clock coupling adds rhythmic emphasis based on B's pattern
 - Lower frequency makes it rumbly and mechanical
 
-### Example 4: Sparse Glitch Pattern
+### Example 4: Pure Square Wave
+**Goal**: Create a pure square wave tone
+
+**Configuration:**
+- Enable LFSR A only
+- LFSR A: 1-bit Square Wave (polynomial 0)
+- COMB: XOR (single LFSR, so no effect - COMB only matters with multiple LFSRs)
+- SHAPE: None
+- DECIM: 1 (full rate)
+- No clock coupling
+
+**How it works:**
+- 1-bit Square Wave LFSR produces alternating 0/1 pattern (period 2)
+- Fixed 50/50 duty cycle ensures symmetric square wave
+- Each bit converts to pulse wave: `1 → +1.0`, `0 → -1.0`
+- Frequency parameter controls playback rate (pitch)
+- Result is a pure square wave tone at the specified frequency
+- Useful for creating fundamental tones, testing, and as a building block for more complex sounds
+
+**Pure Tone Generation:**
+GRIT supports pure tones through:
+1. **1-bit Square Wave (polynomial 0)**: Pure square wave, 50% duty cycle
+2. **25/75 Pulse Wave (polynomial 1)**: Pure pulse wave, 25% duty cycle
+3. **Short-period LFSRs with high decimation**: Creates pitched tones from repeating patterns
+   - Example: 4-bit LFSR (period 15) with decimation ÷8 creates a pitched tone
+
+### Example 5: Sparse Glitch Pattern
 **Goal**: Create sparse, gated noise bursts
 
-**Configuration**:
+**Configuration:**
 - Enable LFSRs A and B
+- LFSR A: 17-bit Maximal (polynomial 6)
+- LFSR B: 17-bit Maximal (polynomial 6)
 - COMB: AND (sparse combination)
 - DECIM: 4 (some structure)
 - SHAPE: None
 - Medium frequency
 
-**How it works**:
+**How it works:**
 - AND operation only outputs 1 when both LFSRs are 1
 - This creates sparse, gated patterns
 - Decimation adds some rhythmic structure
@@ -508,155 +680,55 @@ class NoiseProcessor extends AudioWorkletProcessor {
 
 ---
 
-## Preset System
-
-### 64-Entry Preset Table
-GRIT includes a table of 64 predefined NoiseCode values, each optimized for specific sound types.
-
-### Preset Categories (inferred)
-- **Engines** (multiple entries for different engine types)
-- **Weapons** (impacts, lasers, explosions)
-- **Ambience** (wind, static, background)
-- **Glitches** (digital artifacts, errors)
-- **Classic** (Pitfall, Defender, etc.)
-- **Experimental** (unusual combinations)
-
-### Preset Usage
-- Presets serve as starting points
-- Users can modify presets for variation
-- Presets demonstrate effective parameter combinations
-- Each preset should be explainable by the design document
-
-### Preset Encoding
-Each preset is a single NoiseCode value that can be:
-- Stored compactly (single integer)
-- Transmitted efficiently
-- Reproduced deterministically
-- Modified bitwise for variations
-
----
-
 ## Comparison with POKEY
 
 ### What POKEY Did
 - Four channels with LFSR-based noise
-- Clock coupling (one LFSR clocks another)
-- High/low noise selection
-- Hardware-specific tap configurations
-- Fixed register sizes
+- LFSRs: 4-bit, 5-bit, 9-bit, and 17-bit configurations (fixed per channel)
+- Clock coupling (one LFSR clocks another) - separate from output combination
+- High/low noise selection modes
 - Frequency divider controlled both pitch and noise character (coupled)
+- Limited combination options - primarily XOR of independent channels
 
-### What GRIT Does Differently
-1. **Logical Combination vs Clock Coupling**
-   - POKEY: One LFSR's output clocks another LFSR
-   - GRIT: LFSRs run independently, combined logically
-   - Result: More flexible, can reproduce POKEY sounds plus new possibilities
+### What GRIT Does
 
-2. **Pulse Wave Generation vs Clock Division**
-   - POKEY: Clock division → LFSR clock → pulse wave output (all coupled)
-   - GRIT: LFSR bitstream → pulse wave conversion → frequency-controlled playback (decoupled)
-   - **Key difference**: We generate pulse waves from bitstreams, not by dividing a master clock
-   - Decimation controls LFSR stepping rate (noise character)
-   - Frequency controls pulse wave playback rate (pitch)
-   - Result: Smooth frequency control without affecting noise character, plus ability to change noise character independently
+#### 1. Primary LFSR Set
+- **POKEY**: Fixed LFSR configurations per channel (4-bit, 5-bit, 9-bit, 17-bit)
+- **GRIT**: 8 primary LFSRs (1-bit square, 2-bit, 4-bit, 5-bit, 9-bit, 15-bit, 17-bit, 31-bit) that can be selected for any slot
+- **Result**: More flexible - any slot can use any primary LFSR, includes all POKEY LFSR sizes plus pure square wave and extended range
 
-3. **Toggle vs Secondary Clocking**
-   - POKEY: Periodic noise via secondary LFSR clocking
-   - GRIT: Toggle operation for periodic effects
-   - Result: Simpler mechanism, same expressive power
+#### 2. Clock Coupling
+- **POKEY**: Periodic noise via secondary LFSR clocking
+- **GRIT**: Direct clock coupling support (one LFSR clocks another)
+- **Result**: Same expressive power as POKEY, with additional flexibility
 
-4. **Shape Modulation**
-   - POKEY: No equivalent
-   - GRIT: XOR_SQUARE and other shape operations
-   - Result: Unique timbres not possible on POKEY
+#### 3. Logical Combination
+- **POKEY**: Limited combination options
+- **GRIT**: Logical combination operations (XOR, AND, OR, NAND, NOR, XNOR)
+- **Result**: Can reproduce POKEY sounds plus new possibilities
 
-5. **32-Bit Standardization**
-   - POKEY: Fixed register sizes
-   - GRIT: Unified 32-bit with selectable polynomials
-   - Result: More flexible periodicity control
+#### 4. Pulse Wave Generation vs Clock Division
+- **POKEY**: Clock division → LFSR clock → pulse wave output (all coupled)
+- **GRIT**: LFSR bitstream → pulse wave conversion → frequency-controlled playback (decoupled)
+- **Key difference**: We generate pulse waves from bitstreams, not by dividing a master clock
+- Decimation controls LFSR stepping rate (noise character)
+- Frequency controls pulse wave playback rate (pitch)
+- **Result**: Smooth frequency control without affecting noise character, plus ability to change noise character independently
 
-### Why This Surpasses POKEY
-- **More Expressive**: Can create sounds POKEY cannot
-- **More Flexible**: Parameter control not limited by hardware
-- **Decoupled Control**: Frequency and noise character are independent
-- **Reproducible**: Can still create classic POKEY sounds
-- **Extensible**: New operations can be added
-- **Deterministic**: Reproducible results for game audio
+#### 5. Shape Modulation
+- **POKEY**: No equivalent
+- **GRIT**: Full set of shape operations (XOR with multiple waveforms, AM, RING modulation)
+- **Result**: Unique timbres not possible on POKEY
 
----
-
-## Future Extensions
-
-### Potential Enhancements
-- Additional shape operations (beyond XOR_SQUARE)
-- Per-LFSR decimation (currently uniform)
-- LFSR synchronization options
-- Filter integration (low-pass, high-pass)
-- Envelope control (ADSR)
-- Multiple output channels
-- Modulation matrix
-
-### Implementation Priorities
-1. Core LFSR system with 32-bit registers
-2. Basic COMB operations (XOR, AND, OR)
-3. Decimation support
-4. AudioWorkletNode integration
-5. Preset system
-6. Shape operations (XOR_SQUARE)
-7. Toggle operation
-8. Polish and optimization
-
----
-
-## Conclusion
-
-GRIT represents a modern evolution of classic PSG technology. By generalizing and extending the concepts from chips like the Atari POKEY, it provides a compact, expressive language for procedural sound generation. GRIT maintains compatibility with classic sounds while enabling new creative possibilities through logical combination, shape modulation, and flexible decimation.
-
-The NoiseCode bitfield provides a compact representation of the entire synthesis configuration, making it suitable for storage, transmission, and real-time modification. The 64-entry preset table offers curated starting points for common sound types, while the underlying architecture supports unlimited creative exploration.
-
-**Key Innovation**: The decoupling of frequency (pitch) from decimation (noise character) allows independent control of these parameters, something POKEY could not achieve due to its hardware design.
-
----
-
-## Appendix: Key Design Decisions
-
-### Why 32-Bit LFSRs?
-- Single standardized width simplifies implementation
-- User-selectable taps control periodicity, not register size
-- Fits safely in JavaScript's Number type (53-bit mantissa)
-- Avoids precision loss
-- Signedness is irrelevant for bit operations
-
-### Why AudioWorkletNode?
-- Real-time audio thread (no main thread jitter)
-- Sample-accurate processing
-- Deterministic behavior
-- VST-like performance characteristics
-- Required for sample-by-sample LFSR stepping
-
-### Why Not PeriodicWave?
-- PeriodicWave is static (coefficients can't change in real-time)
-- LFSR noise is pseudorandom, not periodic in Fourier sense
-- AudioWorkletNode allows sample-by-sample LFSR stepping
-- True POKEY noise requires algorithmic generation
-
-### Why Pulse Waves Instead of Frequency Dividers?
-- Pulse waves provide direct control over pitch (frequency) independent of noise character (decimation)
-- Allows decoupling that POKEY's hardware design couldn't achieve
-- More flexible - can change pitch without affecting timbre
-- Matches the bitstream nature of LFSR output naturally
-
-### Why Logical Combination?
-- More flexible than hardware clock coupling
-- Can reproduce POKEY sounds (XOR of independent LFSRs)
-- Enables new operations (AND, OR, etc.)
-- Statistically independent bitstreams provide rich possibilities
-
-### Why XOR_SQUARE?
-- Phase-destructive operation creates unique timbres
-- Metallic/hollow character not possible with simple noise
-- Generalizes carrier-based modulation concepts
-- Explicit design choice for sound design palette
+### Why GRIT is the Ultimate Evolution of POKEY
+- **More Expressive**: Can create sounds POKEY cannot, including shape modulation operations (XOR, AM, RING) for unique timbres
+- **More Flexible**: Parameter control not limited by hardware - any slot can use any primary LFSR
+- **Decoupled Control**: Frequency and noise character are independent (POKEY's key limitation removed)
+- **Complete POKEY Compatibility**: Includes all POKEY LFSR sizes (4-bit, 5-bit, 9-bit, 17-bit) plus clock coupling
+- **Enhanced Combination**: Logical operations (XOR, AND, OR, etc.) beyond POKEY's capabilities
+- **Reproducible**: Can still create classic POKEY sounds with deterministic results
+- **Extensible**: New operations can be added (shape modulation, effects)
+- **Modern Architecture**: 32-bit NoiseCode provides compact, expressive sound language
 
 ---
 
