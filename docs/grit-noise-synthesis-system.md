@@ -709,171 +709,171 @@ Each preset entry includes:
 
 #### Pure Tones (0-15)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 0 | Pure Square 50/50 | `0x00000010` | A=1-bit square (0), enabled only |
-| 1 | Pure Pulse 25/75 | `0x00000020` | A=25/75 pulse (1), enabled only |
-| 2 | Square Decim 2 | `0x08000010` | A=1-bit square (0), decim ÷2 |
-| 3 | Square Decim 4 | `0x10000010` | A=1-bit square (0), decim ÷4 |
-| 4 | Square Decim 8 | `0x38000010` | A=1-bit square (0), decim ÷8 |
-| 5 | Pulse Decim 2 | `0x08000020` | A=25/75 pulse (1), decim ÷2 |
-| 6 | Pulse Decim 4 | `0x10000020` | A=25/75 pulse (1), decim ÷4 |
-| 7 | 4-bit Tone | `0x00001010` | A=4-bit (2), enabled only |
-| 8 | 5-bit Tone | `0x00001810` | A=5-bit (3), enabled only |
-| 9 | 9-bit Tone | `0x00002010` | A=9-bit (4), enabled only |
-| 10 | 9-bit Decim 8 | `0x38002010` | A=9-bit (4), decim ÷8 (Pitfall! style) |
-| 11 | Square AM | `0x08000010` | A=1-bit square (0), SHAPE=AM (5) |
-| 12 | Pulse AM | `0x08000020` | A=25/75 pulse (1), SHAPE=AM (5) |
-| 13 | Square Ring | `0x18000010` | A=1-bit square (0), SHAPE=RING (6) |
-| 14 | Pulse Ring | `0x18000020` | A=25/75 pulse (1), SHAPE=RING (6) |
-| 15 | Pitfall Tone | `0x38002010` | A=9-bit (4), decim ÷8, classic Pitfall! |
+| #  | Name              | NoiseCode    | Configuration                           |
+|----|-------------------|--------------|-----------------------------------------|
+| 0  | Pure Square 50/50 | `0x00000010` | A=1-bit square (0), enabled only        |
+| 1  | Pure Pulse 25/75  | `0x00000020` | A=25/75 pulse (1), enabled only         |
+| 2  | Square Decim 2    | `0x08000010` | A=1-bit square (0), decim ÷2            |
+| 3  | Square Decim 4    | `0x10000010` | A=1-bit square (0), decim ÷4            |
+| 4  | Square Decim 8    | `0x38000010` | A=1-bit square (0), decim ÷8            |
+| 5  | Pulse Decim 2     | `0x08000020` | A=25/75 pulse (1), decim ÷2             |
+| 6  | Pulse Decim 4     | `0x10000020` | A=25/75 pulse (1), decim ÷4             |
+| 7  | 4-bit Tone        | `0x00001010` | A=4-bit (2), enabled only               |
+| 8  | 5-bit Tone        | `0x00001810` | A=5-bit (3), enabled only               |
+| 9  | 9-bit Tone        | `0x00002010` | A=9-bit (4), enabled only               |
+| 10 | 9-bit Decim 8     | `0x38002010` | A=9-bit (4), decim ÷8 (Pitfall! style)  |
+| 11 | Square AM         | `0x08000010` | A=1-bit square (0), SHAPE=AM (5)        |
+| 12 | Pulse AM          | `0x08000020` | A=25/75 pulse (1), SHAPE=AM (5)         |
+| 13 | Square Ring       | `0x18000010` | A=1-bit square (0), SHAPE=RING (6)      |
+| 14 | Pulse Ring        | `0x18000020` | A=25/75 pulse (1), SHAPE=RING (6)       |
+| 15 | Pitfall Tone      | `0x38002010` | A=9-bit (4), decim ÷8, classic Pitfall! |
 
 #### Bass Instruments (16-31)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 16 | Deep Bass | `0x00000010` | A=1-bit square (0), use 60-200 Hz |
-| 17 | Bass Pulse | `0x00000020` | A=25/75 pulse (1), use 60-200 Hz |
-| 18 | Sub Bass | `0x00001010` | A=4-bit (2), sub-bass texture |
-| 19 | Bass Rumble | `0x38002010` | A=9-bit (4), decim ÷8, rumbly |
-| 20 | Bass Layer | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR |
-| 21 | Bass Clock | `0x00002040` | A=9-bit (4), B=4-bit (2), B_CLK_A, XOR |
-| 22 | Deep Pulse | `0x10000020` | A=25/75 pulse (1), decim ÷4 |
-| 23 | Bass Texture | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR |
-| 24 | Bass Complex | `0x00005010` | A=1-bit (0), B=1-bit (0), AND |
-| 25 | Bass Warm | `0x00006010` | A=1-bit (0), B=1-bit (0), OR |
-| 26 | Bass Metallic | `0x08000010` | A=1-bit square (0), SHAPE=XOR_SQUARE (1) |
-| 27 | Bass Bell | `0x18000010` | A=1-bit square (0), SHAPE=RING (6) |
-| 28 | Bass Sync | `0x00002040` | A=9-bit (4), B=4-bit (2), clock-coupled |
-| 29 | Bass Classic | `0x38002010` | A=9-bit (4), decim ÷8, classic POKEY |
-| 30 | Bass Variant 1 | `0x10001010` | A=4-bit (2), decim ÷4 |
-| 31 | Bass Variant 2 | `0x10001810` | A=5-bit (3), decim ÷4 |
+| #  | Name           | NoiseCode    | Configuration                              |
+|----|----------------|--------------|--------------------------------------------|
+| 16 | Deep Bass      | `0x00000010` | A=1-bit square (0), use 60-200 Hz          |
+| 17 | Bass Pulse     | `0x00000020` | A=25/75 pulse (1), use 60-200 Hz           |
+| 18 | Sub Bass       | `0x00001010` | A=4-bit (2), sub-bass texture              |
+| 19 | Bass Rumble    | `0x38002010` | A=9-bit (4), decim ÷8, rumbly              |
+| 20 | Bass Layer     | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR              |
+| 21 | Bass Clock     | `0x00002040` | A=9-bit (4), B=4-bit (2), B_CLK_A, XOR     |
+| 22 | Deep Pulse     | `0x10000020` | A=25/75 pulse (1), decim ÷4                |
+| 23 | Bass Texture   | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR |
+| 24 | Bass Complex   | `0x00005010` | A=1-bit (0), B=1-bit (0), AND              |
+| 25 | Bass Warm      | `0x00006010` | A=1-bit (0), B=1-bit (0), OR               |
+| 26 | Bass Metallic  | `0x08000010` | A=1-bit square (0), SHAPE=XOR_SQUARE (1)   |
+| 27 | Bass Bell      | `0x18000010` | A=1-bit square (0), SHAPE=RING (6)         |
+| 28 | Bass Sync      | `0x00002040` | A=9-bit (4), B=4-bit (2), clock-coupled    |
+| 29 | Bass Classic   | `0x38002010` | A=9-bit (4), decim ÷8, classic POKEY       |
+| 30 | Bass Variant 1 | `0x10001010` | A=4-bit (2), decim ÷4                      |
+| 31 | Bass Variant 2 | `0x10001810` | A=5-bit (3), decim ÷4                      |
 
 #### Lead Instruments (32-47)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 32 | Lead Square | `0x00000010` | A=1-bit square (0), bright lead |
-| 33 | Lead Pulse | `0x00000020` | A=25/75 pulse (1), punchy lead |
-| 34 | Lead Layered | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR |
-| 35 | Lead Arp | `0x00002010` | A=9-bit (4), arpeggio-like |
-| 36 | Lead Bright | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR |
-| 37 | Lead Warm | `0x00006010` | A=1-bit (0), B=1-bit (0), OR |
-| 38 | Lead Metallic | `0x08000010` | A=1-bit square (0), SHAPE=XOR_SQUARE (1) |
-| 39 | Lead Bell | `0x18000010` | A=1-bit square (0), SHAPE=RING (6) |
-| 40 | Lead Sync | `0x00002040` | A=9-bit (4), B=4-bit (2), clock-coupled |
-| 41 | Lead Complex | `0x00005010` | A=1-bit (0), B=1-bit (0), AND |
-| 42 | Lead Glitch | `0x00009010` | A=1-bit (0), B=1-bit (0), NAND |
-| 43 | Lead Sweep | `0x00002010` | A=9-bit (4), good for sweeps |
-| 44 | Lead Classic | `0x38002010` | A=9-bit (4), decim ÷8, classic |
-| 45 | Lead Ambient | `0x00008010` | A=1-bit (0), B=1-bit (0), NOR |
-| 46 | Lead Impact | `0x0000A010` | A=1-bit (0), B=1-bit (0), XNOR |
-| 47 | Lead Variant | `0x10000010` | A=1-bit square (0), decim ÷4 |
+| #  | Name          | NoiseCode    | Configuration                              |
+|----|---------------|--------------|--------------------------------------------|
+| 32 | Lead Square   | `0x00000010` | A=1-bit square (0), bright lead            |
+| 33 | Lead Pulse    | `0x00000020` | A=25/75 pulse (1), punchy lead             |
+| 34 | Lead Layered  | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR              |
+| 35 | Lead Arp      | `0x00002010` | A=9-bit (4), arpeggio-like                 |
+| 36 | Lead Bright   | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR |
+| 37 | Lead Warm     | `0x00006010` | A=1-bit (0), B=1-bit (0), OR               |
+| 38 | Lead Metallic | `0x08000010` | A=1-bit square (0), SHAPE=XOR_SQUARE (1)   |
+| 39 | Lead Bell     | `0x18000010` | A=1-bit square (0), SHAPE=RING (6)         |
+| 40 | Lead Sync     | `0x00002040` | A=9-bit (4), B=4-bit (2), clock-coupled    |
+| 41 | Lead Complex  | `0x00005010` | A=1-bit (0), B=1-bit (0), AND              |
+| 42 | Lead Glitch   | `0x00009010` | A=1-bit (0), B=1-bit (0), NAND             |
+| 43 | Lead Sweep    | `0x00002010` | A=9-bit (4), good for sweeps               |
+| 44 | Lead Classic  | `0x38002010` | A=9-bit (4), decim ÷8, classic             |
+| 45 | Lead Ambient  | `0x00008010` | A=1-bit (0), B=1-bit (0), NOR              |
+| 46 | Lead Impact   | `0x0000A010` | A=1-bit (0), B=1-bit (0), XNOR             |
+| 47 | Lead Variant  | `0x10000010` | A=1-bit square (0), decim ÷4               |
 
 #### Drums & Percussion (48-63)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 48 | Kick Deep | `0x00001010` | A=4-bit (2), deep kick, use 40-80 Hz |
-| 49 | Kick Punch | `0x00001810` | A=5-bit (3), punchy kick, use 50-100 Hz |
-| 50 | Kick Classic | `0x00002010` | A=9-bit (4), classic kick, use 60-120 Hz |
-| 51 | Snare Sharp | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR, sharp |
-| 52 | Snare Classic | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR |
-| 53 | HiHat Closed | `0x00005010` | A=1-bit (0), B=1-bit (0), AND, sparse |
-| 54 | HiHat Open | `0x00006010` | A=1-bit (0), B=1-bit (0), OR, dense |
-| 55 | Crash | `0x00007010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), NAND |
-| 56 | Tom Low | `0x00001010` | A=4-bit (2), low tom, use 80-150 Hz |
-| 57 | Tom Mid | `0x00001810` | A=5-bit (3), mid tom, use 100-200 Hz |
-| 58 | Tom High | `0x00002010` | A=9-bit (4), high tom, use 150-300 Hz |
-| 59 | Clap | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR, clap texture |
-| 60 | Rimshot | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR |
-| 61 | Shaker | `0x00005010` | A=1-bit (0), B=1-bit (0), AND, sparse |
-| 62 | Tambourine | `0x00006010` | A=1-bit (0), B=1-bit (0), OR, dense |
-| 63 | Perc Glitch | `0x00009010` | A=1-bit (0), B=1-bit (0), NAND, glitchy |
+| #  | Name          | NoiseCode    | Configuration                               |
+|----|---------------|--------------|---------------------------------------------|
+| 48 | Kick Deep     | `0x00001010` | A=4-bit (2), deep kick, use 40-80 Hz        |
+| 49 | Kick Punch    | `0x00001810` | A=5-bit (3), punchy kick, use 50-100 Hz     |
+| 50 | Kick Classic  | `0x00002010` | A=9-bit (4), classic kick, use 60-120 Hz    |
+| 51 | Snare Sharp   | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR, sharp        |
+| 52 | Snare Classic | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR  |
+| 53 | HiHat Closed  | `0x00005010` | A=1-bit (0), B=1-bit (0), AND, sparse       |
+| 54 | HiHat Open    | `0x00006010` | A=1-bit (0), B=1-bit (0), OR, dense         |
+| 55 | Crash         | `0x00007010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), NAND |
+| 56 | Tom Low       | `0x00001010` | A=4-bit (2), low tom, use 80-150 Hz         |
+| 57 | Tom Mid       | `0x00001810` | A=5-bit (3), mid tom, use 100-200 Hz        |
+| 58 | Tom High      | `0x00002010` | A=9-bit (4), high tom, use 150-300 Hz       |
+| 59 | Clap          | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR, clap texture |
+| 60 | Rimshot       | `0x00004010` | A=1-bit (0), B=1-bit (0), C=1-bit (0), XOR  |
+| 61 | Shaker        | `0x00005010` | A=1-bit (0), B=1-bit (0), AND, sparse       |
+| 62 | Tambourine    | `0x00006010` | A=1-bit (0), B=1-bit (0), OR, dense         |
+| 63 | Perc Glitch   | `0x00009010` | A=1-bit (0), B=1-bit (0), NAND, glitchy     |
 
 #### Classic Game Sounds (64-79)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 64 | Pitfall! | `0x38002010` | A=9-bit (4), decim ÷8, classic Pitfall! |
-| 65 | Pitfall Variant | `0x10002010` | A=9-bit (4), decim ÷4, variant |
-| 66 | Defender Engine | `0x00003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR |
+| #  | Name            | NoiseCode    | Configuration                                     |
+|----|-----------------|--------------|---------------------------------------------------|
+| 64 | Pitfall!        | `0x38002010` | A=9-bit (4), decim ÷8, classic Pitfall!           |
+| 65 | Pitfall Variant | `0x10002010` | A=9-bit (4), decim ÷4, variant                    |
+| 66 | Defender Engine | `0x00003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR           |
 | 67 | Defender Weapon | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
-| 68 | POKEY Classic | `0x00002010` | A=9-bit (4), classic POKEY tone |
-| 69 | POKEY Noise | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR |
-| 70 | POKEY Tone | `0x00001010` | A=4-bit (2), POKEY-style tone |
-| 71 | TIA Sound | `0x00002010` | A=9-bit (4), TIA-style sound |
-| 72 | Game Beep | `0x00000010` | A=1-bit square (0), classic beep |
-| 73 | Game Blip | `0x00000020` | A=25/75 pulse (1), classic blip |
-| 74 | Game Zap | `0x08000010` | A=1-bit square (0), SHAPE=XOR_SQUARE |
-| 75 | Game Powerup | `0x00002010` | A=9-bit (4), powerup sound |
-| 76 | Game Coin | `0x00001810` | A=5-bit (3), coin collection |
-| 77 | Game Jump | `0x00001010` | A=4-bit (2), jump sound |
-| 78 | Game Explosion | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, explosion |
-| 79 | Game Victory | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR, victory fanfare |
+| 68 | POKEY Classic   | `0x00002010` | A=9-bit (4), classic POKEY tone                   |
+| 69 | POKEY Noise     | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR                   |
+| 70 | POKEY Tone      | `0x00001010` | A=4-bit (2), POKEY-style tone                     |
+| 71 | TIA Sound       | `0x00002010` | A=9-bit (4), TIA-style sound                      |
+| 72 | Game Beep       | `0x00000010` | A=1-bit square (0), classic beep                  |
+| 73 | Game Blip       | `0x00000020` | A=25/75 pulse (1), classic blip                   |
+| 74 | Game Zap        | `0x08000010` | A=1-bit square (0), SHAPE=XOR_SQUARE              |
+| 75 | Game Powerup    | `0x00002010` | A=9-bit (4), powerup sound                        |
+| 76 | Game Coin       | `0x00001810` | A=5-bit (3), coin collection                      |
+| 77 | Game Jump       | `0x00001010` | A=4-bit (2), jump sound                           |
+| 78 | Game Explosion  | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, explosion        |
+| 79 | Game Victory    | `0x00003010` | A=1-bit (0), B=1-bit (0), XOR, victory fanfare    |
 
 #### Engines & Motors (80-95)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 80 | Engine Rumble | `0x38003040` | A=17-bit (6), B=9-bit (4), C=4-bit (2), B_CLK_A, C_CLK_B, XOR, decim ÷8 |
-| 81 | Engine Idle | `0x00003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR |
-| 82 | Engine Rev | `0x10003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR, decim ÷4 |
-| 83 | Motor Hum | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR |
-| 84 | Motor Fast | `0x00005010` | A=17-bit (6), B=17-bit (6), AND |
-| 85 | Motor Slow | `0x38004010` | A=17-bit (6), B=17-bit (6), XOR, decim ÷8 |
-| 86 | Engine Complex | `0x00006010` | A=17-bit (6), B=17-bit (6), OR |
-| 87 | Engine Layered | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
-| 88 | Engine Metallic | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
-| 89 | Engine Classic | `0x38002010` | A=9-bit (4), decim ÷8, classic style |
-| 90 | Motor Rhythmic | `0x00002040` | A=9-bit (4), B=4-bit (2), B_CLK_A, XOR |
-| 91 | Engine Sync | `0x00003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR |
-| 92 | Motor Texture | `0x00005010` | A=17-bit (6), B=17-bit (6), AND |
-| 93 | Engine Variant 1 | `0x10003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR, decim ÷4 |
-| 94 | Engine Variant 2 | `0x20003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR, decim ÷5 |
-| 95 | Engine Glitch | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND |
+| #  | Name             | NoiseCode    | Configuration                                                           |
+|----|------------------|--------------|-------------------------------------------------------------------------|
+| 80 | Engine Rumble    | `0x38003040` | A=17-bit (6), B=9-bit (4), C=4-bit (2), B_CLK_A, C_CLK_B, XOR, decim ÷8 |
+| 81 | Engine Idle      | `0x00003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR                                 |
+| 82 | Engine Rev       | `0x10003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR, decim ÷4                       |
+| 83 | Motor Hum        | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR                                         |
+| 84 | Motor Fast       | `0x00005010` | A=17-bit (6), B=17-bit (6), AND                                         |
+| 85 | Motor Slow       | `0x38004010` | A=17-bit (6), B=17-bit (6), XOR, decim ÷8                               |
+| 86 | Engine Complex   | `0x00006010` | A=17-bit (6), B=17-bit (6), OR                                          |
+| 87 | Engine Layered   | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR                           |
+| 88 | Engine Metallic  | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE                       |
+| 89 | Engine Classic   | `0x38002010` | A=9-bit (4), decim ÷8, classic style                                    |
+| 90 | Motor Rhythmic   | `0x00002040` | A=9-bit (4), B=4-bit (2), B_CLK_A, XOR                                  |
+| 91 | Engine Sync      | `0x00003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR                                 |
+| 92 | Motor Texture    | `0x00005010` | A=17-bit (6), B=17-bit (6), AND                                         |
+| 93 | Engine Variant 1 | `0x10003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR, decim ÷4                       |
+| 94 | Engine Variant 2 | `0x20003040` | A=17-bit (6), B=9-bit (4), B_CLK_A, XOR, decim ÷5                       |
+| 95 | Engine Glitch    | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND                                        |
 
 #### Weapons & Impacts (96-111)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 96 | Metallic Impact | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
-| 97 | Weapon Laser | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, sharp |
-| 98 | Weapon Blast | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, sparse |
-| 99 | Impact Sharp | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
-| 100 | Impact Deep | `0x00006010` | A=17-bit (6), B=17-bit (6), OR, dense |
-| 101 | Weapon Zap | `0x18004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=RING |
-| 102 | Weapon Beam | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
-| 103 | Impact Metallic | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
-| 104 | Weapon Classic | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR |
-| 105 | Impact Complex | `0x00008010` | A=17-bit (6), B=17-bit (6), NOR |
-| 106 | Weapon Layered | `0x0000A010` | A=17-bit (6), B=17-bit (6), XNOR |
-| 107 | Impact Glitch | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND |
-| 108 | Weapon Variant 1 | `0x00005010` | A=17-bit (6), B=17-bit (6), AND |
-| 109 | Impact Variant 1 | `0x00006010` | A=17-bit (6), B=17-bit (6), OR |
-| 110 | Weapon Sparse | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, sparse |
-| 111 | Impact Sparse | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, sparse |
+| #   | Name             | NoiseCode    | Configuration                                     |
+|-----|------------------|--------------|---------------------------------------------------|
+| 96  | Metallic Impact  | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
+| 97  | Weapon Laser     | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, sharp            |
+| 98  | Weapon Blast     | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, sparse           |
+| 99  | Impact Sharp     | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
+| 100 | Impact Deep      | `0x00006010` | A=17-bit (6), B=17-bit (6), OR, dense             |
+| 101 | Weapon Zap       | `0x18004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=RING       |
+| 102 | Weapon Beam      | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR     |
+| 103 | Impact Metallic  | `0x08004010` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
+| 104 | Weapon Classic   | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR                   |
+| 105 | Impact Complex   | `0x00008010` | A=17-bit (6), B=17-bit (6), NOR                   |
+| 106 | Weapon Layered   | `0x0000A010` | A=17-bit (6), B=17-bit (6), XNOR                  |
+| 107 | Impact Glitch    | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND                  |
+| 108 | Weapon Variant 1 | `0x00005010` | A=17-bit (6), B=17-bit (6), AND                   |
+| 109 | Impact Variant 1 | `0x00006010` | A=17-bit (6), B=17-bit (6), OR                    |
+| 110 | Weapon Sparse    | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, sparse           |
+| 111 | Impact Sparse    | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, sparse           |
 
 #### Ambience & Textures (112-127)
 
-| # | Name | NoiseCode | Configuration |
-|---|------|-----------|---------------|
-| 112 | Wind | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, wind texture |
-| 113 | Static | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
-| 114 | Texture Deep | `0x38004010` | A=17-bit (6), B=17-bit (6), XOR, decim ÷8 |
-| 115 | Texture Bright | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, bright |
-| 116 | Ambience Dark | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, dark |
-| 117 | Ambience Light | `0x00006010` | A=17-bit (6), B=17-bit (6), OR, light |
-| 118 | Texture Layered | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
-| 119 | Texture Complex | `0x00008010` | A=17-bit (6), B=17-bit (6), NOR |
-| 120 | Ambience Classic | `0x38002010` | A=9-bit (4), decim ÷8, classic |
-| 121 | Texture Variant 1 | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND |
-| 122 | Ambience Variant 1 | `0x0000A010` | A=17-bit (6), B=17-bit (6), XNOR |
-| 123 | Texture Glitch | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND |
-| 124 | Ambience Glitch | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND |
-| 125 | Texture Sparse | `0x00005010` | A=17-bit (6), B=17-bit (6), AND |
-| 126 | Ambience Sparse | `0x00005010` | A=17-bit (6), B=17-bit (6), AND |
-| 127 | Texture Final | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
+| #   | Name               | NoiseCode    | Configuration                                 |
+|-----|--------------------|--------------|-----------------------------------------------|
+| 112 | Wind               | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, wind texture |
+| 113 | Static             | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
+| 114 | Texture Deep       | `0x38004010` | A=17-bit (6), B=17-bit (6), XOR, decim ÷8     |
+| 115 | Texture Bright     | `0x00004010` | A=17-bit (6), B=17-bit (6), XOR, bright       |
+| 116 | Ambience Dark      | `0x00005010` | A=17-bit (6), B=17-bit (6), AND, dark         |
+| 117 | Ambience Light     | `0x00006010` | A=17-bit (6), B=17-bit (6), OR, light         |
+| 118 | Texture Layered    | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
+| 119 | Texture Complex    | `0x00008010` | A=17-bit (6), B=17-bit (6), NOR               |
+| 120 | Ambience Classic   | `0x38002010` | A=9-bit (4), decim ÷8, classic                |
+| 121 | Texture Variant 1  | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND              |
+| 122 | Ambience Variant 1 | `0x0000A010` | A=17-bit (6), B=17-bit (6), XNOR              |
+| 123 | Texture Glitch     | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND              |
+| 124 | Ambience Glitch    | `0x00009010` | A=17-bit (6), B=17-bit (6), NAND              |
+| 125 | Texture Sparse     | `0x00005010` | A=17-bit (6), B=17-bit (6), AND               |
+| 126 | Ambience Sparse    | `0x00005010` | A=17-bit (6), B=17-bit (6), AND               |
+| 127 | Texture Final      | `0x00007010` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
 
 ### Preset Usage
 
