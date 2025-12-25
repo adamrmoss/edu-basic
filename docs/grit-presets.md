@@ -61,18 +61,18 @@ Formula: `(DECIM << 27) | (SHAPE << 24) | (COMB << 21) | (C_POLY << 18) | (B_POL
 | 17 | Bass Pulse | `0x00001010` | A=25/75 pulse, use 60-200 Hz |
 | 18 | Sub Bass | `0x00002010` | A=4-bit, creates sub-bass texture |
 | 19 | Bass Rumble | `0x38004010` | A=9-bit, decim ÷8, rumbly texture |
-| 20 | Bass Layer | `0x00008030` | A=1-bit, B=25/75 pulse, XOR combination |
+| 20 | Bass Layer | `0x00025030` | A=15-bit, B=9-bit, XOR combination |
 | 21 | Bass Clock | `0x00014430` | A=9-bit, B=4-bit, B_CLK_A, XOR |
 | 22 | Deep Pulse | `0x18001010` | A=25/75 pulse, decim ÷4 |
-| 23 | Bass Texture | `0x00088070` | A=1-bit, B=25/75 pulse, C=4-bit, XOR |
-| 24 | Bass Complex | `0x00200030` | A=1-bit, B=1-bit, AND combination |
-| 25 | Bass Warm | `0x00400030` | A=1-bit, B=1-bit, OR combination |
+| 23 | Bass Texture | `0x000A6C70` | A=17-bit, B=9-bit, C=4-bit, B_CLK_A, C_CLK_B, XOR |
+| 24 | Bass Complex | `0x00037030` | A=31-bit, B=17-bit, XOR combination |
+| 25 | Bass Warm | `0x02004010` | A=9-bit, SHAPE=XOR_SINE, smooth modulation |
 | 26 | Bass Metallic | `0x01000010` | A=1-bit square, SHAPE=XOR_SQUARE (1) |
 | 27 | Bass Bell | `0x06000010` | A=1-bit square, SHAPE=RING (6) |
-| 28 | Bass Sync | `0x08014430` | A=9-bit, B=4-bit, B_CLK_A, XOR, decim ÷2 |
+| 28 | Bass Sync | `0x00026530` | A=17-bit, B=9-bit, B_CLK_A, B inverted, XOR |
 | 29 | Bass Classic | `0x38004010` | A=9-bit, decim ÷8, classic POKEY style |
-| 30 | Bass Variant 1 | `0x18002010` | A=4-bit, decim ÷4 |
-| 31 | Bass Variant 2 | `0x18003010` | A=5-bit, decim ÷4 |
+| 30 | Bass Variant 1 | `0x03004010` | A=9-bit, SHAPE=XOR_TRIANGLE |
+| 31 | Bass Variant 2 | `0x04004010` | A=9-bit, SHAPE=XOR_SAW, asymmetric modulation |
 
 ### Lead Instruments (32-47)
 
@@ -80,20 +80,20 @@ Formula: `(DECIM << 27) | (SHAPE << 24) | (COMB << 21) | (C_POLY << 18) | (B_POL
 |---|------|-----------|---------------|
 | 32 | Lead Square | `0x00000010` | A=1-bit square, bright lead |
 | 33 | Lead Pulse | `0x00001010` | A=25/75 pulse, punchy lead |
-| 34 | Lead Layered | `0x00008030` | A=1-bit, B=25/75 pulse, XOR, rich texture |
+| 34 | Lead Layered | `0x00025030` | A=15-bit, B=9-bit, XOR, rich texture |
 | 35 | Lead Arp | `0x08004010` | A=9-bit, decim ÷2, arpeggio-like pattern |
-| 36 | Lead Bright | `0x00088070` | A=1-bit, B=25/75 pulse, C=4-bit, XOR |
-| 37 | Lead Warm | `0x00400030` | A=1-bit, B=1-bit, OR combination |
+| 36 | Lead Bright | `0x000A6C70` | A=17-bit, B=9-bit, C=4-bit, B_CLK_A, C_CLK_B, XOR |
+| 37 | Lead Warm | `0x02004010` | A=9-bit, SHAPE=XOR_SINE, smooth modulation |
 | 38 | Lead Metallic | `0x01000010` | A=1-bit square, SHAPE=XOR_SQUARE |
 | 39 | Lead Bell | `0x06000010` | A=1-bit square, SHAPE=RING |
 | 40 | Lead Sync | `0x0001C430` | A=9-bit, B=5-bit, B_CLK_A, XOR |
-| 41 | Lead Complex | `0x00200030` | A=1-bit, B=1-bit, AND combination |
-| 42 | Lead Glitch | `0x00600030` | A=1-bit, B=1-bit, NAND combination |
+| 41 | Lead Complex | `0x00237030` | A=31-bit, B=17-bit, AND combination, sparse |
+| 42 | Lead Glitch | `0x00625030` | A=15-bit, B=9-bit, NAND combination |
 | 43 | Lead Sweep | `0x00004010` | A=9-bit, good for frequency sweeps |
 | 44 | Lead Classic | `0x38004010` | A=9-bit, decim ÷8, classic style |
-| 45 | Lead Ambient | `0x00800030` | A=1-bit, B=1-bit, NOR combination |
-| 46 | Lead Impact | `0x00A00030` | A=1-bit, B=1-bit, XNOR combination |
-| 47 | Lead Variant | `0x18000010` | A=1-bit square, decim ÷4 |
+| 45 | Lead Ambient | `0x05004010` | A=9-bit, SHAPE=AM, tremolo effect |
+| 46 | Lead Impact | `0x06004010` | A=9-bit, SHAPE=RING, bell-like tones |
+| 47 | Lead Variant | `0x03004010` | A=9-bit, SHAPE=XOR_TRIANGLE |
 
 ### Drums & Percussion (48-63)
 
@@ -103,18 +103,18 @@ Formula: `(DECIM << 27) | (SHAPE << 24) | (COMB << 21) | (C_POLY << 18) | (B_POL
 | 49 | Kick Punch | `0x00003010` | A=5-bit, punchy kick, use 50-100 Hz |
 | 50 | Kick Classic | `0x00004010` | A=9-bit, classic kick, use 60-120 Hz |
 | 51 | Snare Sharp | `0x00008030` | A=1-bit, B=25/75 pulse, XOR, sharp snare |
-| 52 | Snare Classic | `0x00088070` | A=1-bit, B=25/75 pulse, C=4-bit, XOR |
-| 53 | HiHat Closed | `0x00200030` | A=1-bit, B=1-bit, AND, sparse |
-| 54 | HiHat Open | `0x00400030` | A=1-bit, B=1-bit, OR, dense |
-| 55 | Crash | `0x00600030` | A=1-bit, B=1-bit, NAND |
+| 52 | Snare Classic | `0x000A6C70` | A=17-bit, B=9-bit, C=4-bit, B_CLK_A, C_CLK_B, XOR |
+| 53 | HiHat Closed | `0x00212030` | A=4-bit, B=4-bit, AND, sparse |
+| 54 | HiHat Open | `0x00424030` | A=9-bit, B=9-bit, OR, dense |
+| 55 | Crash | `0x00625030` | A=15-bit, B=9-bit, NAND |
 | 56 | Tom Low | `0x00002010` | A=4-bit, low tom, use 80-150 Hz |
 | 57 | Tom Mid | `0x00003010` | A=5-bit, mid tom, use 100-200 Hz |
 | 58 | Tom High | `0x00004010` | A=9-bit, high tom, use 150-300 Hz |
 | 59 | Clap | `0x00008030` | A=1-bit, B=25/75 pulse, XOR, clap texture |
-| 60 | Rimshot | `0x00088070` | A=1-bit, B=25/75 pulse, C=4-bit, XOR |
-| 61 | Shaker | `0x00200030` | A=1-bit, B=1-bit, AND, sparse pattern |
-| 62 | Tambourine | `0x00400030` | A=1-bit, B=1-bit, OR, dense pattern |
-| 63 | Perc Glitch | `0x00600030` | A=1-bit, B=1-bit, NAND, glitchy |
+| 60 | Rimshot | `0x000A6C70` | A=17-bit, B=9-bit, C=4-bit, B_CLK_A, C_CLK_B, XOR |
+| 61 | Shaker | `0x00212030` | A=4-bit, B=4-bit, AND, sparse pattern |
+| 62 | Tambourine | `0x00424030` | A=9-bit, B=9-bit, OR, dense pattern |
+| 63 | Perc Glitch | `0x00625030` | A=15-bit, B=9-bit, NAND, glitchy |
 
 ### Classic Game Sounds (64-79)
 
@@ -163,21 +163,21 @@ Formula: `(DECIM << 27) | (SHAPE << 24) | (COMB << 21) | (C_POLY << 18) | (B_POL
 | # | Name | NoiseCode | Configuration |
 |---|------|-----------|---------------|
 | 96 | Metallic Impact | `0x01036030` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SQUARE |
-| 97 | Weapon Laser | `0x00036030` | A=17-bit (6), B=17-bit (6), XOR, sharp |
-| 98 | Weapon Blast | `0x00236030` | A=17-bit (6), B=17-bit (6), AND, sparse |
+| 97 | Weapon Laser | `0x00037030` | A=31-bit (7), B=17-bit (6), XOR, sharp |
+| 98 | Weapon Blast | `0x00225030` | A=15-bit (5), B=9-bit (4), AND, sparse |
 | 99 | Impact Sharp | `0x02036030` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SINE |
-| 100 | Impact Deep | `0x00436030` | A=17-bit (6), B=17-bit (6), OR, dense |
+| 100 | Impact Deep | `0x00437030` | A=31-bit (7), B=17-bit (6), OR, dense |
 | 101 | Weapon Zap | `0x06036030` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=RING |
-| 102 | Weapon Beam | `0x001B6070` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
+| 102 | Weapon Beam | `0x000A6C70` | A=17-bit (6), B=9-bit (4), C=4-bit (2), B_CLK_A, C_CLK_B, XOR |
 | 103 | Impact Metallic | `0x03036030` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_TRIANGLE |
-| 104 | Weapon Classic | `0x00036030` | A=17-bit (6), B=17-bit (6), XOR |
+| 104 | Weapon Classic | `0x00025030` | A=15-bit (5), B=9-bit (4), XOR |
 | 105 | Impact Complex | `0x00836030` | A=17-bit (6), B=17-bit (6), NOR |
 | 106 | Weapon Layered | `0x00A36030` | A=17-bit (6), B=17-bit (6), XNOR |
-| 107 | Impact Glitch | `0x00636030` | A=17-bit (6), B=17-bit (6), NAND |
-| 108 | Weapon Variant 1 | `0x08236030` | A=17-bit (6), B=17-bit (6), AND, decim ÷2 |
-| 109 | Impact Variant 1 | `0x08436030` | A=17-bit (6), B=17-bit (6), OR, decim ÷2 |
-| 110 | Weapon Sparse | `0x18236030` | A=17-bit (6), B=17-bit (6), AND, decim ÷4 |
-| 111 | Impact Sparse | `0x18436030` | A=17-bit (6), B=17-bit (6), OR, decim ÷4 |
+| 107 | Impact Glitch | `0x00625030` | A=15-bit (5), B=9-bit (4), NAND |
+| 108 | Weapon Variant 1 | `0x04236030` | A=17-bit (6), B=17-bit (6), AND, SHAPE=XOR_SAW |
+| 109 | Impact Variant 1 | `0x05436030` | A=17-bit (6), B=17-bit (6), OR, SHAPE=AM |
+| 110 | Weapon Sparse | `0x00237030` | A=31-bit (7), B=17-bit (6), AND |
+| 111 | Impact Sparse | `0x00425030` | A=15-bit (5), B=9-bit (4), OR |
 
 ### Ambience & Textures (112-127)
 
@@ -185,20 +185,20 @@ Formula: `(DECIM << 27) | (SHAPE << 24) | (COMB << 21) | (C_POLY << 18) | (B_POL
 |---|------|-----------|---------------|
 | 112 | Wind | `0x08036030` | A=17-bit (6), B=17-bit (6), XOR, decim ÷2, wind texture |
 | 113 | Static | `0x001B6070` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR |
-| 114 | Texture Deep | `0x38036030` | A=17-bit (6), B=17-bit (6), XOR, decim ÷8 |
+| 114 | Texture Deep | `0x38037030` | A=31-bit (7), B=17-bit (6), XOR, decim ÷8 |
 | 115 | Texture Bright | `0x04036030` | A=17-bit (6), B=17-bit (6), XOR, SHAPE=XOR_SAW, bright |
-| 116 | Ambience Dark | `0x00236030` | A=17-bit (6), B=17-bit (6), AND, dark |
-| 117 | Ambience Light | `0x00436030` | A=17-bit (6), B=17-bit (6), OR, light |
-| 118 | Texture Layered | `0x081B6070` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR, decim ÷2 |
+| 116 | Ambience Dark | `0x00225030` | A=15-bit (5), B=9-bit (4), AND, dark |
+| 117 | Ambience Light | `0x00437030` | A=31-bit (7), B=17-bit (6), OR, light |
+| 118 | Texture Layered | `0x080A6C70` | A=17-bit (6), B=9-bit (4), C=4-bit (2), B_CLK_A, C_CLK_B, XOR, decim ÷2 |
 | 119 | Texture Complex | `0x00836030` | A=17-bit (6), B=17-bit (6), NOR |
 | 120 | Ambience Classic | `0x38004010` | A=9-bit (4), decim ÷8, classic |
-| 121 | Texture Variant 1 | `0x08636030` | A=17-bit (6), B=17-bit (6), NAND, decim ÷2 |
+| 121 | Texture Variant 1 | `0x08625030` | A=15-bit (5), B=9-bit (4), NAND, decim ÷2 |
 | 122 | Ambience Variant 1 | `0x00A36030` | A=17-bit (6), B=17-bit (6), XNOR |
-| 123 | Texture Glitch | `0x18636030` | A=17-bit (6), B=17-bit (6), NAND, decim ÷4 |
+| 123 | Texture Glitch | `0x18637030` | A=31-bit (7), B=17-bit (6), NAND, decim ÷4 |
 | 124 | Ambience Glitch | `0x01636030` | A=17-bit (6), B=17-bit (6), NAND, SHAPE=XOR_SQUARE |
-| 125 | Texture Sparse | `0x08236030` | A=17-bit (6), B=17-bit (6), AND, decim ÷2 |
-| 126 | Ambience Sparse | `0x18236030` | A=17-bit (6), B=17-bit (6), AND, decim ÷4 |
-| 127 | Texture Final | `0x181B6070` | A=17-bit (6), B=17-bit (6), C=17-bit (6), XOR, decim ÷4 |
+| 125 | Texture Sparse | `0x08225030` | A=15-bit (5), B=9-bit (4), AND, decim ÷2 |
+| 126 | Ambience Sparse | `0x18237030` | A=31-bit (7), B=17-bit (6), AND, decim ÷4 |
+| 127 | Texture Final | `0x180A6C70` | A=17-bit (6), B=9-bit (4), C=4-bit (2), B_CLK_A, C_CLK_B, XOR, decim ÷4 |
 
 ## Usage Notes
 
@@ -213,8 +213,20 @@ Formula: `(DECIM << 27) | (SHAPE << 24) | (COMB << 21) | (C_POLY << 18) | (B_POL
   - Drums: Fast attack, fast decay, no sustain, short release
   - Effects: Very fast attack, fast decay, no sustain, medium release
 
+- **SHAPE Modulation**: SHAPE operations modify the combined noise using a carrier signal at the voice frequency
+  - **XOR_SQUARE (1)**: XOR with square wave - creates hollow, nasal, metallic tones with spectral notches
+  - **XOR_SINE (2)**: XOR with sine wave - softer modulation, smoother metallic tones
+  - **XOR_TRIANGLE (3)**: XOR with triangle wave - moderate modulation character
+  - **XOR_SAW (4)**: XOR with sawtooth wave - asymmetric modulation with distinct harmonic character
+  - **AM (5)**: Amplitude modulation - tremolo-like effect, creates rhythmic amplitude variation
+  - **RING (6)**: Ring modulation - creates sum and difference frequencies, metallic bell-like tones
+  - **None (0)**: Pass-through, no modulation (most presets use this)
+
 - **Modification**: Presets can be modified bitwise for variation
   - Change decimation for different rhythmic patterns
-  - Change COMB operation for different timbres
+  - Change COMB operation for different timbres (XOR, AND, OR, NAND, NOR, XNOR)
   - Change SHAPE for different modulation effects
+  - Use different LFSR combinations (15-bit, 31-bit, mixing lengths)
+  - Enable clock coupling for rhythmic patterns
+  - Use inverts for phase variations
 
