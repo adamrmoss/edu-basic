@@ -243,6 +243,8 @@ EduBASIC automatically promotes numeric types when they are mixed in expressions
 
 Arrays are declared using the `DIM` keyword with square brackets. Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
 
+**Important:** When referring to an entire array (not a single element), you must use the `[]` syntax. For example, `numbers%[]` refers to the entire array, while `numbers%` (without `[]`) would refer to a scalar variable. This distinction is required because `numbers%` could be either a scalar or an array name, so `[]` is necessary to unambiguously refer to the entire array.
+
 #### Array Declaration
 
 **Default one-based array:**
@@ -321,13 +323,13 @@ Concatenation creates a new array containing all elements from the left array fo
 
 #### Array Length
 
-Use the `LEN` function to get the length of an array:
+Use the `||` operator to get the length of an array:
 
 ```
-LET size% = LEN numbers%[]
+LET size% = | numbers%[] |
 ```
 
-Returns the number of elements in the array (the highest index for one-based arrays).
+Returns the number of elements in the array (the highest index for one-based arrays). The `||` operator works for arrays, reals (absolute value), and complex numbers (norm). Note that spaces are required inside the `||` operator.
 
 #### Array Manipulation Statements
 
@@ -340,19 +342,19 @@ PUSH names$[], "David"
 ```
 
 **POP Statement:**
-Removes and returns the last element from an array.
+Removes the last element from an array and assigns it to a variable.
 
 ```
-LET value% = POP numbers%[]
-LET name$ = POP names$[]
+POP numbers%[] INTO value%
+POP names$[] INTO name$
 ```
 
 **SHIFT Statement:**
-Removes and returns the first element from an array.
+Removes the first element from an array and assigns it to a variable.
 
 ```
-LET value% = SHIFT numbers%[]
-LET name$ = SHIFT names$[]
+SHIFT numbers%[] INTO value%
+SHIFT names$[] INTO name$
 ```
 
 **UNSHIFT Statement:**
@@ -407,13 +409,26 @@ Joins array elements into a string with a separator.
 LET joined$ = names$[] JOIN$ ", "    ' "Alice, Bob, Charlie"
 ```
 
-**SPLICE Statement:**
-Removes and/or inserts elements in an array. Modifies the array in place.
+**Array Manipulation with Operators:**
 
+Array manipulation can be accomplished using array slicing and concatenation with `LET` statements:
+
+**Remove elements:**
 ```
-SPLICE numbers%[], 2, 3              ' Remove 3 elements starting at index 2
-SPLICE numbers%[], 2, 0, [10, 20]    ' Insert [10, 20] at index 2
-SPLICE numbers%[], 2, 3, [10, 20]    ' Replace 3 elements at index 2 with [10, 20]
+' Remove 3 elements starting at index 2 (removes indices 2, 3, 4)
+LET numbers%[] = numbers%[1 TO 1] + numbers%[5 TO ...]
+```
+
+**Insert elements:**
+```
+' Insert [10, 20] at index 2 (existing elements from index 2 shift right)
+LET numbers%[] = numbers%[1 TO 1] + [10, 20] + numbers%[2 TO ...]
+```
+
+**Replace elements:**
+```
+' Replace 3 elements at index 2 with [10, 20] (replaces indices 2, 3, 4)
+LET numbers%[] = numbers%[1 TO 1] + [10, 20] + numbers%[5 TO ...]
 ```
 
 
@@ -446,11 +461,12 @@ LET totalCount% ^= 2
 
 #### Swapping Variables
 
-The `SWAP` command exchanges the values of two variables. Both variables must be of the same type.
+The `SWAP` command exchanges the values of two variables. Both variables must be of the same type. Can swap scalars or arrays.
 
 **Syntax:**
 ```
 SWAP variable1 WITH variable2
+SWAP array1[] WITH array2[]
 ```
 
 **Example:**
@@ -464,6 +480,12 @@ LET firstName$ = "John"
 LET lastName$ = "Doe"
 SWAP firstName$ WITH lastName$
 PRINT firstName$, lastName$    ' Prints: Doe    John
+
+LET arr1%[] = [1, 2, 3]
+LET arr2%[] = [4, 5, 6]
+SWAP arr1%[] WITH arr2%[]
+PRINT arr1%[]    ' Prints: 4, 5, 6
+PRINT arr2%[]    ' Prints: 1, 2, 3
 ```
 
 #### Unit Conversion Operators
@@ -482,12 +504,14 @@ LET result# = SIN angle#
 LET angleDegrees# = ASIN result# DEG
 ```
 
-#### Absolute Value / Norm
+#### Absolute Value / Norm / Array Length
 
-Use vertical bars for absolute value (for reals) or norm (for complex numbers):
+Use vertical bars `||` for absolute value (for reals), norm (for complex numbers), or array length (for arrays). Spaces are required inside the `||` operator:
 ```
 LET absoluteValue# = | -5 |
 LET complexNorm# = | 3+4i |
+LET arrayLength% = | numbers%[] |
+LET stringLength% = | text$ |
 ```
 
 #### Arithmetic Functions
@@ -596,7 +620,7 @@ Any non-zero value is treated as true in conditional expressions, but the canoni
 
 ### Comparison Operations
 
-Standard comparison operators are available for all data types:
+Standard comparison operators are available for all data types, including arrays:
 
 | Operator | Description           | Returns TRUE (-1) when...                  |
 |----------|-----------------------|--------------------------------------------|
@@ -609,14 +633,34 @@ Standard comparison operators are available for all data types:
 
 Comparison operations return integer values: `FALSE` (0) or `TRUE` (-1).
 
+For arrays, comparison operators work element-wise:
+- Arrays are equal (`=`) if they have the same length and all corresponding elements are equal
+- Arrays are not equal (`<>`) if they have different lengths or any corresponding elements differ
+- Ordering operators (`<`, `>`, `<=`, `>=`) compare arrays lexicographically (element by element)
+- If arrays have different lengths, the shorter array is considered less than the longer array
+- If arrays have the same length, comparison proceeds element by element until a difference is found
+
+**Examples:**
+```
+LET arr1%[] = [1, 2, 3]
+LET arr2%[] = [1, 2, 3]
+LET arr3%[] = [1, 2, 4]
+LET arr4%[] = [1, 2]
+
+IF arr1%[] = arr2%[] THEN PRINT "Equal"    ' TRUE
+IF arr1%[] <> arr3%[] THEN PRINT "Different"    ' TRUE
+IF arr1%[] < arr3%[] THEN PRINT "Less"    ' TRUE (3 < 4)
+IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE (shorter array)
+```
+
 ### Operator Precedence
 
 EduBASIC follows standard mathematical operator precedence:
 
 1. Parentheses `()` (highest precedence)
-2. Prefix unary operators (all functions): `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `RND`, `REVERSE`
+2. Prefix unary operators (all functions): `SIN#`, `COS#`, `TAN#`, `ASIN#`, `ACOS#`, `ATAN#`, `SINH#`, `COSH#`, `TANH#`, `ASINH#`, `ACOSH#`, `ATANH#`, `EXP#`, `LOG#`, `LOG10#`, `LOG2#`, `SQRT#`, `CBRT#`, `FLOOR#`, `CEIL#`, `ROUND#`, `TRUNC#`, `EXPAND#`, `SGN%`, `REAL#`, `IMAG#`, `CONJ&`, `CABS#`, `CARG#`, `CSQRT&`, `RND#`, `INT%`, `ASC%`, `CHR$`, `STR$`, `VAL#`, `HEX$`, `BIN$`, `UCASE$`, `LCASE$`, `LTRIM$`, `RTRIM$`, `TRIM$`, `REVERSE`
 3. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
-4. Absolute value / norm `| |`
+4. Absolute value / norm / array length `| |`
 5. Unary `+` and `-`
 6. Exponentiation `^` or `**`
 7. Multiplication `*`, Division `/`, and Modulo `MOD`
@@ -662,7 +706,7 @@ RANDOMIZE
 LET randomNumber# = RND
 
 RANDOMIZE 12345
-LET dice% = INT(RND * 6) + 1
+LET dice% = INT% (RND# * 6) + 1
 
 LET randomInRange# = RND * 100
 ```
@@ -1111,10 +1155,10 @@ LOOP UNTIL num% = 0
 ```
 
 ```
+PRINT "Press ESC to exit..."
 DO
-    PRINT "Press ESC to exit..."
     LET key$ = INKEY$
-    IF key$ = CHR$(27) THEN EXIT DO
+    IF key$ = CHR$ 27 THEN EXIT DO
 LOOP
 ```
 
@@ -1155,16 +1199,16 @@ LOOP
 
 **Syntax:**
 ```
-SUB procedureName (param1, param2, BYREF param3, ...)
+SUB procedureName param1, param2, BYREF param3, ...
     statements
 END SUB
 ```
 
-**Note:** Parameters are passed **by value** by default. Prefix individual parameters with `BYREF` to pass by reference.
+**Note:** Parameters are passed **by value** by default. Prefix individual parameters with `BYREF` to pass by reference. Parentheses are not permitted in `SUB` declarations.
 
 **Calling a `SUB`:**
 ```
-CALL procedureName(argument1, argument2, ...)
+CALL procedureName argument1, argument2, ...
 ```
 
 or simply:
@@ -1172,6 +1216,8 @@ or simply:
 ```
 procedureName argument1, argument2, ...
 ```
+
+**Note:** Parentheses are not permitted in `CALL` statements or direct subroutine calls.
 
 **Rules:**
 - Parameters must include type sigils
@@ -1196,7 +1242,7 @@ EduBASIC supports two parameter passing modes:
 
 **Syntax:**
 ```
-SUB procedureName (valueParam%, BYREF refParam#)
+SUB procedureName valueParam%, BYREF refParam#
     ' valueParam% is passed by value (default)
     ' refParam# is passed by reference (BYREF keyword)
 END SUB
@@ -1204,14 +1250,14 @@ END SUB
 
 **Example demonstrating the difference:**
 ```
-SUB TestParameters (byValue%, BYREF byReference%)
+SUB TestParameters byValue%, BYREF byReference%
     LET byValue% = 999
     LET byReference% = 999
 END SUB
 
 LET x% = 100
 LET y% = 100
-CALL TestParameters(x%, y%)
+CALL TestParameters x%, y%
 PRINT "x ="; x%        ' Prints: x = 100 (unchanged, passed by value)
 PRINT "y ="; y%        ' Prints: y = 999 (changed, passed by reference)
 ```
@@ -1233,7 +1279,7 @@ Local variables:
 **Examples:**
 
 ```
-SUB DrawBox (width%, height%, char$)
+SUB DrawBox width%, height%, char$
     LOCAL row%
     LOCAL col%
     
@@ -1245,12 +1291,12 @@ SUB DrawBox (width%, height%, char$)
     NEXT row%
 END SUB
 
-CALL DrawBox(10, 5, "*")
+CALL DrawBox 10, 5, "*"
 DrawBox 20, 3, "#"
 ```
 
 ```
-SUB CalculateStats (values#[], count%, BYREF average#, BYREF maximum#)
+SUB CalculateStats values#[], count%, BYREF average#, BYREF maximum#
     LOCAL sum# = 0
     LOCAL i%
     
@@ -1270,12 +1316,12 @@ DIM scores#[10]
 ' ... fill array ...
 LET avg# = 0
 LET max# = 0
-CALL CalculateStats(scores#, 10, avg#, max#)
+CALL CalculateStats scores#, 10, avg#, max#
 PRINT "Average:"; avg#; "Maximum:"; max#
 ```
 
 ```
-SUB InitializeGame ()
+SUB InitializeGame
     ' These are module-level variables (global)
     LET score% = 0
     LET level% = 1
@@ -1283,7 +1329,7 @@ SUB InitializeGame ()
     PRINT "Game initialized!"
 END SUB
 
-CALL InitializeGame()
+CALL InitializeGame
 ```
 
 
@@ -1334,12 +1380,13 @@ EduBASIC provides a text output system that is separate from the 640×480 graphi
 
 ### PRINT Statement
 
-The `PRINT` statement outputs text and values to the text display.
+The `PRINT` statement outputs text and values to the text display. It can print scalars, arrays, or a combination of both.
 
 **Syntax:**
 ```
 PRINT expression1, expression2, ...
 PRINT expression1; expression2; ...
+PRINT array[]
 PRINT
 ```
 
@@ -1349,6 +1396,7 @@ PRINT
 - **No separator:** Ends the line (same as semicolon followed by newline)
 - **Ending with semicolon:** Suppresses the newline, so the next `PRINT` continues on the same line
 - **Empty `PRINT`:** Outputs a blank line (newline only)
+- **Array:** When printing an array, all elements are printed, separated by commas
 
 **Controlling Newlines:**
 - To avoid a newline at the end of output, end the `PRINT` statement with a semicolon
@@ -1359,6 +1407,10 @@ PRINT
 PRINT "Hello, world!"
 PRINT "Name: "; name$; " Age: "; age%
 PRINT "X:", x%, "Y:", y%
+
+' Print arrays
+PRINT numbers%[]    ' Prints all elements: 1, 2, 3, 4, 5
+PRINT "Scores: "; scores%[]    ' Prints: Scores: 85, 90, 78, 92
 
 ' Suppress newline to continue on same line
 PRINT "Enter your name: ";
@@ -1383,11 +1435,12 @@ PRINT "Total: "; total#
 
 ### INPUT Statement
 
-The `INPUT` statement reads a value from the user and assigns it to a variable. Unlike traditional BASIC dialects, `INPUT` is separate from the prompt, allowing you to use `PRINT` for more flexible prompt formatting.
+The `INPUT` statement reads a value from the user and assigns it to a variable. Unlike traditional BASIC dialects, `INPUT` is separate from the prompt, allowing you to use `PRINT` for more flexible prompt formatting. `INPUT` can read into scalar variables or arrays.
 
 **Syntax:**
 ```
 INPUT variable
+INPUT array[]
 ```
 
 **Rules:**
@@ -1396,6 +1449,9 @@ INPUT variable
 - The prompt is displayed separately using `PRINT` before the `INPUT` statement
 - After the user enters a value and presses Enter, the value is assigned to the variable
 - If the input cannot be converted to the variable's type, an error occurs
+- For arrays, `INPUT` reads multiple values separated by commas, filling the array from index 1 onwards
+- If more values are entered than the array size, excess values are ignored
+- If fewer values are entered, remaining array elements are unchanged
 
 **Examples:**
 ```
@@ -1425,6 +1481,13 @@ INPUT x%
 PRINT "Enter Y coordinate: ";
 INPUT y%
 PRINT "Position: ("; x%; ", "; y%; ")"
+
+' Reading into an array
+DIM scores%[5]
+PRINT "Enter 5 scores (comma-separated): ";
+INPUT scores%[]
+PRINT "Scores: "; scores%[]
+```
 
 ' Using LOCATE for formatted input
 LOCATE 10, 1
@@ -1467,32 +1530,35 @@ NEXT row%
 
 ### COLOR Statement
 
-The `COLOR` statement sets the foreground and/or background color for both text and graphics operations.
+The `COLOR` statement sets the global foreground and/or background color for both text and graphics operations. These colors are used by default, but can be overridden in individual statements when needed.
 
 **Syntax:**
 ```
 COLOR foregroundColor%
 COLOR foregroundColor%, backgroundColor%
+COLOR , backgroundColor%
 ```
 
 **Color Format:**
 - Colors are specified as 32-bit RGBA integers
-- Format: `0xRRGGBBAA` (hexadecimal) or decimal
+- Format: `&HRRGGBBAA` (hexadecimal) - always use this format in examples
 - Each component (R, G, B, A) ranges from 0-255
 - Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
 
 **Text Usage:**
-- Sets the foreground color for subsequent `PRINT` statements
-- With two arguments, sets both foreground and background colors
+- Sets the global foreground color for subsequent `PRINT` statements
+- With two arguments, sets both global foreground and background colors
+- With comma and only background color (`COLOR , backgroundColor%`), sets only the background color (foreground unchanged)
 - Background color is only used for text output
 
 **Graphics Usage:**
-- Sets the default drawing color for subsequent graphics operations
-- Affects `PSET`, `LINE`, `CIRCLE`, `TRIANGLE`, and other drawing operations
+- Sets the global foreground color for subsequent graphics operations
+- Affects `PSET`, `LINE`, `RECTANGLE`, `OVAL`, `TRIANGLE`, and other drawing operations
+- Graphics statements can optionally override the global color using `WITH color%`
 - Does not affect `PUT` operations (which use the sprite's stored colors with alpha blending)
-- Only the foreground color is used for graphics (background color parameter is ignored)
+- Only the foreground color is used for graphics (background parameter is ignored)
 
-**Common Colors (examples):**
+**Common Colors:**
 ```
 LET black% = &H000000FF      ' Black (opaque)
 LET white% = &HFFFFFFFF      ' White (opaque)
@@ -1506,21 +1572,25 @@ LET transparent% = &HFFFFFF00 ' White (fully transparent)
 **Examples:**
 ```
 ' Text usage
-COLOR &HFF0000FF        ' Red text
+COLOR &HFF0000FF        ' Set global foreground to red
 PRINT "This is red text"
 
 COLOR &HFFFFFF00, &H000000FF  ' Transparent text on black background
 PRINT "Invisible text on black"
 
-' Graphics usage
-COLOR &HFF0000FF    ' Set to red
-PSET (100, 100) WITH &HFF0000FF    ' Red pixel (color specified explicitly)
+COLOR , &H000000FF      ' Set only background to black (foreground unchanged)
+PRINT "Text with black background"
 
-COLOR &H00FF00FF    ' Set to green
-LINE FROM (0, 0) TO (100, 100) WITH &H00FF00FF    ' Green line
+' Graphics usage - using global color
+COLOR &HFF0000FF    ' Set global foreground to red
+PSET (100, 100)     ' Red pixel (uses global color)
+
+' Graphics usage - overriding global color
+COLOR &H00FF00FF    ' Set global foreground to green
+LINE FROM (0, 0) TO (100, 100) WITH &HFF0000FF    ' Red line (overrides global)
 ```
 
-**Note:** The `COLOR` statement is unified for both text and graphics. The default text color is white on a transparent background. Colors persist until changed by another `COLOR` statement.
+**Note:** The `COLOR` statement sets global colors that persist until changed. The default text color is white on a transparent background. Graphics statements use the global foreground color by default, but can override it with `WITH color%`.
 
 ### SET Statement
 
@@ -1619,65 +1689,59 @@ LET fullName$ = firstName$ + " " + lastName$
 PRINT fullName$    ' Prints: John Doe
 
 LET greeting$ = "Hello, " + name$ + "!"
-LET message$ = "Value: " + STR$(number%)
+LET message$ = "Value: " + STR$ number%
 ```
 
-#### String Slicing
+#### String Functions
 
-Strings can be sliced to extract substrings using square bracket notation with index ranges.
+EduBASIC provides string functions to extract and manipulate substrings:
 
-**Syntax:**
-```
-LET substring$ = string$[startIndex TO endIndex]
-LET substring$ = string$[startIndex]
-LET substring$ = string$[... TO endIndex]
-LET substring$ = string$[startIndex TO ...]
-LET substring$ = string$[... TO ...]
-```
-
-**Rules:**
-- String indices are **1-based** (first character is at index 1)
-- `string$[startIndex TO endIndex]` extracts characters from `startIndex` to `endIndex` (inclusive)
-- `string$[startIndex]` extracts a single character at `startIndex`
-- `...` (ellipsis) can be used in place of `startIndex` or `endIndex` to mean the start or end of the string respectively
-  - `string$[... TO endIndex]` extracts from the beginning of the string to `endIndex`
-  - `string$[startIndex TO ...]` extracts from `startIndex` to the end of the string
-  - `string$[... TO ...]` extracts the entire string
-- Out-of-range indices result in an empty string or error
-
-**Examples:**
+**`LEFT$` - Extract left portion of string:**
 ```
 LET text$ = "Hello, world!"
+LET firstWord$ = LEFT$ text$ 5    ' "Hello"
+LET firstChar$ = LEFT$ text$ 1    ' "H"
+```
 
-LET firstChar$ = text$[1]              ' "H"
-LET firstWord$ = text$[1 TO 5]         ' "Hello"
-LET world$ = text$[8 TO 12]            ' "world"
-LET lastChar$ = text$[LEN(text$)]      ' "!"
+Returns the leftmost `n` characters of the string. If `n` is greater than the string length, returns the entire string.
 
-LET name$ = "Alice"
-LET firstThree$ = name$[1 TO 3]        ' "Ali"
-LET lastTwo$ = name$[4 TO 5]           ' "ce"
+**`RIGHT$` - Extract right portion of string:**
+```
+LET text$ = "Hello, world!"
+LET lastWord$ = RIGHT$ text$ 6    ' "world!"
+LET lastChar$ = RIGHT$ text$ 1    ' "!"
+```
 
-' Using ellipsis for start/end of string
-LET fromStart$ = text$[... TO 5]       ' "Hello" (from start to position 5)
-LET toEnd$ = text$[8 TO ...]            ' "world!" (from position 8 to end)
-LET entire$ = text$[... TO ...]         ' "Hello, world!" (entire string)
-LET suffix$ = name$[3 TO ...]          ' "ice" (from position 3 to end)
+Returns the rightmost `n` characters of the string. If `n` is greater than the string length, returns the entire string.
+
+**`MID$` - Extract substring from middle:**
+```
+LET text$ = "Hello, world!"
+LET world$ = MID$ text$ 8 5    ' "world" (5 characters starting at position 8)
+LET middle$ = MID$ text$ 3 4    ' "llo," (4 characters starting at position 3)
+```
+
+Returns a substring starting at position `start` with length `length`. If `start` is beyond the string length, returns an empty string. If `length` extends beyond the string, returns characters up to the end of the string.
+
+**Single character access:**
+```
+LET text$ = "Hello"
+LET char$ = MID$ text$ 1 1    ' "H" (single character at position 1)
 ```
 
 #### String Length
 
-Use the `LEN` function to get the length of a string.
+Use the `||` operator to get the length of a string. Spaces are required inside the `||` operator.
 
 **Syntax:**
 ```
-LET length% = LEN(string$)
+LET length% = | string$ |
 ```
 
 **Example:**
 ```
 LET text$ = "Hello"
-LET size% = LEN(text$)    ' size% = 5
+LET size% = | text$ |    ' size% = 5
 ```
 
 #### String Comparison
@@ -1696,79 +1760,79 @@ IF word$ < "middle" THEN PRINT "Comes before 'middle'"
 **`STR$` - Convert number to string:**
 ```
 LET num% = 42
-LET numStr$ = STR$(num%)    ' "42"
-LET piStr$ = STR$(3.14159)  ' "3.14159"
-LET complexStr$ = STR$(3+4i)    ' "3+4i"
+LET numStr$ = STR$ num%    ' "42"
+LET piStr$ = STR$ 3.14159  ' "3.14159"
+LET complexStr$ = STR$ (3+4i)    ' "3+4i"
 ```
 
 Converts any numeric type (integer, real, or complex) to its decimal string representation. For complex numbers, the format is `"real+imaginaryi"` or `"real-imaginaryi"`.
 
-**`VAL` - Convert string to number:**
+**`VAL#` - Convert string to number:**
 ```
 LET text$ = "123"
-LET number% = VAL(text$)    ' 123
+LET number% = VAL# text$    ' 123
 LET decimal$ = "3.14"
-LET value# = VAL(decimal$)  ' 3.14
-LET hexValue% = VAL("&HFF")    ' 255 (hexadecimal)
-LET binValue% = VAL("&B1010")  ' 10 (binary)
-LET complexValue& = VAL("3+4i")    ' 3+4i (complex number)
+LET value# = VAL# decimal$  ' 3.14
+LET hexValue% = VAL# "&HFF"    ' 255 (hexadecimal)
+LET binValue% = VAL# "&B1010"  ' 10 (binary)
+LET complexValue& = VAL# "3+4i"    ' 3+4i (complex number)
 ```
 
 Converts a string to a number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. The result type depends on the string content. Hexadecimal and binary strings are parsed as integers.
 
 **`HEX$` - Convert number to hexadecimal string:**
 ```
-LET hexStr$ = HEX$(255)    ' "FF"
-LET hexStr$ = HEX$(10)     ' "A"
-LET hexStr$ = HEX$(-1)     ' "FFFFFFFF" (32-bit two's complement)
+LET hexStr$ = HEX$ 255    ' "FF"
+LET hexStr$ = HEX$ 10     ' "A"
+LET hexStr$ = HEX$ -1     ' "FFFFFFFF" (32-bit two's complement)
 ```
 
 Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation.
 
 **`BIN$` - Convert number to binary string:**
 ```
-LET binStr$ = BIN$(10)     ' "1010"
-LET binStr$ = BIN$(255)    ' "11111111"
-LET binStr$ = BIN$(-1)     ' "11111111111111111111111111111111" (32-bit two's complement)
+LET binStr$ = BIN$ 10     ' "1010"
+LET binStr$ = BIN$ 255    ' "11111111"
+LET binStr$ = BIN$ -1     ' "11111111111111111111111111111111" (32-bit two's complement)
 ```
 
 Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation.
 
 **`CHR$` - Convert ASCII code to character:**
 ```
-LET char$ = CHR$(65)        ' "A"
-LET newline$ = CHR$(10)     ' Newline character
+LET char$ = CHR$ 65        ' "A"
+LET newline$ = CHR$ 10     ' Newline character
 ```
 
-**`ASC` - Convert character to ASCII code:**
+**`ASC%` - Convert character to ASCII code:**
 ```
-LET code% = ASC("A")        ' 65
-LET code% = ASC("a")        ' 97
+LET code% = ASC% "A"        ' 65
+LET code% = ASC% "a"        ' 97
 ```
 
 **`UCASE$` - Convert to uppercase:**
 ```
-LET upper$ = UCASE$("hello")    ' "HELLO"
+LET upper$ = UCASE$ "hello"    ' "HELLO"
 ```
 
 **`LCASE$` - Convert to lowercase:**
 ```
-LET lower$ = LCASE$("WORLD")    ' "world"
+LET lower$ = LCASE$ "WORLD"    ' "world"
 ```
 
 **`LTRIM$` - Remove leading spaces:**
 ```
-LET trimmed$ = LTRIM$("  text")    ' "text"
+LET trimmed$ = LTRIM$ "  text"    ' "text"
 ```
 
 **`RTRIM$` - Remove trailing spaces:**
 ```
-LET trimmed$ = RTRIM$("text  ")    ' "text"
+LET trimmed$ = RTRIM$ "text  "    ' "text"
 ```
 
 **`TRIM$` - Remove leading and trailing spaces:**
 ```
-LET trimmed$ = TRIM$("  text  ")   ' "text"
+LET trimmed$ = TRIM$ "  text  "   ' "text"
 ```
 
 **`INSTR%` - Find substring position:**
@@ -1782,10 +1846,6 @@ LET pos% = "Hello world" INSTR% "o" FROM 5    ' 5 (start search at position 5)
 LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
-**Note:** Functions like `LEFT$`, `RIGHT$`, and `MID$` are not provided as built-in functions since they can be easily implemented using string slicing:
-- `LEFT$(text$, n)` is equivalent to `text$[1 TO n]`
-- `RIGHT$(text$, n)` is equivalent to `text$[LEN(text$) - n + 1 TO LEN(text$)]`
-- `MID$(text$, start, length)` is equivalent to `text$[start TO start + length - 1]`
 
 ## File I/O
 
@@ -1871,11 +1931,12 @@ CLOSE file%
 
 #### READ Statement (Binary)
 
-The `READ` statement reads binary data from a file based on the variable's type.
+The `READ` statement reads binary data from a file based on the variable's type. It can read into scalar variables or arrays.
 
 **Syntax:**
 ```
 READ variable FROM fileHandle%
+READ array[] FROM fileHandle%
 ```
 
 **Rules:**
@@ -1884,6 +1945,7 @@ READ variable FROM fileHandle%
 - Real: reads 8 bytes (64-bit floating-point)
 - Complex: reads 16 bytes (128-bit complex number)
 - String: reads the string's length prefix and data
+- For arrays, reads elements sequentially, filling the array from index 1 onwards
 - Reading advances the file position
 - At end of file, an error occurs (check with `EOF` first)
 
@@ -1898,6 +1960,10 @@ FOR i% = 1 TO count%
     READ numbers%[i%] FROM file%
 NEXT i%
 
+' Or read entire array at once
+DIM data%[100]
+READ data%[] FROM file%
+
 CLOSE file%
 ```
 
@@ -1907,18 +1973,20 @@ EduBASIC supports both text and binary writing operations.
 
 #### WRITE Statement (Text and Binary)
 
-The `WRITE` statement writes data to a file. For text, it writes the string representation. For binary, it writes the raw binary data.
+The `WRITE` statement writes data to a file. For text, it writes the string representation. For binary, it writes the raw binary data. It can write scalars or arrays.
 
 **Syntax:**
 ```
 WRITE expression TO fileHandle%
 WRITE "text" TO fileHandle%
 WRITE variable TO fileHandle%
+WRITE array[] TO fileHandle%
 ```
 
 **Rules:**
 - For strings: writes the text followed by a newline
 - For numbers: writes the binary representation (not text)
+- For arrays, writes all elements sequentially in binary format
 - Multiple `WRITE` statements can be used to build file content
 - Text and binary operations can be mixed in the same file
 
@@ -1930,6 +1998,7 @@ WRITE "Name: " TO file%
 WRITE playerName$ TO file%
 WRITE "Score: " TO file%
 WRITE score% TO file%
+WRITE numbers%[] TO file%    ' Write entire array
 
 CLOSE file%
 ```
@@ -2056,7 +2125,7 @@ WRITEFILE contentVariable$ TO "filename"
 
 **Examples:**
 ```
-LET report$ = "Sales Report" + CHR$(10) + "Total: $1000"
+LET report$ = "Sales Report" + CHR$ 10 + "Total: $1000"
 WRITEFILE "report.txt" FROM report$
 
 WRITEFILE output$ TO "results.txt"
@@ -2080,7 +2149,7 @@ LISTDIR "path" INTO filesArray$[]
 **Examples:**
 ```
 LISTDIR "." INTO files$[]
-FOR i% = 1 TO LEN(files$[])
+FOR i% = 1 TO | files$[] |
     PRINT files$[i%]
 NEXT i%
 
@@ -2237,7 +2306,7 @@ EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, a
 
 **Color Format:**
 - All graphics operations use **32-bit RGBA** color format
-- Format: `0xRRGGBBAA` (hexadecimal) or decimal
+- Format: `&HRRGGBBAA` (hexadecimal) - always use this format in examples
 - Each component (R, G, B, A) ranges from 0-255
 - Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
 
@@ -2246,15 +2315,22 @@ EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, a
 - This is an exception to EduBASIC's general rule that parentheses are only for grouping expressions
 - Coordinates are always written as `(x%, y%)` or `(x#, y#)` in graphics commands
 
+**Color Usage:**
+- Colors are 32-bit RGBA integers in `&HRRGGBBAA` format
+- The `COLOR` statement sets global foreground and background colors
+- Graphics statements use the global foreground color by default
+- Graphics statements can override the global color using `WITH color%` when needed
+
 **Note:** The text display system overlays the graphics display, allowing you to combine text and graphics in the same program.
 
 
 ### PSET Statement
 
-The `PSET` statement sets a single pixel to a specified color.
+The `PSET` statement sets a single pixel to a color.
 
 **Syntax:**
 ```
+PSET (x%, y%)
 PSET (x%, y%) WITH color%
 ```
 
@@ -2262,11 +2338,16 @@ PSET (x%, y%) WITH color%
 - Coordinates are in graphics pixels (0-based, bottom-left origin)
 - X ranges from 0 to 639
 - Y ranges from 0 to 479
-- Color is a 32-bit RGBA integer
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
 
 **Examples:**
 ```
-PSET (100, 200) WITH &HFF0000FF    ' Red pixel
+COLOR &HFF0000FF    ' Set global color to red
+PSET (100, 200)     ' Red pixel (uses global color)
+
+PSET (200, 200) WITH &HFFFFFFFF    ' White pixel (overrides global)
 
 FOR i% = 0 TO 639
     PSET (i%, 240) WITH &HFFFFFFFF    ' White horizontal line
@@ -2279,76 +2360,152 @@ The `LINE` statement draws a line between two points.
 
 **Syntax:**
 ```
+LINE FROM (x1%, y1%) TO (x2%, y2%)
 LINE FROM (x1%, y1%) TO (x2%, y2%) WITH color%
-LINE FROM (x1%, y1%) TO (x2%, y2%) WITH color% FILLED
 ```
 
 **Rules:**
 - Draws a line from point (x1%, y1%) to point (x2%, y2%)
-- With `FILLED`, draws a filled rectangle (useful for drawing boxes)
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+- For rectangles, use the `RECTANGLE` statement instead
+
+**Examples:**
+```
+COLOR &H00FF00FF    ' Set global color to green
+LINE FROM (10, 10) TO (100, 50)    ' Green line (uses global color)
+
+LINE FROM (50, 50) TO (150, 150) WITH &HFFFFFFFF    ' White line (overrides global)
+```
+
+### RECTANGLE Statement
+
+The `RECTANGLE` statement draws a rectangle outline or filled rectangle.
+
+**Syntax:**
+```
+RECTANGLE FROM (x1%, y1%) TO (x2%, y2%)
+RECTANGLE FROM (x1%, y1%) TO (x2%, y2%) WITH color%
+RECTANGLE FROM (x1%, y1%) TO (x2%, y2%) FILLED
+RECTANGLE FROM (x1%, y1%) TO (x2%, y2%) WITH color% FILLED
+```
+
+**Rules:**
+- Draws a rectangle from point (x1%, y1%) to point (x2%, y2%)
+- Default is outline only
+- `FILLED` draws a filled rectangle
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
 - Coordinates are in graphics pixels (0-based, bottom-left origin)
 
 **Examples:**
 ```
-LINE FROM (10, 10) TO (100, 50) WITH &H00FF00FF    ' Green line
+COLOR &HFFFFFFFF    ' Set global color to white
+RECTANGLE FROM (50, 50) TO (150, 150)    ' White outline (uses global color)
 
-' Draw a rectangle outline
-LINE FROM (50, 50) TO (150, 150) WITH &HFFFFFFFF
+RECTANGLE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled red rectangle
 
-' Draw a filled rectangle
-LINE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED
+RECTANGLE FROM (100, 100) TO (200, 200) FILLED    ' Filled rectangle (uses global color)
+```
+
+### OVAL Statement
+
+The `OVAL` statement draws an oval (ellipse) outline or filled oval.
+
+**Syntax:**
+```
+OVAL AT (x%, y%) WIDTH width# HEIGHT height#
+OVAL AT (x%, y%) WIDTH width# HEIGHT height# WITH color%
+OVAL AT (x%, y%) WIDTH width# HEIGHT height# FILLED
+OVAL AT (x%, y%) WIDTH width# HEIGHT height# WITH color% FILLED
+```
+
+**Rules:**
+- Center point is at (x%, y%)
+- Width and height are real numbers (can be fractional)
+- Default is outline only
+- `FILLED` draws a filled oval
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+- A circle is a special case where width equals height
+
+**Examples:**
+```
+COLOR &HFFFF00FF    ' Set global color to yellow
+OVAL AT (320, 240) WIDTH 100 HEIGHT 100    ' Yellow circle outline (uses global color)
+
+OVAL AT (100, 100) WIDTH 60 HEIGHT 60 WITH &H00FF00FF FILLED    ' Filled green circle
+
+OVAL AT (200, 200) WIDTH 80 HEIGHT 40 WITH &HFF00FFFF FILLED    ' Filled ellipse (2:1 width:height)
 ```
 
 ### CIRCLE Statement
 
-The `CIRCLE` statement draws a circle or ellipse.
+The `CIRCLE` statement is a convenience alias for `OVAL` when width equals height (a circle).
 
 **Syntax:**
 ```
+CIRCLE AT (x%, y%) RADIUS radius#
 CIRCLE AT (x%, y%) RADIUS radius# WITH color%
+CIRCLE AT (x%, y%) RADIUS radius# FILLED
 CIRCLE AT (x%, y%) RADIUS radius# WITH color% FILLED
-CIRCLE AT (x%, y%) RADIUS radius# WITH color% ASPECT aspectRatio#
 ```
 
 **Rules:**
 - Center point is at (x%, y%)
 - Radius is a real number (can be fractional)
-- With `FILLED`, draws a filled circle
-- With `ASPECT`, draws an ellipse with the specified aspect ratio (width/height)
+- Equivalent to `OVAL AT (x%, y%) WIDTH (radius# * 2) HEIGHT (radius# * 2)`
+- Default is outline only
+- `FILLED` draws a filled circle
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
 - Coordinates are in graphics pixels (0-based, bottom-left origin)
 
 **Examples:**
 ```
-CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF    ' Yellow circle
+COLOR &HFFFF00FF    ' Set global color to yellow
+CIRCLE AT (320, 240) RADIUS 50    ' Yellow circle outline (uses global color)
 
 CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
 
-CIRCLE AT (200, 200) RADIUS 40 WITH &HFF00FFFF ASPECT 2.0    ' Ellipse (2:1 width:height)
+CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 ```
 
 ### TRIANGLE Statement
 
-The `TRIANGLE` statement draws a triangle or filled triangle.
+The `TRIANGLE` statement draws a triangle outline or filled triangle.
 
 **Syntax:**
 ```
+TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%)
 TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%) WITH color%
+TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%) FILLED
 TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%) WITH color% FILLED
 ```
 
 **Rules:**
 - Draws a triangle with vertices at (x1%, y1%), (x2%, y2%), and (x3%, y3%)
-- With `FILLED`, draws a filled triangle
-- Without `FILLED`, draws only the triangle outline
+- Default is outline only
+- `FILLED` draws a filled triangle
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
 - Coordinates are in graphics pixels (0-based, bottom-left origin)
 
 **Examples:**
 ```
-' Draw triangle outline
-TRIANGLE (100, 100) TO (200, 200) TO (150, 250) WITH &HFFFFFFFF
+COLOR &HFFFFFFFF    ' Set global color to white
+TRIANGLE (100, 100) TO (200, 200) TO (150, 250)    ' White outline (uses global color)
 
-' Draw filled triangle
-TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED
+TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED    ' Filled red triangle
+
+TRIANGLE (200, 200) TO (300, 200) TO (250, 300) FILLED    ' Filled triangle (uses global color)
 ```
 
 ### PAINT Statement
@@ -2357,6 +2514,7 @@ The `PAINT` statement fills a bounded area with a color.
 
 **Syntax:**
 ```
+PAINT (x%, y%)
 PAINT (x%, y%) WITH color%
 PAINT (x%, y%) WITH color% BORDER borderColor%
 ```
@@ -2364,17 +2522,19 @@ PAINT (x%, y%) WITH color% BORDER borderColor%
 **Rules:**
 - Fills the area starting at point (x%, y%)
 - Fills until it reaches a boundary
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
 - With `BORDER`, fills until it reaches pixels of the specified border color
 - Without `BORDER`, fills until it reaches pixels of a different color than the starting point
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
 - Coordinates are in graphics pixels (0-based, bottom-left origin)
 
 **Examples:**
 ```
-' Fill area starting at (100, 100) with red
-PAINT (100, 100) WITH &HFF0000FF
+COLOR &HFF0000FF    ' Set global color to red
+PAINT (100, 100)    ' Fill area with red (uses global color)
 
-' Fill area bounded by blue pixels
-PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF
+PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF    ' Fill area bounded by blue pixels
 ```
 
 ### GET Statement
@@ -2441,14 +2601,14 @@ PUT player%[] AT (x%, y%)
 CLS WITH &H000033FF    ' Dark blue background
 
 ' Draw ground
-LINE FROM (0, 50) TO (639, 50) WITH &H00FF00FF FILLED
+RECTANGLE FROM (0, 0) TO (639, 50) WITH &H00FF00FF FILLED
 
 ' Draw sun
 CIRCLE AT (550, 400) RADIUS 40 WITH &HFFFF00FF FILLED
 
 ' Draw house
-LINE FROM (200, 50) TO (400, 200) WITH &HFF0000FF FILLED    ' Red roof
-LINE FROM (250, 50) TO (350, 150) WITH &HFFFFFFFF FILLED    ' White walls
+RECTANGLE FROM (200, 50) TO (400, 200) WITH &HFF0000FF FILLED    ' Red roof
+RECTANGLE FROM (250, 50) TO (350, 150) WITH &HFFFFFFFF FILLED    ' White walls
 ```
 
 **Example: Sprite Animation:**
@@ -2948,8 +3108,8 @@ LET result# = ASINH 1.0
 **Description:** Returns the ASCII code of the first character in the string.  
 **Example:**
 ```
-LET code% = ASC("A")        ' 65
-LET code% = ASC("a")        ' 97
+LET code% = ASC% "A"        ' 65
+LET code% = ASC% "a"        ' 97
 ```
 
 ---
@@ -2986,9 +3146,9 @@ LET result# = ATANH 0.5
 **Description:** Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation (32 bits for 32-bit integers).  
 **Example:**
 ```
-LET binStr$ = BIN$(10)     ' "1010"
-LET binStr$ = BIN$(255)    ' "11111111"
-LET binStr$ = BIN$(-1)     ' "11111111111111111111111111111111"
+LET binStr$ = BIN$ 10     ' "1010"
+LET binStr$ = BIN$ 255    ' "11111111"
+LET binStr$ = BIN$ -1     ' "11111111111111111111111111111111"
 ```
 
 ---
@@ -3010,12 +3170,12 @@ PRINT magnitude#    ' Prints: 5.0
 ### CALL
 
 **Type:** Command (Control Flow)  
-**Syntax:** `CALL subroutineName(arg1, arg2, ...)`  
-**Description:** Calls a `SUB` procedure with arguments. The `CALL` keyword is optional.  
+**Syntax:** `CALL subroutineName arg1, arg2, ...`  
+**Description:** Calls a `SUB` procedure with arguments. The `CALL` keyword is optional. Parentheses are not permitted.  
 **Example:**
 ```
-CALL DrawBox(10, 5, "*")
-DrawBox 20, 3, "#"    ' Same as CALL DrawBox(20, 3, "#")
+CALL DrawBox 10, 5, "*"
+DrawBox 20, 3, "#"    ' Same as CALL DrawBox 20, 3, "#"
 ```
 
 ---
@@ -3073,8 +3233,8 @@ PRINT result#    ' Prints: 3.0
 **Description:** Returns the character corresponding to the ASCII code.  
 **Example:**
 ```
-LET char$ = CHR$(65)        ' "A"
-LET newline$ = CHR$(10)     ' Newline character
+LET char$ = CHR$ 65        ' "A"
+LET newline$ = CHR$ 10     ' Newline character
 ```
 
 ---
@@ -3082,13 +3242,14 @@ LET newline$ = CHR$(10)     ' Newline character
 ### CIRCLE
 
 **Type:** Command (Graphics)  
-**Syntax:** `CIRCLE AT (x%, y%) RADIUS radius# WITH color%` or `CIRCLE AT (x%, y%) RADIUS radius# WITH color% FILLED` or `CIRCLE AT (x%, y%) RADIUS radius# WITH color% ASPECT aspectRatio#`  
-**Description:** Draws a circle or ellipse at the specified center point. With `FILLED`, draws a filled circle. With `ASPECT`, draws an ellipse with the specified aspect ratio (width/height). Coordinates use bottom-left origin (0,0).  
+**Syntax:** `CIRCLE AT (x%, y%) RADIUS radius#` or `CIRCLE AT (x%, y%) RADIUS radius# WITH color%` or `CIRCLE AT (x%, y%) RADIUS radius# FILLED` or `CIRCLE AT (x%, y%) RADIUS radius# WITH color% FILLED`  
+**Description:** Convenience alias for `OVAL` when width equals height (a circle). Uses global foreground color by default, or `WITH color%` to override. Default is outline only, use `FILLED` for filled circle. Coordinates use bottom-left origin (0,0).  
 **Example:**
 ```
-CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF    ' Yellow circle
+COLOR &HFFFF00FF    ' Set global color to yellow
+CIRCLE AT (320, 240) RADIUS 50    ' Yellow circle outline (uses global color)
 CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
-CIRCLE AT (200, 200) RADIUS 40 WITH &HFF00FFFF ASPECT 2.0    ' Ellipse
+CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 ```
 
 ---
@@ -3150,7 +3311,7 @@ PRINT result#    ' Prints: 1.0
 
 **Type:** Command (Graphics)  
 **Syntax:** `CLS` or `CLS WITH backgroundColor%`  
-**Description:** Clears the graphics screen. Without a color, clears to black (0x000000FF). With a color, clears to the specified background color. Does not affect the text display.  
+**Description:** Clears the graphics screen. Without a color, clears to black (&H000000FF). With a color, clears to the specified background color. Does not affect the text display.  
 **Example:**
 ```
 CLS    ' Clear to black
@@ -3176,15 +3337,17 @@ CLOSE file%
 ### COLOR
 
 **Type:** Command (Text/Graphics)  
-**Syntax:** `COLOR foregroundColor%` or `COLOR foregroundColor%, backgroundColor%`  
-**Description:** Sets the foreground and/or background color for both text and graphics operations. Colors are specified as 32-bit RGBA integers (0xRRGGBBAA format). For text, both foreground and background can be set. For graphics, only the foreground color is used (background parameter is ignored).  
+**Syntax:** `COLOR foregroundColor%` or `COLOR foregroundColor%, backgroundColor%` or `COLOR , backgroundColor%`  
+**Description:** Sets the global foreground and/or background color for both text and graphics operations. Colors are specified as 32-bit RGBA integers in `&HRRGGBBAA` format. These colors are used by default, but can be overridden in individual statements. For text, both foreground and background can be set. With `COLOR , backgroundColor%`, only the background color is set (foreground unchanged). For graphics, only the foreground color is used (background parameter is ignored).  
 **Example:**
 ```
-COLOR &HFF0000FF        ' Red text
+COLOR &HFF0000FF        ' Set global foreground to red
 PRINT "This is red text"
 COLOR &HFFFFFF00, &H000000FF  ' Transparent text on black background
-COLOR &H00FF00FF    ' Set to green for graphics
-LINE FROM (0, 0) TO (100, 100) WITH &H00FF00FF
+COLOR , &H000000FF      ' Set only background to black (foreground unchanged)
+COLOR &H00FF00FF    ' Set global foreground to green for graphics
+LINE FROM (0, 0) TO (100, 100)    ' Green line (uses global color)
+LINE FROM (50, 50) TO (150, 150) WITH &HFF0000FF    ' Red line (overrides global)
 ```
 
 ---
@@ -3586,10 +3749,10 @@ PRINT imagPart#    ' Prints: 4.0
 **Description:** Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation (8 hex digits for 32-bit integers).  
 **Example:**
 ```
-LET hexStr$ = HEX$(255)    ' "FF"
-LET hexStr$ = HEX$(10)     ' "A"
-LET hexStr$ = HEX$(-1)     ' "FFFFFFFF"
-LET hexStr$ = HEX$(4095)    ' "FFF"
+LET hexStr$ = HEX$ 255    ' "FF"
+LET hexStr$ = HEX$ 10     ' "A"
+LET hexStr$ = HEX$ -1     ' "FFFFFFFF"
+LET hexStr$ = HEX$ 4095    ' "FFF"
 ```
 
 ---
@@ -3675,7 +3838,7 @@ LET scanCode$ = INKEYSCAN$
 IF scanCode$ <> "" THEN
     IF scanCode$[1 TO 3] = "SC:" THEN
         LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL(codeStr$)
+        LET code% = VAL# codeStr$
         PRINT "Scan code: "; code%
     END IF
 END IF
@@ -3702,7 +3865,7 @@ LET scanCode$ = INKEYSCAN$
 IF scanCode$ <> "" THEN
     IF scanCode$[1 TO 3] = "SC:" THEN
         LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL(codeStr$)
+        LET code% = VAL# codeStr$
         PRINT "Scan code: "; code%
         IF code% = 27 THEN PRINT "ESC key pressed"
     END IF
@@ -3714,14 +3877,18 @@ END IF
 ### INPUT
 
 **Type:** Command (Text I/O)  
-**Syntax:** `INPUT variable`  
-**Description:** Reads a value from the user and assigns it to a variable. The variable's type sigil determines what type of value is expected. The prompt is displayed separately using `PRINT` before the `INPUT` statement.  
+**Syntax:** `INPUT variable` or `INPUT array[]`  
+**Description:** Reads a value from the user and assigns it to a variable. The variable's type sigil determines what type of value is expected. The prompt is displayed separately using `PRINT` before the `INPUT` statement. For arrays, reads multiple comma-separated values, filling the array from index 1 onwards.  
 **Example:**
 ```
 PRINT "Enter your age: ";
 INPUT age%
 PRINT "Enter your name: ";
 INPUT name$
+
+DIM scores%[5]
+PRINT "Enter 5 scores (comma-separated): ";
+INPUT scores%[]
 ```
 
 ---
@@ -3775,9 +3942,9 @@ IF names$[] INCLUDES% "Bob" THEN PRINT "Found"
 **Description:** Converts a real number to an integer by truncating the decimal part (rounds toward zero).  
 **Example:**
 ```
-LET dice% = INT(RND * 6) + 1    ' Random integer 1-6
-PRINT INT(3.9)    ' Prints: 3
-PRINT INT(-3.9)   ' Prints: -3
+LET dice% = INT% (RND# * 6) + 1    ' Random integer 1-6
+PRINT INT% 3.9    ' Prints: 3
+PRINT INT% -3.9   ' Prints: -3
 ```
 
 ---
@@ -3818,24 +3985,11 @@ PRINT "Looping..."
 **Description:** Returns a copy of the string converted to lowercase.  
 **Example:**
 ```
-LET lower$ = LCASE$("WORLD")    ' "world"
+LET lower$ = LCASE$ "WORLD"    ' "world"
 ```
 
 ---
 
-### LEN
-
-**Type:** Function (String)  
-**Syntax:** `LEN string$` or `LEN array[]`  
-**Description:** Returns the length of a string (number of characters) or the size of an array.  
-**Example:**
-```
-LET text$ = "Hello"
-LET size% = LEN(text$)    ' size% = 5
-LET arraySize% = LEN(files$[])    ' Size of array
-```
-
----
 
 ### LINE
 
@@ -3846,6 +4000,20 @@ LET arraySize% = LEN(files$[])    ' Size of array
 ```
 LINE FROM (10, 10) TO (100, 50) WITH &H00FF00FF    ' Green line
 LINE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled rectangle
+```
+
+---
+
+### LEFT$
+
+**Type:** Function (String)  
+**Syntax:** `LEFT$ string$ length%`  
+**Description:** Returns the leftmost `length%` characters of the string. If `length%` is greater than the string length, returns the entire string.  
+**Example:**
+```
+LET text$ = "Hello, world!"
+LET firstWord$ = LEFT$ text$ 5    ' "Hello"
+LET firstChar$ = LEFT$ text$ 1    ' "H"
 ```
 
 ---
@@ -3875,7 +4043,7 @@ CLOSE file%
 **Example:**
 ```
 LISTDIR "." INTO files$[]
-FOR i% = 1 TO LEN(files$[])
+FOR i% = 1 TO | files$[] |
     PRINT files$[i%]
 NEXT i%
 ```
@@ -3915,14 +4083,19 @@ PRINT "This text appears at row 10, column 20"
 ### LET
 
 **Type:** Command (Variable Assignment)  
-**Syntax:** `LET variable = expression`  
-**Description:** Assigns a value to a variable. Creates module-level (global) variables.  
+**Syntax:** `LET variable = expression` or `LET array[] = expression`  
+**Description:** Assigns a value to a variable. Creates module-level (global) variables. Can assign to scalars or arrays. For arrays, the expression can be an array literal, another array, or an array slice.  
 **Example:**
 ```
 LET count% = 10
 LET name$ = "Alice"
 LET result# = 3.14159
 LET complex& = 3+4i
+
+' Array assignments
+LET numbers%[] = [1, 2, 3, 4, 5]
+LET copy%[] = numbers%[]
+LET slice%[] = numbers%[2 TO 4]
 ```
 
 ---
@@ -3930,13 +4103,14 @@ LET complex& = 3+4i
 ### LOCAL
 
 **Type:** Command (Variable Assignment)  
-**Syntax:** `LOCAL variable = expression`  
-**Description:** Creates a variable local to the current `SUB` procedure.  
+**Syntax:** `LOCAL variable = expression` or `LOCAL array[] = expression`  
+**Description:** Creates a variable local to the current `SUB` procedure. Can create local scalars or arrays.  
 **Example:**
 ```
 SUB Calculate ()
     LOCAL temp% = 10    ' Local to this SUB
     LOCAL result# = 0   ' Local to this SUB
+    LOCAL buffer%[] = [0, 0, 0]    ' Local array
 END SUB
 ```
 
@@ -3949,7 +4123,22 @@ END SUB
 **Description:** Returns a copy of the string with leading spaces removed.  
 **Example:**
 ```
-LET trimmed$ = LTRIM$("  text")    ' "text"
+LET trimmed$ = LTRIM$ "  text"    ' "text"
+```
+
+---
+
+### MID$
+
+**Type:** Function (String)  
+**Syntax:** `MID$ string$ start% length%`  
+**Description:** Returns a substring starting at position `start%` with length `length%`. If `start%` is beyond the string length, returns an empty string. If `length%` extends beyond the string, returns characters up to the end of the string.  
+**Example:**
+```
+LET text$ = "Hello, world!"
+LET world$ = MID$ text$ 8 5    ' "world" (5 characters starting at position 8)
+LET middle$ = MID$ text$ 3 4    ' "llo," (4 characters starting at position 3)
+LET char$ = MID$ text$ 1 1    ' "H" (single character at position 1)
 ```
 
 ---
@@ -4135,12 +4324,12 @@ IF (x% > 0) OR (y% < 10) THEN PRINT "Valid"
 ### POP
 
 **Type:** Statement (Array)  
-**Syntax:** `LET variable = POP array[]`  
-**Description:** Removes and returns the last element from an array.  
+**Syntax:** `POP array[] INTO variable`  
+**Description:** Removes the last element from an array and assigns it to a variable.  
 **Example:**
 ```
-LET value% = POP numbers%[]
-LET name$ = POP names$[]
+POP numbers%[] INTO value%
+POP names$[] INTO name$
 ```
 
 ---  
@@ -4185,13 +4374,15 @@ PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers
 ### PRINT
 
 **Type:** Command (Text I/O)  
-**Syntax:** `PRINT expression1, expression2, ...` or `PRINT expression1; expression2; ...` or `PRINT`  
-**Description:** Outputs text and values to the text display. Comma (`,`) separates items with tab spacing. Semicolon (`;`) separates items with no spacing (concatenated). Ending with semicolon suppresses the newline. Empty `PRINT` outputs a blank line.  
+**Syntax:** `PRINT expression1, expression2, ...` or `PRINT expression1; expression2; ...` or `PRINT array[]` or `PRINT`  
+**Description:** Outputs text and values to the text display. Comma (`,`) separates items with tab spacing. Semicolon (`;`) separates items with no spacing (concatenated). Ending with semicolon suppresses the newline. Empty `PRINT` outputs a blank line. When printing an array, all elements are printed, separated by commas.  
 **Example:**
 ```
 PRINT "Hello, world!"
 PRINT "Name: "; name$; " Age: "; age%
 PRINT "X:", x%, "Y:", y%
+PRINT numbers%[]    ' Prints all array elements
+PRINT "Scores: "; scores%[]    ' Prints: Scores: 85, 90, 78
 PRINT    ' Blank line
 ```
 
@@ -4267,8 +4458,8 @@ RANDOMIZE 12345        ' Seed with specific value
 ### READ
 
 **Type:** Command (File I/O)  
-**Syntax:** `READ variable FROM fileHandle%`  
-**Description:** Reads binary data from a file based on the variable's type. Integer: reads 4 bytes (32-bit signed integer). Real: reads 8 bytes (64-bit floating-point). Complex: reads 16 bytes (128-bit complex number). String: reads the string's length prefix and data. Reading advances the file position. At end of file, an error occurs (check with `EOF` first).  
+**Syntax:** `READ variable FROM fileHandle%` or `READ array[] FROM fileHandle%`  
+**Description:** Reads binary data from a file based on the variable's type. Integer: reads 4 bytes (32-bit signed integer). Real: reads 8 bytes (64-bit floating-point). Complex: reads 16 bytes (128-bit complex number). String: reads the string's length prefix and data. For arrays, reads elements sequentially, filling the array from index 1 onwards. Reading advances the file position. At end of file, an error occurs (check with `EOF` first).  
 **Example:**
 ```
 OPEN "data.bin" FOR READ AS file%
@@ -4278,6 +4469,10 @@ FOR i% = 1 TO count%
     READ numbers%[i%] FROM file%
 NEXT i%
 CLOSE file%
+
+' Or read entire array at once
+DIM data%[100]
+READ data%[] FROM file%
 ```
 
 ---
@@ -4318,6 +4513,20 @@ PRINT realPart#    ' Prints: 3.0
 **Example:**
 ```
 LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
+```
+
+---
+
+### RECTANGLE
+
+**Type:** Command (Graphics)  
+**Syntax:** `RECTANGLE FROM (x1%, y1%) TO (x2%, y2%)` or `RECTANGLE FROM (x1%, y1%) TO (x2%, y2%) WITH color%` or `RECTANGLE FROM (x1%, y1%) TO (x2%, y2%) FILLED` or `RECTANGLE FROM (x1%, y1%) TO (x2%, y2%) WITH color% FILLED`  
+**Description:** Draws a rectangle outline or filled rectangle. Uses global foreground color by default, or `WITH color%` to override. Default is outline only, use `FILLED` for filled rectangle. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+COLOR &HFFFFFFFF    ' Set global color to white
+RECTANGLE FROM (50, 50) TO (150, 150)    ' White outline (uses global color)
+RECTANGLE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled red rectangle
 ```
 
 ---
@@ -4373,7 +4582,7 @@ RMDIR "/Users/name/old_data"
 **Example:**
 ```
 LET random# = RND
-LET dice% = INT(RND * 6) + 1    ' Random integer 1-6
+LET dice% = INT% (RND# * 6) + 1    ' Random integer 1-6
 ```
 
 ---
@@ -4391,6 +4600,21 @@ PRINT ROUND 3.4      ' Prints: 3
 
 ---
 
+### OVAL
+
+**Type:** Command (Graphics)  
+**Syntax:** `OVAL AT (x%, y%) WIDTH width# HEIGHT height#` or `OVAL AT (x%, y%) WIDTH width# HEIGHT height# WITH color%` or `OVAL AT (x%, y%) WIDTH width# HEIGHT height# FILLED` or `OVAL AT (x%, y%) WIDTH width# HEIGHT height# WITH color% FILLED`  
+**Description:** Draws an oval (ellipse) outline or filled oval. Uses global foreground color by default, or `WITH color%` to override. Default is outline only, use `FILLED` for filled oval. A circle is a special case where width equals height. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+COLOR &HFFFF00FF    ' Set global color to yellow
+OVAL AT (320, 240) WIDTH 100 HEIGHT 100    ' Yellow circle outline (uses global color)
+OVAL AT (100, 100) WIDTH 60 HEIGHT 60 WITH &H00FF00FF FILLED    ' Filled green circle
+OVAL AT (200, 200) WIDTH 80 HEIGHT 40 WITH &HFF00FFFF FILLED    ' Filled ellipse (2:1 width:height)
+```
+
+---
+
 ### RTRIM$
 
 **Type:** Function (String)  
@@ -4398,7 +4622,21 @@ PRINT ROUND 3.4      ' Prints: 3
 **Description:** Returns a copy of the string with trailing spaces removed.  
 **Example:**
 ```
-LET trimmed$ = RTRIM$("text  ")    ' "text"
+LET trimmed$ = RTRIM$ "text  "    ' "text"
+```
+
+---
+
+### RIGHT$
+
+**Type:** Function (String)  
+**Syntax:** `RIGHT$ string$ length%`  
+**Description:** Returns the rightmost `length%` characters of the string. If `length%` is greater than the string length, returns the entire string.  
+**Example:**
+```
+LET text$ = "Hello, world!"
+LET lastWord$ = RIGHT$ text$ 6    ' "world!"
+LET lastChar$ = RIGHT$ text$ 1    ' "!"
 ```
 
 ---
@@ -4454,12 +4692,12 @@ SET LINE SPACING ON     ' Use 80×24 character grid with spacing
 ### SHIFT
 
 **Type:** Statement (Array)  
-**Syntax:** `LET variable = SHIFT array[]`  
-**Description:** Removes and returns the first element from an array.  
+**Syntax:** `SHIFT array[] INTO variable`  
+**Description:** Removes the first element from an array and assigns it to a variable.  
 **Example:**
 ```
-LET value% = SHIFT numbers%[]
-LET name$ = SHIFT names$[]
+SHIFT numbers%[] INTO value%
+SHIFT names$[] INTO name$
 ```
 
 ---
@@ -4518,19 +4756,6 @@ PRINT result#    ' Prints: 4.0
 
 ---
 
-### SPLICE
-
-**Type:** Statement (Array)  
-**Syntax:** `SPLICE array[], startIndex%, deleteCount%` or `SPLICE array[], startIndex%, deleteCount%, insertArray[]`  
-**Description:** Removes and/or inserts elements in an array. Modifies the array in place.  
-**Example:**
-```
-SPLICE numbers%[], 2, 3              ' Remove 3 elements starting at index 2
-SPLICE numbers%[], 2, 0, [10, 20]    ' Insert [10, 20] at index 2
-SPLICE numbers%[], 2, 3, [10, 20]    ' Replace 3 elements at index 2 with [10, 20]
-```
-
----
 
 ### STR$
 
@@ -4540,10 +4765,10 @@ SPLICE numbers%[], 2, 3, [10, 20]    ' Replace 3 elements at index 2 with [10, 2
 **Example:**
 ```
 LET num% = 42
-LET numStr$ = STR$(num%)    ' "42"
-LET piStr$ = STR$(3.14159)  ' "3.14159"
-LET complexStr$ = STR$(3+4i)    ' "3+4i"
-LET complexStr$ = STR$(3-4i)    ' "3-4i"
+LET numStr$ = STR$ num%    ' "42"
+LET piStr$ = STR$ 3.14159  ' "3.14159"
+LET complexStr$ = STR$ (3+4i)    ' "3+4i"
+LET complexStr$ = STR$ (3-4i)    ' "3-4i"
 ```
 
 ---
@@ -4565,11 +4790,11 @@ NEXT i%
 ### SUB
 
 **Type:** Command (Control Flow)  
-**Syntax:** `SUB name (parameters) ... END SUB`  
-**Description:** Defines a subroutine procedure that can accept parameters.  
+**Syntax:** `SUB name parameters ... END SUB`  
+**Description:** Defines a subroutine procedure that can accept parameters. Parentheses are not permitted.  
 **Example:**
 ```
-SUB DrawBox (width%, height%, char$)
+SUB DrawBox width%, height%, char$
     FOR row% = 1 TO height%
         FOR col% = 1 TO width%
             PRINT char$;
@@ -4584,14 +4809,20 @@ END SUB
 ### SWAP
 
 **Type:** Command (Variable Operation)  
-**Syntax:** `SWAP variable1 WITH variable2`  
-**Description:** Exchanges the values of two variables of the same type.  
+**Syntax:** `SWAP variable1 WITH variable2` or `SWAP array1[] WITH array2[]`  
+**Description:** Exchanges the values of two variables of the same type. Can swap scalars or arrays. Both operands must be of the same type.  
 **Example:**
 ```
 LET x% = 5
 LET y% = 10
 SWAP x% WITH y%
 PRINT x%, y%    ' Prints: 10    5
+
+LET arr1%[] = [1, 2, 3]
+LET arr2%[] = [4, 5, 6]
+SWAP arr1%[] WITH arr2%[]
+PRINT arr1%[]    ' Prints: 4, 5, 6
+PRINT arr2%[]    ' Prints: 1, 2, 3
 ```
 
 ---
@@ -4670,7 +4901,7 @@ CASE 90 TO 100
 **Description:** Returns a copy of the string with leading and trailing spaces removed.  
 **Example:**
 ```
-LET trimmed$ = TRIM$("  text  ")   ' "text"
+LET trimmed$ = TRIM$ "  text  "   ' "text"
 ```
 
 ---
@@ -4722,7 +4953,7 @@ TEMPO 180    ' Set to 180 BPM (fast)
 **Description:** Returns a copy of the string converted to uppercase.  
 **Example:**
 ```
-LET upper$ = UCASE$("hello")    ' "HELLO"
+LET upper$ = UCASE$ "hello"    ' "HELLO"
 ```
 
 ---
@@ -4756,21 +4987,21 @@ UNSHIFT names$[], "Alice"
 
 ---
 
-### VAL
+### VAL#
 
 **Type:** Function (String)  
-**Syntax:** `VAL string$`  
-**Description:** Converts a string to a number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. The result type depends on the string content. Hexadecimal and binary strings are parsed as integers. Complex numbers use the format `"real+imaginaryi"` or `"real-imaginaryi"`.  
+**Syntax:** `VAL# string$`  
+**Description:** Converts a string to a real number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. Hexadecimal and binary strings are parsed as integers (then converted to real). Complex numbers use the format `"real+imaginaryi"` or `"real-imaginaryi"`. When assigned to integer or complex variables, type coercion automatically converts the result.  
 **Example:**
 ```
 LET text$ = "123"
-LET number% = VAL(text$)    ' 123
+LET number% = VAL# text$    ' 123 (coerced to integer)
 LET decimal$ = "3.14"
-LET value# = VAL(decimal$)  ' 3.14
-LET hexValue% = VAL("&HFF")    ' 255 (hexadecimal)
-LET binValue% = VAL("&B1010")  ' 10 (binary)
-LET complexValue& = VAL("3+4i")    ' 3+4i (complex number)
-LET complexValue& = VAL("3-4i")    ' 3-4i (complex number)
+LET value# = VAL# decimal$  ' 3.14
+LET hexValue% = VAL# "&HFF"    ' 255 (hexadecimal, coerced to integer)
+LET binValue% = VAL# "&B1010"  ' 10 (binary, coerced to integer)
+LET complexValue& = VAL# "3+4i"    ' 3+4i (complex number, coerced to complex)
+LET complexValue& = VAL# "3-4i"    ' 3-4i (complex number, coerced to complex)
 ```
 
 ---
@@ -4851,14 +5082,15 @@ WEND
 ### WRITE
 
 **Type:** Command (File I/O)  
-**Syntax:** `WRITE expression TO fileHandle%`  
-**Description:** Writes data to a file. For strings: writes the text followed by a newline. For numbers: writes the binary representation (not text). Text and binary operations can be mixed in the same file.  
+**Syntax:** `WRITE expression TO fileHandle%` or `WRITE array[] TO fileHandle%`  
+**Description:** Writes data to a file. For strings: writes the text followed by a newline. For numbers: writes the binary representation (not text). For arrays, writes all elements sequentially in binary format. Text and binary operations can be mixed in the same file.  
 **Example:**
 ```
 OPEN "output.txt" FOR OVERWRITE AS file%
 WRITE "Name: " TO file%
 WRITE playerName$ TO file%
 WRITE score% TO file%    ' Write binary integer
+WRITE numbers%[] TO file%    ' Write entire array
 CLOSE file%
 ```
 
@@ -4871,7 +5103,7 @@ CLOSE file%
 **Description:** Writes an entire string to a file.  
 **Example:**
 ```
-LET report$ = "Sales Report" + CHR$(10) + "Total: $1000"
+LET report$ = "Sales Report" + CHR$ 10 + "Total: $1000"
 WRITEFILE "report.txt" FROM report$
 WRITEFILE output$ TO "results.txt"
 ```
