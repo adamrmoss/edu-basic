@@ -241,7 +241,9 @@ EduBASIC automatically promotes numeric types when they are mixed in expressions
 
 ### Arrays
 
-Arrays are declared using the `DIM` keyword with square brackets. Arrays are **one-based by default** (index 1 is the first element).
+Arrays are declared using the `DIM` keyword with square brackets. Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
+
+#### Array Declaration
 
 **Default one-based array:**
 ```
@@ -262,6 +264,158 @@ This creates an array with indices 0 through 11.
 DIM matrix#[5, 10]
 DIM grid%[1 TO 10, 1 TO 20]
 ```
+
+#### Array Literals
+
+Arrays can be initialized using array literals with square brackets:
+
+```
+LET numbers%[] = [1, 2, 3, 4, 5]
+LET names$[] = ["Alice", "Bob", "Charlie"]
+LET mixed#[] = [1.5, 2.7, 3.14]
+LET empty%[] = []
+```
+
+Array literals create arrays starting at index 1 (one-based).
+
+#### Array Indexing
+
+Arrays are accessed using square brackets:
+
+```
+LET value% = numbers%[3]
+LET numbers%[5] = 100
+LET name$ = names$[2]
+```
+
+Arrays support multi-dimensional indexing:
+
+```
+LET value# = matrix#[2, 3]
+LET matrix#[1, 5] = 42.5
+```
+
+#### Array Slicing
+
+Arrays support slicing similar to string slicing:
+
+```
+LET sub%[] = numbers%[2 TO 5]        ' Elements 2 through 5
+LET tail%[] = numbers%[3 TO ...]     ' Elements 3 to end
+LET head%[] = numbers%[... TO 5]     ' Elements 1 to 5
+LET all%[] = numbers%[... TO ...]    ' Entire array
+```
+
+Slicing creates a new array containing the specified range of elements.
+
+#### Array Concatenation
+
+Arrays can be concatenated using the `+` operator:
+
+```
+LET combined%[] = numbers%[] + more%[]
+LET all%[] = [1, 2] + numbers%[] + [9, 10]
+```
+
+Concatenation creates a new array containing all elements from the left array followed by all elements from the right array.
+
+#### Array Length
+
+Use the `LEN` function to get the length of an array:
+
+```
+LET size% = LEN numbers%[]
+```
+
+Returns the number of elements in the array (the highest index for one-based arrays).
+
+#### Array Manipulation Statements
+
+**PUSH Statement:**
+Adds an element to the end of an array.
+
+```
+PUSH numbers%[], 10
+PUSH names$[], "David"
+```
+
+**POP Statement:**
+Removes and returns the last element from an array.
+
+```
+LET value% = POP numbers%[]
+LET name$ = POP names$[]
+```
+
+**SHIFT Statement:**
+Removes and returns the first element from an array.
+
+```
+LET value% = SHIFT numbers%[]
+LET name$ = SHIFT names$[]
+```
+
+**UNSHIFT Statement:**
+Adds an element to the beginning of an array.
+
+```
+UNSHIFT numbers%[], 0
+UNSHIFT names$[], "Alice"
+```
+
+#### Array Search Operators
+
+Array search operations are implemented as binary operators with type sigils:
+
+**FIND% Operator:**
+Finds the first element in an array that matches a value. Returns the element value if found, or 0 (for numeric arrays) or "" (for string arrays) if not found.
+
+```
+LET found% = numbers%[] FIND% 5
+LET found$ = names$[] FIND% "Bob"
+```
+
+**INDEXOF% Operator:**
+Finds the index of the first occurrence of a value in an array. Returns 0 if not found.
+
+```
+LET index% = numbers%[] INDEXOF% 5
+LET index% = names$[] INDEXOF% "Bob"
+```
+
+**INCLUDES% Operator:**
+Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.
+
+```
+IF numbers%[] INCLUDES% 5 THEN PRINT "Found"
+IF names$[] INCLUDES% "Bob" THEN PRINT "Found"
+```
+
+#### Array Functions
+
+**REVERSE Function:**
+Returns a new array with elements in reverse order.
+
+```
+LET reversed%[] = REVERSE numbers%[]
+```
+
+**JOIN$ Operator:**
+Joins array elements into a string with a separator.
+
+```
+LET joined$ = names$[] JOIN$ ", "    ' "Alice, Bob, Charlie"
+```
+
+**SPLICE Statement:**
+Removes and/or inserts elements in an array. Modifies the array in place.
+
+```
+SPLICE numbers%[], 2, 3              ' Remove 3 elements starting at index 2
+SPLICE numbers%[], 2, 0, [10, 20]    ' Insert [10, 20] at index 2
+SPLICE numbers%[], 2, 3, [10, 20]    ' Replace 3 elements at index 2 with [10, 20]
+```
+
 
 ### Arithmetic Operations
 
@@ -460,19 +614,21 @@ Comparison operations return integer values: `FALSE` (0) or `TRUE` (-1).
 EduBASIC follows standard mathematical operator precedence:
 
 1. Parentheses `()` (highest precedence)
-2. Prefix unary operators (all functions): `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `RND`
+2. Prefix unary operators (all functions): `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `RND`, `REVERSE`
 3. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
 4. Absolute value / norm `| |`
 5. Unary `+` and `-`
 6. Exponentiation `^` or `**`
 7. Multiplication `*`, Division `/`, and Modulo `MOD`
-8. Addition `+` and Subtraction `-`
-9. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
-10. `NOT`
-11. `AND`, `NAND`
-12. `OR`, `NOR`
-13. `XOR`, `XNOR`
-14. `IMP` (lowest precedence)
+8. Addition `+` and Subtraction `-` (also array concatenation)
+9. Array search operators: `FIND%`, `INDEXOF%`, `INCLUDES%`
+10. String/Array operators: `INSTR%`, `JOIN$`, `REPLACE$`
+11. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
+12. `NOT`
+13. `AND`, `NAND`
+14. `OR`, `NOR`
+15. `XOR`, `XNOR`
+16. `IMP` (lowest precedence)
 
 When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.
 
@@ -1615,15 +1771,15 @@ LET trimmed$ = RTRIM$("text  ")    ' "text"
 LET trimmed$ = TRIM$("  text  ")   ' "text"
 ```
 
-**`INSTR` - Find substring position:**
+**`INSTR%` - Find substring position:**
 ```
-LET pos% = INSTR("Hello world", "world")    ' 7
-LET pos% = INSTR(5, "Hello world", "o")    ' 5 (start search at position 5)
+LET pos% = "Hello world" INSTR% "world"    ' 7
+LET pos% = "Hello world" INSTR% "o" FROM 5    ' 5 (start search at position 5)
 ```
 
 **`REPLACE$` - Replace substring:**
 ```
-LET new$ = REPLACE$("Hello world", "world", "EduBASIC")    ' "Hello EduBASIC"
+LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
 **Note:** Functions like `LEFT$`, `RIGHT$`, and `MID$` are not provided as built-in functions since they can be easily implemented using string slicing:
@@ -3312,6 +3468,22 @@ PRINT FLOOR -3.2     ' Prints: -4
 
 ---
 
+### FIND%
+
+**Type:** Operator (Array Search)  
+**Syntax:** `array[] FIND% value`  
+**Description:** Finds the first element in an array that matches a value. Returns the element value if found, or 0 (for numeric arrays) or "" (for string arrays) if not found.  
+**Example:**
+```
+LET found% = numbers%[] FIND% 5
+IF found% <> 0 THEN PRINT "Found:", found%
+
+LET found$ = names$[] FIND% "Bob"
+IF found$ <> "" THEN PRINT "Found:", found$
+```
+
+---
+
 ### FOR
 
 **Type:** Command (Control Flow)  
@@ -3554,15 +3726,44 @@ INPUT name$
 
 ---
 
-### INSTR
+### INSTR%
 
-**Type:** Function (String)  
-**Syntax:** `INSTR string$, substring$` or `INSTR start%, string$, substring$`  
-**Description:** Returns the position of the first occurrence of `substring$` in `string$`. If `start%` is provided, search begins at that position. Returns 0 if not found.  
+**Type:** Operator (String Search)  
+**Syntax:** `string$ INSTR% substring$` or `string$ INSTR% substring$ FROM start%`  
+**Description:** Finds the position of the first occurrence of `substring$` in `string$`. With `FROM`, search begins at that position. Returns 0 if not found.  
 **Example:**
 ```
-LET pos% = INSTR("Hello world", "world")    ' 7
-LET pos% = INSTR(5, "Hello world", "o")    ' 5 (start search at position 5)
+LET pos% = "Hello world" INSTR% "world"    ' 7
+LET pos% = "Hello world" INSTR% "o" FROM 5    ' 5 (start search at position 5)
+```
+
+---
+
+### INDEXOF%
+
+**Type:** Operator (Array Search)  
+**Syntax:** `array[] INDEXOF% value`  
+**Description:** Finds the index of the first occurrence of a value in an array. Returns 0 if not found.  
+**Example:**
+```
+LET index% = numbers%[] INDEXOF% 5
+IF index% > 0 THEN PRINT "Found at index:", index%
+
+LET index% = names$[] INDEXOF% "Bob"
+IF index% > 0 THEN PRINT "Found at index:", index%
+```
+
+---
+
+### INCLUDES%
+
+**Type:** Operator (Array Search)  
+**Syntax:** `array[] INCLUDES% value`  
+**Description:** Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.  
+**Example:**
+```
+IF numbers%[] INCLUDES% 5 THEN PRINT "Found"
+IF names$[] INCLUDES% "Bob" THEN PRINT "Found"
 ```
 
 ---
@@ -3577,6 +3778,19 @@ LET pos% = INSTR(5, "Hello world", "o")    ' 5 (start search at position 5)
 LET dice% = INT(RND * 6) + 1    ' Random integer 1-6
 PRINT INT(3.9)    ' Prints: 3
 PRINT INT(-3.9)   ' Prints: -3
+```
+
+---
+
+### JOIN$
+
+**Type:** Operator (Array)  
+**Syntax:** `array$[] JOIN$ separator$`  
+**Description:** Joins array elements into a string with a separator.  
+**Example:**
+```
+LET names$[] = ["Alice", "Bob", "Charlie"]
+LET joined$ = names$[] JOIN$ ", "    ' "Alice, Bob, Charlie"
 ```
 
 ---
@@ -3913,6 +4127,27 @@ OPEN "log.txt" FOR APPEND AS logFile%
 **Example:**
 ```
 LET result% = 12 OR 10    ' Binary: 1100 OR 1010 = 1110 (14)
+IF (x% > 0) OR (y% < 10) THEN PRINT "Valid"
+```
+
+---
+
+### POP
+
+**Type:** Statement (Array)  
+**Syntax:** `LET variable = POP array[]`  
+**Description:** Removes and returns the last element from an array.  
+**Example:**
+```
+LET value% = POP numbers%[]
+LET name$ = POP names$[]
+```
+
+---  
+**Description:** Bitwise OR. Output bit is 1 when at least one input bit is 1.  
+**Example:**
+```
+LET result% = 12 OR 10    ' Binary: 1100 OR 1010 = 1110 (14)
 IF (x% = 0) OR (y% = 0) THEN PRINT "Zero found"
 ```
 
@@ -3986,6 +4221,19 @@ NEXT i%
 ```
 PUT sprite%[] AT (200, 150)    ' Draw sprite with automatic alpha blending
 PUT player%[] AT (x%, y%)    ' Animate sprite
+```
+
+---
+
+### PUSH
+
+**Type:** Statement (Array)  
+**Syntax:** `PUSH array[], value`  
+**Description:** Adds an element to the end of an array.  
+**Example:**
+```
+PUSH numbers%[], 10
+PUSH names$[], "David"
 ```
 
 ---
@@ -4064,12 +4312,12 @@ PRINT realPart#    ' Prints: 3.0
 
 ### REPLACE$
 
-**Type:** Function (String)  
-**Syntax:** `REPLACE$ string$, oldSubstring$, newSubstring$`  
+**Type:** Operator (String)  
+**Syntax:** `string$ REPLACE$ oldSubstring$ WITH newSubstring$`  
 **Description:** Returns a copy of the string with all occurrences of `oldSubstring$` replaced with `newSubstring$`.  
 **Example:**
 ```
-LET new$ = REPLACE$("Hello world", "world", "EduBASIC")    ' "Hello EduBASIC"
+LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
 ---
@@ -4088,6 +4336,18 @@ END
 LABEL PrintMessage
     PRINT "Hello!"
 RETURN
+```
+
+---
+
+### REVERSE
+
+**Type:** Function (Array)  
+**Syntax:** `REVERSE array[]`  
+**Description:** Returns a new array with elements in reverse order.  
+**Example:**
+```
+LET reversed%[] = REVERSE numbers%[]
 ```
 
 ---
@@ -4191,6 +4451,20 @@ SET LINE SPACING ON     ' Use 80×24 character grid with spacing
 
 ---
 
+### SHIFT
+
+**Type:** Statement (Array)  
+**Syntax:** `LET variable = SHIFT array[]`  
+**Description:** Removes and returns the first element from an array.  
+**Example:**
+```
+LET value% = SHIFT numbers%[]
+LET name$ = SHIFT names$[]
+```
+
+---
+
+
 ### SGN
 
 **Type:** Function (Math)  
@@ -4240,6 +4514,20 @@ PRINT result#    ' Prints: 0.0
 ```
 LET result# = SQRT 16
 PRINT result#    ' Prints: 4.0
+```
+
+---
+
+### SPLICE
+
+**Type:** Statement (Array)  
+**Syntax:** `SPLICE array[], startIndex%, deleteCount%` or `SPLICE array[], startIndex%, deleteCount%, insertArray[]`  
+**Description:** Removes and/or inserts elements in an array. Modifies the array in place.  
+**Example:**
+```
+SPLICE numbers%[], 2, 3              ' Remove 3 elements starting at index 2
+SPLICE numbers%[], 2, 0, [10, 20]    ' Insert [10, 20] at index 2
+SPLICE numbers%[], 2, 3, [10, 20]    ' Replace 3 elements at index 2 with [10, 20]
 ```
 
 ---
@@ -4451,6 +4739,19 @@ UNLESS valid% THEN PRINT "Invalid"
 UNLESS password$ = "secret" THEN
     PRINT "Access denied"
 END UNLESS
+```
+
+---
+
+### UNSHIFT
+
+**Type:** Statement (Array)  
+**Syntax:** `UNSHIFT array[], value`  
+**Description:** Adds an element to the beginning of an array.  
+**Example:**
+```
+UNSHIFT numbers%[], 0
+UNSHIFT names$[], "Alice"
 ```
 
 ---
