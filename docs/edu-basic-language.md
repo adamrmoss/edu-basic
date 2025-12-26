@@ -1403,6 +1403,44 @@ PRINT "Bottom row with spacing"
 
 **Note:** The line spacing setting affects the entire text display and persists until changed. When line spacing is enabled, the additional 4 pixels of vertical spacing are added after each character row, creating more readable text at the cost of fewer available rows.
 
+### Keyboard Input
+
+EduBASIC provides non-blocking keyboard input through the `INKEY$` function, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
+
+**Key Detection:**
+- `INKEY$` returns the currently pressed key as a string
+- Returns empty string (`""`) if no key is pressed
+- Non-blocking: returns immediately whether a key is pressed or not
+- Supports printable characters, special keys, and scan codes
+
+**Special Keys:**
+Special keys (arrow keys, function keys, modifier keys, etc.) return named strings like `"ESC"`, `"ENTER"`, `"ARROWUP"`, `"F1"`, etc. See the `INKEY$` function reference for a complete list.
+
+**Scan Codes:**
+When called with a non-zero argument, `INKEY$` returns scan codes in the format `"SC:nnn"` where `nnn` is the decimal scan code. Scan codes are based on TypeScript/JavaScript keyboard event codes and may vary by platform.
+
+**Examples:**
+```
+' Game loop with keyboard input
+DO
+    LET key$ = INKEY$
+    IF key$ = "ESC" THEN EXIT DO
+    IF key$ = "ARROWUP" THEN LET y% -= 1
+    IF key$ = "ARROWDOWN" THEN LET y% += 1
+    IF key$ = "ARROWLEFT" THEN LET x% -= 1
+    IF key$ = "ARROWRIGHT" THEN LET x% += 1
+    ' ... game logic ...
+LOOP
+
+' Menu navigation
+LET key$ = INKEY$
+IF key$ = "F1" THEN GOSUB ShowHelp
+IF key$ = "F2" THEN GOSUB SaveGame
+IF key$ = "ENTER" THEN GOSUB SelectOption
+```
+
+**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY$`.
+
 ### String Operations
 
 EduBASIC provides several operations for working with string data.
@@ -1504,7 +1542,10 @@ IF word$ < "middle" THEN PRINT "Comes before 'middle'"
 LET num% = 42
 LET numStr$ = STR$(num%)    ' "42"
 LET piStr$ = STR$(3.14159)  ' "3.14159"
+LET complexStr$ = STR$(3+4i)    ' "3+4i"
 ```
+
+Converts any numeric type (integer, real, or complex) to its decimal string representation. For complex numbers, the format is `"real+imaginaryi"` or `"real-imaginaryi"`.
 
 **`VAL` - Convert string to number:**
 ```
@@ -1512,7 +1553,30 @@ LET text$ = "123"
 LET number% = VAL(text$)    ' 123
 LET decimal$ = "3.14"
 LET value# = VAL(decimal$)  ' 3.14
+LET hexValue% = VAL("&HFF")    ' 255 (hexadecimal)
+LET binValue% = VAL("&B1010")  ' 10 (binary)
+LET complexValue& = VAL("3+4i")    ' 3+4i (complex number)
 ```
+
+Converts a string to a number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. The result type depends on the string content. Hexadecimal and binary strings are parsed as integers.
+
+**`HEX$` - Convert number to hexadecimal string:**
+```
+LET hexStr$ = HEX$(255)    ' "FF"
+LET hexStr$ = HEX$(10)     ' "A"
+LET hexStr$ = HEX$(-1)     ' "FFFFFFFF" (32-bit two's complement)
+```
+
+Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation.
+
+**`BIN$` - Convert number to binary string:**
+```
+LET binStr$ = BIN$(10)     ' "1010"
+LET binStr$ = BIN$(255)    ' "11111111"
+LET binStr$ = BIN$(-1)     ' "11111111111111111111111111111111" (32-bit two's complement)
+```
+
+Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation.
 
 **`CHR$` - Convert ASCII code to character:**
 ```
@@ -2759,6 +2823,20 @@ LET result# = ATANH 0.5
 
 ---
 
+### BIN$
+
+**Type:** Function (String)  
+**Syntax:** `BIN$ integer%`  
+**Description:** Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation (32 bits for 32-bit integers).  
+**Example:**
+```
+LET binStr$ = BIN$(10)     ' "1010"
+LET binStr$ = BIN$(255)    ' "11111111"
+LET binStr$ = BIN$(-1)     ' "11111111111111111111111111111111"
+```
+
+---
+
 ### CABS
 
 **Type:** Function (Complex)  
@@ -3329,6 +3407,21 @@ PRINT imagPart#    ' Prints: 4.0
 
 ---
 
+### HEX$
+
+**Type:** Function (String)  
+**Syntax:** `HEX$ integer%`  
+**Description:** Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation (8 hex digits for 32-bit integers).  
+**Example:**
+```
+LET hexStr$ = HEX$(255)    ' "FF"
+LET hexStr$ = HEX$(10)     ' "A"
+LET hexStr$ = HEX$(-1)     ' "FFFFFFFF"
+LET hexStr$ = HEX$(4095)    ' "FFF"
+```
+
+---
+
 ### IMP
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -3345,13 +3438,103 @@ LET result% = 5 IMP 3    ' Binary implication
 
 **Type:** Function (Input)  
 **Syntax:** `INKEY$`  
-**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input.  
-**Example:**
+**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name. For scan codes, use `INKEYSCAN$` instead.  
+**Return Values for `INKEY$`:**
+- **Empty string (`""`):** No key is currently pressed
+- **Printable characters:** Returns the character as a string (e.g., `"a"`, `"A"`, `"1"`, `" "`)
+- **Special keys:** Returns special key names (see table below)
+
+**Return Values for `INKEYSCAN$`:**
+- **Empty string (`""`):** No key is currently pressed
+- **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
+
+**Special Key Names:**
+
+| Key | Return Value | Scan Code (approx) |
+|-----|--------------|-------------------|
+| Escape | `"ESC"` | SC:27 |
+| Enter/Return | `"ENTER"` | SC:13 |
+| Backspace | `"BACKSPACE"` | SC:8 |
+| Tab | `"TAB"` | SC:9 |
+| Space | `" "` (space character) | SC:32 |
+| Arrow Up | `"ARROWUP"` | SC:38 |
+| Arrow Down | `"ARROWDOWN"` | SC:40 |
+| Arrow Left | `"ARROWLEFT"` | SC:37 |
+| Arrow Right | `"ARROWRIGHT"` | SC:39 |
+| Home | `"HOME"` | SC:36 |
+| End | `"END"` | SC:35 |
+| Page Up | `"PAGEUP"` | SC:33 |
+| Page Down | `"PAGEDOWN"` | SC:34 |
+| Insert | `"INSERT"` | SC:45 |
+| Delete | `"DELETE"` | SC:46 |
+| F1-F12 | `"F1"` through `"F12"` | SC:112-123 |
+| Shift | `"SHIFT"` | SC:16 |
+| Control | `"CTRL"` | SC:17 |
+| Alt | `"ALT"` | SC:18 |
+| Caps Lock | `"CAPSLOCK"` | SC:20 |
+
+**Note:** Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values. The actual scan code values may vary by platform and keyboard layout. Special key names are case-sensitive. Use `INKEY$` for character-based input handling and `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout.
+
+**Examples:**
 ```
+' Basic usage - get character or special key name
 DO
     LET key$ = INKEY$
-    IF key$ = CHR$(27) THEN EXIT DO    ' ESC key
+    IF key$ <> "" THEN
+        PRINT "Key pressed: "; key$
+        IF key$ = "ESC" THEN EXIT DO
+    END IF
 LOOP
+
+' Detect arrow keys for game movement
+LET key$ = INKEY$
+IF key$ = "ARROWUP" THEN
+    LET y% += 1
+ELSEIF key$ = "ARROWDOWN" THEN
+    LET y% -= 1
+ELSEIF key$ = "ARROWLEFT" THEN
+    LET x% -= 1
+ELSEIF key$ = "ARROWRIGHT" THEN
+    LET x% += 1
+END IF
+
+' Get scan code
+LET scanCode$ = INKEYSCAN$
+IF scanCode$ <> "" THEN
+    IF scanCode$[1 TO 3] = "SC:" THEN
+        LET codeStr$ = scanCode$[4 TO ...]
+        LET code% = VAL(codeStr$)
+        PRINT "Scan code: "; code%
+    END IF
+END IF
+
+' Check for function keys
+LET key$ = INKEY$
+IF key$ = "F1" THEN
+    GOSUB ShowHelp
+ELSEIF key$ = "F2" THEN
+    GOSUB SaveGame
+END IF
+```
+
+---
+
+### INKEYSCAN$
+
+**Type:** Function (Input)  
+**Syntax:** `INKEYSCAN$`  
+**Description:** Returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, or empty string if no key is pressed. Non-blocking keyboard input. Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout. Use `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout, or when you need the raw scan code for advanced key handling.  
+**Example:**
+```
+LET scanCode$ = INKEYSCAN$
+IF scanCode$ <> "" THEN
+    IF scanCode$[1 TO 3] = "SC:" THEN
+        LET codeStr$ = scanCode$[4 TO ...]
+        LET code% = VAL(codeStr$)
+        PRINT "Scan code: "; code%
+        IF code% = 27 THEN PRINT "ESC key pressed"
+    END IF
+END IF
 ```
 
 ---
@@ -4065,12 +4248,14 @@ PRINT result#    ' Prints: 4.0
 
 **Type:** Function (String)  
 **Syntax:** `STR$ number`  
-**Description:** Converts a number to its string representation.  
+**Description:** Converts any numeric type (integer, real, or complex) to its decimal string representation. For complex numbers, the format is `"real+imaginaryi"` or `"real-imaginaryi"`.  
 **Example:**
 ```
 LET num% = 42
 LET numStr$ = STR$(num%)    ' "42"
 LET piStr$ = STR$(3.14159)  ' "3.14159"
+LET complexStr$ = STR$(3+4i)    ' "3+4i"
+LET complexStr$ = STR$(3-4i)    ' "3-4i"
 ```
 
 ---
@@ -4274,13 +4459,17 @@ END UNLESS
 
 **Type:** Function (String)  
 **Syntax:** `VAL string$`  
-**Description:** Converts a string to a number. The result type depends on the string content (integer, real, or complex).  
+**Description:** Converts a string to a number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. The result type depends on the string content. Hexadecimal and binary strings are parsed as integers. Complex numbers use the format `"real+imaginaryi"` or `"real-imaginaryi"`.  
 **Example:**
 ```
 LET text$ = "123"
 LET number% = VAL(text$)    ' 123
 LET decimal$ = "3.14"
 LET value# = VAL(decimal$)  ' 3.14
+LET hexValue% = VAL("&HFF")    ' 255 (hexadecimal)
+LET binValue% = VAL("&B1010")  ' 10 (binary)
+LET complexValue& = VAL("3+4i")    ' 3+4i (complex number)
+LET complexValue& = VAL("3-4i")    ' 3-4i (complex number)
 ```
 
 ---
