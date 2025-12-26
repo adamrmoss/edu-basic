@@ -1,0 +1,14 @@
+- NEVER run shell commands. You are restricted to actions that can be accomplished by driving the Cursor IDE. The user has sole discretion to run commands from CLI.
+- Always answer questions directly first before taking action.
+- NEVER make code changes without explicit user request.
+
+- **Script Execution Strategy**: Avoid running scripts as a first solution. Instead:
+  1. **Plan first**: Understand the problem, read examples, identify patterns
+  2. **Test manually**: Use search_replace on ONE example to verify the approach works
+  3. **Apply systematically**: Use grep to find patterns, then fix them iteratively with search_replace, verifying each fix
+  4. **Only script when necessary**: Use scripts only for complex logic that cannot be done with search_replace, and only after validating the approach manually first
+  5. **Verify work**: Always read the actual file output to confirm changes worked, don't assume scripts succeeded just because they ran
+  6. **Never be overconfident**: Don't claim work is complete without verification
+
+- When user says they already fixed something, acknowledge it and move on. Don't offer to fix it again.
+
