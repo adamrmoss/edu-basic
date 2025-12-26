@@ -38,6 +38,7 @@
   - [LOCATE Statement](#locate-statement)
   - [COLOR Statement](#color-statement)
   - [SET Statement](#set-statement)
+  - [Keyboard Input](#keyboard-input)
   - [String Operations](#string-operations)
     - [String Concatenation](#string-concatenation)
     - [String Slicing](#string-slicing)
@@ -71,6 +72,8 @@
   - [CLS Statement](#cls-statement)
   - [PSET Statement](#pset-statement)
   - [LINE Statement](#line-statement)
+  - [RECTANGLE Statement](#rectangle-statement)
+  - [OVAL Statement](#oval-statement)
   - [CIRCLE Statement](#circle-statement)
   - [TRIANGLE Statement](#triangle-statement)
   - [PAINT Statement](#paint-statement)
@@ -87,7 +90,7 @@
   - [MML Examples](#mml-examples)
   - [Audio Examples](#audio-examples)
 - [Command and Function Reference](#command-and-function-reference)
-  - (Alphabetical listing of 70+ commands, functions, and operators)
+  - (Alphabetical listing of 100+ commands, functions, and operators)
 
 ---
 
@@ -699,6 +702,9 @@ RANDOMIZE seedValue%
 
 Seeds the generator with a specific integer value. Using the same seed value produces the same sequence of random numbers, which is useful for testing and reproducible results.
 
+**System Timer Function:**
+- `TIMER%` - Returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.
+
 **Examples:**
 
 ```
@@ -709,6 +715,10 @@ RANDOMIZE 12345
 LET dice% = INT% (RND# * 6) + 1
 
 LET randomInRange# = RND * 100
+
+' Seed with current time
+RANDOMIZE TIMER%
+LET currentTime% = TIMER%
 ```
 
 ## Control Flow
@@ -1072,7 +1082,7 @@ The `UNTIL` loop is syntactic sugar for `WHILE NOT`, repeating until a condition
 ```
 UNTIL condition
     statements
-WEND
+UEND
 ```
 
 **Examples:**
@@ -1082,7 +1092,7 @@ LET count% = 0
 UNTIL count% >= 10
     PRINT count%
     LET count% += 1
-WEND
+UEND
 ```
 
 ```
@@ -1090,7 +1100,7 @@ LET input$ = ""
 UNTIL input$ = "quit"
     INPUT "Enter command (or 'quit'): ", input$
     PRINT "You entered: "; input$
-WEND
+UEND
 ```
 
 **Note:** `UNTIL condition` is exactly equivalent to `WHILE NOT condition`.
@@ -1631,30 +1641,60 @@ PRINT "Bottom row with spacing"
 
 ### Keyboard Input
 
-EduBASIC provides non-blocking keyboard input through the `INKEY$` function, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
+EduBASIC provides non-blocking keyboard input through the `INKEY$` and `INKEYSCAN$` functions, which allow programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
+
+#### INKEY$ Function
+
+The `INKEY$` function returns the currently pressed key as a string.
 
 **Key Detection:**
 - `INKEY$` returns the currently pressed key as a string
 - Returns empty string (`""`) if no key is pressed
 - Non-blocking: returns immediately whether a key is pressed or not
-- Supports printable characters, special keys, and scan codes
+- Supports printable characters and special keys
 
-**Special Keys:**
-Special keys (arrow keys, function keys, modifier keys, etc.) return named strings like `"ESC"`, `"ENTER"`, `"ARROWUP"`, `"F1"`, etc. See the `INKEY$` function reference for a complete list.
+**Return Values:**
+- **Empty string (`""`):** No key is currently pressed
+- **Printable characters:** Returns the character as a string (e.g., `"a"`, `"A"`, `"1"`, `" "`)
+- **Special keys:** Returns special key names (see table below)
 
-**Scan Codes:**
-When called with a non-zero argument, `INKEY$` returns scan codes in the format `"SC:nnn"` where `nnn` is the decimal scan code. Scan codes are based on TypeScript/JavaScript keyboard event codes and may vary by platform.
+**Special Key Names:**
+
+| Key | Return Value |
+|-----|--------------|
+| Escape | `"ESC"` |
+| Enter/Return | `"ENTER"` |
+| Backspace | `"BACKSPACE"` |
+| Tab | `"TAB"` |
+| Space | `" "` (space character) |
+| Arrow Up | `"ARROWUP"` |
+| Arrow Down | `"ARROWDOWN"` |
+| Arrow Left | `"ARROWLEFT"` |
+| Arrow Right | `"ARROWRIGHT"` |
+| Home | `"HOME"` |
+| End | `"END"` |
+| Page Up | `"PAGEUP"` |
+| Page Down | `"PAGEDOWN"` |
+| Insert | `"INSERT"` |
+| Delete | `"DELETE"` |
+| F1-F12 | `"F1"` through `"F12"` |
+| Shift | `"SHIFT"` |
+| Control | `"CTRL"` |
+| Alt | `"ALT"` |
+| Caps Lock | `"CAPSLOCK"` |
 
 **Examples:**
 ```
 ' Game loop with keyboard input
 DO
     LET key$ = INKEY$
-    IF key$ = "ESC" THEN EXIT DO
-    IF key$ = "ARROWUP" THEN LET y% -= 1
-    IF key$ = "ARROWDOWN" THEN LET y% += 1
-    IF key$ = "ARROWLEFT" THEN LET x% -= 1
-    IF key$ = "ARROWRIGHT" THEN LET x% += 1
+    IF key$ <> "" THEN
+        IF key$ = "ESC" THEN EXIT DO
+        IF key$ = "ARROWUP" THEN LET y% -= 1
+        IF key$ = "ARROWDOWN" THEN LET y% += 1
+        IF key$ = "ARROWLEFT" THEN LET x% -= 1
+        IF key$ = "ARROWRIGHT" THEN LET x% += 1
+    END IF
     ' ... game logic ...
 LOOP
 
@@ -1665,7 +1705,33 @@ IF key$ = "F2" THEN GOSUB SaveGame
 IF key$ = "ENTER" THEN GOSUB SelectOption
 ```
 
-**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY$`.
+#### INKEYSCAN$ Function
+
+The `INKEYSCAN$` function returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, where `nnn` is the decimal scan code.
+
+**Return Values:**
+- **Empty string (`""`):** No key is currently pressed
+- **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
+
+**Use Cases:**
+- Use `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout
+- Use `INKEYSCAN$` when you need the raw scan code for advanced key handling
+- Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout
+
+**Examples:**
+```
+LET scanCode$ = INKEYSCAN$
+IF scanCode$ <> "" THEN
+    IF scanCode$[1 TO 3] = "SC:" THEN
+        LET codeStr$ = scanCode$[4 TO ...]
+        LET code% = VAL# codeStr$
+        PRINT "Scan code: "; code%
+        IF code% = 27 THEN PRINT "ESC key pressed"
+    END IF
+END IF
+```
+
+**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY$` or `INKEYSCAN$`.
 
 ### String Operations
 
@@ -4332,14 +4398,6 @@ POP numbers%[] INTO value%
 POP names$[] INTO name$
 ```
 
----  
-**Description:** Bitwise OR. Output bit is 1 when at least one input bit is 1.  
-**Example:**
-```
-LET result% = 12 OR 10    ' Binary: 1100 OR 1010 = 1110 (14)
-IF (x% = 0) OR (y% = 0) THEN PRINT "Zero found"
-```
-
 ---
 
 ### PAINT
@@ -4961,7 +5019,7 @@ LET upper$ = UCASE$ "hello"    ' "HELLO"
 ### UNLESS
 
 **Type:** Command (Control Flow)  
-**Syntax:** `UNLESS condition THEN statement` or `UNLESS condition THEN ... END UNLESS`  
+**Syntax:** `UNLESS condition THEN statement` or `UNLESS condition THEN ... END UNLESS` or `UNLESS condition THEN ... ELSE ... END UNLESS`  
 **Description:** Syntactic sugar for `IF NOT`. Executes when condition is false.  
 **Example:**
 ```
@@ -4970,6 +5028,50 @@ UNLESS valid% THEN PRINT "Invalid"
 UNLESS password$ = "secret" THEN
     PRINT "Access denied"
 END UNLESS
+
+UNLESS balance# >= price# THEN
+    PRINT "Insufficient funds"
+ELSE
+    LET balance# -= price#
+    PRINT "Purchase complete"
+END UNLESS
+```
+
+---
+
+### UNTIL
+
+**Type:** Command (Control Flow)  
+**Syntax:** `UNTIL condition ... UEND`  
+**Description:** Syntactic sugar for `WHILE NOT`. Repeats a block until a condition becomes true. Condition tested before each iteration.  
+**Example:**
+```
+LET count% = 0
+UNTIL count% >= 10
+    PRINT count%
+    LET count% += 1
+UEND
+
+LET input$ = ""
+UNTIL input$ = "quit"
+    INPUT "Enter command (or 'quit'): ", input$
+    PRINT "You entered: "; input$
+UEND
+```
+
+---
+
+### UEND
+
+**Type:** Command (Control Flow)  
+**Syntax:** `UEND`  
+**Description:** Marks the end of an `UNTIL` loop.  
+**Example:**
+```
+UNTIL count% >= 10
+    PRINT count%
+    LET count% += 1
+UEND
 ```
 
 ---
@@ -5052,7 +5154,7 @@ VOLUME 0      ' Silent
 
 **Type:** Command (Control Flow)  
 **Syntax:** `WEND`  
-**Description:** Marks the end of a `WHILE` or `UNTIL` loop.  
+**Description:** Marks the end of a `WHILE` loop.  
 **Example:**
 ```
 WHILE count% < 10
