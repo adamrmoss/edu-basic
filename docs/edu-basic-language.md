@@ -81,7 +81,9 @@
   - [TEMPO Statement](#tempo-statement)
   - [VOLUME Statement](#volume-statement)
   - [VOICE Statement](#voice-statement)
+  - [ADSR Envelope Configuration](#adsr-envelope-configuration)
   - [PLAY Statement](#play-statement)
+  - [MML Syntax Reference](#mml-syntax-reference)
   - [MML Examples](#mml-examples)
   - [Audio Examples](#audio-examples)
 - [Command and Function Reference](#command-and-function-reference)
@@ -2278,7 +2280,7 @@ LOOP
 
 ## Audio
 
-EduBASIC provides audio capabilities using both Music Macro Language (MML) for note control and GRIT (General Random Iteration Tones) for timbre (sound character). All voices use both systems together.
+EduBASIC provides audio capabilities using both Music Macro Language (MML) for note control and GRIT (Generative Random Iteration Tones) for timbre (sound character). All voices use both systems together, with ADSR envelopes controlling amplitude over time.
 
 **Note Numbers:**
 - Note numbers use MIDI standard: 0-127
@@ -2286,11 +2288,13 @@ EduBASIC provides audio capabilities using both Music Macro Language (MML) for n
 - Lower numbers are lower pitches, higher numbers are higher pitches
 
 **How Audio Works:**
-- **MML** controls frequency (which notes to play) and timing for ALL voices
-- **GRIT** determines the timbre (sound character) for ALL voices
-- Every voice uses both MML (for notes) and GRIT (for timbre)
-- The `VOICE` statement configures the GRIT timbre for each voice
+- **MML** controls frequency (which notes to play), timing, and velocity for ALL voices
+- **GRIT** determines the timbre (sound character) for ALL voices via NoiseCode
+- **ADSR Envelopes** control amplitude over time (Attack, Decay, Sustain, Release)
+- Every voice uses MML (for notes), GRIT (for timbre), and ADSR (for amplitude shaping)
+- The `VOICE` statement configures the GRIT NoiseCode and ADSR envelope for each voice
 - The `PLAY` statement uses MML to specify which notes to play
+- **Voice Initialization:** All 64 voices (0-63) are initialized with GRIT NoiseCode preset 0 and ADSR preset 0 by default, until explicitly configured via the `VOICE` statement
 
 ### TEMPO Statement
 
@@ -2341,35 +2345,114 @@ VOLUME 0      ' Silent
 
 ### VOICE Statement
 
-The `VOICE` statement configures the GRIT timbre (sound character) of a voice. All voices use both MML (for notes) and GRIT (for timbre).
+The `VOICE` statement configures the GRIT timbre (sound character) and ADSR envelope for a voice. All voices use MML (for notes), GRIT (for timbre), and ADSR (for amplitude shaping).
 
 **Syntax:**
 ```
-VOICE voiceNumber% PRESET presetNumber%
+VOICE voiceNumber% PRESET noisePreset%
 VOICE voiceNumber% WITH noiseCode%
+VOICE voiceNumber% PRESET noisePreset% ADSR attack# decay# sustain# release#
+VOICE voiceNumber% WITH noiseCode% ADSR attack# decay# sustain# release#
+VOICE voiceNumber% PRESET noisePreset% ADSR PRESET adsrPreset%
+VOICE voiceNumber% WITH noiseCode% ADSR PRESET adsrPreset%
 ```
 
 **Rules:**
-- `voiceNumber%` is an integer identifying the voice (typically 0-15 or similar range)
-- All voices use GRIT for timbre and MML for notes
-- `PRESET presetNumber%`: Use a preset from the 64-entry GRIT preset table (0-63)
-- `WITH noiseCode%`: Use a custom NoiseCode value (32-bit integer bitfield)
+- `voiceNumber%` is an integer identifying the voice (0-63, for 64 total voices)
+- **Voice Initialization:** All 64 voices are initialized with GRIT NoiseCode preset 0 and ADSR preset 0 by default
+- Voices retain their configuration until explicitly changed by another `VOICE` statement
+- All voices use GRIT for timbre, MML for notes, and ADSR for amplitude shaping
+- **NoiseCode Configuration:**
+  - `PRESET noisePreset%`: Use a preset from the 128-entry GRIT preset table (0-127)
+  - `WITH noiseCode%`: Use a custom NoiseCode value (32-bit unsigned integer bitfield)
+- **ADSR Envelope Configuration:**
+  - `ADSR attack# decay# sustain# release#`: Configure amplitude envelope with custom values
+    - `attack#`: Time to reach full amplitude from zero (typically 0.0-2.0 seconds)
+    - `decay#`: Time to fall from full amplitude to sustain level (typically 0.0-2.0 seconds)
+    - `sustain#`: Level to hold after decay (0.0-1.0, where 1.0 = full amplitude)
+    - `release#`: Time to fall from sustain level to zero (typically 0.0-5.0 seconds)
+  - `ADSR PRESET adsrPreset%`: Use a preset from the 16-entry ADSR preset table (0-15)
+- If ADSR is not specified in a `VOICE` statement, the voice retains its current ADSR configuration (or uses ADSR preset 0 if never set)
 - All voices use MML (via `PLAY`) to control which notes to play and when
-- The `VOICE` statement configures the GRIT timbre only
 - Each voice operates independently
-- Voices must be created before use in `PLAY` statements
+- Voices can be used in `PLAY` statements immediately (they default to preset 0 for both NoiseCode and ADSR)
 
 **Examples:**
 ```
-' Create voice with GRIT preset (e.g., engine sound)
+' All voices start with NoiseCode preset 0 and ADSR preset 0 by default
+' You can use them immediately without configuration:
+PLAY 0, "CDEFGAB C"    ' Voice 0 uses default presets (NoiseCode 0, ADSR 0)
+
+' Create voice with GRIT preset (keeps current ADSR, or uses ADSR preset 0 if never set)
 VOICE 0 PRESET 5
 
-' Create voice with another GRIT preset (e.g., weapon sound)
-VOICE 1 PRESET 10
+' Create voice with GRIT preset and ADSR preset
+VOICE 1 PRESET 48 ADSR PRESET 1    ' Drum sound with percussive envelope
 
-' Create voice with custom GRIT NoiseCode
+' Create voice with custom GRIT NoiseCode and ADSR preset
 LET myNoiseCode% = &H12345678
-VOICE 2 WITH myNoiseCode%
+VOICE 2 WITH myNoiseCode% ADSR PRESET 3    ' Custom timbre with pad envelope
+
+' Create voice with GRIT preset and custom ADSR envelope
+VOICE 3 PRESET 10 ADSR 0.01 0.1 0.0 0.1    ' Fast attack, no sustain (percussive)
+
+' Create voice with custom NoiseCode and custom ADSR envelope
+VOICE 4 WITH &H00000010 ADSR 0.1 0.2 0.8 0.5    ' Slow attack, high sustain (pad)
+
+' Create voice with GRIT preset and ambient ADSR preset
+VOICE 5 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
+```
+
+### ADSR Envelope Configuration
+
+ADSR (Attack, Decay, Sustain, Release) envelopes control how the amplitude of a voice changes over time. This enables percussive sounds (fast attack, no sustain), sustained tones (slow attack, high sustain), and smooth fade-outs (long release).
+
+**Envelope Parameters:**
+- **Attack**: Time in seconds to reach full amplitude from zero. Fast attack (0.01-0.1s) for percussive sounds, slow attack (0.1-1.0s) for pads and ambient sounds.
+- **Decay**: Time in seconds to fall from full amplitude to sustain level. Fast decay (0.05-0.2s) for drums, slower decay (0.2-1.0s) for sustained instruments.
+- **Sustain**: Level to hold after decay (0.0-1.0, where 1.0 = full amplitude). 0.0 for percussive sounds, 0.5-0.9 for sustained tones.
+- **Release**: Time in seconds to fall from sustain level to zero when note ends. Short release (0.1-0.5s) for staccato, long release (1.0-5.0s) for legato and ambient sounds.
+
+**ADSR Presets:**
+
+EduBASIC provides 16 ADSR envelope presets (0-15) optimized for different musical contexts:
+
+| Preset | Name      | Attack | Decay | Sustain | Release | Use Case                    |
+|--------|-----------|--------|-------|---------|---------|-----------------------------|
+| 0      | Default   | 0.01   | 0.1   | 0.7     | 0.2     | General purpose, sustained  |
+| 1      | Percussive| 0.01   | 0.1   | 0.0     | 0.1     | Drums, kicks, percussive    |
+| 2      | Pluck     | 0.01   | 0.2   | 0.5     | 0.5     | Plucked strings, guitar     |
+| 3      | Pad       | 0.3    | 0.5   | 0.8     | 1.5     | Pads, strings, sustained    |
+| 4      | Ambient   | 1.0    | 0.5   | 0.6     | 4.0     | Ambient textures, long fade  |
+| 5      | Staccato  | 0.01   | 0.05  | 0.0     | 0.1     | Short, sharp notes           |
+| 6      | Legato    | 0.1    | 0.2   | 0.9     | 2.0     | Smooth, connected notes      |
+| 7      | Bell      | 0.01   | 0.3   | 0.3     | 1.0     | Bells, chimes, metallic      |
+| 8      | Brass     | 0.05   | 0.2   | 0.6     | 0.3     | Brass instruments            |
+| 9      | String    | 0.2    | 0.4   | 0.7     | 1.0     | String instruments           |
+| 10     | Organ     | 0.01   | 0.1   | 1.0     | 0.1     | Organ, sustained tones       |
+| 11     | Piano     | 0.01   | 0.15  | 0.3     | 0.5     | Piano, keyboard              |
+| 12     | Synth Lead| 0.01   | 0.1   | 0.8     | 0.3     | Synth leads, bright          |
+| 13     | Bass      | 0.01   | 0.2   | 0.4     | 0.3     | Bass instruments             |
+| 14     | Snare     | 0.001  | 0.05  | 0.0     | 0.2     | Snare drums, sharp attack    |
+| 15     | Hi-Hat    | 0.001  | 0.01  | 0.0     | 0.05    | Hi-hats, very short          |
+
+**Default Envelope:**
+If ADSR is not specified in the `VOICE` statement, ADSR preset 0 (Default) is used.
+
+**Examples:**
+```
+' Use ADSR preset with GRIT preset
+VOICE 0 PRESET 48 ADSR PRESET 1    ' Drum with percussive envelope
+
+' Use ADSR preset with custom NoiseCode
+LET myNoise% = &H12345678
+VOICE 1 WITH myNoise% ADSR PRESET 3    ' Custom timbre with pad envelope
+
+' Use custom ADSR values
+VOICE 2 PRESET 32 ADSR 0.3 0.5 0.8 1.5    ' Pad sound with custom envelope
+
+' Combine GRIT preset with ambient ADSR preset
+VOICE 3 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
 ```
 
 ### PLAY Statement
@@ -2384,40 +2467,70 @@ PLAY voiceNumber%, mmlString$
 **Rules:**
 - `voiceNumber%` must be a voice created with `VOICE` statement
 - `mmlString$` contains the Music Macro Language sequence
-- MML controls the frequency (notes) and timing for ALL voices
-- The voice's timbre (configured by `VOICE`) determines what the notes sound like
+- MML controls the frequency (notes), timing, and velocity for ALL voices
+- The voice's timbre (configured by `VOICE` NoiseCode) determines what the notes sound like
+- The voice's ADSR envelope (configured by `VOICE` ADSR) controls amplitude shaping
 - Each `PLAY` statement plays on the specified voice
 - Multiple voices can play simultaneously
+- Velocity in MML (`V` command) is relative to the global `VOLUME` setting
 
-**MML Syntax:**
-- **Notes:** `C`, `D`, `E`, `F`, `G`, `A`, `B` (or `c`, `d`, `e`, `f`, `g`, `a`, `b`)
-- **Sharps/Flats:** `#` (sharp), `b` (flat) - note: lowercase `b` is both B note and flat
-- **Octaves:** `O` followed by number (0-9, default is usually 4)
-- **Note Length:** `L` followed by number (1=whole note, 2=half, 4=quarter, 8=eighth, etc.)
-- **Dotted Notes:** `.` after note length (adds half the duration)
-- **Rests:** `R` followed by length
-- **Ties:** `&` connects notes
-- **Velocity:** `V` followed by number (0-127, default 64)
-- **Note Numbers:** `N` followed by MIDI note number (0-127)
+### MML Syntax Reference
+
+Music Macro Language (MML) controls frequency (notes), timing, and velocity for all voices. MML is used within `PLAY` statements to specify musical sequences.
+
+**Notes:**
+- **Note Names:** `C`, `D`, `E`, `F`, `G`, `A`, `B` (or lowercase `c`, `d`, `e`, `f`, `g`, `a`, `b`)
+- **Sharps:** `#` after note name (e.g., `C#` = C sharp)
+- **Flats:** `b` after note name (e.g., `Bb` = B flat) - note: lowercase `b` is both the B note and the flat symbol
+- **Note Numbers:** `N` followed by MIDI note number (0-127), where 60 = Middle C (C4)
+
+**Octaves:**
+- `O` followed by number (0-9) sets the octave for subsequent notes
+- Default octave is typically 4 (middle octave)
+- Higher numbers = higher octaves
+
+**Note Length:**
+- `L` followed by number sets the default note length
+  - `L1` = whole note
+  - `L2` = half note
+  - `L4` = quarter note (common default)
+  - `L8` = eighth note
+  - `L16` = sixteenth note
+  - `L32` = thirty-second note
+- Individual notes can override length: `C4` = C note with length 4
+- **Dotted Notes:** `.` after note adds half the duration (e.g., `C4.` = dotted quarter note)
+
+**Rests:**
+- `R` followed by length creates a rest (silence)
+- Example: `R4` = quarter note rest
+
+**Ties:**
+- `&` connects notes together (e.g., `C4&F4` plays C then F without gap)
+
+**Velocity:**
+- `V` followed by number (0-127) sets the velocity (loudness) for subsequent notes
+- Default velocity is typically 64 (50%)
+- Velocity is relative to the global `VOLUME` setting
+- Example: `V100 C4 D4 V64 E4` plays C and D at velocity 100, then E at velocity 64
 
 **Examples:**
 ```
-' Set up voices with GRIT timbres
-VOICE 0 PRESET 5    ' Engine sound timbre
-VOICE 1 PRESET 10   ' Weapon sound timbre
+' Set up voices with GRIT timbres and ADSR envelopes
+VOICE 0 PRESET 5 ADSR PRESET 0    ' Engine sound timbre with default ADSR
+VOICE 1 PRESET 10 ADSR PRESET 1   ' Weapon sound timbre with percussive ADSR
 
 TEMPO 120
 
-' Play melody - MML controls notes, GRIT preset 5 controls timbre
+' Play melody - MML controls notes, GRIT preset 5 controls timbre, ADSR controls amplitude
 PLAY 0, "CDEFGAB C"
 
-' Play with velocity
+' Play with velocity (V command)
 PLAY 0, "V100 CDEF V64 GAB"
 
 ' Play with note numbers (MIDI)
 PLAY 0, "N60 N62 N64 N65 N67"
 
-' Play on different voice - same MML, different GRIT timbre
+' Play on different voice - same MML, different GRIT timbre and ADSR
 PLAY 1, "N60 L4"    ' Play note 60 (middle C) for quarter note duration
 ```
 
@@ -2425,21 +2538,22 @@ PLAY 1, "N60 L4"    ' Play note 60 (middle C) for quarter note duration
 
 **Simple Scale:**
 ```
-VOICE 0 PRESET 0    ' Use preset 0 for timbre
+VOICE 0 PRESET 0    ' Use GRIT preset 0 with default ADSR
 TEMPO 120
 PLAY 0, "CDEFGAB C"    ' MML controls notes
 ```
 
 **Song with Velocity:**
 ```
-VOICE 0 PRESET 0
+VOICE 0 PRESET 0 ADSR PRESET 0    ' Use ADSR preset 0 (default)
 TEMPO 100
+' V command sets velocity (0-127), relative to global VOLUME
 PLAY 0, "V80 C L4 D L4 E L2 V100 F L4 G L4 A L2"
 ```
 
 **Using Note Numbers:**
 ```
-VOICE 0 PRESET 0
+VOICE 0 PRESET 0 ADSR PRESET 0
 TEMPO 120
 ' Play C major chord (C=60, E=64, G=67)
 PLAY 0, "N60 N64 N67 L2"
@@ -2447,8 +2561,8 @@ PLAY 0, "N60 N64 N67 L2"
 
 **Multiple Voices:**
 ```
-VOICE 0 PRESET 0    ' Timbre for voice 0
-VOICE 1 PRESET 5    ' Different timbre for voice 1
+VOICE 0 PRESET 0 ADSR PRESET 0    ' Timbre for voice 0
+VOICE 1 PRESET 5 ADSR PRESET 0    ' Different timbre for voice 1
 TEMPO 120
 
 ' Melody on voice 0
@@ -2460,7 +2574,7 @@ PLAY 1, "CEG CEG"
 
 **GRIT Noise Example:**
 ```
-VOICE 0 PRESET 5    ' Engine sound preset
+VOICE 0 PRESET 5 ADSR PRESET 0    ' Engine sound preset
 TEMPO 120
 
 ' Play noise at different pitches
@@ -2471,47 +2585,92 @@ PLAY 0, "N60 L4 N65 L4 N67 L4"    ' Rising pitch pattern
 
 **Example: Simple Melody:**
 ```
-VOICE 0 PRESET 0    ' Use preset 0 for timbre
+VOICE 0 PRESET 0    ' Use GRIT preset 0 with default ADSR
 TEMPO 120
 PLAY 0, "C D E F G A B C"    ' MML controls notes
 ```
 
-**Example: Song with Dynamics:**
+**Example: Song with Dynamics (Velocity):**
 ```
-VOICE 0 PRESET 0
+VOICE 0 PRESET 0 ADSR PRESET 0
 TEMPO 100
 
-' Play with varying velocity
+' V command sets velocity (0-127), relative to global VOLUME
+' Velocity affects loudness of individual notes
 PLAY 0, "V64 C L4 V80 D L4 V96 E L4 V112 F L2"
 ```
 
-**Example: Different GRIT Timbres:**
+**Example: Different GRIT Timbres with ADSR Presets:**
 ```
-' Create voices with different GRIT timbres
-VOICE 0 PRESET 10    ' Weapon sound timbre
-VOICE 1 PRESET 15    ' Engine sound timbre
-VOICE 2 PRESET 20    ' Ambience timbre
+' Create voices with different GRIT timbres and ADSR preset envelopes
+VOICE 0 PRESET 10 ADSR PRESET 1    ' Weapon sound (percussive ADSR)
+VOICE 1 PRESET 15 ADSR PRESET 0    ' Engine sound (default ADSR)
+VOICE 2 PRESET 20 ADSR PRESET 4    ' Ambience (ambient ADSR)
 
 TEMPO 120
 
-' Play notes with weapon sound timbre
+' Play notes with weapon sound timbre (fast attack, no sustain)
 PLAY 0, "N80 L8"
 
-' Play notes with engine sound timbre
+' Play notes with engine sound timbre (sustained)
 PLAY 1, "N40 L1"    ' Low rumble
 
-' Play notes with ambience timbre
+' Play notes with ambience timbre (slow fade-in, long fade-out)
 PLAY 2, "N50 L1"    ' Background texture
 ```
 
-**Example: Custom GRIT Voice:**
+**Example: Custom GRIT Voice with ADSR Preset:**
 ```
-' Create custom GRIT voice with NoiseCode
+' Create custom GRIT voice with NoiseCode and ADSR preset
 LET customNoise% = &HABCD1234
-VOICE 0 WITH customNoise%
+VOICE 0 WITH customNoise% ADSR PRESET 3    ' Custom timbre with pad ADSR preset
 
 TEMPO 120
 PLAY 0, "N60 L4 N65 L4 N67 L4"
+```
+
+**Example: Drum Pattern with Percussive ADSR Preset:**
+```
+' Drum sound: use ADSR preset 1 (percussive)
+VOICE 0 PRESET 48 ADSR PRESET 1
+TEMPO 120
+
+' Play kick drum pattern
+PLAY 0, "N36 L4 R4 N36 L4 R4 N36 L8 N36 L8 R4"
+```
+
+**Example: Pad Sound with Pad ADSR Preset:**
+```
+' Pad sound: use ADSR preset 3 (pad)
+VOICE 1 PRESET 32 ADSR PRESET 3
+TEMPO 100
+
+' Play sustained chord
+PLAY 1, "N60 N64 N67 L1"    ' C major chord, whole note
+```
+
+**Example: Combining GRIT and ADSR Presets:**
+```
+' Use different combinations of presets
+VOICE 0 PRESET 48 ADSR PRESET 1    ' Drum timbre with percussive envelope
+VOICE 1 PRESET 32 ADSR PRESET 3    ' Lead timbre with pad envelope
+VOICE 2 PRESET 112 ADSR PRESET 4   ' Ambient timbre with ambient envelope
+
+TEMPO 120
+PLAY 0, "N36 L4"    ' Kick drum
+PLAY 1, "N60 L2"    ' Sustained pad
+PLAY 2, "N50 L1"    ' Ambient texture
+```
+
+**Example: Custom ADSR Values:**
+```
+' Use custom ADSR values when presets don't fit
+VOICE 0 PRESET 5 ADSR 0.005 0.08 0.0 0.08    ' Very fast, custom percussive
+VOICE 1 PRESET 32 ADSR 0.4 0.6 0.85 2.0     ' Very slow, custom pad
+
+TEMPO 120
+PLAY 0, "N60 L4"
+PLAY 1, "N64 L2"
 ```
 
 ## Command and Function Reference
@@ -3235,6 +3394,22 @@ IF (x% = 0) OR (y% = 0) THEN PRINT "Zero found"
 
 ---
 
+### PLAY
+
+**Type:** Command (Audio)  
+**Syntax:** `PLAY voiceNumber%, mmlString$`  
+**Description:** Plays music or sound on a specific voice using Music Macro Language (MML). `voiceNumber%` must be a voice created with `VOICE` statement. `mmlString$` contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the GRIT NoiseCode configured in `VOICE`, and amplitude shaping is controlled by the ADSR envelope. Multiple voices can play simultaneously. Velocity in MML (`V` command) is relative to the global `VOLUME` setting.  
+**Example:**
+```
+VOICE 0 PRESET 5 ADSR 0.01 0.1 0.7 0.2
+TEMPO 120
+PLAY 0, "CDEFGAB C"    ' Play scale
+PLAY 0, "V100 C L4 V64 D L4"    ' Play with velocity
+PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers
+```
+
+---
+
 ### RAD
 
 **Type:** Operator (Unit Conversion)  
@@ -3506,6 +3681,20 @@ PRINT TRUNC -3.9     ' Prints: -3
 
 ---
 
+### TEMPO
+
+**Type:** Command (Audio)  
+**Syntax:** `TEMPO beatsPerMinute%`  
+**Description:** Sets the playback tempo for MML music in beats per minute (BPM). Affects all subsequent `PLAY` statements using MML. Default tempo is typically 120 BPM.  
+**Example:**
+```
+TEMPO 120    ' Set to 120 BPM (moderate tempo)
+TEMPO 60     ' Set to 60 BPM (slow)
+TEMPO 180    ' Set to 180 BPM (fast)
+```
+
+---
+
 ### UNLESS
 
 **Type:** Command (Control Flow)  
@@ -3518,6 +3707,48 @@ UNLESS valid% THEN PRINT "Invalid"
 UNLESS password$ = "secret" THEN
     PRINT "Access denied"
 END UNLESS
+```
+
+---
+
+### VOICE
+
+**Type:** Command (Audio)  
+**Syntax:** 
+```
+VOICE voiceNumber% PRESET noisePreset%
+VOICE voiceNumber% WITH noiseCode%
+VOICE voiceNumber% PRESET noisePreset% ADSR attack# decay# sustain# release#
+VOICE voiceNumber% WITH noiseCode% ADSR attack# decay# sustain# release#
+VOICE voiceNumber% PRESET noisePreset% ADSR PRESET adsrPreset%
+VOICE voiceNumber% WITH noiseCode% ADSR PRESET adsrPreset%
+```
+**Description:** Configures the GRIT timbre (sound character) and ADSR envelope for a voice. All voices use MML (for notes), GRIT (for timbre), and ADSR (for amplitude shaping). `voiceNumber%` identifies the voice (0-63, for 64 total voices). **Initialization:** All 64 voices are initialized with GRIT NoiseCode preset 0 and ADSR preset 0 by default, and can be used immediately in `PLAY` statements. **NoiseCode:** `PRESET noisePreset%` uses a preset from the 128-entry GRIT preset table (0-127). `WITH noiseCode%` uses a custom NoiseCode value (32-bit unsigned integer). **ADSR:** `ADSR attack# decay# sustain# release#` configures the amplitude envelope with custom values (attack and decay in seconds, sustain 0.0-1.0, release in seconds). `ADSR PRESET adsrPreset%` uses a preset from the 16-entry ADSR preset table (0-15). If ADSR is not specified, the voice retains its current ADSR configuration (or uses ADSR preset 0 if never set). Voices retain their configuration until explicitly changed by another `VOICE` statement.  
+**Example:**
+```
+' Voices can be used immediately with defaults (NoiseCode preset 0, ADSR preset 0)
+PLAY 0, "CDEFGAB C"
+
+VOICE 0 PRESET 5    ' GRIT preset with default ADSR (preset 0)
+VOICE 1 PRESET 48 ADSR PRESET 1    ' Drum sound with percussive ADSR preset
+LET myNoise% = &H12345678
+VOICE 2 WITH myNoise% ADSR PRESET 3    ' Custom NoiseCode with pad ADSR preset
+VOICE 3 PRESET 10 ADSR 0.01 0.1 0.0 0.1    ' GRIT preset with custom ADSR
+```
+
+---
+
+### VOLUME
+
+**Type:** Command (Audio)  
+**Syntax:** `VOLUME volumeLevel%`  
+**Description:** Sets the global volume for all audio output. Volume level is 0-127, where 0 = silent and 127 = maximum volume. Default volume is typically 64 (50%). Affects all voices regardless of their configuration. Individual voice velocity (V in MML) is relative to the global volume.  
+**Example:**
+```
+VOLUME 127    ' Maximum volume
+VOLUME 64     ' Half volume (default)
+VOLUME 32     ' Quarter volume
+VOLUME 0      ' Silent
 ```
 
 ---
