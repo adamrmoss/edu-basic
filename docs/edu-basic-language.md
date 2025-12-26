@@ -2028,27 +2028,6 @@ EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, a
 
 **Note:** The text display system overlays the graphics display, allowing you to combine text and graphics in the same program.
 
-### CLS Statement
-
-The `CLS` statement clears the graphics screen.
-
-**Syntax:**
-```
-CLS
-CLS WITH backgroundColor%
-```
-
-**Rules:**
-- Without a color, clears to black (0x000000FF)
-- With a color, clears to the specified background color
-- Does not affect the text display
-
-**Examples:**
-```
-CLS    ' Clear to black
-
-CLS WITH &H000033FF    ' Clear to dark blue
-```
 
 ### PSET Statement
 
@@ -2742,6 +2721,19 @@ LET result# = ASINH 1.0
 
 ---
 
+### ASC
+
+**Type:** Function (String)  
+**Syntax:** `ASC string$`  
+**Description:** Returns the ASCII code of the first character in the string.  
+**Example:**
+```
+LET code% = ASC("A")        ' 65
+LET code% = ASC("a")        ' 97
+```
+
+---
+
 ### ATAN
 
 **Type:** Function (Trigonometric)  
@@ -2840,6 +2832,33 @@ PRINT result#    ' Prints: 3.0
 
 ---
 
+### CHR$
+
+**Type:** Function (String)  
+**Syntax:** `CHR$ code%`  
+**Description:** Returns the character corresponding to the ASCII code.  
+**Example:**
+```
+LET char$ = CHR$(65)        ' "A"
+LET newline$ = CHR$(10)     ' Newline character
+```
+
+---
+
+### CIRCLE
+
+**Type:** Command (Graphics)  
+**Syntax:** `CIRCLE AT (x%, y%) RADIUS radius# WITH color%` or `CIRCLE AT (x%, y%) RADIUS radius# WITH color% FILLED` or `CIRCLE AT (x%, y%) RADIUS radius# WITH color% ASPECT aspectRatio#`  
+**Description:** Draws a circle or ellipse at the specified center point. With `FILLED`, draws a filled circle. With `ASPECT`, draws an ellipse with the specified aspect ratio (width/height). Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF    ' Yellow circle
+CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
+CIRCLE AT (200, 200) RADIUS 40 WITH &HFF00FFFF ASPECT 2.0    ' Ellipse
+```
+
+---
+
 ### CEIL
 
 **Type:** Function (Rounding)  
@@ -2893,6 +2912,75 @@ PRINT result#    ' Prints: 1.0
 
 ---
 
+### CLS
+
+**Type:** Command (Graphics)  
+**Syntax:** `CLS` or `CLS WITH backgroundColor%`  
+**Description:** Clears the graphics screen. Without a color, clears to black (0x000000FF). With a color, clears to the specified background color. Does not affect the text display.  
+**Example:**
+```
+CLS    ' Clear to black
+CLS WITH &H000033FF    ' Clear to dark blue
+```
+
+---
+
+### CLOSE
+
+**Type:** Command (File I/O)  
+**Syntax:** `CLOSE fileHandle%`  
+**Description:** Closes an open file.  
+**Example:**
+```
+OPEN "data.txt" FOR READ AS file%
+' ... read operations ...
+CLOSE file%
+```
+
+---
+
+### COLOR
+
+**Type:** Command (Text/Graphics)  
+**Syntax:** `COLOR foregroundColor%` or `COLOR foregroundColor%, backgroundColor%`  
+**Description:** Sets the foreground and/or background color for both text and graphics operations. Colors are specified as 32-bit RGBA integers (0xRRGGBBAA format). For text, both foreground and background can be set. For graphics, only the foreground color is used (background parameter is ignored).  
+**Example:**
+```
+COLOR &HFF0000FF        ' Red text
+PRINT "This is red text"
+COLOR &HFFFFFF00, &H000000FF  ' Transparent text on black background
+COLOR &H00FF00FF    ' Set to green for graphics
+LINE FROM (0, 0) TO (100, 100) WITH &H00FF00FF
+```
+
+---
+
+### COPY
+
+**Type:** Command (File I/O)  
+**Syntax:** `COPY "source" TO "destination"`  
+**Description:** Copies a file from source to destination.  
+**Example:**
+```
+COPY "data.txt" TO "backup.txt"
+COPY "/source/file.bin" TO "/dest/file.bin"
+```
+
+---
+
+### COSH
+
+**Type:** Function (Hyperbolic)  
+**Syntax:** `COSH x#`  
+**Description:** Returns the hyperbolic cosine of `x`.  
+**Example:**
+```
+LET result# = COSH 0
+PRINT result#    ' Prints: 1.0
+```
+
+---
+
 ### CSQRT
 
 **Type:** Function (Complex)  
@@ -2916,6 +3004,19 @@ PRINT root&    ' Prints: 0+1i
 ```
 LET degrees# = (3.14159 / 2) DEG
 PRINT degrees#    ' Prints: 90.0
+```
+
+---
+
+### DELETE
+
+**Type:** Command (File I/O)  
+**Syntax:** `DELETE "filename"`  
+**Description:** Deletes a file.  
+**Example:**
+```
+DELETE "temp.txt"
+DELETE "/Users/name/old_data.bin"
 ```
 
 ---
@@ -3059,6 +3160,23 @@ END UNLESS
 
 ---
 
+### EOF
+
+**Type:** Function (File I/O)  
+**Syntax:** `EOF fileHandle%`  
+**Description:** Checks if the file pointer is at the end of the file. Returns integer: 0 = false, -1 = true.  
+**Example:**
+```
+OPEN "data.txt" FOR READ AS file%
+WHILE NOT EOF file%
+    LINE INPUT line$ FROM #file%
+    PRINT line$
+WEND
+CLOSE file%
+```
+
+---
+
 ### EXIT
 
 **Type:** Command (Control Flow)  
@@ -3130,6 +3248,19 @@ NEXT i%
 FOR x# = 10 TO 0 STEP -0.5
     PRINT x#
 NEXT x#
+```
+
+---
+
+### GET
+
+**Type:** Command (Graphics)  
+**Syntax:** `GET spriteArray%[] FROM (x1%, y1%) TO (x2%, y2%)`  
+**Description:** Captures a rectangular region of the screen into an integer array (sprite). Array format: `[width, height, pixel1, pixel2, ...]` where first integer is width, second is height, and remaining integers are pixel colors (32-bit RGBA, row by row). Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+DIM sprite%[32 * 32 + 2]
+GET sprite%[] FROM (100, 100) TO (131, 131)
 ```
 
 ---
@@ -3210,6 +3341,63 @@ LET result% = 5 IMP 3    ' Binary implication
 
 ---
 
+### INKEY$
+
+**Type:** Function (Input)  
+**Syntax:** `INKEY$`  
+**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input.  
+**Example:**
+```
+DO
+    LET key$ = INKEY$
+    IF key$ = CHR$(27) THEN EXIT DO    ' ESC key
+LOOP
+```
+
+---
+
+### INPUT
+
+**Type:** Command (Text I/O)  
+**Syntax:** `INPUT variable`  
+**Description:** Reads a value from the user and assigns it to a variable. The variable's type sigil determines what type of value is expected. The prompt is displayed separately using `PRINT` before the `INPUT` statement.  
+**Example:**
+```
+PRINT "Enter your age: ";
+INPUT age%
+PRINT "Enter your name: ";
+INPUT name$
+```
+
+---
+
+### INSTR
+
+**Type:** Function (String)  
+**Syntax:** `INSTR string$, substring$` or `INSTR start%, string$, substring$`  
+**Description:** Returns the position of the first occurrence of `substring$` in `string$`. If `start%` is provided, search begins at that position. Returns 0 if not found.  
+**Example:**
+```
+LET pos% = INSTR("Hello world", "world")    ' 7
+LET pos% = INSTR(5, "Hello world", "o")    ' 5 (start search at position 5)
+```
+
+---
+
+### INT
+
+**Type:** Function (Math)  
+**Syntax:** `INT x#`  
+**Description:** Converts a real number to an integer by truncating the decimal part (rounds toward zero).  
+**Example:**
+```
+LET dice% = INT(RND * 6) + 1    ' Random integer 1-6
+PRINT INT(3.9)    ' Prints: 3
+PRINT INT(-3.9)   ' Prints: -3
+```
+
+---
+
 ### LABEL
 
 **Type:** Command (Control Flow)  
@@ -3222,6 +3410,107 @@ PRINT "Starting..."
 
 LABEL MainLoop
 PRINT "Looping..."
+```
+
+---
+
+### LCASE$
+
+**Type:** Function (String)  
+**Syntax:** `LCASE$ string$`  
+**Description:** Returns a copy of the string converted to lowercase.  
+**Example:**
+```
+LET lower$ = LCASE$("WORLD")    ' "world"
+```
+
+---
+
+### LEN
+
+**Type:** Function (String)  
+**Syntax:** `LEN string$` or `LEN array[]`  
+**Description:** Returns the length of a string (number of characters) or the size of an array.  
+**Example:**
+```
+LET text$ = "Hello"
+LET size% = LEN(text$)    ' size% = 5
+LET arraySize% = LEN(files$[])    ' Size of array
+```
+
+---
+
+### LINE
+
+**Type:** Command (Graphics)  
+**Syntax:** `LINE FROM (x1%, y1%) TO (x2%, y2%) WITH color%` or `LINE FROM (x1%, y1%) TO (x2%, y2%) WITH color% FILLED`  
+**Description:** Draws a line between two points. With `FILLED`, draws a filled rectangle. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+LINE FROM (10, 10) TO (100, 50) WITH &H00FF00FF    ' Green line
+LINE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled rectangle
+```
+
+---
+
+### LINE INPUT
+
+**Type:** Command (File I/O)  
+**Syntax:** `LINE INPUT lineVariable$ FROM #fileHandle%`  
+**Description:** Reads a complete line of text from a file, including the newline character. At end of file, an error occurs (check with `EOF` first).  
+**Example:**
+```
+OPEN "data.txt" FOR READ AS file%
+WHILE NOT EOF file%
+    LINE INPUT line$ FROM #file%
+    PRINT line$
+WEND
+CLOSE file%
+```
+
+---
+
+### LISTDIR
+
+**Type:** Command (File I/O)  
+**Syntax:** `LISTDIR "path" INTO filesArray$[]`  
+**Description:** Lists files in a directory and stores filenames in an array. Array is 1-based and includes files and subdirectories.  
+**Example:**
+```
+LISTDIR "." INTO files$[]
+FOR i% = 1 TO LEN(files$[])
+    PRINT files$[i%]
+NEXT i%
+```
+
+---
+
+### LOC
+
+**Type:** Function (File I/O)  
+**Syntax:** `LOC fileHandle%`  
+**Description:** Returns the current byte position in the file (0-based).  
+**Example:**
+```
+OPEN "data.bin" FOR READ AS file%
+LET startPos% = LOC file%
+READ value% FROM file%
+LET endPos% = LOC file%
+LET bytesRead% = endPos% - startPos%
+CLOSE file%
+```
+
+---
+
+### LOCATE
+
+**Type:** Command (Text I/O)  
+**Syntax:** `LOCATE row%, column%`  
+**Description:** Positions the text cursor at a specific row and column in the text display. Row and column are 1-based (row 1, column 1 is the top-left corner).  
+**Example:**
+```
+LOCATE 10, 20
+PRINT "This text appears at row 10, column 20"
 ```
 
 ---
@@ -3252,6 +3541,18 @@ SUB Calculate ()
     LOCAL temp% = 10    ' Local to this SUB
     LOCAL result# = 0   ' Local to this SUB
 END SUB
+```
+
+---
+
+### LTRIM$
+
+**Type:** Function (String)  
+**Syntax:** `LTRIM$ string$`  
+**Description:** Returns a copy of the string with leading spaces removed.  
+**Example:**
+```
+LET trimmed$ = LTRIM$("  text")    ' "text"
 ```
 
 ---
@@ -3313,6 +3614,19 @@ LOOP UNTIL val% = 0
 
 ---
 
+### MKDIR
+
+**Type:** Command (File I/O)  
+**Syntax:** `MKDIR "path"`  
+**Description:** Creates a directory.  
+**Example:**
+```
+MKDIR "backups"
+MKDIR "/Users/name/data"
+```
+
+---
+
 ### MOD
 
 **Type:** Operator (Arithmetic)  
@@ -3322,6 +3636,19 @@ LOOP UNTIL val% = 0
 ```
 LET remainder% = 17 MOD 5
 PRINT remainder%    ' Prints: 2
+```
+
+---
+
+### MOVE
+
+**Type:** Command (File I/O)  
+**Syntax:** `MOVE "source" TO "destination"`  
+**Description:** Moves or renames a file.  
+**Example:**
+```
+MOVE "oldname.txt" TO "newname.txt"
+MOVE "/temp/file.txt" TO "/final/file.txt"
 ```
 
 ---
@@ -3381,6 +3708,20 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 
 ---
 
+### OPEN
+
+**Type:** Command (File I/O)  
+**Syntax:** `OPEN "filename" FOR mode AS fileHandle%`  
+**Description:** Opens a file and assigns a handle to a variable. Modes: `READ` (reading only), `APPEND` (writing, appending to end), `OVERWRITE` (writing, replacing existing content). Attempting to open a non-existent file in `READ` mode causes an error. Opening a non-existent file in `APPEND` or `OVERWRITE` mode creates the file.  
+**Example:**
+```
+OPEN "data.txt" FOR READ AS inputFile%
+OPEN "output.txt" FOR OVERWRITE AS outputFile%
+OPEN "log.txt" FOR APPEND AS logFile%
+```
+
+---
+
 ### OR
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -3390,6 +3731,19 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 ```
 LET result% = 12 OR 10    ' Binary: 1100 OR 1010 = 1110 (14)
 IF (x% = 0) OR (y% = 0) THEN PRINT "Zero found"
+```
+
+---
+
+### PAINT
+
+**Type:** Command (Graphics)  
+**Syntax:** `PAINT (x%, y%) WITH color%` or `PAINT (x%, y%) WITH color% BORDER borderColor%`  
+**Description:** Fills a bounded area with a color starting at point (x%, y%). With `BORDER`, fills until it reaches pixels of the specified border color. Without `BORDER`, fills until it reaches pixels of a different color than the starting point. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+PAINT (100, 100) WITH &HFF0000FF    ' Fill area with red
+PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF    ' Fill bounded by blue pixels
 ```
 
 ---
@@ -3406,6 +3760,49 @@ TEMPO 120
 PLAY 0, "CDEFGAB C"    ' Play scale
 PLAY 0, "V100 C L4 V64 D L4"    ' Play with velocity
 PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers
+```
+
+---
+
+### PRINT
+
+**Type:** Command (Text I/O)  
+**Syntax:** `PRINT expression1, expression2, ...` or `PRINT expression1; expression2; ...` or `PRINT`  
+**Description:** Outputs text and values to the text display. Comma (`,`) separates items with tab spacing. Semicolon (`;`) separates items with no spacing (concatenated). Ending with semicolon suppresses the newline. Empty `PRINT` outputs a blank line.  
+**Example:**
+```
+PRINT "Hello, world!"
+PRINT "Name: "; name$; " Age: "; age%
+PRINT "X:", x%, "Y:", y%
+PRINT    ' Blank line
+```
+
+---
+
+### PSET
+
+**Type:** Command (Graphics)  
+**Syntax:** `PSET (x%, y%) WITH color%`  
+**Description:** Sets a single pixel to a specified color. Coordinates use bottom-left origin (0,0). X ranges from 0 to 639, Y ranges from 0 to 479. Color is a 32-bit RGBA integer.  
+**Example:**
+```
+PSET (100, 200) WITH &HFF0000FF    ' Red pixel
+FOR i% = 0 TO 639
+    PSET (i%, 240) WITH &HFFFFFFFF    ' White horizontal line
+NEXT i%
+```
+
+---
+
+### PUT
+
+**Type:** Command (Graphics)  
+**Syntax:** `PUT spriteArray%[] AT (x%, y%)`  
+**Description:** Draws a sprite (from a `GET` array) onto the screen. The sprite's bottom-left corner is positioned at (x%, y%). Pixels are alpha-blended automatically using the alpha channel from the sprite data. Transparent pixels (alpha = 0) are not drawn. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+PUT sprite%[] AT (200, 150)    ' Draw sprite with automatic alpha blending
+PUT player%[] AT (x%, y%)    ' Animate sprite
 ```
 
 ---
@@ -3436,6 +3833,38 @@ RANDOMIZE 12345        ' Seed with specific value
 
 ---
 
+### READ
+
+**Type:** Command (File I/O)  
+**Syntax:** `READ variable FROM fileHandle%`  
+**Description:** Reads binary data from a file based on the variable's type. Integer: reads 4 bytes (32-bit signed integer). Real: reads 8 bytes (64-bit floating-point). Complex: reads 16 bytes (128-bit complex number). String: reads the string's length prefix and data. Reading advances the file position. At end of file, an error occurs (check with `EOF` first).  
+**Example:**
+```
+OPEN "data.bin" FOR READ AS file%
+READ count% FROM file%
+DIM numbers%[count%]
+FOR i% = 1 TO count%
+    READ numbers%[i%] FROM file%
+NEXT i%
+CLOSE file%
+```
+
+---
+
+### READFILE
+
+**Type:** Command (File I/O)  
+**Syntax:** `READFILE "filename" INTO contentVariable$`  
+**Description:** Reads an entire file into a string variable.  
+**Example:**
+```
+READFILE "config.txt" INTO config$
+PRINT config$
+READFILE "data.json" INTO jsonData$
+```
+
+---
+
 ### REAL
 
 **Type:** Function (Complex)  
@@ -3446,6 +3875,18 @@ RANDOMIZE 12345        ' Seed with specific value
 LET z& = 3+4i
 LET realPart# = REAL z&
 PRINT realPart#    ' Prints: 3.0
+```
+
+---
+
+### REPLACE$
+
+**Type:** Function (String)  
+**Syntax:** `REPLACE$ string$, oldSubstring$, newSubstring$`  
+**Description:** Returns a copy of the string with all occurrences of `oldSubstring$` replaced with `newSubstring$`.  
+**Example:**
+```
+LET new$ = REPLACE$("Hello world", "world", "EduBASIC")    ' "Hello EduBASIC"
 ```
 
 ---
@@ -3464,6 +3905,19 @@ END
 LABEL PrintMessage
     PRINT "Hello!"
 RETURN
+```
+
+---
+
+### RMDIR
+
+**Type:** Command (File I/O)  
+**Syntax:** `RMDIR "path"`  
+**Description:** Removes an empty directory.  
+**Example:**
+```
+RMDIR "temp"
+RMDIR "/Users/name/old_data"
 ```
 
 ---
@@ -3494,6 +3948,18 @@ PRINT ROUND 3.4      ' Prints: 3
 
 ---
 
+### RTRIM$
+
+**Type:** Function (String)  
+**Syntax:** `RTRIM$ string$`  
+**Description:** Returns a copy of the string with trailing spaces removed.  
+**Example:**
+```
+LET trimmed$ = RTRIM$("text  ")    ' "text"
+```
+
+---
+
 ### SELECT CASE
 
 **Type:** Command (Control Flow)  
@@ -3509,6 +3975,35 @@ SELECT CASE grade%
     CASE ELSE
         PRINT "Other"
 END SELECT
+```
+
+---
+
+### SEEK
+
+**Type:** Command (File I/O)  
+**Syntax:** `SEEK position% IN #fileHandle%`  
+**Description:** Positions the file pointer at a specific byte position (0-based). Position 0 is the beginning of the file. For text files, positions refer to UTF-8 byte positions. Seeking past end of file is allowed (file will extend on write).  
+**Example:**
+```
+OPEN "data.bin" FOR READ AS file%
+SEEK 100 IN #file%    ' Jump to byte 100
+READ value% FROM file%
+SEEK 0 IN #file%      ' Return to beginning
+CLOSE file%
+```
+
+---
+
+### SET
+
+**Type:** Command (Text I/O)  
+**Syntax:** `SET LINE SPACING ON` or `SET LINE SPACING OFF`  
+**Description:** Configures system-wide settings for the text display system. `SET LINE SPACING OFF` uses 80×30 character grid (default). `SET LINE SPACING ON` uses 80×24 character grid with 4 additional pixels of spacing after each line.  
+**Example:**
+```
+SET LINE SPACING OFF    ' Use 80×30 character grid (default)
+SET LINE SPACING ON     ' Use 80×24 character grid with spacing
 ```
 
 ---
@@ -3562,6 +4057,20 @@ PRINT result#    ' Prints: 0.0
 ```
 LET result# = SQRT 16
 PRINT result#    ' Prints: 4.0
+```
+
+---
+
+### STR$
+
+**Type:** Function (String)  
+**Syntax:** `STR$ number`  
+**Description:** Converts a number to its string representation.  
+**Example:**
+```
+LET num% = 42
+LET numStr$ = STR$(num%)    ' "42"
+LET piStr$ = STR$(3.14159)  ' "3.14159"
 ```
 
 ---
@@ -3652,6 +4161,19 @@ IF x% > 0 THEN PRINT "Positive"
 
 ---
 
+### TIMER
+
+**Type:** Function (System)  
+**Syntax:** `TIMER%`  
+**Description:** Returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.  
+**Example:**
+```
+RANDOMIZE TIMER%    ' Seed random number generator with current time
+LET currentTime% = TIMER%
+```
+
+---
+
 ### TO
 
 **Type:** Keyword (Control Flow)  
@@ -3664,6 +4186,31 @@ NEXT i%
 
 CASE 90 TO 100
     PRINT "A"
+```
+
+---
+
+### TRIM$
+
+**Type:** Function (String)  
+**Syntax:** `TRIM$ string$`  
+**Description:** Returns a copy of the string with leading and trailing spaces removed.  
+**Example:**
+```
+LET trimmed$ = TRIM$("  text  ")   ' "text"
+```
+
+---
+
+### TRIANGLE
+
+**Type:** Command (Graphics)  
+**Syntax:** `TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%) WITH color%` or `TRIANGLE (x1%, y1%) TO (x2%, y2%) TO (x3%, y3%) WITH color% FILLED`  
+**Description:** Draws a triangle with vertices at the three specified points. With `FILLED`, draws a filled triangle. Without `FILLED`, draws only the triangle outline. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+TRIANGLE (100, 100) TO (200, 200) TO (150, 250) WITH &HFFFFFFFF    ' Outline
+TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED    ' Filled
 ```
 
 ---
@@ -3695,6 +4242,18 @@ TEMPO 180    ' Set to 180 BPM (fast)
 
 ---
 
+### UCASE$
+
+**Type:** Function (String)  
+**Syntax:** `UCASE$ string$`  
+**Description:** Returns a copy of the string converted to uppercase.  
+**Example:**
+```
+LET upper$ = UCASE$("hello")    ' "HELLO"
+```
+
+---
+
 ### UNLESS
 
 **Type:** Command (Control Flow)  
@@ -3707,6 +4266,21 @@ UNLESS valid% THEN PRINT "Invalid"
 UNLESS password$ = "secret" THEN
     PRINT "Access denied"
 END UNLESS
+```
+
+---
+
+### VAL
+
+**Type:** Function (String)  
+**Syntax:** `VAL string$`  
+**Description:** Converts a string to a number. The result type depends on the string content (integer, real, or complex).  
+**Example:**
+```
+LET text$ = "123"
+LET number% = VAL(text$)    ' 123
+LET decimal$ = "3.14"
+LET value# = VAL(decimal$)  ' 3.14
 ```
 
 ---
@@ -3780,6 +4354,36 @@ WHILE count% < 10
     PRINT count%
     LET count% += 1
 WEND
+```
+
+---
+
+### WRITE
+
+**Type:** Command (File I/O)  
+**Syntax:** `WRITE expression TO fileHandle%`  
+**Description:** Writes data to a file. For strings: writes the text followed by a newline. For numbers: writes the binary representation (not text). Text and binary operations can be mixed in the same file.  
+**Example:**
+```
+OPEN "output.txt" FOR OVERWRITE AS file%
+WRITE "Name: " TO file%
+WRITE playerName$ TO file%
+WRITE score% TO file%    ' Write binary integer
+CLOSE file%
+```
+
+---
+
+### WRITEFILE
+
+**Type:** Command (File I/O)  
+**Syntax:** `WRITEFILE "filename" FROM contentVariable$` or `WRITEFILE contentVariable$ TO "filename"`  
+**Description:** Writes an entire string to a file.  
+**Example:**
+```
+LET report$ = "Sales Report" + CHR$(10) + "Total: $1000"
+WRITEFILE "report.txt" FROM report$
+WRITEFILE output$ TO "results.txt"
 ```
 
 ---
