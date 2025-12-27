@@ -11,6 +11,7 @@
   - [Variable Declaration](#variable-declaration)
   - [Literals](#literals)
   - [Type Coercion](#type-coercion)
+  - [Structures](#structures)
   - [Arrays](#arrays)
   - [Arithmetic Operations](#arithmetic-operations)
   - [Boolean Operations](#boolean-operations)
@@ -105,7 +106,7 @@ EduBASIC provides four built-in scalar data types:
 - **Complex** (128-bit complex number with real and imaginary parts)
 - **String** (text data)
 
-Additionally, user-defined **structures** can be created to group related data together.
+Additionally, **structures** can be created to group related data together. Structures are untyped identifier-value dictionaries that allow you to store multiple values under named members.
 
 ### Type Sigils
 
@@ -139,15 +140,44 @@ LET studentCount% = 10
 LET roomTemperature# = 98.6
 LET playerName$ = "Alice"
 LET impedance& = 3+4i
+LET player.name$ = "Bob"      ' Structure (no sigil)
+LET player.score% = 100        ' Structure member
 ```
 
 ### Variable Declaration
 
-Variables in EduBASIC are **implicitly declared**—you simply assign a value to create a variable. The `DIM` keyword is used **only** for:
-- Declaring arrays
-- Declaring structures
+Variables in EduBASIC are **implicitly declared**—you simply assign a value to create a variable. **No variables need to be declared ahead of time**, whether they are scalars, structures, or arrays.
 
-You do not need to declare simple scalar variables before using them.
+The `DIM` keyword is used **only** for resizing arrays (changing the size of an array). Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. All other variables are created automatically when first assigned.
+
+### Default Values
+
+When a variable is first created (before any assignment), it has a default value based on its type:
+
+| Type | Default Value | Notes |
+|------|---------------|-------|
+| **Integer** (`%`) | `0` | 32-bit signed integer |
+| **Real** (`#`) | `0.0` | 64-bit floating-point |
+| **Complex** (`&`) | `0+0i` | 128-bit complex number (real and imaginary parts both 0) |
+| **String** (`$`) | `""` | Empty string |
+| **Structure** (no sigil) | `{}` | Empty structure (no members) |
+| **Array** (`[]`) | `[]` | Empty array (size 0) |
+
+**Examples:**
+```
+LET count%        ' count% = 0 (default)
+LET value#        ' value# = 0.0 (default)
+LET z&            ' z& = 0+0i (default)
+LET name$         ' name$ = "" (default)
+LET player        ' player = {} (default, empty structure)
+LET numbers%[]    ' numbers%[] = [] (default, empty array, size 0)
+```
+
+**Important Notes:**
+- Default values apply when a variable is first referenced before any assignment
+- Arrays default to size 0 (empty array)
+- Structures default to an empty structure with no members
+- You can use `DIM` to resize an array even if it hasn't been assigned yet (it's treated as size 0)
 
 ### Literals
 
@@ -233,6 +263,34 @@ String literals are enclosed in double quotes:
 "Hello, world!"
 "EduBASIC"
 "Line 1\nLine 2"
+```
+
+#### Array Literals
+
+Array literals are written using square brackets with comma-separated values:
+
+```
+[1, 2, 3, 4, 5]
+["Alice", "Bob", "Charlie"]
+[1.5, 2.7, 3.14]
+[]
+```
+
+**Rules:**
+- Array literals use square brackets `[]`
+- Elements are separated by commas
+- Elements can be any data type (Integer, Real, Complex, String)
+- Empty array literal `[]` creates an array with size 0
+- Array literals create arrays starting at index 1 (one-based)
+- All elements in an array literal must be of compatible types (type coercion applies)
+
+**Examples:**
+```
+LET numbers%[] = [1, 2, 3, 4, 5]              ' Integer array
+LET names$[] = ["Alice", "Bob", "Charlie"]    ' String array
+LET mixed#[] = [1.5, 2.7, 3.14]               ' Real array
+LET empty%[] = []                              ' Empty array (size 0)
+LET complex&[] = [1+2i, 3+4i, 5+6i]           ' Complex array
 ```
 
 ### Type Coercion
@@ -354,32 +412,154 @@ LET e& = 3.14+2i      ' Complex literal
 | Assign Complex to Real | Real | Imaginary part lost |
 | Assign Complex to Integer | Integer | Real part truncated, imaginary lost |
 
+### Structures
+
+Structures are untyped identifier-value dictionaries that allow you to group related data together. Structure variables do not use type sigils and are created automatically when first assigned.
+
+#### Structure Creation
+
+Structures are created by assigning values to members using the dot operator:
+
+```
+LET player.name$ = "Alice"
+LET player.score% = 100
+LET player.level% = 5
+```
+
+#### Member Access
+
+Structure members are accessed using the dot operator:
+
+```
+PRINT player.name$    ' Prints: Alice
+LET player.score% += 10
+IF player.level% > 10 THEN PRINT "Advanced player"
+```
+
+#### Structure Examples
+
+```
+' Create a structure for a point
+LET point.x% = 100
+LET point.y% = 200
+
+' Create a structure for a person
+LET person.firstName$ = "John"
+LET person.lastName$ = "Doe"
+LET person.age% = 30
+LET person.email$ = "john@example.com"
+
+' Access structure members
+PRINT person.firstName$; " "; person.lastName$
+LET person.age% += 1
+
+' Structures can contain any data type
+LET config.width% = 640
+LET config.height% = 480
+LET config.title$ = "My Game"
+LET config.fullscreen% = FALSE
+```
+
+#### Nested Structures and Arrays
+
+Structure members can themselves be arrays or structures, allowing for nested data structures:
+
+```
+' Structure with array members
+LET player.name$ = "Alice"
+LET player.scores%[] = [100, 95, 87, 92]
+LET player.inventory$[] = ["sword", "shield", "potion"]
+
+' Structure with nested structures
+LET person.name.first$ = "John"
+LET person.name.last$ = "Doe"
+LET person.address.street$ = "123 Main St"
+LET person.address.city$ = "Springfield"
+LET person.address.zip% = 12345
+
+' Structure with both arrays and nested structures
+LET game.player.name$ = "Hero"
+LET game.player.stats.hp% = 100
+LET game.player.stats.mp% = 50
+LET game.player.items$[] = ["sword", "shield"]
+LET game.enemies%[] = [10, 15, 20]
+
+' Access nested structure members
+PRINT person.name.first$; " "; person.name.last$
+PRINT person.address.street$
+
+' Access array members within structures
+PRINT player.scores%[1]    ' First score
+LET player.scores%[2] = 98  ' Update second score
+```
+
+#### Structure Comparison
+
+Structures support the equality operator (`=`). Two structures are equal if all of their members are equal (recursively, including nested structures and array members).
+
+```
+LET point1.x% = 100
+LET point1.y% = 200
+
+LET point2.x% = 100
+LET point2.y% = 200
+
+IF point1 = point2 THEN PRINT "Points are equal"    ' TRUE
+
+LET point3.x% = 100
+LET point3.y% = 201
+
+IF point1 = point3 THEN PRINT "Equal"    ' FALSE (y values differ)
+```
+
+**Important Notes:**
+- The equality operator (`=`) is defined for structures
+- Two structures are equal if all their members are equal (including nested structures and arrays)
+- Inequality operators (`<>`, `<`, `>`, `<=`, `>=`) are **not** defined for structures
+- Structure variables do not use type sigils (no `%`, `#`, `$`, or `&`)
+- Structures are untyped—members can hold any data type
+- Structure members can be arrays (using `[]` syntax)
+- Structure members can be other structures (nested structures)
+- Members are created automatically when first assigned
+- No declaration is needed before using a structure
+
 ### Arrays
 
-Arrays are declared using the `DIM` keyword with square brackets. Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
+Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
 
 **Important:** When referring to an entire array (not a single element), you must use the `[]` syntax. For example, `numbers%[]` refers to the entire array, while `numbers%` (without `[]`) would refer to a scalar variable. This distinction is required because `numbers%` could be either a scalar or an array name, so `[]` is necessary to unambiguously refer to the entire array.
 
-#### Array Declaration
+#### Array Creation
 
-**Default one-based array:**
-```
-DIM numbers%[10]
-```
+Arrays are created automatically when first assigned. No declaration is needed:
 
-This creates an array with indices 1 through 10.
-
-**Custom range:**
 ```
-DIM studentNames$[0 TO 11]
+LET numbers%[] = [1, 2, 3, 4, 5]
+LET names$[] = ["Alice", "Bob", "Charlie"]
 ```
 
-This creates an array with indices 0 through 11.
+**Important:** Undeclared arrays (arrays that haven't been assigned yet) are presumed to have size 0. You can assign to them or resize them with `DIM` before use.
+
+#### Array Resizing
+
+The `DIM` keyword is used **only** for resizing arrays. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet.
+
+**Resize to a new size:**
+```
+DIM numbers%[10]    ' Resize to 10 elements (indices 1-10), creates array if it doesn't exist
+LET numbers%[] = [1, 2, 3]
+DIM numbers%[20]    ' Resize existing array to 20 elements
+```
+
+**Resize with custom range:**
+```
+DIM data%[0 TO 11]    ' Resize to indices 0-11, creates array if it doesn't exist
+```
 
 **Multi-dimensional arrays:**
 ```
-DIM matrix#[5, 10]
-DIM grid%[1 TO 10, 1 TO 20]
+DIM matrix#[5, 10]    ' Resize to 5×10 matrix, creates array if it doesn't exist
+DIM grid%[1 TO 10, 1 TO 20]    ' Resize with custom ranges
 ```
 
 #### Array Literals
@@ -2323,7 +2503,7 @@ LISTDIR "path" INTO filesArray$[]
 - Returns an array of filenames (strings)
 - Array is 1-based
 - Includes files and subdirectories
-- Use `DIM` to declare the array first, or it will be created automatically
+- The array is created automatically if it doesn't exist
 
 **Examples:**
 ```
@@ -3599,14 +3779,16 @@ DELETE "/Users/name/old_data.bin"
 
 ### DIM
 
-**Type:** Command (Variable Declaration)  
+**Type:** Command (Array Resizing)  
 **Syntax:** `DIM arrayName[size]` or `DIM arrayName[start TO end]`  
-**Description:** Declares an array or structure. Arrays are one-based by default.  
+**Description:** Resizes an array. Arrays are one-based by default. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. `DIM` is **only** used for resizing arrays—no other variables need to be declared.  
 **Example:**
 ```
-DIM numbers%[10]              ' Array with indices 1 to 10
-DIM studentNames$[0 TO 11]    ' Array with indices 0 to 11
-DIM matrix#[5, 10]            ' Two-dimensional array
+DIM numbers%[10]              ' Resize to indices 1 to 10 (creates array if it doesn't exist)
+LET numbers%[] = [1, 2, 3]
+DIM numbers%[20]              ' Resize existing array to indices 1 to 20
+DIM studentNames$[0 TO 11]    ' Resize to indices 0 to 11
+DIM matrix#[5, 10]            ' Resize to 5×10 two-dimensional array
 ```
 
 ---
