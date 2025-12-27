@@ -1497,7 +1497,6 @@ DIM scores%[5]
 PRINT "Enter 5 scores (comma-separated): ";
 INPUT scores%[]
 PRINT "Scores: "; scores%[]
-```
 
 ' Using LOCATE for formatted input
 LOCATE 10, 1
