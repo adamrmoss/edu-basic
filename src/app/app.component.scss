@@ -1,0 +1,10 @@
+@use 'sass:map';
+@use 'ng-luna/theme/_breakpoints.scss' as *;
+@use 'ng-luna/theme/_palette.scss' as *;
+
+#main-window
+{
+    display: block;
+    margin: 48px 48px;
+    max-width: map.get($breakpoints, sm);
+}

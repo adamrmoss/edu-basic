@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { WindowComponent, TabsComponent, TabComponent } from 'ng-luna';
+import { CommonModule } from '@angular/common';
 
 @Component({
     selector: 'app-root',
-    imports: [ RouterOutlet ],
+    imports: [ CommonModule, WindowComponent, TabsComponent, TabComponent ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'
 })
-export class AppComponent {
-    title = 'edu-basic';
+export class AppComponent
+{
+    public title = 'EduBASIC';
 }
