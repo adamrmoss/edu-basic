@@ -44,7 +44,7 @@
     - [String Slicing](#string-slicing)
     - [String Length](#string-length)
     - [String Comparison](#string-comparison)
-    - [String Functions](#string-functions)
+    - [String Operators](#string-operators)
 - [File I/O](#file-io)
   - [Opening and Closing Files](#opening-and-closing-files)
     - [OPEN Statement](#open-statement)
@@ -56,8 +56,8 @@
     - [WRITE Statement (Text and Binary)](#write-statement-text-and-binary)
   - [File Navigation](#file-navigation)
     - [SEEK Statement](#seek-statement)
-    - [EOF Function](#eof-function)
-    - [LOC Function](#loc-function)
+    - [EOF Operator](#eof-operator)
+    - [LOC Operator](#loc-operator)
   - [Convenience File Operations](#convenience-file-operations)
     - [READFILE Statement](#readfile-statement)
     - [WRITEFILE Statement](#writefile-statement)
@@ -237,10 +237,122 @@ String literals are enclosed in double quotes:
 
 ### Type Coercion
 
-EduBASIC automatically promotes numeric types when they are mixed in expressions:
-- Integer → Real → Complex (promotes naturally)
-- Complex arithmetic always yields Complex results
-- Literal types are inferred from their syntax
+EduBASIC automatically converts between numeric types when they are mixed in expressions or assigned to variables. Type coercion follows a hierarchy: **Integer → Real → Complex**.
+
+#### Upcasting (Type Promotion)
+
+**Upcasting** occurs automatically when numeric types are mixed in expressions. The result type is always the highest type in the hierarchy:
+
+- **Integer + Integer** → Integer
+- **Integer + Real** → Real
+- **Integer + Complex** → Complex
+- **Real + Real** → Real
+- **Real + Complex** → Complex
+- **Complex + Complex** → Complex
+
+**Examples:**
+```
+LET a% = 5
+LET b# = 3.14
+LET c& = 2+3i
+
+LET result1# = a% + b#        ' Integer + Real → Real (8.14)
+LET result2& = a% + c&         ' Integer + Complex → Complex (7+3i)
+LET result3& = b# + c&        ' Real + Complex → Complex (5.14+3i)
+LET result4& = c& + c&         ' Complex + Complex → Complex (4+6i)
+```
+
+**Arithmetic Operations:**
+- All arithmetic operations (`+`, `-`, `*`, `/`, `^`, `MOD`) follow the same promotion rules
+- Division (`/`) always produces a Real result, even when dividing two integers
+- Modulo (`MOD`) works with both Integer and Real operands, producing a Real result when either operand is Real
+- Exponentiation (`^`) follows normal promotion rules
+
+**Examples:**
+```
+LET quotient# = 15 / 4        ' Integer / Integer → Real (3.75)
+LET remainder% = 17 MOD 5     ' Integer MOD Integer → Integer (2)
+LET remainder# = 17.5 MOD 5    ' Real MOD Integer → Real (2.5)
+LET remainder# = 17 MOD 5.5   ' Integer MOD Real → Real (0.5)
+LET remainder# = 17.5 MOD 5.5  ' Real MOD Real → Real (1.0)
+LET power# = 2 ^ 8            ' Integer ^ Integer → Real (256.0)
+LET mixed# = 5 + 3.14         ' Integer + Real → Real (8.14)
+LET complex& = 5 + 3i          ' Integer + Complex → Complex (5+3i)
+```
+
+#### Downcasting (Type Demotion)
+
+**Downcasting** occurs when assigning a value to a variable with a lower type in the hierarchy. Downcasting may result in loss of precision or information:
+
+- **Real → Integer**: Truncates the decimal part (rounds toward zero)
+- **Complex → Real**: Extracts only the real part, discards imaginary part
+- **Complex → Integer**: Extracts real part and truncates to integer
+
+**Examples:**
+```
+LET realValue# = 3.9
+LET intValue% = realValue#    ' Real → Integer: 3 (truncated, not rounded)
+
+LET complexValue& = 5.7+2.3i
+LET realResult# = complexValue&    ' Complex → Real: 5.7 (imaginary part lost)
+LET intResult% = complexValue&      ' Complex → Integer: 5 (real part truncated)
+
+LET anotherComplex& = 3.14+0i
+LET intFromComplex% = anotherComplex&    ' Complex → Integer: 3
+```
+
+**Important Notes:**
+- Downcasting to Integer truncates (rounds toward zero), it does not round
+- Downcasting from Complex to Real or Integer loses the imaginary component
+- No automatic downcasting occurs in expressions—only in assignments
+
+#### Assignment Coercion
+
+When assigning a value to a variable, the value is coerced to match the variable's type:
+
+```
+LET integerVar% = 42          ' Integer → Integer (no change)
+LET integerVar% = 42.7        ' Real → Integer: 42 (truncated)
+LET integerVar% = 42.7+0i     ' Complex → Integer: 42 (real part, truncated)
+
+LET realVar# = 42             ' Integer → Real: 42.0 (promoted)
+LET realVar# = 42.7           ' Real → Real (no change)
+LET realVar# = 42.7+3i        ' Complex → Real: 42.7 (imaginary part lost)
+
+LET complexVar& = 42           ' Integer → Complex: 42+0i (promoted)
+LET complexVar& = 42.7        ' Real → Complex: 42.7+0i (promoted)
+LET complexVar& = 42.7+3i     ' Complex → Complex (no change)
+```
+
+#### Literal Type Inference
+
+Literal types are inferred from their syntax:
+- Numbers without decimal point or exponent → Integer
+- Numbers with decimal point or exponent → Real
+- Numbers with `i` or `I` suffix → Complex
+
+**Examples:**
+```
+LET a% = 42           ' Integer literal
+LET b# = 42.0         ' Real literal
+LET c# = 42           ' Integer literal coerced to Real
+LET d& = 42+0i        ' Complex literal
+LET e& = 3.14+2i      ' Complex literal
+```
+
+#### Summary
+
+| Operation | Result Type | Notes |
+|-----------|-------------|-------|
+| Integer op Integer | Integer | Except division (`/`) which yields Real; MOD yields Integer |
+| Integer op Real | Real | Integer promoted to Real |
+| Integer op Complex | Complex | Integer promoted to Complex |
+| Real op Real | Real | MOD yields Real |
+| Real op Complex | Complex | Real promoted to Complex |
+| Complex op Complex | Complex | |
+| Assign Real to Integer | Integer | Truncated (not rounded) |
+| Assign Complex to Real | Real | Imaginary part lost |
+| Assign Complex to Integer | Integer | Real part truncated, imaginary lost |
 
 ### Arrays
 
@@ -370,46 +482,46 @@ UNSHIFT names$[], "Alice"
 
 #### Array Search Operators
 
-Array search operations are implemented as binary operators with type sigils:
+Array search operations are implemented as binary operators:
 
-**FIND% Operator:**
+**FIND Operator:**
 Finds the first element in an array that matches a value. Returns the element value if found, or 0 (for numeric arrays) or "" (for string arrays) if not found.
 
 ```
-LET found% = numbers%[] FIND% 5
-LET found$ = names$[] FIND% "Bob"
+LET found% = numbers%[] FIND 5
+LET found$ = names$[] FIND "Bob"
 ```
 
-**INDEXOF% Operator:**
+**INDEXOF Operator:**
 Finds the index of the first occurrence of a value in an array. Returns 0 if not found.
 
 ```
-LET index% = numbers%[] INDEXOF% 5
-LET index% = names$[] INDEXOF% "Bob"
+LET index% = numbers%[] INDEXOF 5
+LET index% = names$[] INDEXOF "Bob"
 ```
 
-**INCLUDES% Operator:**
+**INCLUDES Operator:**
 Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.
 
 ```
-IF numbers%[] INCLUDES% 5 THEN PRINT "Found"
-IF names$[] INCLUDES% "Bob" THEN PRINT "Found"
+IF numbers%[] INCLUDES 5 THEN PRINT "Found"
+IF names$[] INCLUDES "Bob" THEN PRINT "Found"
 ```
 
-#### Array Functions
+#### Array Operators
 
-**REVERSE Function:**
+**REVERSE Operator:**
 Returns a new array with elements in reverse order.
 
 ```
 LET reversed%[] = REVERSE numbers%[]
 ```
 
-**JOIN$ Operator:**
+**JOIN Operator:**
 Joins array elements into a string with a separator.
 
 ```
-LET joined$ = names$[] JOIN$ ", "    ' "Alice, Bob, Charlie"
+LET joined$ = names$[] JOIN ", "    ' "Alice, Bob, Charlie"
 ```
 
 **Array Manipulation with Operators:**
@@ -517,9 +629,9 @@ LET arrayLength% = | numbers%[] |
 LET stringLength% = | text$ |
 ```
 
-#### Arithmetic Functions
+#### Arithmetic Operators and Mathematical Functions
 
-EduBASIC provides a comprehensive set of arithmetic functions for mathematical computations:
+EduBASIC provides a comprehensive set of arithmetic operators and mathematical functions:
 
 **Trigonometric Functions:**
 
@@ -559,7 +671,7 @@ EduBASIC provides a comprehensive set of arithmetic functions for mathematical c
 | `SQRT x#` | Square root of x | `LET result# = SQRT number#` |
 | `CBRT x#` | Cube root of x   | `LET result# = CBRT number#` |
 
-**Rounding and Truncation Functions:**
+**Rounding and Truncation Operators:**
 
 | Function    | Description                              | Example                                                        |
 |-------------|------------------------------------------|----------------------------------------------------------------|
@@ -569,7 +681,7 @@ EduBASIC provides a comprehensive set of arithmetic functions for mathematical c
 | `TRUNC x#`  | Round toward zero                        | `LET result# = TRUNC 3.9` returns 3, `TRUNC -3.9` returns -3   |
 | `EXPAND x#` | Round away from zero                     | `LET result# = EXPAND 3.1` returns 4, `EXPAND -3.1` returns -4 |
 
-**Sign Function:**
+**Sign Operator:**
 
 | Function | Description            | Example                    |
 |----------|------------------------|----------------------------|
@@ -661,30 +773,32 @@ IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE (shorter array)
 EduBASIC follows standard mathematical operator precedence:
 
 1. Parentheses `()` (highest precedence)
-2. Prefix unary operators (all functions): `SIN#`, `COS#`, `TAN#`, `ASIN#`, `ACOS#`, `ATAN#`, `SINH#`, `COSH#`, `TANH#`, `ASINH#`, `ACOSH#`, `ATANH#`, `EXP#`, `LOG#`, `LOG10#`, `LOG2#`, `SQRT#`, `CBRT#`, `FLOOR#`, `CEIL#`, `ROUND#`, `TRUNC#`, `EXPAND#`, `SGN%`, `REAL#`, `IMAG#`, `CONJ&`, `CABS#`, `CARG#`, `CSQRT&`, `RND#`, `INT%`, `ASC%`, `CHR$`, `STR$`, `VAL#`, `HEX$`, `BIN$`, `UCASE$`, `LCASE$`, `LTRIM$`, `RTRIM$`, `TRIM$`, `REVERSE`
+2. Prefix unary operators: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`
 3. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
-4. Absolute value / norm / array length `| |`
+4. Absolute value / norm / array length / string length `| |`
 5. Unary `+` and `-`
-6. Exponentiation `^` or `**`
+6. Exponentiation `^` or `**` (right-associative)
 7. Multiplication `*`, Division `/`, and Modulo `MOD`
 8. Addition `+` and Subtraction `-` (also array concatenation)
-9. Array search operators: `FIND%`, `INDEXOF%`, `INCLUDES%`
-10. String/Array operators: `INSTR%`, `JOIN$`, `REPLACE$`
+9. Array search operators: `FIND`, `INDEXOF`, `INCLUDES`
+10. String/Array operators: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
 11. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
-12. `NOT`
-13. `AND`, `NAND`
-14. `OR`, `NOR`
-15. `XOR`, `XNOR`
-16. `IMP` (lowest precedence)
+12. `NOT` (unary logical)
+13. `AND`, `NAND` (binary logical)
+14. `OR`, `NOR` (binary logical)
+15. `XOR`, `XNOR` (binary logical)
+16. `IMP` (binary logical, lowest precedence)
+
+**Note:** Nullary operators (`RND`, `INKEY`, `INKEYSCAN`, `TIMER`) take zero arguments and do not participate in operator precedence. They can appear anywhere in an expression and are evaluated independently.
 
 When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.
 
 ### Random Number Generation
 
-EduBASIC provides the `RND` function to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
+EduBASIC provides the `RND` operator to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
 
-**Random Number Function:**
-- `RND` - Returns a random real number in the range [0, 1)
+**Random Number Operator:**
+- `RND` - Nullary operator (takes zero arguments) that returns a random real number in the range [0, 1)
 
 **Random Number Generator Seed:**
 
@@ -694,7 +808,7 @@ The `RANDOMIZE` command initializes the random number generator with a seed valu
 RANDOMIZE
 ```
 
-Seeds the generator with the current system timer value (`TIMER%`). This produces different random sequences each time the program runs.
+Seeds the generator with the current system timer value (`TIMER`). This produces different random sequences each time the program runs.
 
 ```
 RANDOMIZE seedValue%
@@ -702,8 +816,8 @@ RANDOMIZE seedValue%
 
 Seeds the generator with a specific integer value. Using the same seed value produces the same sequence of random numbers, which is useful for testing and reproducible results.
 
-**System Timer Function:**
-- `TIMER%` - Returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.
+**System Timer Operator:**
+- `TIMER` - Nullary operator (takes zero arguments) that returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.
 
 **Examples:**
 
@@ -712,13 +826,13 @@ RANDOMIZE
 LET randomNumber# = RND
 
 RANDOMIZE 12345
-LET dice% = INT% (RND# * 6) + 1
+LET dice% = INT (RND * 6) + 1
 
 LET randomInRange# = RND * 100
 
 ' Seed with current time
-RANDOMIZE TIMER%
-LET currentTime% = TIMER%
+RANDOMIZE TIMER
+LET currentTime% = TIMER
 ```
 
 ## Control Flow
@@ -1167,8 +1281,8 @@ LOOP UNTIL num% = 0
 ```
 PRINT "Press ESC to exit..."
 DO
-    LET key$ = INKEY$
-    IF key$ = CHR$ 27 THEN EXIT DO
+    LET key$ = INKEY
+    IF key$ = CHR 27 THEN EXIT DO
 LOOP
 ```
 
@@ -1640,14 +1754,14 @@ PRINT "Bottom row with spacing"
 
 ### Keyboard Input
 
-EduBASIC provides non-blocking keyboard input through the `INKEY$` and `INKEYSCAN$` functions, which allow programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
+EduBASIC provides non-blocking keyboard input through the `INKEY` and `INKEYSCAN` operators, which allow programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
 
-#### INKEY$ Function
+#### INKEY Operator
 
-The `INKEY$` function returns the currently pressed key as a string.
+The `INKEY` operator is a nullary operator (takes zero arguments) that returns the currently pressed key as a string.
 
 **Key Detection:**
-- `INKEY$` returns the currently pressed key as a string
+- `INKEY` returns the currently pressed key as a string
 - Returns empty string (`""`) if no key is pressed
 - Non-blocking: returns immediately whether a key is pressed or not
 - Supports printable characters and special keys
@@ -1686,7 +1800,7 @@ The `INKEY$` function returns the currently pressed key as a string.
 ```
 ' Game loop with keyboard input
 DO
-    LET key$ = INKEY$
+    LET key$ = INKEY
     IF key$ <> "" THEN
         IF key$ = "ESC" THEN EXIT DO
         IF key$ = "ARROWUP" THEN LET y% -= 1
@@ -1698,39 +1812,39 @@ DO
 LOOP
 
 ' Menu navigation
-LET key$ = INKEY$
+LET key$ = INKEY
 IF key$ = "F1" THEN GOSUB ShowHelp
 IF key$ = "F2" THEN GOSUB SaveGame
 IF key$ = "ENTER" THEN GOSUB SelectOption
 ```
 
-#### INKEYSCAN$ Function
+#### INKEYSCAN Operator
 
-The `INKEYSCAN$` function returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, where `nnn` is the decimal scan code.
+The `INKEYSCAN` operator is a nullary operator (takes zero arguments) that returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, where `nnn` is the decimal scan code.
 
 **Return Values:**
 - **Empty string (`""`):** No key is currently pressed
 - **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
 
 **Use Cases:**
-- Use `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout
-- Use `INKEYSCAN$` when you need the raw scan code for advanced key handling
+- Use `INKEYSCAN` when you need to detect specific physical keys regardless of keyboard layout
+- Use `INKEYSCAN` when you need the raw scan code for advanced key handling
 - Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout
 
 **Examples:**
 ```
-LET scanCode$ = INKEYSCAN$
+LET scanCode$ = INKEYSCAN
 IF scanCode$ <> "" THEN
     IF scanCode$[1 TO 3] = "SC:" THEN
         LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL# codeStr$
+        LET code% = VAL codeStr$
         PRINT "Scan code: "; code%
         IF code% = 27 THEN PRINT "ESC key pressed"
     END IF
 END IF
 ```
 
-**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY$` or `INKEYSCAN$`.
+**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY` or `INKEYSCAN`.
 
 ### String Operations
 
@@ -1754,44 +1868,44 @@ LET fullName$ = firstName$ + " " + lastName$
 PRINT fullName$    ' Prints: John Doe
 
 LET greeting$ = "Hello, " + name$ + "!"
-LET message$ = "Value: " + STR$ number%
+LET message$ = "Value: " + STR number%
 ```
 
-#### String Functions
+#### String Operators
 
-EduBASIC provides string functions to extract and manipulate substrings:
+EduBASIC provides string operators to extract and manipulate substrings:
 
-**`LEFT$` - Extract left portion of string:**
+**`LEFT` - Extract left portion of string:**
 ```
 LET text$ = "Hello, world!"
-LET firstWord$ = LEFT$ text$ 5    ' "Hello"
-LET firstChar$ = LEFT$ text$ 1    ' "H"
+LET firstWord$ = text$ LEFT 5    ' "Hello"
+LET firstChar$ = text$ LEFT 1    ' "H"
 ```
 
 Returns the leftmost `n` characters of the string. If `n` is greater than the string length, returns the entire string.
 
-**`RIGHT$` - Extract right portion of string:**
+**`RIGHT` - Extract right portion of string:**
 ```
 LET text$ = "Hello, world!"
-LET lastWord$ = RIGHT$ text$ 6    ' "world!"
-LET lastChar$ = RIGHT$ text$ 1    ' "!"
+LET lastWord$ = text$ RIGHT 6    ' "world!"
+LET lastChar$ = text$ RIGHT 1    ' "!"
 ```
 
 Returns the rightmost `n` characters of the string. If `n` is greater than the string length, returns the entire string.
 
-**`MID$` - Extract substring from middle:**
+**`MID` - Extract substring from middle:**
 ```
 LET text$ = "Hello, world!"
-LET world$ = MID$ text$ 8 5    ' "world" (5 characters starting at position 8)
-LET middle$ = MID$ text$ 3 4    ' "llo," (4 characters starting at position 3)
+LET world$ = text$ MID 8 TO 12    ' "world" (positions 8 to 12)
+LET middle$ = text$ MID 3 TO 6    ' "llo," (positions 3 to 6)
 ```
 
-Returns a substring starting at position `start` with length `length`. If `start` is beyond the string length, returns an empty string. If `length` extends beyond the string, returns characters up to the end of the string.
+Returns a substring from position `start%` to position `end%` (inclusive). If `start%` is beyond the string length, returns an empty string. If `end%` extends beyond the string, returns characters up to the end of the string.
 
 **Single character access:**
 ```
 LET text$ = "Hello"
-LET char$ = MID$ text$ 1 1    ' "H" (single character at position 1)
+LET char$ = text$ MID 1 TO 1    ' "H" (single character at position 1)
 ```
 
 #### String Length
@@ -1820,95 +1934,95 @@ IF text1$ <> text2$ THEN PRINT "Different"
 IF word$ < "middle" THEN PRINT "Comes before 'middle'"
 ```
 
-#### String Functions
+#### String Operators
 
-**`STR$` - Convert number to string:**
+**`STR` - Convert number to string:**
 ```
 LET num% = 42
-LET numStr$ = STR$ num%    ' "42"
-LET piStr$ = STR$ 3.14159  ' "3.14159"
-LET complexStr$ = STR$ (3+4i)    ' "3+4i"
+LET numStr$ = STR num%    ' "42"
+LET piStr$ = STR 3.14159  ' "3.14159"
+LET complexStr$ = STR (3+4i)    ' "3+4i"
 ```
 
 Converts any numeric type (integer, real, or complex) to its decimal string representation. For complex numbers, the format is `"real+imaginaryi"` or `"real-imaginaryi"`.
 
-**`VAL#` - Convert string to number:**
+**`VAL` - Convert string to number:**
 ```
 LET text$ = "123"
-LET number% = VAL# text$    ' 123
+LET number% = VAL text$    ' 123
 LET decimal$ = "3.14"
-LET value# = VAL# decimal$  ' 3.14
-LET hexValue% = VAL# "&HFF"    ' 255 (hexadecimal)
-LET binValue% = VAL# "&B1010"  ' 10 (binary)
-LET complexValue& = VAL# "3+4i"    ' 3+4i (complex number)
+LET value# = VAL decimal$  ' 3.14
+LET hexValue% = VAL "&HFF"    ' 255 (hexadecimal)
+LET binValue% = VAL "&B1010"  ' 10 (binary)
+LET complexValue& = VAL "3+4i"    ' 3+4i (complex number)
 ```
 
 Converts a string to a number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. The result type depends on the string content. Hexadecimal and binary strings are parsed as integers.
 
-**`HEX$` - Convert number to hexadecimal string:**
+**`HEX` - Convert number to hexadecimal string:**
 ```
-LET hexStr$ = HEX$ 255    ' "FF"
-LET hexStr$ = HEX$ 10     ' "A"
-LET hexStr$ = HEX$ -1     ' "FFFFFFFF" (32-bit two's complement)
+LET hexStr$ = HEX 255    ' "FF"
+LET hexStr$ = HEX 10     ' "A"
+LET hexStr$ = HEX -1     ' "FFFFFFFF" (32-bit two's complement)
 ```
 
 Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation.
 
-**`BIN$` - Convert number to binary string:**
+**`BIN` - Convert number to binary string:**
 ```
-LET binStr$ = BIN$ 10     ' "1010"
-LET binStr$ = BIN$ 255    ' "11111111"
-LET binStr$ = BIN$ -1     ' "11111111111111111111111111111111" (32-bit two's complement)
+LET binStr$ = BIN 10     ' "1010"
+LET binStr$ = BIN 255    ' "11111111"
+LET binStr$ = BIN -1     ' "11111111111111111111111111111111" (32-bit two's complement)
 ```
 
 Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation.
 
-**`CHR$` - Convert ASCII code to character:**
+**`CHR` - Convert ASCII code to character:**
 ```
-LET char$ = CHR$ 65        ' "A"
-LET newline$ = CHR$ 10     ' Newline character
-```
-
-**`ASC%` - Convert character to ASCII code:**
-```
-LET code% = ASC% "A"        ' 65
-LET code% = ASC% "a"        ' 97
+LET char$ = CHR 65        ' "A"
+LET newline$ = CHR 10     ' Newline character
 ```
 
-**`UCASE$` - Convert to uppercase:**
+**`ASC` - Convert character to ASCII code:**
 ```
-LET upper$ = UCASE$ "hello"    ' "HELLO"
-```
-
-**`LCASE$` - Convert to lowercase:**
-```
-LET lower$ = LCASE$ "WORLD"    ' "world"
+LET code% = ASC "A"        ' 65
+LET code% = ASC "a"        ' 97
 ```
 
-**`LTRIM$` - Remove leading spaces:**
+**`UCASE` - Convert to uppercase:**
 ```
-LET trimmed$ = LTRIM$ "  text"    ' "text"
-```
-
-**`RTRIM$` - Remove trailing spaces:**
-```
-LET trimmed$ = RTRIM$ "text  "    ' "text"
+LET upper$ = UCASE "hello"    ' "HELLO"
 ```
 
-**`TRIM$` - Remove leading and trailing spaces:**
+**`LCASE` - Convert to lowercase:**
 ```
-LET trimmed$ = TRIM$ "  text  "   ' "text"
-```
-
-**`INSTR%` - Find substring position:**
-```
-LET pos% = "Hello world" INSTR% "world"    ' 7
-LET pos% = "Hello world" INSTR% "o" FROM 5    ' 5 (start search at position 5)
+LET lower$ = LCASE "WORLD"    ' "world"
 ```
 
-**`REPLACE$` - Replace substring:**
+**`LTRIM` - Remove leading spaces:**
 ```
-LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
+LET trimmed$ = LTRIM "  text"    ' "text"
+```
+
+**`RTRIM` - Remove trailing spaces:**
+```
+LET trimmed$ = RTRIM "text  "    ' "text"
+```
+
+**`TRIM` - Remove leading and trailing spaces:**
+```
+LET trimmed$ = TRIM "  text  "   ' "text"
+```
+
+**`INSTR` - Find substring position:**
+```
+LET pos% = "Hello world" INSTR "world"    ' 7
+LET pos% = "Hello world" INSTR "o" FROM 5    ' 5 (start search at position 5)
+```
+
+**`REPLACE` - Replace substring:**
+```
+LET new$ = "Hello world" REPLACE "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
 
@@ -2110,9 +2224,9 @@ SEEK 0 IN #file%      ' Return to beginning
 CLOSE file%
 ```
 
-#### EOF Function
+#### EOF Operator
 
-The `EOF` function checks if the file pointer is at the end of the file.
+The `EOF` operator is a unary operator that checks if the file pointer is at the end of the file.
 
 **Syntax:**
 ```
@@ -2133,9 +2247,9 @@ WEND
 CLOSE file%
 ```
 
-#### LOC Function
+#### LOC Operator
 
-The `LOC` function returns the current byte position in the file.
+The `LOC` operator is a unary operator that returns the current byte position in the file.
 
 **Syntax:**
 ```
@@ -2190,7 +2304,7 @@ WRITEFILE contentVariable$ TO "filename"
 
 **Examples:**
 ```
-LET report$ = "Sales Report" + CHR$ 10 + "Total: $1000"
+LET report$ = "Sales Report" + CHR 10 + "Total: $1000"
 WRITEFILE "report.txt" FROM report$
 
 WRITEFILE output$ TO "results.txt"
@@ -3099,7 +3213,7 @@ PLAY 1, "N64 L2"
 
 ## Command and Function Reference
 
-This section provides an alphabetical reference of all EduBASIC commands, functions, and operators.
+This section provides an alphabetical reference of all EduBASIC commands, mathematical functions, and operators.
 
 ---
 
@@ -3168,13 +3282,13 @@ LET result# = ASINH 1.0
 
 ### ASC
 
-**Type:** Function (String)  
+**Type:** Operator (String)  
 **Syntax:** `ASC string$`  
 **Description:** Returns the ASCII code of the first character in the string.  
 **Example:**
 ```
-LET code% = ASC% "A"        ' 65
-LET code% = ASC% "a"        ' 97
+LET code% = ASC "A"        ' 65
+LET code% = ASC "a"        ' 97
 ```
 
 ---
@@ -3204,16 +3318,16 @@ LET result# = ATANH 0.5
 
 ---
 
-### BIN$
+### BIN
 
-**Type:** Function (String)  
-**Syntax:** `BIN$ integer%`  
+**Type:** Operator (String)  
+**Syntax:** `BIN integer%`  
 **Description:** Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation (32 bits for 32-bit integers).  
 **Example:**
 ```
-LET binStr$ = BIN$ 10     ' "1010"
-LET binStr$ = BIN$ 255    ' "11111111"
-LET binStr$ = BIN$ -1     ' "11111111111111111111111111111111"
+LET binStr$ = BIN 10     ' "1010"
+LET binStr$ = BIN 255    ' "11111111"
+LET binStr$ = BIN -1     ' "11111111111111111111111111111111"
 ```
 
 ---
@@ -3291,15 +3405,15 @@ PRINT result#    ' Prints: 3.0
 
 ---
 
-### CHR$
+### CHR
 
-**Type:** Function (String)  
-**Syntax:** `CHR$ code%`  
+**Type:** Operator (String)  
+**Syntax:** `CHR code%`  
 **Description:** Returns the character corresponding to the ASCII code.  
 **Example:**
 ```
-LET char$ = CHR$ 65        ' "A"
-LET newline$ = CHR$ 10     ' Newline character
+LET char$ = CHR 65        ' "A"
+LET newline$ = CHR 10     ' Newline character
 ```
 
 ---
@@ -3321,7 +3435,7 @@ CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 
 ### CEIL
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `CEIL x#`  
 **Description:** Rounds `x` toward positive infinity (+∞). Returns the smallest integer ≥ `x`.  
 **Example:**
@@ -3624,9 +3738,9 @@ END UNLESS
 
 ### EOF
 
-**Type:** Function (File I/O)  
+**Type:** Operator (File I/O)  
 **Syntax:** `EOF fileHandle%`  
-**Description:** Checks if the file pointer is at the end of the file. Returns integer: 0 = false, -1 = true.  
+**Description:** Unary operator that checks if the file pointer is at the end of the file. Returns integer: 0 = false, -1 = true.  
 **Example:**
 ```
 OPEN "data.txt" FOR READ AS file%
@@ -3672,7 +3786,7 @@ PRINT result#    ' Prints: 2.718... (e)
 
 ### EXPAND
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `EXPAND x#`  
 **Description:** Rounds `x` away from zero.  
 **Example:**
@@ -3685,7 +3799,7 @@ PRINT EXPAND -3.1    ' Prints: -4
 
 ### FLOOR
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `FLOOR x#`  
 **Description:** Rounds `x` toward negative infinity (-∞). Returns the largest integer ≤ `x`.  
 **Example:**
@@ -3696,17 +3810,17 @@ PRINT FLOOR -3.2     ' Prints: -4
 
 ---
 
-### FIND%
+### FIND
 
 **Type:** Operator (Array Search)  
-**Syntax:** `array[] FIND% value`  
+**Syntax:** `array[] FIND value`  
 **Description:** Finds the first element in an array that matches a value. Returns the element value if found, or 0 (for numeric arrays) or "" (for string arrays) if not found.  
 **Example:**
 ```
-LET found% = numbers%[] FIND% 5
+LET found% = numbers%[] FIND 5
 IF found% <> 0 THEN PRINT "Found:", found%
 
-LET found$ = names$[] FIND% "Bob"
+LET found$ = names$[] FIND "Bob"
 IF found$ <> "" THEN PRINT "Found:", found$
 ```
 
@@ -3807,17 +3921,17 @@ PRINT imagPart#    ' Prints: 4.0
 
 ---
 
-### HEX$
+### HEX
 
-**Type:** Function (String)  
-**Syntax:** `HEX$ integer%`  
+**Type:** Operator (String)  
+**Syntax:** `HEX integer%`  
 **Description:** Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation (8 hex digits for 32-bit integers).  
 **Example:**
 ```
-LET hexStr$ = HEX$ 255    ' "FF"
-LET hexStr$ = HEX$ 10     ' "A"
-LET hexStr$ = HEX$ -1     ' "FFFFFFFF"
-LET hexStr$ = HEX$ 4095    ' "FFF"
+LET hexStr$ = HEX 255    ' "FF"
+LET hexStr$ = HEX 10     ' "A"
+LET hexStr$ = HEX -1     ' "FFFFFFFF"
+LET hexStr$ = HEX 4095    ' "FFF"
 ```
 
 ---
@@ -3834,17 +3948,17 @@ LET result% = 5 IMP 3    ' Binary implication
 
 ---
 
-### INKEY$
+### INKEY
 
-**Type:** Function (Input)  
-**Syntax:** `INKEY$`  
-**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name. For scan codes, use `INKEYSCAN$` instead.  
-**Return Values for `INKEY$`:**
+**Type:** Operator (Input)  
+**Syntax:** `INKEY`  
+**Description:** Nullary operator (takes zero arguments) that returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name. For scan codes, use `INKEYSCAN` instead.  
+**Return Values for `INKEY`:**
 - **Empty string (`""`):** No key is currently pressed
 - **Printable characters:** Returns the character as a string (e.g., `"a"`, `"A"`, `"1"`, `" "`)
 - **Special keys:** Returns special key names (see table below)
 
-**Return Values for `INKEYSCAN$`:**
+**Return Values for `INKEYSCAN`:**
 - **Empty string (`""`):** No key is currently pressed
 - **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
 
@@ -3873,13 +3987,13 @@ LET result% = 5 IMP 3    ' Binary implication
 | Alt | `"ALT"` | SC:18 |
 | Caps Lock | `"CAPSLOCK"` | SC:20 |
 
-**Note:** Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values. The actual scan code values may vary by platform and keyboard layout. Special key names are case-sensitive. Use `INKEY$` for character-based input handling and `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout.
+**Note:** Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values. The actual scan code values may vary by platform and keyboard layout. Special key names are case-sensitive. Use `INKEY` for character-based input handling and `INKEYSCAN` when you need to detect specific physical keys regardless of keyboard layout.
 
 **Examples:**
 ```
 ' Basic usage - get character or special key name
 DO
-    LET key$ = INKEY$
+    LET key$ = INKEY
     IF key$ <> "" THEN
         PRINT "Key pressed: "; key$
         IF key$ = "ESC" THEN EXIT DO
@@ -3887,7 +4001,7 @@ DO
 LOOP
 
 ' Detect arrow keys for game movement
-LET key$ = INKEY$
+LET key$ = INKEY
 IF key$ = "ARROWUP" THEN
     LET y% += 1
 ELSEIF key$ = "ARROWDOWN" THEN
@@ -3899,17 +4013,17 @@ ELSEIF key$ = "ARROWRIGHT" THEN
 END IF
 
 ' Get scan code
-LET scanCode$ = INKEYSCAN$
+LET scanCode$ = INKEYSCAN
 IF scanCode$ <> "" THEN
     IF scanCode$[1 TO 3] = "SC:" THEN
         LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL# codeStr$
+        LET code% = VAL codeStr$
         PRINT "Scan code: "; code%
     END IF
 END IF
 
 ' Check for function keys
-LET key$ = INKEY$
+LET key$ = INKEY
 IF key$ = "F1" THEN
     GOSUB ShowHelp
 ELSEIF key$ = "F2" THEN
@@ -3919,18 +4033,18 @@ END IF
 
 ---
 
-### INKEYSCAN$
+### INKEYSCAN
 
-**Type:** Function (Input)  
-**Syntax:** `INKEYSCAN$`  
-**Description:** Returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, or empty string if no key is pressed. Non-blocking keyboard input. Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout. Use `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout, or when you need the raw scan code for advanced key handling.  
+**Type:** Operator (Input)  
+**Syntax:** `INKEYSCAN`  
+**Description:** Nullary operator (takes zero arguments) that returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, or empty string if no key is pressed. Non-blocking keyboard input. Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout. Use `INKEYSCAN` when you need to detect specific physical keys regardless of keyboard layout, or when you need the raw scan code for advanced key handling.  
 **Example:**
 ```
-LET scanCode$ = INKEYSCAN$
+LET scanCode$ = INKEYSCAN
 IF scanCode$ <> "" THEN
     IF scanCode$[1 TO 3] = "SC:" THEN
         LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL# codeStr$
+        LET code% = VAL codeStr$
         PRINT "Scan code: "; code%
         IF code% = 27 THEN PRINT "ESC key pressed"
     END IF
@@ -3958,71 +4072,71 @@ INPUT scores%[]
 
 ---
 
-### INSTR%
+### INSTR
 
 **Type:** Operator (String Search)  
-**Syntax:** `string$ INSTR% substring$` or `string$ INSTR% substring$ FROM start%`  
+**Syntax:** `string$ INSTR substring$` or `string$ INSTR substring$ FROM start%`  
 **Description:** Finds the position of the first occurrence of `substring$` in `string$`. With `FROM`, search begins at that position. Returns 0 if not found.  
 **Example:**
 ```
-LET pos% = "Hello world" INSTR% "world"    ' 7
-LET pos% = "Hello world" INSTR% "o" FROM 5    ' 5 (start search at position 5)
+LET pos% = "Hello world" INSTR "world"    ' 7
+LET pos% = "Hello world" INSTR "o" FROM 5    ' 5 (start search at position 5)
 ```
 
 ---
 
-### INDEXOF%
+### INDEXOF
 
 **Type:** Operator (Array Search)  
-**Syntax:** `array[] INDEXOF% value`  
+**Syntax:** `array[] INDEXOF value`  
 **Description:** Finds the index of the first occurrence of a value in an array. Returns 0 if not found.  
 **Example:**
 ```
-LET index% = numbers%[] INDEXOF% 5
+LET index% = numbers%[] INDEXOF 5
 IF index% > 0 THEN PRINT "Found at index:", index%
 
-LET index% = names$[] INDEXOF% "Bob"
+LET index% = names$[] INDEXOF "Bob"
 IF index% > 0 THEN PRINT "Found at index:", index%
 ```
 
 ---
 
-### INCLUDES%
+### INCLUDES
 
 **Type:** Operator (Array Search)  
-**Syntax:** `array[] INCLUDES% value`  
+**Syntax:** `array[] INCLUDES value`  
 **Description:** Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.  
 **Example:**
 ```
-IF numbers%[] INCLUDES% 5 THEN PRINT "Found"
-IF names$[] INCLUDES% "Bob" THEN PRINT "Found"
+IF numbers%[] INCLUDES 5 THEN PRINT "Found"
+IF names$[] INCLUDES "Bob" THEN PRINT "Found"
 ```
 
 ---
 
 ### INT
 
-**Type:** Function (Math)  
+**Type:** Operator (Math)  
 **Syntax:** `INT x#`  
 **Description:** Converts a real number to an integer by truncating the decimal part (rounds toward zero).  
 **Example:**
 ```
-LET dice% = INT% (RND# * 6) + 1    ' Random integer 1-6
-PRINT INT% 3.9    ' Prints: 3
-PRINT INT% -3.9   ' Prints: -3
+LET dice% = INT (RND * 6) + 1    ' Random integer 1-6
+PRINT INT 3.9    ' Prints: 3
+PRINT INT -3.9   ' Prints: -3
 ```
 
 ---
 
-### JOIN$
+### JOIN
 
 **Type:** Operator (Array)  
-**Syntax:** `array$[] JOIN$ separator$`  
+**Syntax:** `array$[] JOIN separator$`  
 **Description:** Joins array elements into a string with a separator.  
 **Example:**
 ```
 LET names$[] = ["Alice", "Bob", "Charlie"]
-LET joined$ = names$[] JOIN$ ", "    ' "Alice, Bob, Charlie"
+LET joined$ = names$[] JOIN ", "    ' "Alice, Bob, Charlie"
 ```
 
 ---
@@ -4043,14 +4157,14 @@ PRINT "Looping..."
 
 ---
 
-### LCASE$
+### LCASE
 
-**Type:** Function (String)  
-**Syntax:** `LCASE$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `LCASE string$`  
 **Description:** Returns a copy of the string converted to lowercase.  
 **Example:**
 ```
-LET lower$ = LCASE$ "WORLD"    ' "world"
+LET lower$ = LCASE "WORLD"    ' "world"
 ```
 
 ---
@@ -4069,16 +4183,16 @@ LINE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled rectangle
 
 ---
 
-### LEFT$
+### LEFT
 
-**Type:** Function (String)  
-**Syntax:** `LEFT$ string$ length%`  
+**Type:** Operator (String)  
+**Syntax:** `string$ LEFT length%`  
 **Description:** Returns the leftmost `length%` characters of the string. If `length%` is greater than the string length, returns the entire string.  
 **Example:**
 ```
 LET text$ = "Hello, world!"
-LET firstWord$ = LEFT$ text$ 5    ' "Hello"
-LET firstChar$ = LEFT$ text$ 1    ' "H"
+LET firstWord$ = text$ LEFT 5    ' "Hello"
+LET firstChar$ = text$ LEFT 1    ' "H"
 ```
 
 ---
@@ -4117,9 +4231,9 @@ NEXT i%
 
 ### LOC
 
-**Type:** Function (File I/O)  
+**Type:** Operator (File I/O)  
 **Syntax:** `LOC fileHandle%`  
-**Description:** Returns the current byte position in the file (0-based).  
+**Description:** Unary operator that returns the current byte position in the file (0-based).  
 **Example:**
 ```
 OPEN "data.bin" FOR READ AS file%
@@ -4181,29 +4295,29 @@ END SUB
 
 ---
 
-### LTRIM$
+### LTRIM
 
-**Type:** Function (String)  
-**Syntax:** `LTRIM$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `LTRIM string$`  
 **Description:** Returns a copy of the string with leading spaces removed.  
 **Example:**
 ```
-LET trimmed$ = LTRIM$ "  text"    ' "text"
+LET trimmed$ = LTRIM "  text"    ' "text"
 ```
 
 ---
 
-### MID$
+### MID
 
-**Type:** Function (String)  
-**Syntax:** `MID$ string$ start% length%`  
-**Description:** Returns a substring starting at position `start%` with length `length%`. If `start%` is beyond the string length, returns an empty string. If `length%` extends beyond the string, returns characters up to the end of the string.  
+**Type:** Operator (String)  
+**Syntax:** `string$ MID start% TO end%`  
+**Description:** Returns a substring from position `start%` to position `end%` (inclusive). If `start%` is beyond the string length, returns an empty string. If `end%` extends beyond the string, returns characters up to the end of the string.  
 **Example:**
 ```
 LET text$ = "Hello, world!"
-LET world$ = MID$ text$ 8 5    ' "world" (5 characters starting at position 8)
-LET middle$ = MID$ text$ 3 4    ' "llo," (4 characters starting at position 3)
-LET char$ = MID$ text$ 1 1    ' "H" (single character at position 1)
+LET world$ = text$ MID 8 TO 12    ' "world" (positions 8 to 12)
+LET middle$ = text$ MID 3 TO 6    ' "llo," (positions 3 to 6)
+LET char$ = text$ MID 1 TO 1    ' "H" (single character at position 1)
 ```
 
 ---
@@ -4282,10 +4396,13 @@ MKDIR "/Users/name/data"
 
 **Type:** Operator (Arithmetic)  
 **Syntax:** `expression1 MOD expression2`  
-**Description:** Returns the remainder of integer division.  
+**Description:** Returns the remainder of division. Works with both Integer and Real operands. When both operands are integers, the result is an integer. When either operand is real, the result is real.  
 **Example:**
 ```
-LET remainder% = 17 MOD 5
+LET remainder% = 17 MOD 5      ' Integer MOD Integer → Integer (2)
+LET remainder# = 17.5 MOD 5   ' Real MOD Integer → Real (2.5)
+LET remainder# = 17 MOD 5.5    ' Integer MOD Real → Real (0.5)
+LET remainder# = 17.5 MOD 5.5 ' Real MOD Real → Real (1.0)
 PRINT remainder%    ' Prints: 2
 ```
 
@@ -4503,7 +4620,7 @@ PRINT radians#    ' Prints: 1.5708... (π/2 radians)
 
 **Type:** Command (Random)  
 **Syntax:** `RANDOMIZE` or `RANDOMIZE seed%`  
-**Description:** Seeds the random number generator. Without argument, uses `TIMER%`.  
+**Description:** Seeds the random number generator. Without argument, uses `TIMER`.  
 **Example:**
 ```
 RANDOMIZE              ' Seed with system timer
@@ -4562,14 +4679,14 @@ PRINT realPart#    ' Prints: 3.0
 
 ---
 
-### REPLACE$
+### REPLACE
 
 **Type:** Operator (String)  
-**Syntax:** `string$ REPLACE$ oldSubstring$ WITH newSubstring$`  
+**Syntax:** `string$ REPLACE oldSubstring$ WITH newSubstring$`  
 **Description:** Returns a copy of the string with all occurrences of `oldSubstring$` replaced with `newSubstring$`.  
 **Example:**
 ```
-LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
+LET new$ = "Hello world" REPLACE "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
 ---
@@ -4608,7 +4725,7 @@ RETURN
 
 ### REVERSE
 
-**Type:** Function (Array)  
+**Type:** Operator (Array)  
 **Syntax:** `REVERSE array[]`  
 **Description:** Returns a new array with elements in reverse order.  
 **Example:**
@@ -4633,20 +4750,20 @@ RMDIR "/Users/name/old_data"
 
 ### RND
 
-**Type:** Function (Random)  
+**Type:** Operator (Random)  
 **Syntax:** `RND`  
-**Description:** Returns a random real number in the range [0, 1).  
+**Description:** Nullary operator (takes zero arguments) that returns a random real number in the range [0, 1).  
 **Example:**
 ```
 LET random# = RND
-LET dice% = INT% (RND# * 6) + 1    ' Random integer 1-6
+LET dice% = INT (RND * 6) + 1    ' Random integer 1-6
 ```
 
 ---
 
 ### ROUND
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `ROUND x#`  
 **Description:** Rounds `x` to the nearest integer. Ties round up.  
 **Example:**
@@ -4672,28 +4789,28 @@ OVAL AT (200, 200) WIDTH 80 HEIGHT 40 WITH &HFF00FFFF FILLED    ' Filled ellipse
 
 ---
 
-### RTRIM$
+### RTRIM
 
-**Type:** Function (String)  
-**Syntax:** `RTRIM$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `RTRIM string$`  
 **Description:** Returns a copy of the string with trailing spaces removed.  
 **Example:**
 ```
-LET trimmed$ = RTRIM$ "text  "    ' "text"
+LET trimmed$ = RTRIM "text  "    ' "text"
 ```
 
 ---
 
-### RIGHT$
+### RIGHT
 
-**Type:** Function (String)  
-**Syntax:** `RIGHT$ string$ length%`  
+**Type:** Operator (String)  
+**Syntax:** `string$ RIGHT length%`  
 **Description:** Returns the rightmost `length%` characters of the string. If `length%` is greater than the string length, returns the entire string.  
 **Example:**
 ```
 LET text$ = "Hello, world!"
-LET lastWord$ = RIGHT$ text$ 6    ' "world!"
-LET lastChar$ = RIGHT$ text$ 1    ' "!"
+LET lastWord$ = text$ RIGHT 6    ' "world!"
+LET lastChar$ = text$ RIGHT 1    ' "!"
 ```
 
 ---
@@ -4814,18 +4931,18 @@ PRINT result#    ' Prints: 4.0
 ---
 
 
-### STR$
+### STR
 
-**Type:** Function (String)  
-**Syntax:** `STR$ number`  
+**Type:** Operator (String)  
+**Syntax:** `STR number`  
 **Description:** Converts any numeric type (integer, real, or complex) to its decimal string representation. For complex numbers, the format is `"real+imaginaryi"` or `"real-imaginaryi"`.  
 **Example:**
 ```
 LET num% = 42
-LET numStr$ = STR$ num%    ' "42"
-LET piStr$ = STR$ 3.14159  ' "3.14159"
-LET complexStr$ = STR$ (3+4i)    ' "3+4i"
-LET complexStr$ = STR$ (3-4i)    ' "3-4i"
+LET numStr$ = STR num%    ' "42"
+LET piStr$ = STR 3.14159  ' "3.14159"
+LET complexStr$ = STR (3+4i)    ' "3+4i"
+LET complexStr$ = STR (3-4i)    ' "3-4i"
 ```
 
 ---
@@ -4924,13 +5041,13 @@ IF x% > 0 THEN PRINT "Positive"
 
 ### TIMER
 
-**Type:** Function (System)  
-**Syntax:** `TIMER%`  
-**Description:** Returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.  
+**Type:** Operator (System)  
+**Syntax:** `TIMER`  
+**Description:** Nullary operator (takes zero arguments) that returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.  
 **Example:**
 ```
-RANDOMIZE TIMER%    ' Seed random number generator with current time
-LET currentTime% = TIMER%
+RANDOMIZE TIMER    ' Seed random number generator with current time
+LET currentTime% = TIMER
 ```
 
 ---
@@ -4951,14 +5068,14 @@ CASE 90 TO 100
 
 ---
 
-### TRIM$
+### TRIM
 
-**Type:** Function (String)  
-**Syntax:** `TRIM$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `TRIM string$`  
 **Description:** Returns a copy of the string with leading and trailing spaces removed.  
 **Example:**
 ```
-LET trimmed$ = TRIM$ "  text  "   ' "text"
+LET trimmed$ = TRIM "  text  "   ' "text"
 ```
 
 ---
@@ -4978,7 +5095,7 @@ TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED    ' Filled
 
 ### TRUNC
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `TRUNC x#`  
 **Description:** Rounds `x` toward zero (truncates the decimal part).  
 **Example:**
@@ -5003,14 +5120,14 @@ TEMPO 180    ' Set to 180 BPM (fast)
 
 ---
 
-### UCASE$
+### UCASE
 
-**Type:** Function (String)  
-**Syntax:** `UCASE$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `UCASE string$`  
 **Description:** Returns a copy of the string converted to uppercase.  
 **Example:**
 ```
-LET upper$ = UCASE$ "hello"    ' "HELLO"
+LET upper$ = UCASE "hello"    ' "HELLO"
 ```
 
 ---
@@ -5088,21 +5205,21 @@ UNSHIFT names$[], "Alice"
 
 ---
 
-### VAL#
+### VAL
 
-**Type:** Function (String)  
-**Syntax:** `VAL# string$`  
+**Type:** Operator (String)  
+**Syntax:** `VAL string$`  
 **Description:** Converts a string to a real number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. Hexadecimal and binary strings are parsed as integers (then converted to real). Complex numbers use the format `"real+imaginaryi"` or `"real-imaginaryi"`. When assigned to integer or complex variables, type coercion automatically converts the result.  
 **Example:**
 ```
 LET text$ = "123"
-LET number% = VAL# text$    ' 123 (coerced to integer)
+LET number% = VAL text$    ' 123 (coerced to integer)
 LET decimal$ = "3.14"
-LET value# = VAL# decimal$  ' 3.14
-LET hexValue% = VAL# "&HFF"    ' 255 (hexadecimal, coerced to integer)
-LET binValue% = VAL# "&B1010"  ' 10 (binary, coerced to integer)
-LET complexValue& = VAL# "3+4i"    ' 3+4i (complex number, coerced to complex)
-LET complexValue& = VAL# "3-4i"    ' 3-4i (complex number, coerced to complex)
+LET value# = VAL decimal$  ' 3.14
+LET hexValue% = VAL "&HFF"    ' 255 (hexadecimal, coerced to integer)
+LET binValue% = VAL "&B1010"  ' 10 (binary, coerced to integer)
+LET complexValue& = VAL "3+4i"    ' 3+4i (complex number, coerced to complex)
+LET complexValue& = VAL "3-4i"    ' 3-4i (complex number, coerced to complex)
 ```
 
 ---
@@ -5204,7 +5321,7 @@ CLOSE file%
 **Description:** Writes an entire string to a file.  
 **Example:**
 ```
-LET report$ = "Sales Report" + CHR$ 10 + "Total: $1000"
+LET report$ = "Sales Report" + CHR 10 + "Total: $1000"
 WRITEFILE "report.txt" FROM report$
 WRITEFILE output$ TO "results.txt"
 ```
