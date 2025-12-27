@@ -3027,6 +3027,31 @@ LOOP
 
 EduBASIC provides audio capabilities using both Music Macro Language (MML) for note control and GRIT (Generative Random Iteration Tones) for timbre (sound character). All voices use both systems together, with ADSR envelopes controlling amplitude over time.
 
+### GRIT Overview
+
+**GRIT** (Generative Random Iteration Tones) is a noise synthesis system that generates procedural audio through LFSR-based (Linear Feedback Shift Register) bitstream manipulation. GRIT is inspired by and extends the classic Atari POKEY chip's noise synthesis capabilities.
+
+**How GRIT Works:**
+- GRIT uses **LFSRs** (Linear Feedback Shift Registers) to generate bitstreams that create different timbres
+- Each voice has **3 LFSR slots** (A, B, C) that can be enabled, combined, and configured independently
+- **8 primary LFSR types** are available, ranging from simple square waves (1-bit) to complex noise (31-bit)
+- LFSRs can be **combined** using logical operations (XOR, AND, OR, etc.) to create complex textures
+- **Decimation** controls the stepping rate, creating pitched tones from repeating patterns
+- **Clock coupling** allows one LFSR to control the timing of another, creating rhythmic patterns
+- The entire configuration is encoded in a single **32-bit NoiseCode** value
+
+**What GRIT Creates:**
+- **Pure tones**: Square waves, pulse waves, and fundamental tones
+- **Musical instruments**: Bass, leads, pads, and melodic sounds
+- **Percussion**: Drums, snares, hi-hats, and impact sounds
+- **Sound effects**: Engines, weapons, ambience, and classic game sounds (Pitfall!, Defender, etc.)
+
+**Key Features:**
+- **128 presets** (0-127) provide ready-to-use timbres organized by category
+- **Custom NoiseCodes** can be created using bitwise operations for advanced sound design
+- **Deterministic**: Same NoiseCode + frequency = same output (reproducible)
+- **Real-time**: Suitable for games, interactive applications, and live audio
+
 **Note Numbers:**
 - Note numbers use MIDI standard: 0-127
 - Middle C (C4) is note number 60
@@ -3110,6 +3135,110 @@ VOICE voiceNumber% WITH noiseCode% ADSR PRESET adsrPreset%
 - **NoiseCode Configuration:**
   - `PRESET noisePreset%`: Use a preset from the 128-entry GRIT preset table (0-127)
   - `WITH noiseCode%`: Use a custom NoiseCode value (32-bit unsigned integer bitfield)
+
+**GRIT NoiseCode Presets:**
+
+The 128 GRIT presets (0-127) are organized into 8 categories, each optimized for specific sound types:
+
+| Preset Range | Category | Description | Example Use Cases |
+|--------------|----------|-------------|------------------|
+| 0-15 | Pure Tones | Square waves, pulse waves, fundamental tones | Melodies, simple leads, classic game sounds |
+| 16-31 | Bass Instruments | Deep, low-frequency sounds | Basslines, low-end instruments |
+| 32-47 | Lead Instruments | Melodic lead sounds and arpeggios | Lead melodies, solos, arpeggiated patterns |
+| 48-63 | Drums & Percussion | Kick drums, snares, hi-hats, percussion | Rhythm sections, drum patterns |
+| 64-79 | Classic Game Sounds | Pitfall!, Defender, and other classic game sounds | Retro game sound effects, nostalgic tones |
+| 80-95 | Engines & Motors | Rhythmic mechanical sounds | Engine sounds, motor effects, mechanical textures |
+| 96-111 | Weapons & Impacts | Sharp, aggressive sounds | Weapon fire, impacts, explosions, sharp effects |
+| 112-127 | Ambience & Textures | Background textures and atmospheric sounds | Ambient backgrounds, atmospheric layers, textures |
+
+**Common Preset Examples:**
+- **Preset 0**: Pure Square 50/50 - Classic square wave, good for melodies
+- **Preset 5**: Pulse Decim 2 - Pulse wave with decimation, versatile
+- **Preset 10**: 9-bit Decim 8 - Classic Pitfall! style tone
+- **Preset 48**: Kick Drum - Deep kick drum sound
+- **Preset 64**: Pitfall! - Classic Pitfall! game sound
+- **Preset 80**: Engine - Rhythmic engine sound
+- **Preset 96**: Weapon - Sharp weapon sound
+- **Preset 112**: Wind - Ambient wind texture
+
+**Note:** Each preset is a single 32-bit NoiseCode value optimized for its category. Presets can be used directly or combined with different ADSR envelopes to create variations.
+
+**Custom NoiseCode Bit Layout:**
+
+For advanced users who want to create custom NoiseCode values, the 32-bit integer is organized as follows:
+
+| Bits | Field | Range | Description |
+|------|-------|-------|-------------|
+| 31-30 | Reserved | 0 | Must be 0 |
+| 29-27 | DECIM | 0-7 | Decimation factor (actual = value + 1, so 0 = ÷1, 7 = ÷8) |
+| 26-24 | SHAPE | 0-7 | Wave shaping mode (0=none, 1-7=AM, Ring, etc.) |
+| 23-21 | COMB | 0-7 | Combination operation (0=XOR, 1=AND, 2=OR, 3=NAND, 4=NOR, 5=XNOR, etc.) |
+| 20-18 | C_POLY | 0-7 | LFSR C polynomial (0=1-bit square, 1=25/75 pulse, 2=4-bit, 3=5-bit, 4=9-bit, 5=15-bit, 6=17-bit, 7=31-bit) |
+| 17-15 | B_POLY | 0-7 | LFSR B polynomial (same as C_POLY) |
+| 14-12 | A_POLY | 0-7 | LFSR A polynomial (same as C_POLY) |
+| 11 | C_CLK_B | 0-1 | Clock coupling: LFSR C clocks LFSR B |
+| 10 | B_CLK_A | 0-1 | Clock coupling: LFSR B clocks LFSR A |
+| 9 | C_INV | 0-1 | Invert LFSR C output |
+| 8 | B_INV | 0-1 | Invert LFSR B output |
+| 7 | A_INV | 0-1 | Invert LFSR A output |
+| 6 | C_EN | 0-1 | Enable LFSR C |
+| 5 | B_EN | 0-1 | Enable LFSR B |
+| 4 | A_EN | 0-1 | Enable LFSR A |
+| 3-0 | Reserved | 0 | Must be 0 |
+
+**NoiseCode Construction Formula:**
+
+```
+NoiseCode = (DECIM << 27) | (SHAPE << 24) | (COMB << 21) | 
+            (C_POLY << 18) | (B_POLY << 15) | (A_POLY << 12) | 
+            (C_CLK_B << 11) | (B_CLK_A << 10) | 
+            (C_INV << 9) | (B_INV << 8) | (A_INV << 7) | 
+            (C_EN << 6) | (B_EN << 5) | (A_EN << 4)
+```
+
+**Example: Creating a Custom NoiseCode**
+
+```
+' Create a custom NoiseCode: 9-bit LFSR A enabled, decimation ÷8, no shaping
+LET decim% = 7        ' ÷8 (value 7 = decimation 8)
+LET shape% = 0        ' No shaping
+LET comb% = 0         ' XOR combination
+LET aPoly% = 4        ' 9-bit LFSR
+LET bPoly% = 0        ' Not used
+LET cPoly% = 0        ' Not used
+LET cClkB% = 0        ' No clock coupling
+LET bClkA% = 0        ' No clock coupling
+LET cInv% = 0         ' No inversion
+LET bInv% = 0         ' No inversion
+LET aInv% = 0         ' No inversion
+LET cEn% = 0          ' LFSR C disabled
+LET bEn% = 0          ' LFSR B disabled
+LET aEn% = 1          ' LFSR A enabled
+
+LET customNoise% = (decim% << 27) OR (shape% << 24) OR (comb% << 21) OR _
+                    (cPoly% << 18) OR (bPoly% << 15) OR (aPoly% << 12) OR _
+                    (cClkB% << 11) OR (bClkA% << 10) OR _
+                    (cInv% << 9) OR (bInv% << 8) OR (aInv% << 7) OR _
+                    (cEn% << 6) OR (bEn% << 5) OR (aEn% << 4)
+
+' This creates NoiseCode 0x38004010 (same as preset 10: 9-bit Decim 8)
+VOICE 0 WITH customNoise% ADSR PRESET 0
+```
+
+**Common Patterns:**
+
+- **Simple square wave**: Enable only LFSR A with polynomial 0 (1-bit square), no decimation
+  - `LET simpleSquare% = &H00000010` (same as preset 0)
+
+- **Pulse wave**: Enable only LFSR A with polynomial 1 (25/75 pulse), no decimation
+  - `LET pulseWave% = &H00001010` (same as preset 1)
+
+- **Pitched tone**: Use 9-bit LFSR (polynomial 4) with decimation ÷8
+  - `LET pitchedTone% = &H38004010` (same as preset 10)
+
+- **Noise texture**: Enable multiple LFSRs (A and B) with XOR combination
+  - `LET noiseTexture% = &H00004010` (17-bit LFSRs with XOR)
+
 - **ADSR Envelope Configuration:**
   - `ADSR attack# decay# sustain# release#`: Configure amplitude envelope with custom values
     - `attack#`: Time to reach full amplitude from zero (typically 0.0-2.0 seconds)
@@ -3257,7 +3386,11 @@ Music Macro Language (MML) controls frequency (notes), timing, and velocity for 
 - `V` followed by number (0-127) sets the velocity (loudness) for subsequent notes
 - Default velocity is typically 64 (50%)
 - Velocity is relative to the global `VOLUME` setting
-- Example: `V100 C4 D4 V64 E4` plays C and D at velocity 100, then E at velocity 64
+- Velocity persists until changed by another `V` command
+- Higher velocity values produce louder notes (within the limits of the global volume)
+- Example: `V100 C4 D4 V64 E4` plays C and D at velocity 100 (louder), then E at velocity 64 (softer)
+- Example: `V127 C D E` plays all three notes at maximum velocity
+- Example: `V0 C D E` plays all three notes silently (velocity 0)
 
 **Checking Remaining Notes:**
 - Use the `NOTES` operator to check how many notes remain for a voice
