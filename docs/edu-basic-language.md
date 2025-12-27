@@ -953,7 +953,7 @@ IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE (shorter array)
 EduBASIC follows standard mathematical operator precedence:
 
 1. Parentheses `()` (highest precedence)
-2. Prefix unary operators: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`
+2. Prefix unary operators: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
 3. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
 4. Absolute value / norm / array length / string length `| |`
 5. Unary `+` and `-`
@@ -3175,7 +3175,7 @@ VOICE 3 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
 
 ### PLAY Statement
 
-The `PLAY` statement plays music or sound on a specific voice.
+The `PLAY` statement plays music or sound on a specific voice. **All `PLAY` statements play music in the background**—execution continues immediately without waiting for the music to finish.
 
 **Syntax:**
 ```
@@ -3190,6 +3190,7 @@ PLAY voiceNumber%, mmlString$
 - The voice's ADSR envelope (configured by `VOICE` ADSR) controls amplitude shaping
 - Each `PLAY` statement plays on the specified voice
 - Multiple voices can play simultaneously
+- **All `PLAY` statements execute asynchronously in the background**—the program continues immediately
 - Velocity in MML (`V` command) is relative to the global `VOLUME` setting
 
 ### MML Syntax Reference
@@ -3231,6 +3232,13 @@ Music Macro Language (MML) controls frequency (notes), timing, and velocity for 
 - Velocity is relative to the global `VOLUME` setting
 - Example: `V100 C4 D4 V64 E4` plays C and D at velocity 100, then E at velocity 64
 
+**Checking Remaining Notes:**
+- Use the `NOTES` operator to check how many notes remain for a voice
+- Syntax: `NOTES voiceNumber%`
+- Returns the number of notes remaining in the voice's playback queue
+- Returns 0 when the voice has finished playing all notes
+- Useful for checking if a voice is still playing music
+
 **Examples:**
 ```
 ' Set up voices with GRIT timbres and ADSR envelopes
@@ -3240,6 +3248,7 @@ VOICE 1 PRESET 10 ADSR PRESET 1   ' Weapon sound timbre with percussive ADSR
 TEMPO 120
 
 ' Play melody - MML controls notes, GRIT preset 5 controls timbre, ADSR controls amplitude
+' Note: PLAY executes in background, program continues immediately
 PLAY 0, "CDEFGAB C"
 
 ' Play with velocity (V command)
@@ -3247,6 +3256,10 @@ PLAY 0, "V100 CDEF V64 GAB"
 
 ' Play with note numbers (MIDI)
 PLAY 0, "N60 N62 N64 N65 N67"
+
+' Check how many notes remain
+LET notesLeft% = NOTES 0
+IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: "; notesLeft%; " notes"
 
 ' Play on different voice - same MML, different GRIT timbre and ADSR
 PLAY 1, "N60 L4"    ' Play note 60 (middle C) for quarter note duration
@@ -3283,11 +3296,17 @@ VOICE 0 PRESET 0 ADSR PRESET 0    ' Timbre for voice 0
 VOICE 1 PRESET 5 ADSR PRESET 0    ' Different timbre for voice 1
 TEMPO 120
 
-' Melody on voice 0
+' Melody on voice 0 (plays in background)
 PLAY 0, "CDEFGAB C"
 
-' Harmony on voice 1
+' Harmony on voice 1 (plays in background, simultaneously with voice 0)
 PLAY 1, "CEG CEG"
+
+' Check remaining notes for both voices
+LET notes0% = NOTES 0
+LET notes1% = NOTES 1
+PRINT "Voice 0: "; notes0%; " notes remaining"
+PRINT "Voice 1: "; notes1%; " notes remaining"
 ```
 
 **GRIT Noise Example:**
@@ -4715,14 +4734,18 @@ PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF    ' Fill bounded by blue pix
 
 **Type:** Command (Audio)  
 **Syntax:** `PLAY voiceNumber%, mmlString$`  
-**Description:** Plays music or sound on a specific voice using Music Macro Language (MML). `voiceNumber%` must be a voice created with `VOICE` statement. `mmlString$` contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the GRIT NoiseCode configured in `VOICE`, and amplitude shaping is controlled by the ADSR envelope. Multiple voices can play simultaneously. Velocity in MML (`V` command) is relative to the global `VOLUME` setting.  
+**Description:** Plays music or sound on a specific voice using Music Macro Language (MML). **All `PLAY` statements play music in the background**—execution continues immediately without waiting for the music to finish. `voiceNumber%` must be a voice created with `VOICE` statement. `mmlString$` contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the GRIT NoiseCode configured in `VOICE`, and amplitude shaping is controlled by the ADSR envelope. Multiple voices can play simultaneously. Use `NOTES` operator to check how many notes remain for a voice. Velocity in MML (`V` command) is relative to the global `VOLUME` setting.  
 **Example:**
 ```
 VOICE 0 PRESET 5 ADSR 0.01 0.1 0.7 0.2
 TEMPO 120
-PLAY 0, "CDEFGAB C"    ' Play scale
-PLAY 0, "V100 C L4 V64 D L4"    ' Play with velocity
-PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers
+PLAY 0, "CDEFGAB C"    ' Play scale (continues in background)
+PLAY 0, "V100 C L4 V64 D L4"    ' Play with velocity (continues in background)
+PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers (continues in background)
+
+' Check how many notes remain
+LET notesLeft% = NOTES 0
+IF notesLeft% > 0 THEN PRINT "Still playing: "; notesLeft%; " notes remaining"
 ```
 
 ---
@@ -4807,6 +4830,26 @@ PRINT radians#    ' Prints: 1.5708... (π/2 radians)
 ```
 RANDOMIZE              ' Seed with system timer
 RANDOMIZE 12345        ' Seed with specific value
+```
+
+---
+
+### NOTES
+
+**Type:** Operator (Audio)  
+**Syntax:** `NOTES voiceNumber%`  
+**Description:** Returns the number of notes remaining in the playback queue for the specified voice. Returns 0 when the voice has finished playing all notes. Useful for checking if a voice is still playing music.  
+**Example:**
+```
+PLAY 0, "CDEFGAB C"
+LET notesLeft% = NOTES 0
+IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: "; notesLeft%; " notes remaining"
+
+' Wait for voice to finish
+DO
+    LET notesLeft% = NOTES 0
+LOOP WHILE notesLeft% > 0
+PRINT "Voice 0 finished playing"
 ```
 
 ---
