@@ -969,7 +969,7 @@ EduBASIC follows standard mathematical operator precedence:
 15. `XOR`, `XNOR` (binary logical)
 16. `IMP` (binary logical, lowest precedence)
 
-**Note:** Nullary operators (`RND`, `INKEY`, `INKEYSCAN`, `TIMER`) take zero arguments and do not participate in operator precedence. They can appear anywhere in an expression and are evaluated independently.
+**Note:** Nullary operators (`RND`, `INKEY`, `TIMER`) take zero arguments and do not participate in operator precedence. They can appear anywhere in an expression and are evaluated independently.
 
 When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.
 
@@ -1897,13 +1897,20 @@ LINE FROM (0, 0) TO (100, 100) WITH &HFF0000FF    ' Red line (overrides global)
 
 ### SET Statement
 
-The `SET` statement configures system-wide settings for the text display system.
+The `SET` statement configures system-wide settings.
 
 **Syntax:**
 ```
 SET LINE SPACING ON
 SET LINE SPACING OFF
+SET TEXT WRAP ON
+SET TEXT WRAP OFF
+SET AUDIO ON
+SET AUDIO OFF
+SET VOLUME volume#
 ```
+
+#### Line Spacing
 
 **Text Grid Dimensions:**
 
@@ -1919,6 +1926,34 @@ EduBASIC uses IBM Plex Mono font, where each character is rendered at exactly 8�
   - Height: 480 pixels ÷ (16 pixels per character + 4 pixels spacing) = 24 rows
   - Each line of text has 4 additional pixels of spacing after it, making text more readable but reducing the number of available rows
 
+#### Text Wrapping
+
+The text wrap setting controls whether long lines of text automatically wrap to the next line when they exceed the width of the text display.
+
+- **With text wrap OFF (default):** Long lines are truncated at the right edge of the display (80 characters)
+- **With text wrap ON:** Long lines automatically wrap to the next line, breaking at word boundaries when possible
+
+**Note:** Text wrapping only affects lines that exceed the display width. Short lines are unaffected.
+
+#### Audio
+
+The audio setting controls whether audio output is enabled or disabled.
+
+- **With audio ON (default):** All audio output is enabled. `PLAY`, `VOLUME`, and `TEMPO` statements work normally.
+- **With audio OFF:** All audio output is disabled. `PLAY` statements are ignored, and no sound is produced.
+
+**Note:** When audio is OFF, `PLAY` statements execute without error but produce no sound. The `NOTES` operator still returns valid values for voices that have been configured, but no actual audio playback occurs.
+
+#### Volume
+
+The `SET VOLUME` command sets the global audio volume as a real number between 0.0 and 1.0 (inclusive). The value is automatically clamped to the range [0, 1].
+
+- **Volume 0.0:** Silent (no audio output)
+- **Volume 1.0:** Maximum volume (100%)
+- **Values outside [0, 1]:** Automatically clamped to the nearest valid value
+
+**Note:** `SET VOLUME` is an alternative to the `VOLUME` statement. `VOLUME` uses integer values 0-127, while `SET VOLUME` uses real values 0.0-1.0. Both commands control the same global volume setting.
+
 **Examples:**
 ```
 SET LINE SPACING OFF    ' Use 80×30 character grid (default)
@@ -1928,13 +1963,31 @@ PRINT "Bottom row"
 SET LINE SPACING ON     ' Use 80×24 character grid
 LOCATE 24, 1
 PRINT "Bottom row with spacing"
+
+SET TEXT WRAP OFF       ' Truncate long lines (default)
+PRINT "This is a very long line that will be truncated at 80 characters..."
+
+SET TEXT WRAP ON        ' Wrap long lines automatically
+PRINT "This is a very long line that will automatically wrap to the next line when it exceeds 80 characters..."
+
+SET AUDIO ON            ' Enable audio output (default)
+PLAY 0, "CDEFGAB C"
+
+SET AUDIO OFF           ' Disable audio output
+PLAY 0, "CDEFGAB C"     ' No sound produced, but no error
+
+SET VOLUME 1.0          ' Maximum volume
+SET VOLUME 0.5          ' Half volume
+SET VOLUME 0.0          ' Silent
+SET VOLUME 1.5          ' Clamped to 1.0 (maximum)
+SET VOLUME -0.5         ' Clamped to 0.0 (silent)
 ```
 
-**Note:** The line spacing setting affects the entire text display and persists until changed. When line spacing is enabled, the additional 4 pixels of vertical spacing are added after each character row, creating more readable text at the cost of fewer available rows.
+**Note:** All settings persist until changed. The line spacing setting affects the entire text display. Text wrapping only affects lines that exceed the display width. Audio settings affect all audio output globally. Volume values are automatically clamped to [0, 1].
 
 ### Keyboard Input
 
-EduBASIC provides non-blocking keyboard input through the `INKEY` and `INKEYSCAN` operators, which allow programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
+EduBASIC provides non-blocking keyboard input through the `INKEY` operator, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
 
 #### INKEY Operator
 
@@ -1998,33 +2051,7 @@ IF key$ = "F2" THEN GOSUB SaveGame
 IF key$ = "ENTER" THEN GOSUB SelectOption
 ```
 
-#### INKEYSCAN Operator
-
-The `INKEYSCAN` operator is a nullary operator (takes zero arguments) that returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, where `nnn` is the decimal scan code.
-
-**Return Values:**
-- **Empty string (`""`):** No key is currently pressed
-- **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
-
-**Use Cases:**
-- Use `INKEYSCAN` when you need to detect specific physical keys regardless of keyboard layout
-- Use `INKEYSCAN` when you need the raw scan code for advanced key handling
-- Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout
-
-**Examples:**
-```
-LET scanCode$ = INKEYSCAN
-IF scanCode$ <> "" THEN
-    IF scanCode$[1 TO 3] = "SC:" THEN
-        LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL codeStr$
-        PRINT "Scan code: "; code%
-        IF code% = 27 THEN PRINT "ESC key pressed"
-    END IF
-END IF
-```
-
-**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY` or `INKEYSCAN`.
+**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY`.
 
 ### String Operations
 
@@ -4153,42 +4180,38 @@ LET result% = 5 IMP 3    ' Binary implication
 
 **Type:** Operator (Input)  
 **Syntax:** `INKEY`  
-**Description:** Nullary operator (takes zero arguments) that returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name. For scan codes, use `INKEYSCAN` instead.  
-**Return Values for `INKEY`:**
+**Description:** Nullary operator (takes zero arguments) that returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name.  
+**Return Values:**
 - **Empty string (`""`):** No key is currently pressed
 - **Printable characters:** Returns the character as a string (e.g., `"a"`, `"A"`, `"1"`, `" "`)
 - **Special keys:** Returns special key names (see table below)
 
-**Return Values for `INKEYSCAN`:**
-- **Empty string (`""`):** No key is currently pressed
-- **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
-
 **Special Key Names:**
 
-| Key | Return Value | Scan Code (approx) |
-|-----|--------------|-------------------|
-| Escape | `"ESC"` | SC:27 |
-| Enter/Return | `"ENTER"` | SC:13 |
-| Backspace | `"BACKSPACE"` | SC:8 |
-| Tab | `"TAB"` | SC:9 |
-| Space | `" "` (space character) | SC:32 |
-| Arrow Up | `"ARROWUP"` | SC:38 |
-| Arrow Down | `"ARROWDOWN"` | SC:40 |
-| Arrow Left | `"ARROWLEFT"` | SC:37 |
-| Arrow Right | `"ARROWRIGHT"` | SC:39 |
-| Home | `"HOME"` | SC:36 |
-| End | `"END"` | SC:35 |
-| Page Up | `"PAGEUP"` | SC:33 |
-| Page Down | `"PAGEDOWN"` | SC:34 |
-| Insert | `"INSERT"` | SC:45 |
-| Delete | `"DELETE"` | SC:46 |
-| F1-F12 | `"F1"` through `"F12"` | SC:112-123 |
-| Shift | `"SHIFT"` | SC:16 |
-| Control | `"CTRL"` | SC:17 |
-| Alt | `"ALT"` | SC:18 |
-| Caps Lock | `"CAPSLOCK"` | SC:20 |
+| Key | Return Value |
+|-----|--------------|
+| Escape | `"ESC"` |
+| Enter/Return | `"ENTER"` |
+| Backspace | `"BACKSPACE"` |
+| Tab | `"TAB"` |
+| Space | `" "` (space character) |
+| Arrow Up | `"ARROWUP"` |
+| Arrow Down | `"ARROWDOWN"` |
+| Arrow Left | `"ARROWLEFT"` |
+| Arrow Right | `"ARROWRIGHT"` |
+| Home | `"HOME"` |
+| End | `"END"` |
+| Page Up | `"PAGEUP"` |
+| Page Down | `"PAGEDOWN"` |
+| Insert | `"INSERT"` |
+| Delete | `"DELETE"` |
+| F1-F12 | `"F1"` through `"F12"` |
+| Shift | `"SHIFT"` |
+| Control | `"CTRL"` |
+| Alt | `"ALT"` |
+| Caps Lock | `"CAPSLOCK"` |
 
-**Note:** Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values. The actual scan code values may vary by platform and keyboard layout. Special key names are case-sensitive. Use `INKEY` for character-based input handling and `INKEYSCAN` when you need to detect specific physical keys regardless of keyboard layout.
+**Note:** Special key names are case-sensitive.
 
 **Examples:**
 ```
@@ -4213,42 +4236,12 @@ ELSEIF key$ = "ARROWRIGHT" THEN
     LET x% += 1
 END IF
 
-' Get scan code
-LET scanCode$ = INKEYSCAN
-IF scanCode$ <> "" THEN
-    IF scanCode$[1 TO 3] = "SC:" THEN
-        LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL codeStr$
-        PRINT "Scan code: "; code%
-    END IF
-END IF
-
 ' Check for function keys
 LET key$ = INKEY
 IF key$ = "F1" THEN
     GOSUB ShowHelp
 ELSEIF key$ = "F2" THEN
     GOSUB SaveGame
-END IF
-```
-
----
-
-### INKEYSCAN
-
-**Type:** Operator (Input)  
-**Syntax:** `INKEYSCAN`  
-**Description:** Nullary operator (takes zero arguments) that returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, or empty string if no key is pressed. Non-blocking keyboard input. Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout. Use `INKEYSCAN` when you need to detect specific physical keys regardless of keyboard layout, or when you need the raw scan code for advanced key handling.  
-**Example:**
-```
-LET scanCode$ = INKEYSCAN
-IF scanCode$ <> "" THEN
-    IF scanCode$[1 TO 3] = "SC:" THEN
-        LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL codeStr$
-        PRINT "Scan code: "; code%
-        IF code% = 27 THEN PRINT "ESC key pressed"
-    END IF
 END IF
 ```
 
@@ -5077,13 +5070,23 @@ CLOSE file%
 
 ### SET
 
-**Type:** Command (Text I/O)  
-**Syntax:** `SET LINE SPACING ON` or `SET LINE SPACING OFF`  
-**Description:** Configures system-wide settings for the text display system. `SET LINE SPACING OFF` uses 80×30 character grid (default). `SET LINE SPACING ON` uses 80×24 character grid with 4 additional pixels of spacing after each line.  
+**Type:** Command (System Settings)  
+**Syntax:** `SET LINE SPACING ON` / `SET LINE SPACING OFF` / `SET TEXT WRAP ON` / `SET TEXT WRAP OFF` / `SET AUDIO ON` / `SET AUDIO OFF` / `SET VOLUME volume#`  
+**Description:** Configures system-wide settings. **Line Spacing:** `SET LINE SPACING OFF` uses 80×30 character grid (default). `SET LINE SPACING ON` uses 80×24 character grid with 4 additional pixels of spacing after each line. **Text Wrapping:** `SET TEXT WRAP OFF` truncates long lines at 80 characters (default). `SET TEXT WRAP ON` automatically wraps long lines to the next line. **Audio:** `SET AUDIO ON` enables all audio output (default). `SET AUDIO OFF` disables all audio output (PLAY statements are ignored but produce no error). **Volume:** `SET VOLUME volume#` sets global audio volume as a real number between 0.0 and 1.0 (inclusive), automatically clamped to [0, 1]. Volume 0.0 is silent, 1.0 is maximum. This is an alternative to the `VOLUME` statement (which uses integer values 0-127).  
 **Example:**
 ```
 SET LINE SPACING OFF    ' Use 80×30 character grid (default)
 SET LINE SPACING ON     ' Use 80×24 character grid with spacing
+
+SET TEXT WRAP OFF       ' Truncate long lines (default)
+SET TEXT WRAP ON        ' Wrap long lines automatically
+
+SET AUDIO ON            ' Enable audio output (default)
+SET AUDIO OFF           ' Disable audio output
+
+SET VOLUME 1.0          ' Maximum volume
+SET VOLUME 0.5          ' Half volume
+SET VOLUME 0.0          ' Silent
 ```
 
 ---
