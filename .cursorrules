@@ -1,14 +1,60 @@
-- NEVER run shell commands. You are restricted to actions that can be accomplished by driving the Cursor IDE. The user has sole discretion to run commands from CLI.
-- Always answer questions directly first before taking action.
-- NEVER make code changes without explicit user request.
+# ⚠️ CRITICAL RULES - VERIFY BEFORE EVERY RESPONSE ⚠️
 
-- **Script Execution Strategy**: Avoid running scripts as a first solution. Instead:
-  1. **Plan first**: Understand the problem, read examples, identify patterns
-  2. **Test manually**: Use search_replace on ONE example to verify the approach works
-  3. **Apply systematically**: Use grep to find patterns, then fix them iteratively with search_replace, verifying each fix
-  4. **Only script when necessary**: Use scripts only for complex logic that cannot be done with search_replace, and only after validating the approach manually first
-  5. **Verify work**: Always read the actual file output to confirm changes worked, don't assume scripts succeeded just because they ran
-  6. **Never be overconfident**: Don't claim work is complete without verification
+## FORBIDDEN ACTIONS
+- ❌ NEVER run shell commands or terminal commands (user has sole discretion)
+- ❌ NEVER make code changes without explicit user request
+- ❌ NEVER assume work is complete without verification
+- ❌ NEVER create generic folders like `controllers/`, `views/`, `services/`
+- ❌ NEVER inline comments (always on their own line)
+- ❌ NEVER include HTML/SCSS directly in TypeScript components (use separate files)
 
-- When user says they already fixed something, acknowledge it and move on. Don't offer to fix it again.
+## REQUIRED ACTIONS
+- ✅ ALWAYS answer questions directly BEFORE taking action
+- ✅ ALWAYS verify changes by reading the actual file output
+- ✅ ALWAYS use standalone Angular components with separate template/stylesheet files
+- ✅ ALWAYS use explicit 'this.' in C# code for instance members
+- ✅ ALWAYS use braces { } for all control structures in C#, even single-line blocks
+- ✅ ALWAYS save executable scripts (SQL, T-SQL, etc.) to appropriately named files
 
+---
+
+# Problem-Solving Strategy
+
+When solving problems, follow this workflow:
+
+1. **Plan First**: Understand the problem, read examples, identify patterns
+2. **Test Manually**: Use search_replace on ONE example to verify the approach works
+3. **Apply Systematically**: Use grep to find patterns, then fix iteratively with search_replace
+4. **Only Script When Necessary**: Use scripts only for complex logic that cannot be done with search_replace
+5. **Verify Work**: Always read the actual file output to confirm changes worked
+6. **Never Be Overconfident**: Don't claim completion without verification
+
+**Avoid running scripts as a first solution** - prefer manual search_replace operations.
+
+---
+
+# Communication & Workflow
+
+- When user says they already fixed something, acknowledge it and move on (don't offer to fix it again)
+- Add comments only for documenting the codebase, not for conveying info to the developer (use chat for that)
+- Save all standalone executable code (SQL scripts, etc.) to files instead of only displaying in chat
+
+---
+
+# Technology-Specific Rules
+
+## Angular
+- Use standalone components with separate files for templates (.html) and stylesheets (.scss)
+- Prefer TypeScript over JavaScript
+- Prefer SCSS over CSS
+
+## C# Code Style
+- Use explicit 'this.' to reference instance members (methods and properties)
+- Use braces { } for all control structures, even single-line blocks
+- Add line breaks between logical groups of code for readability
+- Keep each logical operation visually separate
+
+## Architecture
+- Divide solutions by layers into projects
+- Subdivide projects semantically in domain space
+- Organize by domain concepts, NOT by technical layers
