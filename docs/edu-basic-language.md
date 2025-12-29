@@ -88,6 +88,7 @@
   - [PAINT Statement](#paint-statement)
   - [GET Statement](#get-statement)
   - [PUT Statement](#put-statement)
+  - [TURTLE Statement](#turtle-statement)
   - [Graphics Examples](#graphics-examples)
 - [Audio](#audio)
   - [TEMPO Statement](#tempo-statement)
@@ -3382,6 +3383,51 @@ PUT sprite%[] AT (200, 150)
 PUT player%[] AT (x%, y%)
 ```
 
+### TURTLE Statement
+
+The `TURTLE` statement provides Logo-style turtle graphics using a simple command string. Turtles draw on the same 640×480 canvas as other graphics primitives.
+
+**Syntax:**
+```
+TURTLE turtleNumber%, commandString$
+```
+
+**Rules:**
+- `turtleNumber%` identifies which turtle (0, 1, 2, etc.)
+- Turtles start at center (320, 240), facing up (north)
+- Turtles use the current foreground color set by `COLOR`
+- Pen is down by default (drawing enabled)
+
+**Turtle Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `FD n` | Move forward `n` pixels |
+| `BK n` | Move backward `n` pixels |
+| `RT n` | Turn right `n` degrees |
+| `LT n` | Turn left `n` degrees |
+| `PU` | Pen up (stop drawing) |
+| `PD` | Pen down (resume drawing) |
+| `HOME` | Return to center, facing up |
+
+**Examples:**
+```
+' Draw a square
+TURTLE 0, "FD 100 RT 90 FD 100 RT 90 FD 100 RT 90 FD 100"
+
+' Draw a triangle
+TURTLE 0, "FD 100 RT 120 FD 100 RT 120 FD 100"
+
+' Draw without lines (move only)
+TURTLE 0, "PU FD 50 PD FD 100"
+
+' Multiple turtles
+COLOR &HFF0000FF    ' Red
+TURTLE 0, "FD 100"
+COLOR &H00FF00FF    ' Green
+TURTLE 1, "RT 90 FD 100"
+```
+
 ### Graphics Examples
 
 **Example: Drawing a Simple Scene:**
@@ -6120,6 +6166,19 @@ IF NOT condition% THEN
 END IF
 
 LET check% = (x% < 0) OR FALSE%    ' Bitwise OR with FALSE%
+```
+
+---
+
+### TURTLE
+
+**Type:** Command (Graphics)  
+**Syntax:** `TURTLE turtleNumber%, commandString$`  
+**Description:** Executes Logo-style turtle graphics commands. Turtles draw on the 640×480 canvas using the current foreground color. Commands: `FD n` (forward), `BK n` (back), `RT n` (right turn), `LT n` (left turn), `PU` (pen up), `PD` (pen down), `HOME` (return to center).  
+**Example:**
+```
+TURTLE 0, "FD 100 RT 90 FD 100 RT 90 FD 100 RT 90 FD 100"    ' Square
+TURTLE 1, "FD 100 RT 120 FD 100 RT 120 FD 100"              ' Triangle
 ```
 
 ---
