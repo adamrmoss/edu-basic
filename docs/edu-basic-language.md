@@ -30,8 +30,13 @@
   - [UNTIL Loop](#until-loop)
   - [DO Loop](#do-loop)
   - [EXIT Statement](#exit-statement)
+  - [CONTINUE Statement](#continue-statement)
   - [SUB Procedures](#sub-procedures)
   - [END Statement](#end-statement)
+  - [SLEEP Statement](#sleep-statement)
+  - [Error Handling](#error-handling)
+    - [TRY...CATCH...FINALLY Statement](#trycatchfinally-statement)
+    - [THROW Statement](#throw-statement)
   - [Summary: Structured vs. Unstructured Flow Control](#summary-structured-vs-unstructured-flow-control)
 - [Text I/O](#text-io)
   - [PRINT Statement](#print-statement)
@@ -46,6 +51,7 @@
     - [String Length](#string-length)
     - [String Comparison](#string-comparison)
     - [String Operators](#string-operators)
+    - [STARTSWITH and ENDSWITH Operators](#startswith-and-endswith-operators)
 - [File I/O](#file-io)
   - [Opening and Closing Files](#opening-and-closing-files)
     - [OPEN Statement](#open-statement)
@@ -59,6 +65,7 @@
     - [SEEK Statement](#seek-statement)
     - [EOF Operator](#eof-operator)
     - [LOC Operator](#loc-operator)
+    - [EXISTS Operator](#exists-operator)
   - [Convenience File Operations](#convenience-file-operations)
     - [READFILE Statement](#readfile-statement)
     - [WRITEFILE Statement](#writefile-statement)
@@ -76,6 +83,7 @@
   - [RECTANGLE Statement](#rectangle-statement)
   - [OVAL Statement](#oval-statement)
   - [CIRCLE Statement](#circle-statement)
+  - [ARC Statement](#arc-statement)
   - [TRIANGLE Statement](#triangle-statement)
   - [PAINT Statement](#paint-statement)
   - [GET Statement](#get-statement)
@@ -317,7 +325,7 @@ Structure literals are written using curly braces with comma-separated key-value
 LET player = { name$: "Alice", score%: 100, level%: 5 }
 LET point = { x%: 100, y%: 200 }
 LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
-LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE }
+LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE% }
 LET empty = { }                                 ' Empty structure (no members)
 
 ' Structure with array members
@@ -497,7 +505,7 @@ PRINT person.firstName$; " "; person.lastName$
 LET person.age% += 1
 
 ' Structures can contain any data type
-LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE }
+LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE% }
 ```
 
 #### Nested Structures and Arrays
@@ -531,11 +539,11 @@ Structures support the equality operator (`=`). Two structures are equal if all 
 LET point1 = { x%: 100, y%: 200 }
 LET point2 = { x%: 100, y%: 200 }
 
-IF point1 = point2 THEN PRINT "Points are equal"    ' TRUE
+IF point1 = point2 THEN PRINT "Points are equal"    ' TRUE%
 
 LET point3 = { x%: 100, y%: 201 }
 
-IF point1 = point3 THEN PRINT "Equal"    ' FALSE (y values differ)
+IF point1 = point3 THEN PRINT "Equal"    ' FALSE% (y values differ)
 ```
 
 **Important Notes:**
@@ -707,7 +715,7 @@ LET index% = names$[] INDEXOF "Bob"
 ```
 
 **INCLUDES Operator:**
-Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.
+Checks if an array includes a value. Returns TRUE% (-1) if found, FALSE% (0) if not found.
 
 ```
 IF numbers%[] INCLUDES 5 THEN PRINT "Found"
@@ -908,7 +916,7 @@ EduBASIC provides a comprehensive set of arithmetic operators and mathematical f
 
 | Function | Description                 | Example             |
 |----------|-----------------------------|---------------------|
-| `RND`    | Random real in range [0, 1) | `LET random# = RND` |
+| `RND#`    | Random real in range [0, 1) | `LET random# = RND#` |
 
 ### Boolean Operations
 
@@ -934,16 +942,16 @@ There is no separate boolean data type.
 Since there is no separate boolean data type, all boolean operators are **bitwise operators** that work on integers.
 
 **Boolean Constants:**
-- `FALSE` = `0`
-- `TRUE` = `-1`
+- `FALSE%` = `0`
+- `TRUE%` = `-1`
 
-Any non-zero value is treated as true in conditional expressions, but the canonical `TRUE` value is `-1`. This is because `-1` in binary representation has all bits set to 1 (two's complement), which makes bitwise operations behave correctly. For example, `TRUE AND TRUE` yields `TRUE` (`-1 AND -1 = -1`), while if `TRUE` were `1`, then `1 AND 1 = 1` would only preserve the least significant bit.
+Any non-zero value is treated as true in conditional expressions, but the canonical `TRUE%` value is `-1`. This is because `-1` in binary representation has all bits set to 1 (two's complement), which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`), while if `TRUE%` were `1`, then `1 AND 1 = 1` would only preserve the least significant bit.
 
 ### Comparison Operations
 
 Standard comparison operators are available for all data types, including arrays:
 
-| Operator | Description           | Returns TRUE (-1) when...                  |
+| Operator | Description           | Returns TRUE% (-1) when...                  |
 |----------|-----------------------|--------------------------------------------|
 | `=`      | Equal to              | Both operands have the same value          |
 | `<>`     | Not equal to          | Operands have different values             |
@@ -952,7 +960,7 @@ Standard comparison operators are available for all data types, including arrays
 | `<=`     | Less than or equal    | Left operand is smaller or equal to right  |
 | `>=`     | Greater than or equal | Left operand is larger or equal to right   |
 
-Comparison operations return integer values: `FALSE` (0) or `TRUE` (-1).
+Comparison operations return integer values: `FALSE%` (0) or `TRUE%` (-1).
 
 For arrays, comparison operators work element-wise:
 - Arrays are equal (`=`) if they have the same length and all corresponding elements are equal
@@ -968,10 +976,10 @@ LET arr2%[] = [1, 2, 3]
 LET arr3%[] = [1, 2, 4]
 LET arr4%[] = [1, 2]
 
-IF arr1%[] = arr2%[] THEN PRINT "Equal"    ' TRUE
-IF arr1%[] <> arr3%[] THEN PRINT "Different"    ' TRUE
-IF arr1%[] < arr3%[] THEN PRINT "Less"    ' TRUE (3 < 4)
-IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE (shorter array)
+IF arr1%[] = arr2%[] THEN PRINT "Equal"    ' TRUE%
+IF arr1%[] <> arr3%[] THEN PRINT "Different"    ' TRUE%
+IF arr1%[] < arr3%[] THEN PRINT "Less"    ' TRUE% (3 < 4)
+IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE% (shorter array)
 ```
 
 ### Operator Precedence
@@ -980,31 +988,32 @@ EduBASIC follows standard mathematical operator precedence:
 
 1. Parentheses `()` (highest precedence)
 2. Prefix unary operators: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
-3. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
-4. Absolute value / norm / array length / string length `| |`
-5. Unary `+` and `-`
-6. Exponentiation `^` or `**` (right-associative)
-7. Multiplication `*`, Division `/`, and Modulo `MOD`
-8. Addition `+` and Subtraction `-` (also array concatenation)
-9. Array search operators: `FIND`, `INDEXOF`, `INCLUDES`
-10. String/Array operators: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
-11. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
-12. `NOT` (unary logical)
-13. `AND`, `NAND` (binary logical)
-14. `OR`, `NOR` (binary logical)
-15. `XOR`, `XNOR` (binary logical)
-16. `IMP` (binary logical, lowest precedence)
+3. Nullary operators: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%`
+4. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
+5. Absolute value / norm / array length / string length `| |`
+6. Unary `+` and `-`
+7. Exponentiation `^` or `**` (right-associative)
+8. Multiplication `*`, Division `/`, and Modulo `MOD`
+9. Addition `+` and Subtraction `-` (also array concatenation)
+10. Array search operators: `FIND`, `INDEXOF`, `INCLUDES`
+11. String/Array operators: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
+12. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
+13. `NOT` (unary logical)
+14. `AND`, `NAND` (binary logical)
+15. `OR`, `NOR` (binary logical)
+16. `XOR`, `XNOR` (binary logical)
+17. `IMP` (binary logical, lowest precedence)
 
-**Note:** Nullary operators (`RND`, `INKEY`, `TIMER`) take zero arguments and do not participate in operator precedence. They can appear anywhere in an expression and are evaluated independently.
+**Note:** Nullary operators (`RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%`) take zero arguments and do not participate in operator precedence. They can appear anywhere in an expression and are evaluated independently. All nullary operators use type sigils to indicate their return type.
 
 When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.
 
 ### Random Number Generation
 
-EduBASIC provides the `RND` operator to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
+EduBASIC provides the `RND#` operator to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
 
 **Random Number Operator:**
-- `RND` - Nullary operator (takes zero arguments) that returns a random real number in the range [0, 1)
+- `RND#` - Nullary operator (takes zero arguments) that returns a random real number in the range [0, 1)
 
 **Random Number Generator Seed:**
 
@@ -1014,7 +1023,7 @@ The `RANDOMIZE` command initializes the random number generator with a seed valu
 RANDOMIZE
 ```
 
-Seeds the generator with the current system timer value (`TIMER`). This produces different random sequences each time the program runs.
+Seeds the generator with the current Unix timestamp (`NOW%`). This produces different random sequences each time the program runs.
 
 ```
 RANDOMIZE seedValue%
@@ -1022,23 +1031,30 @@ RANDOMIZE seedValue%
 
 Seeds the generator with a specific integer value. Using the same seed value produces the same sequence of random numbers, which is useful for testing and reproducible results.
 
-**System Timer Operator:**
-- `TIMER` - Nullary operator (takes zero arguments) that returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.
+
+**Mathematical Constants:**
+- `PI#` - Nullary operator (takes zero arguments) that returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793)
+- `E#` - Nullary operator (takes zero arguments) that returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045)
 
 **Examples:**
 
 ```
 RANDOMIZE
-LET randomNumber# = RND
+LET randomNumber# = RND#
 
 RANDOMIZE 12345
-LET dice% = INT (RND * 6) + 1
+LET dice% = INT (RND# * 6) + 1
 
-LET randomInRange# = RND * 100
+LET randomInRange# = RND# * 100
 
 ' Seed with current time
-RANDOMIZE TIMER
-LET currentTime% = TIMER
+RANDOMIZE NOW%
+LET currentTime% = NOW%
+
+' Mathematical constants
+LET circumference# = 2 * PI# * radius#
+LET area# = PI# * radius# * radius#
+LET exponential# = E# ^ power#
 ```
 
 ## Control Flow
@@ -1487,7 +1503,7 @@ LOOP UNTIL num% = 0
 ```
 PRINT "Press ESC to exit..."
 DO
-    LET key$ = INKEY
+    LET key$ = INKEY$
     IF key$ = CHR 27 THEN EXIT DO
 LOOP
 ```
@@ -1522,6 +1538,46 @@ DO
     LET sum# += value#
 LOOP
 ```
+
+### CONTINUE Statement
+
+The `CONTINUE` statement skips the rest of the current loop iteration and continues with the next iteration.
+
+**Syntax:**
+```
+CONTINUE FOR
+CONTINUE WHILE
+CONTINUE DO
+```
+
+**Examples:**
+
+```
+FOR i% = 1 TO 10
+    IF i% MOD 2 = 0 THEN CONTINUE FOR    ' Skip even numbers
+    PRINT i%    ' Only prints odd numbers: 1, 3, 5, 7, 9
+NEXT i%
+```
+
+```
+LET count% = 0
+WHILE count% < 10
+    LET count% += 1
+    IF count% = 5 THEN CONTINUE WHILE    ' Skip printing 5
+    PRINT count%
+WEND
+```
+
+```
+DO
+    INPUT "Enter number (0 to quit): ", num%
+    IF num% = 0 THEN EXIT DO
+    IF num% < 0 THEN CONTINUE DO    ' Skip negative numbers
+    PRINT "Positive number: "; num%
+LOOP
+```
+
+**Note:** `CONTINUE` is different from `EXIT`. `CONTINUE` skips to the next iteration of the loop, while `EXIT` exits the loop entirely.
 
 ### SUB Procedures
 
@@ -1682,6 +1738,260 @@ END IF
 
 **Note:** `END` is different from `RETURN`, which returns from a subroutine. `END` terminates the entire program.
 
+### SLEEP Statement
+
+The `SLEEP` statement pauses program execution for a specified number of milliseconds.
+
+**Syntax:**
+```
+SLEEP milliseconds%
+```
+
+**Examples:**
+
+```
+PRINT "Starting in 3 seconds..."
+SLEEP 1000    ' Wait 1 second
+PRINT "2..."
+SLEEP 1000    ' Wait 1 second
+PRINT "1..."
+SLEEP 1000    ' Wait 1 second
+PRINT "Go!"
+```
+
+```
+' Simple animation loop
+FOR i% = 1 TO 10
+    PRINT "Frame "; i%
+    SLEEP 100    ' Wait 100ms between frames
+NEXT i%
+```
+
+```
+' Wait for user to read message
+PRINT "Press any key to continue..."
+SLEEP 2000    ' Give user 2 seconds to read
+```
+
+**Rules:**
+- `milliseconds%` must be a non-negative integer
+- The program pauses for the specified duration
+- Other operations (like keyboard input) may still be processed during the sleep period, depending on the implementation
+
+### Error Handling
+
+EduBASIC provides structured error handling through `TRY...CATCH...FINALLY` blocks. Errors in EduBASIC are represented as strings, making error messages easy to create, compare, and display.
+
+#### TRY...CATCH...FINALLY Statement
+
+The `TRY...CATCH...FINALLY` statement provides structured exception handling. Errors are represented as strings.
+
+**Syntax:**
+```
+TRY
+    statements
+CATCH errorVariable$
+    statements
+FINALLY
+    statements
+END TRY
+```
+
+**Rules:**
+- The `TRY` block contains code that might raise an error
+- The `CATCH` block executes if an error occurs in the `TRY` block
+- The `CATCH` block receives the error message as a string in `errorVariable$`
+- The `FINALLY` block always executes, whether an error occurred or not
+- `FINALLY` is optional—you can use `TRY...CATCH...END TRY` without `FINALLY`
+- `CATCH` is also optional—you can use `TRY...FINALLY...END TRY` to ensure cleanup without handling errors
+- Errors are strings, so you can compare them, display them, or process them as needed
+
+**Examples:**
+
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+    READFILE "data.txt" INTO content$
+    CLOSE file%
+CATCH error$
+    PRINT "Error occurred: "; error$
+FINALLY
+    IF EXISTS "data.txt" THEN
+        CLOSE file%
+    END IF
+END TRY
+```
+
+```
+TRY
+    LET result# = 10 / divisor%
+    PRINT "Result: "; result#
+CATCH error$
+    IF error$ = "Division by zero" THEN
+        PRINT "Cannot divide by zero"
+    ELSE
+        PRINT "Error: "; error$
+    END IF
+END TRY
+```
+
+```
+' Try without catch (only finally for cleanup)
+TRY
+    OPEN "temp.txt" FOR WRITE AS file%
+    WRITE "data" TO file%
+FINALLY
+    CLOSE file%
+END TRY
+```
+
+```
+' Try without finally (only catch for error handling)
+TRY
+    LET value% = VAL userInput$
+    PRINT "Parsed value: "; value%
+CATCH error$
+    PRINT "Invalid input: "; error$
+END TRY
+```
+
+**Error Propagation:**
+- If an error occurs in a `TRY` block and is not caught, or if `THROW` is called in a `CATCH` block, the error propagates to the enclosing `TRY` block (if any)
+- If no enclosing `TRY` block exists, the program terminates with the error message
+
+#### THROW Statement
+
+The `THROW` statement raises (throws) an error. Errors are represented as strings.
+
+**Syntax:**
+```
+THROW errorMessage$
+```
+
+**Examples:**
+
+```
+IF divisor% = 0 THEN
+    THROW "Division by zero"
+END IF
+```
+
+```
+IF NOT EXISTS filename$ THEN
+    THROW "File not found: " + filename$
+END IF
+```
+
+```
+SUB ValidateInput (value%)
+    IF value% < 0 THEN
+        THROW "Value must be non-negative"
+    END IF
+    IF value% > 100 THEN
+        THROW "Value must not exceed 100"
+    END IF
+END SUB
+
+TRY
+    ValidateInput userValue%
+CATCH error$
+    PRINT "Validation failed: "; error$
+END TRY
+```
+
+**Rules:**
+- `THROW` immediately transfers control to the nearest `CATCH` block
+- If no `CATCH` block exists, the program terminates with the error message
+- Error messages are strings, so you can construct them dynamically
+- `THROW` can be called from anywhere, including inside `SUB` procedures
+
+**Nested Error Handling:**
+
+```
+TRY
+    TRY
+        OPEN "config.txt" FOR READ AS configFile%
+        READFILE "config.txt" INTO config$
+    CATCH error$
+        IF error$ = "File not found" THEN
+            ' Try default config
+            READFILE "default.txt" INTO config$
+        ELSE
+            THROW error$    ' Re-throw if not a "file not found" error
+        END IF
+    END TRY
+CATCH error$
+    PRINT "Failed to load configuration: "; error$
+    END
+END TRY
+```
+
+### Date and Time Functions
+
+EduBASIC provides simple date and time nullary operators for educational purposes. These operators return formatted strings or integer timestamps that are easy to display and work with.
+
+**`DATE$` - Current date as string:**
+```
+LET today$ = DATE$
+PRINT "Today is: "; today$    ' Prints: "Today is: 2025-01-15" (YYYY-MM-DD format)
+```
+
+Returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format). This format is unambiguous and easy to parse.
+
+**`TIME$` - Current time as string:**
+```
+LET now$ = TIME$
+PRINT "Current time: "; now$    ' Prints: "Current time: 14:30:45" (HH:MM:SS format)
+```
+
+Returns the current time as a string in `HH:MM:SS` format (24-hour format).
+
+**`NOW%` - Current timestamp:**
+```
+LET timestamp% = NOW%
+PRINT "Timestamp: "; timestamp%    ' Prints: "Timestamp: 1736968245" (Unix timestamp)
+```
+
+Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.
+
+**Examples:**
+
+```
+' Display current date and time
+PRINT "Date: "; DATE$
+PRINT "Time: "; TIME$
+
+' Calculate elapsed time
+LET startTime% = NOW%
+SLEEP 2000    ' Wait 2 seconds
+LET endTime% = NOW%
+LET elapsed% = endTime% - startTime%
+PRINT "Elapsed: "; elapsed%; " seconds"
+```
+
+```
+' Log with timestamp
+SUB LogMessage (msg$)
+    PRINT DATE$; " "; TIME$; " - "; msg$
+END SUB
+
+LogMessage "Program started"
+```
+
+```
+' Check if it's a specific date
+IF DATE$ = "2025-12-25" THEN
+    PRINT "Merry Christmas!"
+END IF
+```
+
+**Design Notes:**
+- `DATE$` and `TIME$` are nullary operators that return strings for simplicity and ease of display
+- `NOW%` is a nullary operator that returns an integer timestamp for calculations
+- All functions use UTC time to avoid timezone complexity in educational contexts
+- The string formats (YYYY-MM-DD and HH:MM:SS) are standard and unambiguous
+- No date parsing or manipulation functions are provided initially—keep it simple for educational use
+
 ### Summary: Structured vs. Unstructured Flow Control
 
 EduBASIC provides both structured and unstructured control flow:
@@ -1693,6 +2003,7 @@ EduBASIC provides both structured and unstructured control flow:
 - `WHILE` and `UNTIL` loops
 - `DO` loops
 - `SUB` procedures with parameters
+- `TRY...CATCH...FINALLY` error handling
 
 **Unstructured (Use Sparingly):**
 - `GOTO`
@@ -2013,14 +2324,14 @@ SET VOLUME -0.5         ' Clamped to 0.0 (silent)
 
 ### Keyboard Input
 
-EduBASIC provides non-blocking keyboard input through the `INKEY` operator, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
+EduBASIC provides non-blocking keyboard input through the `INKEY$` operator, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
 
-#### INKEY Operator
+#### INKEY$ Operator
 
-The `INKEY` operator is a nullary operator (takes zero arguments) that returns the currently pressed key as a string.
+The `INKEY$` operator is a nullary operator (takes zero arguments) that returns the currently pressed key as a string.
 
 **Key Detection:**
-- `INKEY` returns the currently pressed key as a string
+- `INKEY$` returns the currently pressed key as a string
 - Returns empty string (`""`) if no key is pressed
 - Non-blocking: returns immediately whether a key is pressed or not
 - Supports printable characters and special keys
@@ -2059,7 +2370,7 @@ The `INKEY` operator is a nullary operator (takes zero arguments) that returns t
 ```
 ' Game loop with keyboard input
 DO
-    LET key$ = INKEY
+    LET key$ = INKEY$
     IF key$ <> "" THEN
         IF key$ = "ESC" THEN EXIT DO
         IF key$ = "ARROWUP" THEN LET y% -= 1
@@ -2077,7 +2388,7 @@ IF key$ = "F2" THEN GOSUB SaveGame
 IF key$ = "ENTER" THEN GOSUB SelectOption
 ```
 
-**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY`.
+**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY$`.
 
 ### String Operations
 
@@ -2168,6 +2479,26 @@ IF name$ = "Alice" THEN PRINT "Found Alice"
 IF text1$ <> text2$ THEN PRINT "Different"
 IF word$ < "middle" THEN PRINT "Comes before 'middle'"
 ```
+
+#### STARTSWITH and ENDSWITH Operators
+
+**`STARTSWITH` - Check if string starts with prefix:**
+```
+LET filename$ = "document.txt"
+IF filename$ STARTSWITH "doc" THEN PRINT "Starts with 'doc'"
+IF filename$ STARTSWITH ".txt" THEN PRINT "Starts with '.txt'"    ' FALSE%
+```
+
+Returns TRUE% (-1) if the string starts with the specified prefix, FALSE% (0) otherwise. Case-sensitive.
+
+**`ENDSWITH` - Check if string ends with suffix:**
+```
+LET filename$ = "document.txt"
+IF filename$ ENDSWITH ".txt" THEN PRINT "Ends with '.txt'"
+IF filename$ ENDSWITH "doc" THEN PRINT "Ends with 'doc'"    ' FALSE
+```
+
+Returns TRUE (-1) if the string ends with the specified suffix, FALSE (0) otherwise. Case-sensitive.
 
 #### String Operators
 
@@ -2890,6 +3221,49 @@ CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
 
 CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 ```
+
+### ARC Statement
+
+The `ARC` statement draws an arc (a portion of a circle) between two angles.
+
+**Syntax:**
+```
+ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2#
+ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2# WITH color%
+```
+
+**Rules:**
+- Center point is at (x%, y%)
+- Radius is a real number (can be fractional)
+- Angles are specified in radians
+- `angle1#` is the starting angle, `angle2#` is the ending angle
+- The arc is drawn counterclockwise from `angle1#` to `angle2#`
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+- Angles use standard mathematical convention: 0 radians points right (positive x-axis), increasing counterclockwise
+
+**Examples:**
+
+```
+COLOR &HFFFF00FF    ' Set global color to yellow
+ARC AT (320, 240) RADIUS 50 FROM 0 TO 3.14159    ' Yellow semicircle (0 to π)
+```
+
+```
+' Draw a quarter circle arc
+ARC AT (100, 100) RADIUS 30 FROM 0 TO 1.5708 WITH &H00FF00FF    ' Green arc (0 to π/2)
+```
+
+```
+' Draw arc using degrees converted to radians
+LET startAngle# = 45 * 3.14159 / 180    ' 45 degrees in radians
+LET endAngle# = 135 * 3.14159 / 180     ' 135 degrees in radians
+ARC AT (200, 200) RADIUS 40 FROM startAngle# TO endAngle#
+```
+
+**Note:** To draw a full circle, use `CIRCLE` instead. `ARC` is for partial circles only.
 
 ### TRIANGLE Statement
 
@@ -3705,6 +4079,19 @@ LET result# = ATANH 0.5
 
 ---
 
+### ARC
+
+**Type:** Command (Graphics)  
+**Syntax:** `ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2#` or `ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2# WITH color%`  
+**Description:** Draws an arc (a portion of a circle) between two angles. Angles are in radians, with 0 pointing right (positive x-axis), increasing counterclockwise. Uses global foreground color by default, or `WITH color%` to override. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+ARC AT (320, 240) RADIUS 50 FROM 0 TO 3.14159    ' Semicircle (0 to π)
+ARC AT (100, 100) RADIUS 30 FROM 0 TO 1.5708 WITH &H00FF00FF    ' Green quarter circle
+```
+
+---
+
 ### BIN
 
 **Type:** Operator (String)  
@@ -3756,6 +4143,22 @@ DrawBox 20, 3, "#"    ' Same as CALL DrawBox 20, 3, "#"
 LET z& = 1+1i
 LET angle# = CARG z&
 PRINT angle#    ' Prints: 0.785... (π/4 radians)
+```
+
+---
+
+### CATCH
+
+**Type:** Command (Control Flow)  
+**Syntax:** `CATCH errorVariable$`  
+**Description:** Catches errors raised in a `TRY` block. The error message (a string) is assigned to `errorVariable$`. Used within `TRY...CATCH...FINALLY...END TRY` blocks.  
+**Example:**
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+CATCH error$
+    PRINT "Error: "; error$
+END TRY
 ```
 
 ---
@@ -3847,6 +4250,21 @@ PRINT conjugate&    ' Prints: 3-4i
 
 ---
 
+### CONTINUE
+
+**Type:** Command (Control Flow)  
+**Syntax:** `CONTINUE FOR` or `CONTINUE WHILE` or `CONTINUE DO`  
+**Description:** Skips the rest of the current loop iteration and continues with the next iteration.  
+**Example:**
+```
+FOR i% = 1 TO 10
+    IF i% MOD 2 = 0 THEN CONTINUE FOR    ' Skip even numbers
+    PRINT i%    ' Only prints odd numbers
+NEXT i%
+```
+
+---
+
 ### COS
 
 **Type:** Function (Trigonometric)  
@@ -3931,19 +4349,6 @@ COPY "/source/file.bin" TO "/dest/file.bin"
 
 ---
 
-### COSH
-
-**Type:** Function (Hyperbolic)  
-**Syntax:** `COSH x#`  
-**Description:** Returns the hyperbolic cosine of `x`.  
-**Example:**
-```
-LET result# = COSH 0
-PRINT result#    ' Prints: 1.0
-```
-
----
-
 ### CSQRT
 
 **Type:** Function (Complex)  
@@ -3954,6 +4359,23 @@ PRINT result#    ' Prints: 1.0
 LET z& = -1+0i
 LET root& = CSQRT z&
 PRINT root&    ' Prints: 0+1i
+```
+
+---
+
+### DATE$
+
+**Type:** Operator (Date/Time)  
+**Syntax:** `DATE$`  
+**Description:** Nullary operator (takes zero arguments) that returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format).  
+**Example:**
+```
+LET today$ = DATE$
+PRINT "Today is: "; today$    ' Prints: "Today is: 2025-01-15"
+
+IF DATE$ = "2025-12-25" THEN
+    PRINT "Merry Christmas!"
+END IF
 ```
 
 ---
@@ -4125,6 +4547,24 @@ END UNLESS
 
 ---
 
+### END TRY
+
+**Type:** Command (Control Flow)  
+**Syntax:** `END TRY`  
+**Description:** Terminates a `TRY...CATCH...FINALLY` block.  
+**Example:**
+```
+TRY
+    OPEN "file.txt" FOR READ AS file%
+CATCH error$
+    PRINT "Error: "; error$
+FINALLY
+    CLOSE file%
+END TRY
+```
+
+---
+
 ### EOF
 
 **Type:** Operator (File I/O)  
@@ -4182,6 +4622,57 @@ PRINT result#    ' Prints: 2.718... (e)
 ```
 PRINT EXPAND 3.1     ' Prints: 4
 PRINT EXPAND -3.1    ' Prints: -4
+```
+
+---
+
+### E#
+
+**Type:** Operator (Math Constant)  
+**Syntax:** `E#`  
+**Description:** Nullary operator (takes zero arguments) that returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045).  
+**Example:**
+```
+LET eValue# = E#
+PRINT eValue#    ' Prints: 2.718281828459045
+
+LET exponential# = E# ^ 2    ' e^2
+LET naturalLog# = LOG E#     ' Should be approximately 1.0
+```
+
+---
+
+### EXISTS
+
+**Type:** Operator (File I/O)  
+**Syntax:** `EXISTS "filename"`  
+**Description:** Unary operator that checks if a file or directory exists. Returns integer: 0 = false, -1 = true.  
+**Example:**
+```
+IF EXISTS "data.txt" THEN
+    READFILE "data.txt" INTO content$
+ELSE
+    PRINT "File not found"
+END IF
+```
+
+---
+
+### FINALLY
+
+**Type:** Command (Control Flow)  
+**Syntax:** `FINALLY`  
+**Description:** Marks the cleanup section of a `TRY...CATCH...FINALLY...END TRY` block. The `FINALLY` block always executes, whether an error occurred or not. Optional—you can use `TRY...CATCH...END TRY` without `FINALLY`.  
+**Example:**
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+    READFILE "data.txt" INTO content$
+CATCH error$
+    PRINT "Error: "; error$
+FINALLY
+    CLOSE file%
+END TRY
 ```
 
 ---
@@ -4337,10 +4828,10 @@ LET result% = 5 IMP 3    ' Binary implication
 
 ---
 
-### INKEY
+### INKEY$
 
 **Type:** Operator (Input)  
-**Syntax:** `INKEY`  
+**Syntax:** `INKEY$`  
 **Description:** Nullary operator (takes zero arguments) that returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name.  
 **Return Values:**
 - **Empty string (`""`):** No key is currently pressed
@@ -4378,7 +4869,7 @@ LET result% = 5 IMP 3    ' Binary implication
 ```
 ' Basic usage - get character or special key name
 DO
-    LET key$ = INKEY
+    LET key$ = INKEY$
     IF key$ <> "" THEN
         PRINT "Key pressed: "; key$
         IF key$ = "ESC" THEN EXIT DO
@@ -4460,7 +4951,7 @@ IF index% > 0 THEN PRINT "Found at index:", index%
 
 **Type:** Operator (Array Search)  
 **Syntax:** `array[] INCLUDES value`  
-**Description:** Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.  
+**Description:** Checks if an array includes a value. Returns TRUE% (-1) if found, FALSE% (0) if not found.  
 **Example:**
 ```
 IF numbers%[] INCLUDES 5 THEN PRINT "Found"
@@ -4476,7 +4967,7 @@ IF names$[] INCLUDES "Bob" THEN PRINT "Found"
 **Description:** Converts a real number to an integer by truncating the decimal part (rounds toward zero).  
 **Example:**
 ```
-LET dice% = INT (RND * 6) + 1    ' Random integer 1-6
+LET dice% = INT (RND# * 6) + 1    ' Random integer 1-6
 PRINT INT 3.9    ' Prints: 3
 PRINT INT -3.9   ' Prints: -3
 ```
@@ -4831,6 +5322,26 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 
 ---
 
+### NOW%
+
+**Type:** Operator (Date/Time)  
+**Syntax:** `NOW%`  
+**Description:** Nullary operator (takes zero arguments) that returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.  
+**Example:**
+```
+LET timestamp% = NOW%
+PRINT "Timestamp: "; timestamp%    ' Prints: "Timestamp: 1736968245"
+
+' Calculate elapsed time
+LET startTime% = NOW%
+SLEEP 2000    ' Wait 2 seconds
+LET endTime% = NOW%
+LET elapsed% = endTime% - startTime%
+PRINT "Elapsed: "; elapsed%; " seconds"
+```
+
+---
+
 ### OPEN
 
 **Type:** Command (File I/O)  
@@ -4900,6 +5411,23 @@ PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers (continues in b
 ' Check how many notes remain
 LET notesLeft% = NOTES 0
 IF notesLeft% > 0 THEN PRINT "Still playing: "; notesLeft%; " notes remaining"
+```
+
+---
+
+### PI#
+
+**Type:** Operator (Math Constant)  
+**Syntax:** `PI#`  
+**Description:** Nullary operator (takes zero arguments) that returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793).  
+**Example:**
+```
+LET piValue# = PI#
+PRINT piValue#    ' Prints: 3.141592653589793
+
+LET circumference# = 2 * PI# * radius#
+LET area# = PI# * radius# * radius#
+LET halfCircle# = PI# * radius#
 ```
 
 ---
@@ -4979,11 +5507,12 @@ PRINT radians#    ' Prints: 1.5708... (π/2 radians)
 
 **Type:** Command (Random)  
 **Syntax:** `RANDOMIZE` or `RANDOMIZE seed%`  
-**Description:** Seeds the random number generator. Without argument, uses `TIMER`.  
+**Description:** Seeds the random number generator. Without argument, uses `NOW%`.  
 **Example:**
 ```
-RANDOMIZE              ' Seed with system timer
+RANDOMIZE              ' Seed with current timestamp (NOW%)
 RANDOMIZE 12345        ' Seed with specific value
+RANDOMIZE NOW%         ' Explicitly seed with current timestamp
 ```
 
 ---
@@ -5127,15 +5656,15 @@ RMDIR "/Users/name/old_data"
 
 ---
 
-### RND
+### RND#
 
 **Type:** Operator (Random)  
-**Syntax:** `RND`  
+**Syntax:** `RND#`  
 **Description:** Nullary operator (takes zero arguments) that returns a random real number in the range [0, 1).  
 **Example:**
 ```
-LET random# = RND
-LET dice% = INT (RND * 6) + 1    ' Random integer 1-6
+LET random# = RND#
+LET dice% = INT (RND# * 6) + 1    ' Random integer 1-6
 ```
 
 ---
@@ -5319,6 +5848,19 @@ PRINT result#    ' Prints: 4.0
 
 ---
 
+### STARTSWITH
+
+**Type:** Operator (String)  
+**Syntax:** `string$ STARTSWITH prefix$`  
+**Description:** Checks if a string starts with the specified prefix. Returns integer: 0 = false, -1 = true. Case-sensitive.  
+**Example:**
+```
+LET filename$ = "document.txt"
+IF filename$ STARTSWITH "doc" THEN PRINT "Starts with 'doc'"
+IF filename$ STARTSWITH ".txt" THEN PRINT "Starts with '.txt'"    ' FALSE%
+```
+
+---
 
 ### STR
 
@@ -5332,6 +5874,20 @@ LET numStr$ = STR num%    ' "42"
 LET piStr$ = STR 3.14159  ' "3.14159"
 LET complexStr$ = STR (3+4i)    ' "3+4i"
 LET complexStr$ = STR (3-4i)    ' "3-4i"
+```
+
+---
+
+### ENDSWITH
+
+**Type:** Operator (String)  
+**Syntax:** `string$ ENDSWITH suffix$`  
+**Description:** Checks if a string ends with the specified suffix. Returns integer: 0 = false, -1 = true. Case-sensitive.  
+**Example:**
+```
+LET filename$ = "document.txt"
+IF filename$ ENDSWITH ".txt" THEN PRINT "Ends with '.txt'"
+IF filename$ ENDSWITH "doc" THEN PRINT "Ends with 'doc'"    ' FALSE
 ```
 
 ---
@@ -5416,6 +5972,21 @@ PRINT result#    ' Prints: 0.0
 
 ---
 
+### TIME$
+
+**Type:** Operator (Date/Time)  
+**Syntax:** `TIME$`  
+**Description:** Nullary operator (takes zero arguments) that returns the current time as a string in `HH:MM:SS` format (24-hour format).  
+**Example:**
+```
+LET now$ = TIME$
+PRINT "Current time: "; now$    ' Prints: "Current time: 14:30:45"
+
+PRINT DATE$; " "; TIME$; " - Program started"
+```
+
+---
+
 ### THEN
 
 **Type:** Keyword (Control Flow)  
@@ -5428,15 +5999,39 @@ IF x% > 0 THEN PRINT "Positive"
 
 ---
 
-### TIMER
+### THROW
 
-**Type:** Operator (System)  
-**Syntax:** `TIMER`  
-**Description:** Nullary operator (takes zero arguments) that returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.  
+**Type:** Command (Control Flow)  
+**Syntax:** `THROW errorMessage$`  
+**Description:** Throws an error. The error message is a string. Control immediately transfers to the nearest `CATCH` block, or the program terminates if no `CATCH` block exists.  
 **Example:**
 ```
-RANDOMIZE TIMER    ' Seed random number generator with current time
-LET currentTime% = TIMER
+IF divisor% = 0 THEN
+    THROW "Division by zero"
+END IF
+
+IF NOT EXISTS filename$ THEN
+    THROW "File not found: " + filename$
+END IF
+```
+
+---
+
+### TRY
+
+**Type:** Command (Control Flow)  
+**Syntax:** `TRY ... CATCH errorVariable$ ... FINALLY ... END TRY`  
+**Description:** Begins a structured error handling block. The `TRY` block contains code that might raise an error. Errors are represented as strings. `CATCH` and `FINALLY` are optional.  
+**Example:**
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+    READFILE "data.txt" INTO content$
+CATCH error$
+    PRINT "Error: "; error$
+FINALLY
+    CLOSE file%
+END TRY
 ```
 
 ---
@@ -5491,6 +6086,40 @@ TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED    ' Filled
 ```
 PRINT TRUNC 3.9      ' Prints: 3
 PRINT TRUNC -3.9     ' Prints: -3
+```
+
+---
+
+### TRUE%
+
+**Type:** Operator (Boolean Constant)  
+**Syntax:** `TRUE%`  
+**Description:** Nullary operator (takes zero arguments) that returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`).  
+**Example:**
+```
+LET flag% = TRUE%
+IF condition% THEN
+    LET result% = TRUE%
+END IF
+
+LET check% = (x% > 0) AND TRUE%    ' Bitwise AND with TRUE%
+```
+
+---
+
+### FALSE%
+
+**Type:** Operator (Boolean Constant)  
+**Syntax:** `FALSE%`  
+**Description:** Nullary operator (takes zero arguments) that returns the canonical boolean false value as an integer (0).  
+**Example:**
+```
+LET flag% = FALSE%
+IF NOT condition% THEN
+    LET result% = FALSE%
+END IF
+
+LET check% = (x% < 0) OR FALSE%    ' Bitwise OR with FALSE%
 ```
 
 ---
