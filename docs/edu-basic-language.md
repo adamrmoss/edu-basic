@@ -2,7 +2,6 @@
 
 *Copyright © 2025 Adam R Moss / Fuzzy Logic Publishing. Licensed under the MIT License.*
 
-<a id="table-of-contents"></a>
 ## Table of Contents
 
 - [Data Types, Variables, Arithmetic, and Boolean Operations](#data-types-variables-arithmetic-and-boolean-operations)
@@ -96,10 +95,8 @@
 
 ---
 
-<a id="data-types-variables-arithmetic-and-boolean-operations"></a>
 ## Data Types, Variables, Arithmetic, and Boolean Operations
 
-<a id="data-types"></a>
 ### Data Types
 
 EduBASIC provides four built-in scalar data types:
@@ -111,7 +108,6 @@ EduBASIC provides four built-in scalar data types:
 
 Additionally, **structures** can be created to group related data together. Structures are untyped identifier-value dictionaries that allow you to store multiple values under named members.
 
-<a id="type-sigils"></a>
 ### Type Sigils
 
 EduBASIC uses type sigils (special characters) at the end of variable names to indicate the variable's type. Sigils are **required** for all variables and apply **only** to variable identifiers—they are never used in literals.
@@ -130,7 +126,6 @@ EduBASIC uses type sigils (special characters) at the end of variable names to i
 - Literals never use sigils
 - Variable names are case-insensitive
 
-<a id="variable-names"></a>
 ### Variable Names
 
 Variable names must:
@@ -149,14 +144,12 @@ LET player.name$ = "Bob"      ' Structure (no sigil)
 LET player.score% = 100        ' Structure member
 ```
 
-<a id="variable-declaration"></a>
 ### Variable Declaration
 
 Variables in EduBASIC are **implicitly declared**—you simply assign a value to create a variable. **No variables need to be declared ahead of time**, whether they are scalars, structures, or arrays.
 
 The `DIM` keyword is used **only** for resizing arrays (changing the size of an array). Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. All other variables are created automatically when first assigned.
 
-<a id="default-values"></a>
 ### Default Values
 
 When a variable is first created (before any assignment), it has a default value based on its type:
@@ -186,10 +179,8 @@ LET numbers%[]    ' numbers%[] = [] (default, empty array, size 0)
 - Structures default to an empty structure with no members
 - You can use `DIM` to resize an array even if it hasn't been assigned yet (it's treated as size 0)
 
-<a id="literals"></a>
 ### Literals
 
-<a id="integer-literals"></a>
 #### Integer Literals
 
 Integer literals can be written in three forms:
@@ -217,7 +208,6 @@ Integer literals can be written in three forms:
 
 Underscores can be used in binary literals for readability.
 
-<a id="real-literals"></a>
 #### Real Literals
 
 Real (floating-point) numbers can be written as:
@@ -240,7 +230,6 @@ Real (floating-point) numbers can be written as:
 
 The exponent uses `E` or `e` followed by an optional sign (`+` or `-`).
 
-<a id="complex-literals"></a>
 #### Complex Literals
 
 Complex numbers consist of a real part and an imaginary part.
@@ -267,7 +256,6 @@ Notes:
 - No spaces are required between the real and imaginary parts
 - The `+` or `-` immediately before the imaginary term distinguishes it from subtraction in expressions
 
-<a id="string-literals"></a>
 #### String Literals
 
 String literals are enclosed in double quotes:
@@ -277,7 +265,6 @@ String literals are enclosed in double quotes:
 "Line 1\nLine 2"
 ```
 
-<a id="array-literals"></a>
 #### Array Literals
 
 Array literals are written using square brackets with comma-separated values:
@@ -306,12 +293,10 @@ LET empty%[] = []                              ' Empty array (size 0)
 LET complex&[] = [1+2i, 3+4i, 5+6i]           ' Complex array
 ```
 
-<a id="type-coercion"></a>
 ### Type Coercion
 
 EduBASIC automatically converts between numeric types when they are mixed in expressions or assigned to variables. Type coercion follows a hierarchy: **Integer → Real → Complex**.
 
-<a id="upcasting-type-promotion"></a>
 #### Upcasting (Type Promotion)
 
 **Upcasting** occurs automatically when numeric types are mixed in expressions. The result type is always the highest type in the hierarchy:
@@ -353,7 +338,6 @@ LET mixed# = 5 + 3.14         ' Integer + Real → Real (8.14)
 LET complex& = 5 + 3i          ' Integer + Complex → Complex (5+3i)
 ```
 
-<a id="downcasting-type-demotion"></a>
 #### Downcasting (Type Demotion)
 
 **Downcasting** occurs when assigning a value to a variable with a lower type in the hierarchy. Downcasting may result in loss of precision or information:
@@ -380,7 +364,6 @@ LET intFromComplex% = anotherComplex&    ' Complex → Integer: 3
 - Downcasting from Complex to Real or Integer loses the imaginary component
 - No automatic downcasting occurs in expressions—only in assignments
 
-<a id="assignment-coercion"></a>
 #### Assignment Coercion
 
 When assigning a value to a variable, the value is coerced to match the variable's type:
@@ -399,7 +382,6 @@ LET complexVar& = 42.7        ' Real → Complex: 42.7+0i (promoted)
 LET complexVar& = 42.7+3i     ' Complex → Complex (no change)
 ```
 
-<a id="literal-type-inference"></a>
 #### Literal Type Inference
 
 Literal types are inferred from their syntax:
@@ -416,7 +398,6 @@ LET d& = 42+0i        ' Complex literal
 LET e& = 3.14+2i      ' Complex literal
 ```
 
-<a id="summary"></a>
 #### Summary
 
 | Operation | Result Type | Notes |
@@ -431,12 +412,10 @@ LET e& = 3.14+2i      ' Complex literal
 | Assign Complex to Real | Real | Imaginary part lost |
 | Assign Complex to Integer | Integer | Real part truncated, imaginary lost |
 
-<a id="structures"></a>
 ### Structures
 
 Structures are untyped identifier-value dictionaries that allow you to group related data together. Structure variables do not use type sigils and are created automatically when first assigned.
 
-<a id="structure-creation"></a>
 #### Structure Creation
 
 Structures are created by assigning values to members using the dot operator:
@@ -447,7 +426,6 @@ LET player.score% = 100
 LET player.level% = 5
 ```
 
-<a id="member-access"></a>
 #### Member Access
 
 Structure members are accessed using the dot operator:
@@ -458,7 +436,6 @@ LET player.score% += 10
 IF player.level% > 10 THEN PRINT "Advanced player"
 ```
 
-<a id="structure-examples"></a>
 #### Structure Examples
 
 ```
@@ -483,7 +460,6 @@ LET config.title$ = "My Game"
 LET config.fullscreen% = FALSE
 ```
 
-<a id="nested-structures-and-arrays"></a>
 #### Nested Structures and Arrays
 
 Structure members can themselves be arrays or structures, allowing for nested data structures:
@@ -517,7 +493,6 @@ PRINT player.scores%[1]    ' First score
 LET player.scores%[2] = 98  ' Update second score
 ```
 
-<a id="structure-comparison"></a>
 #### Structure Comparison
 
 Structures support the equality operator (`=`). Two structures are equal if all of their members are equal (recursively, including nested structures and array members).
@@ -548,14 +523,12 @@ IF point1 = point3 THEN PRINT "Equal"    ' FALSE (y values differ)
 - Members are created automatically when first assigned
 - No declaration is needed before using a structure
 
-<a id="arrays"></a>
 ### Arrays
 
 Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
 
 **Important:** When referring to an entire array (not a single element), you must use the `[]` syntax. For example, `numbers%[]` refers to the entire array, while `numbers%` (without `[]`) would refer to a scalar variable. This distinction is required because `numbers%` could be either a scalar or an array name, so `[]` is necessary to unambiguously refer to the entire array.
 
-<a id="array-creation"></a>
 #### Array Creation
 
 Arrays are created automatically when first assigned. No declaration is needed:
@@ -567,7 +540,6 @@ LET names$[] = ["Alice", "Bob", "Charlie"]
 
 **Important:** Undeclared arrays (arrays that haven't been assigned yet) are presumed to have size 0. You can assign to them or resize them with `DIM` before use.
 
-<a id="array-resizing"></a>
 #### Array Resizing
 
 The `DIM` keyword is used **only** for resizing arrays. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet.
@@ -603,7 +575,6 @@ LET empty%[] = []
 
 Array literals create arrays starting at index 1 (one-based).
 
-<a id="array-indexing"></a>
 #### Array Indexing
 
 Arrays are accessed using square brackets:
@@ -621,7 +592,6 @@ LET value# = matrix#[2, 3]
 LET matrix#[1, 5] = 42.5
 ```
 
-<a id="array-slicing"></a>
 #### Array Slicing
 
 Arrays support slicing similar to string slicing:
@@ -635,7 +605,6 @@ LET all%[] = numbers%[... TO ...]    ' Entire array
 
 Slicing creates a new array containing the specified range of elements.
 
-<a id="array-concatenation"></a>
 #### Array Concatenation
 
 Arrays can be concatenated using the `+` operator:
@@ -647,7 +616,6 @@ LET all%[] = [1, 2] + numbers%[] + [9, 10]
 
 Concatenation creates a new array containing all elements from the left array followed by all elements from the right array.
 
-<a id="array-length"></a>
 #### Array Length
 
 Use the `||` operator to get the length of an array:
@@ -658,7 +626,6 @@ LET size% = | numbers%[] |
 
 Returns the number of elements in the array (the highest index for one-based arrays). The `||` operator works for arrays, reals (absolute value), and complex numbers (norm). Note that spaces are required inside the `||` operator.
 
-<a id="array-manipulation-statements"></a>
 #### Array Manipulation Statements
 
 **PUSH Statement:**
@@ -693,7 +660,6 @@ UNSHIFT numbers%[], 0
 UNSHIFT names$[], "Alice"
 ```
 
-<a id="array-search-operators"></a>
 #### Array Search Operators
 
 Array search operations are implemented as binary operators:
@@ -722,7 +688,6 @@ IF numbers%[] INCLUDES 5 THEN PRINT "Found"
 IF names$[] INCLUDES "Bob" THEN PRINT "Found"
 ```
 
-<a id="array-operators"></a>
 #### Array Operators
 
 **REVERSE Operator:**
@@ -762,10 +727,8 @@ LET numbers%[] = numbers%[1 TO 1] + [10, 20] + numbers%[5 TO ...]
 ```
 
 
-<a id="arithmetic-operations"></a>
 ### Arithmetic Operations
 
-<a id="arithmetic-operators"></a>
 #### Arithmetic Operators
 
 | Operator    | Description    | Example                     |
@@ -778,7 +741,6 @@ LET numbers%[] = numbers%[1 TO 1] + [10, 20] + numbers%[5 TO ...]
 | `^` or `**` | Exponentiation | `LET powerResult# = 2 ^ 8`  |
 | `!`         | Factorial      | `LET factorialNum% = 5!`    |
 
-<a id="assignment-operators"></a>
 #### Assignment Operators
 
 The `LET` keyword is **required** for all assignments. EduBASIC also supports C-style compound assignment operators:
@@ -792,7 +754,6 @@ LET totalCount% /= 4
 LET totalCount% ^= 2
 ```
 
-<a id="swapping-variables"></a>
 #### Swapping Variables
 
 The `SWAP` command exchanges the values of two variables. Both variables must be of the same type. Can swap scalars or arrays.
@@ -822,7 +783,6 @@ PRINT arr1%[]    ' Prints: 4, 5, 6
 PRINT arr2%[]    ' Prints: 1, 2, 3
 ```
 
-<a id="unit-conversion-operators"></a>
 #### Unit Conversion Operators
 
 EduBASIC provides postfix operators to convert between degrees and radians:
@@ -839,7 +799,6 @@ LET result# = SIN angle#
 LET angleDegrees# = ASIN result# DEG
 ```
 
-<a id="absolute-value--norm--array-length"></a>
 #### Absolute Value / Norm / Array Length
 
 Use vertical bars `||` for absolute value (for reals), norm (for complex numbers), or array length (for arrays). Spaces are required inside the `||` operator:
@@ -850,7 +809,6 @@ LET arrayLength% = | numbers%[] |
 LET stringLength% = | text$ |
 ```
 
-<a id="arithmetic-operators-and-mathematical-functions"></a>
 #### Arithmetic Operators and Mathematical Functions
 
 EduBASIC provides a comprehensive set of arithmetic operators and mathematical functions:
@@ -926,7 +884,6 @@ EduBASIC provides a comprehensive set of arithmetic operators and mathematical f
 |----------|-----------------------------|---------------------|
 | `RND`    | Random real in range [0, 1) | `LET random# = RND` |
 
-<a id="boolean-operations"></a>
 ### Boolean Operations
 
 EduBASIC uses integers to represent boolean values:
@@ -935,7 +892,6 @@ EduBASIC uses integers to represent boolean values:
 
 There is no separate boolean data type.
 
-<a id="boolean-operators"></a>
 #### Boolean Operators
 
 | Operator | Description                                            |
@@ -957,7 +913,6 @@ Since there is no separate boolean data type, all boolean operators are **bitwis
 
 Any non-zero value is treated as true in conditional expressions, but the canonical `TRUE` value is `-1`. This is because `-1` in binary representation has all bits set to 1 (two's complement), which makes bitwise operations behave correctly. For example, `TRUE AND TRUE` yields `TRUE` (`-1 AND -1 = -1`), while if `TRUE` were `1`, then `1 AND 1 = 1` would only preserve the least significant bit.
 
-<a id="comparison-operations"></a>
 ### Comparison Operations
 
 Standard comparison operators are available for all data types, including arrays:
@@ -993,7 +948,6 @@ IF arr1%[] < arr3%[] THEN PRINT "Less"    ' TRUE (3 < 4)
 IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE (shorter array)
 ```
 
-<a id="operator-precedence"></a>
 ### Operator Precedence
 
 EduBASIC follows standard mathematical operator precedence:
@@ -1019,7 +973,6 @@ EduBASIC follows standard mathematical operator precedence:
 
 When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.
 
-<a id="random-number-generation"></a>
 ### Random Number Generation
 
 EduBASIC provides the `RND` operator to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
@@ -1062,12 +1015,10 @@ RANDOMIZE TIMER
 LET currentTime% = TIMER
 ```
 
-<a id="control-flow"></a>
 ## Control Flow
 
 EduBASIC supports both structured programming constructs and traditional BASIC flow control. While `GOTO` and `GOSUB` are available for backwards compatibility and educational purposes, modern structured programming approaches are encouraged for maintainable code.
 
-<a id="labels"></a>
 ### Labels
 
 Labels mark specific locations in code that can be targeted by `GOTO` and `GOSUB` statements. Unlike traditional BASIC which uses line numbers, EduBASIC uses descriptive labels.
@@ -1097,7 +1048,6 @@ LABEL EndProgram
 PRINT "Program complete!"
 ```
 
-<a id="goto-statement"></a>
 ### GOTO Statement
 
 The `GOTO` statement transfers control unconditionally to a labeled location.
@@ -1121,7 +1071,6 @@ IF count% < 5 THEN GOTO LoopStart
 PRINT "Done!"
 ```
 
-<a id="gosub-and-return-statements"></a>
 ### GOSUB and RETURN Statements
 
 `GOSUB` calls a subroutine at a labeled location. `RETURN` returns control to the statement following the `GOSUB` call.
@@ -1160,7 +1109,6 @@ RETURN
 
 **Important:** `RETURN` is used exclusively for returning from `GOSUB` subroutines. `SUB` procedures use implicit return at `END SUB` or explicit early exit with `EXIT SUB`.
 
-<a id="if-statement"></a>
 ### IF Statement
 
 The `IF` statement executes code conditionally based on a boolean expression.
@@ -1219,7 +1167,6 @@ ELSE
 END IF
 ```
 
-<a id="unless-statement"></a>
 ### UNLESS Statement
 
 The `UNLESS` statement is syntactic sugar for `IF NOT`, making negative conditions more readable.
@@ -1258,7 +1205,6 @@ END UNLESS
 
 **Note:** `UNLESS condition` is exactly equivalent to `IF NOT condition`.
 
-<a id="select-case-statement"></a>
 ### SELECT CASE Statement
 
 The `SELECT CASE` statement provides multi-way branching based on the value of an expression. This is EduBASIC's implementation of QuickBASIC's `SELECT CASE`.
@@ -1335,7 +1281,6 @@ SELECT CASE age%
 END SELECT
 ```
 
-<a id="for-loop"></a>
 ### FOR Loop
 
 The `FOR` loop iterates a counter variable through a range of values.
@@ -1387,7 +1332,6 @@ FOR row% = 1 TO 5
 NEXT row%
 ```
 
-<a id="while-loop"></a>
 ### WHILE Loop
 
 The `WHILE` loop repeats while a condition is true, testing the condition before each iteration.
@@ -1424,7 +1368,6 @@ WHILE NOT EOF fileHandle%
 WEND
 ```
 
-<a id="until-loop"></a>
 ### UNTIL Loop
 
 The `UNTIL` loop is syntactic sugar for `WHILE NOT`, repeating until a condition becomes true.
@@ -1456,7 +1399,6 @@ UEND
 
 **Note:** `UNTIL condition` is exactly equivalent to `WHILE NOT condition`.
 
-<a id="do-loop"></a>
 ### DO Loop
 
 The `DO` loop provides flexible looping with conditions that can be tested at the beginning or end of the loop.
@@ -1524,7 +1466,6 @@ DO
 LOOP
 ```
 
-<a id="exit-statement"></a>
 ### EXIT Statement
 
 The `EXIT` statement immediately exits from a loop or procedure.
@@ -1556,7 +1497,6 @@ DO
 LOOP
 ```
 
-<a id="sub-procedures"></a>
 ### SUB Procedures
 
 `SUB` defines a subroutine (procedure) that performs an action. Subroutines can accept parameters and modify variables through reference parameters or module-level variables.
@@ -1590,7 +1530,6 @@ procedureName argument1, argument2, ...
 - Use `EXIT SUB` to return early
 - `SUB`s can call other `SUB`s recursively
 
-<a id="parameter-passing"></a>
 #### Parameter Passing
 
 EduBASIC supports two parameter passing modes:
@@ -1627,7 +1566,6 @@ PRINT "x ="; x%        ' Prints: x = 100 (unchanged, passed by value)
 PRINT "y ="; y%        ' Prints: y = 999 (changed, passed by reference)
 ```
 
-<a id="local-variables"></a>
 #### Local Variables
 
 Variables created with `LET` inside a `SUB` are **module-level** (global). To create variables that are local to the subroutine, use the `LOCAL` keyword:
@@ -1699,7 +1637,6 @@ CALL InitializeGame
 ```
 
 
-<a id="end-statement"></a>
 ### END Statement
 
 The `END` statement terminates program execution immediately.
@@ -1719,7 +1656,6 @@ END IF
 
 **Note:** `END` is different from `RETURN`, which returns from a subroutine. `END` terminates the entire program.
 
-<a id="summary-structured-vs-unstructured-flow-control"></a>
 ### Summary: Structured vs. Unstructured Flow Control
 
 EduBASIC provides both structured and unstructured control flow:
@@ -1740,14 +1676,12 @@ While `GOTO` and `GOSUB` are available for educational purposes and backwards co
 
 **Note:** EduBASIC does not have user-defined functions. Use `SUB` procedures with `BYREF` parameters to return computed values.
 
-<a id="text-io"></a>
 ## Text I/O
 
 EduBASIC provides a text output system that is separate from the 640×480 graphics system. The text system is rendered as an overlay on top of the graphics display, allowing you to combine text output with graphics operations. Text is displayed in a character grid, and you can control the position, color, and formatting of text output.
 
 **Note:** All colors in EduBASIC use 32-bit RGBA format, where each component (Red, Green, Blue, Alpha) is 8 bits, allowing for 256 levels per channel and full transparency control.
 
-<a id="print-statement"></a>
 ### PRINT Statement
 
 The `PRINT` statement outputs text and values to the text display. It can print scalars, arrays, or a combination of both.
@@ -1803,7 +1737,6 @@ PRINT "Total: "; total#
 - `\"` - Literal double quote
 - `\\` - Literal backslash
 
-<a id="input-statement"></a>
 ### INPUT Statement
 
 The `INPUT` statement reads a value from the user and assigns it to a variable. Unlike traditional BASIC dialects, `INPUT` is separate from the prompt, allowing you to use `PRINT` for more flexible prompt formatting. `INPUT` can read into scalar variables or arrays.
@@ -1870,7 +1803,6 @@ INPUT score%
 
 **Note:** Since `INPUT` is separate from the prompt, you have full control over how prompts are displayed. Use `PRINT` with a semicolon at the end to keep the cursor on the same line as the prompt, or use `LOCATE` to position prompts precisely.
 
-<a id="locate-statement"></a>
 ### LOCATE Statement
 
 The `LOCATE` statement positions the text cursor at a specific row and column in the text display.
@@ -1899,7 +1831,6 @@ FOR row% = 1 TO 10
 NEXT row%
 ```
 
-<a id="color-statement"></a>
 ### COLOR Statement
 
 The `COLOR` statement sets the global foreground and/or background color for both text and graphics operations. These colors are used by default, but can be overridden in individual statements when needed.
@@ -1964,7 +1895,6 @@ LINE FROM (0, 0) TO (100, 100) WITH &HFF0000FF    ' Red line (overrides global)
 
 **Note:** The `COLOR` statement sets global colors that persist until changed. The default text color is white on a transparent background. Graphics statements use the global foreground color by default, but can override it with `WITH color%`.
 
-<a id="set-statement"></a>
 ### SET Statement
 
 The `SET` statement configures system-wide settings.
@@ -1980,7 +1910,6 @@ SET AUDIO OFF
 SET VOLUME volume#
 ```
 
-<a id="line-spacing"></a>
 #### Line Spacing
 
 **Text Grid Dimensions:**
@@ -1997,7 +1926,6 @@ EduBASIC uses IBM Plex Mono font, where each character is rendered at exactly 8�
   - Height: 480 pixels ÷ (16 pixels per character + 4 pixels spacing) = 24 rows
   - Each line of text has 4 additional pixels of spacing after it, making text more readable but reducing the number of available rows
 
-<a id="text-wrapping"></a>
 #### Text Wrapping
 
 The text wrap setting controls whether long lines of text automatically wrap to the next line when they exceed the width of the text display.
@@ -2057,12 +1985,10 @@ SET VOLUME -0.5         ' Clamped to 0.0 (silent)
 
 **Note:** All settings persist until changed. The line spacing setting affects the entire text display. Text wrapping only affects lines that exceed the display width. Audio settings affect all audio output globally. Volume values are automatically clamped to [0, 1].
 
-<a id="keyboard-input"></a>
 ### Keyboard Input
 
 EduBASIC provides non-blocking keyboard input through the `INKEY` operator, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
 
-<a id="inkey-operator"></a>
 #### INKEY Operator
 
 The `INKEY` operator is a nullary operator (takes zero arguments) that returns the currently pressed key as a string.
@@ -2127,12 +2053,10 @@ IF key$ = "ENTER" THEN GOSUB SelectOption
 
 **Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY`.
 
-<a id="string-operations"></a>
 ### String Operations
 
 EduBASIC provides several operations for working with string data.
 
-<a id="string-concatenation"></a>
 #### String Concatenation
 
 Strings can be concatenated using the `+` operator or by using semicolons in `PRINT` statements.
@@ -2154,7 +2078,6 @@ LET greeting$ = "Hello, " + name$ + "!"
 LET message$ = "Value: " + STR number%
 ```
 
-<a id="string-operators"></a>
 #### String Operators
 
 EduBASIC provides string operators to extract and manipulate substrings:
@@ -2177,7 +2100,6 @@ LET lastChar$ = text$ RIGHT 1    ' "!"
 
 Returns the rightmost `n` characters of the string. If `n` is greater than the string length, returns the entire string.
 
-<a id="string-slicing"></a>
 #### String Slicing
 
 **`MID` - Extract substring from middle:**
@@ -2195,7 +2117,6 @@ LET text$ = "Hello"
 LET char$ = text$ MID 1 TO 1    ' "H" (single character at position 1)
 ```
 
-<a id="string-length"></a>
 #### String Length
 
 Use the `||` operator to get the length of a string. Spaces are required inside the `||` operator.
@@ -2211,7 +2132,6 @@ LET text$ = "Hello"
 LET size% = | text$ |    ' size% = 5
 ```
 
-<a id="string-comparison"></a>
 #### String Comparison
 
 Strings can be compared using standard comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`). Comparisons are case-sensitive and use lexicographic (alphabetical) ordering.
@@ -2315,17 +2235,14 @@ LET new$ = "Hello world" REPLACE "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
 
-<a id="file-io"></a>
 ## File I/O
 
 EduBASIC provides comprehensive file input/output operations for reading and writing both text and binary data. All file operations use UTF-8 encoding for text data, and files can mix text and binary operations seamlessly.
 
 **Note:** File handles are integer identifiers that reference open files. You must explicitly open files before use and close them when finished.
 
-<a id="opening-and-closing-files"></a>
 ### Opening and Closing Files
 
-<a id="open-statement"></a>
 #### OPEN Statement
 
 The `OPEN` statement opens a file and assigns a handle to a variable.
@@ -2354,7 +2271,6 @@ OPEN "output.txt" FOR OVERWRITE AS outputFile%
 OPEN "log.txt" FOR APPEND AS logFile%
 ```
 
-<a id="close-statement"></a>
 #### CLOSE Statement
 
 The `CLOSE` statement closes an open file.
@@ -2371,12 +2287,10 @@ OPEN "data.txt" FOR READ AS file%
 CLOSE file%
 ```
 
-<a id="reading-from-files"></a>
 ### Reading from Files
 
 EduBASIC supports both text and binary reading operations.
 
-<a id="line-input-statement-text"></a>
 #### LINE INPUT Statement (Text)
 
 The `LINE INPUT` statement reads a complete line of text from a file.
@@ -2403,7 +2317,6 @@ WEND
 CLOSE file%
 ```
 
-<a id="read-statement-binary"></a>
 #### READ Statement (Binary)
 
 The `READ` statement reads binary data from a file based on the variable's type. It can read into scalar variables or arrays.
@@ -2442,12 +2355,10 @@ READ data%[] FROM file%
 CLOSE file%
 ```
 
-<a id="writing-to-files"></a>
 ### Writing to Files
 
 EduBASIC supports both text and binary writing operations.
 
-<a id="write-statement-text-and-binary"></a>
 #### WRITE Statement (Text and Binary)
 
 The `WRITE` statement writes data to a file. For text, it writes the string representation. For binary, it writes the raw binary data. It can write scalars or arrays.
@@ -2494,10 +2405,8 @@ NEXT i%
 CLOSE file%
 ```
 
-<a id="file-navigation"></a>
 ### File Navigation
 
-<a id="seek-statement"></a>
 #### SEEK Statement
 
 The `SEEK` statement positions the file pointer at a specific byte position.
@@ -2524,7 +2433,6 @@ SEEK 0 IN #file%      ' Return to beginning
 CLOSE file%
 ```
 
-<a id="eof-operator"></a>
 #### EOF Operator
 
 The `EOF` operator is a unary operator that checks if the file pointer is at the end of the file.
@@ -2548,7 +2456,6 @@ WEND
 CLOSE file%
 ```
 
-<a id="loc-operator"></a>
 #### LOC Operator
 
 The `LOC` operator is a unary operator that returns the current byte position in the file.
@@ -2572,12 +2479,10 @@ LET bytesRead% = endPos% - startPos%
 CLOSE file%
 ```
 
-<a id="convenience-file-operations"></a>
 ### Convenience File Operations
 
 EduBASIC provides convenient statements for common file operations.
 
-<a id="readfile-statement"></a>
 #### READFILE Statement
 
 The `READFILE` statement reads an entire file into a string variable.
@@ -2596,7 +2501,6 @@ READFILE "data.json" INTO jsonData$
 ' Process jsonData$
 ```
 
-<a id="writefile-statement"></a>
 #### WRITEFILE Statement
 
 The `WRITEFILE` statement writes an entire string to a file.
@@ -2615,7 +2519,6 @@ WRITEFILE "report.txt" FROM report$
 WRITEFILE output$ TO "results.txt"
 ```
 
-<a id="listdir-statement"></a>
 #### LISTDIR Statement
 
 The `LISTDIR` statement lists files in a directory.
@@ -2641,7 +2544,6 @@ NEXT i%
 LISTDIR "/Users/name/Documents" INTO docs$[]
 ```
 
-<a id="mkdir-statement"></a>
 #### MKDIR Statement
 
 The `MKDIR` statement creates a directory.
@@ -2657,7 +2559,6 @@ MKDIR "backups"
 MKDIR "/Users/name/data"
 ```
 
-<a id="rmdir-statement"></a>
 #### RMDIR Statement
 
 The `RMDIR` statement removes an empty directory.
@@ -2673,7 +2574,6 @@ RMDIR "temp"
 RMDIR "/Users/name/old_data"
 ```
 
-<a id="copy-statement"></a>
 #### COPY Statement
 
 The `COPY` statement copies a file.
@@ -2689,7 +2589,6 @@ COPY "data.txt" TO "backup.txt"
 COPY "/source/file.bin" TO "/dest/file.bin"
 ```
 
-<a id="move-statement"></a>
 #### MOVE Statement
 
 The `MOVE` statement moves or renames a file.
@@ -2705,7 +2604,6 @@ MOVE "oldname.txt" TO "newname.txt"
 MOVE "/temp/file.txt" TO "/final/file.txt"
 ```
 
-<a id="delete-statement"></a>
 #### DELETE Statement
 
 The `DELETE` statement deletes a file.
@@ -2721,7 +2619,6 @@ DELETE "temp.txt"
 DELETE "/Users/name/old_data.bin"
 ```
 
-<a id="file-io-examples"></a>
 ### File I/O Examples
 
 **Example: Reading and Writing Text:**
@@ -2785,7 +2682,6 @@ WRITE "End of file" TO file%
 CLOSE file%
 ```
 
-<a id="graphics"></a>
 ## Graphics
 
 EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, and images. The graphics display is separate from the text system and is rendered at a fixed resolution of 640×480 pixels.
@@ -2816,7 +2712,6 @@ EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, a
 **Note:** The text display system overlays the graphics display, allowing you to combine text and graphics in the same program.
 
 
-<a id="pset-statement"></a>
 ### PSET Statement
 
 The `PSET` statement sets a single pixel to a color.
@@ -2847,7 +2742,6 @@ FOR i% = 0 TO 639
 NEXT i%
 ```
 
-<a id="line-statement"></a>
 ### LINE Statement
 
 The `LINE` statement draws a line between two points.
@@ -2874,7 +2768,6 @@ LINE FROM (10, 10) TO (100, 50)    ' Green line (uses global color)
 LINE FROM (50, 50) TO (150, 150) WITH &HFFFFFFFF    ' White line (overrides global)
 ```
 
-<a id="rectangle-statement"></a>
 ### RECTANGLE Statement
 
 The `RECTANGLE` statement draws a rectangle outline or filled rectangle.
@@ -2906,7 +2799,6 @@ RECTANGLE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled red r
 RECTANGLE FROM (100, 100) TO (200, 200) FILLED    ' Filled rectangle (uses global color)
 ```
 
-<a id="oval-statement"></a>
 ### OVAL Statement
 
 The `OVAL` statement draws an oval (ellipse) outline or filled oval.
@@ -2940,7 +2832,6 @@ OVAL AT (100, 100) WIDTH 60 HEIGHT 60 WITH &H00FF00FF FILLED    ' Filled green c
 OVAL AT (200, 200) WIDTH 80 HEIGHT 40 WITH &HFF00FFFF FILLED    ' Filled ellipse (2:1 width:height)
 ```
 
-<a id="circle-statement"></a>
 ### CIRCLE Statement
 
 The `CIRCLE` statement is a convenience alias for `OVAL` when width equals height (a circle).
@@ -2974,7 +2865,6 @@ CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
 CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 ```
 
-<a id="triangle-statement"></a>
 ### TRIANGLE Statement
 
 The `TRIANGLE` statement draws a triangle outline or filled triangle.
@@ -3006,7 +2896,6 @@ TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED    ' Filled 
 TRIANGLE (200, 200) TO (300, 200) TO (250, 300) FILLED    ' Filled triangle (uses global color)
 ```
 
-<a id="paint-statement"></a>
 ### PAINT Statement
 
 The `PAINT` statement fills a bounded area with a color.
@@ -3036,7 +2925,6 @@ PAINT (100, 100)    ' Fill area with red (uses global color)
 PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF    ' Fill area bounded by blue pixels
 ```
 
-<a id="get-statement"></a>
 ### GET Statement
 
 The `GET` statement captures a rectangular region of the screen into an integer array (sprite).
@@ -3067,7 +2955,6 @@ DIM screen%[640 * 480 + 2]
 GET screen%[] FROM (0, 0) TO (639, 479)
 ```
 
-<a id="put-statement"></a>
 ### PUT Statement
 
 The `PUT` statement draws a sprite (from a `GET` array) onto the screen.
@@ -3095,7 +2982,6 @@ PUT sprite%[] AT (200, 150)
 PUT player%[] AT (x%, y%)
 ```
 
-<a id="graphics-examples"></a>
 ### Graphics Examples
 
 **Example: Drawing a Simple Scene:**
@@ -3139,12 +3025,10 @@ DO
 LOOP
 ```
 
-<a id="audio"></a>
 ## Audio
 
 EduBASIC provides audio capabilities using both Music Macro Language (MML) for note control and GRIT (Generative Random Iteration Tones) for timbre (sound character). All voices use both systems together, with ADSR envelopes controlling amplitude over time.
 
-<a id="grit-overview"></a>
 ### GRIT Overview
 
 **GRIT** (Generative Random Iteration Tones) is a noise synthesis system that generates procedural audio through LFSR-based (Linear Feedback Shift Register) bitstream manipulation. GRIT is inspired by and extends the classic Atari POKEY chip's noise synthesis capabilities.
@@ -3184,7 +3068,6 @@ EduBASIC provides audio capabilities using both Music Macro Language (MML) for n
 - The `PLAY` statement uses MML to specify which notes to play
 - **Voice Initialization:** All 64 voices (0-63) are initialized with GRIT NoiseCode preset 0 and ADSR preset 0 by default, until explicitly configured via the `VOICE` statement
 
-<a id="tempo-statement"></a>
 ### TEMPO Statement
 
 The `TEMPO` statement sets the playback tempo for MML music.
@@ -3207,7 +3090,6 @@ TEMPO 60     ' Set to 60 BPM (slow)
 TEMPO 180    ' Set to 180 BPM (fast)
 ```
 
-<a id="volume-statement"></a>
 ### VOLUME Statement
 
 The `VOLUME` statement sets the global volume for all audio output.
@@ -3233,7 +3115,6 @@ VOLUME 32     ' Quarter volume
 VOLUME 0      ' Silent
 ```
 
-<a id="voice-statement"></a>
 ### VOICE Statement
 
 The `VOICE` statement configures the GRIT timbre (sound character) and ADSR envelope for a voice. All voices use MML (for notes), GRIT (for timbre), and ADSR (for amplitude shaping).
@@ -3398,7 +3279,6 @@ VOICE 4 WITH &H00000010 ADSR 0.1 0.2 0.8 0.5    ' Slow attack, high sustain (pad
 VOICE 5 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
 ```
 
-<a id="adsr-envelope-configuration"></a>
 ### ADSR Envelope Configuration
 
 ADSR (Attack, Decay, Sustain, Release) envelopes control how the amplitude of a voice changes over time. This enables percussive sounds (fast attack, no sustain), sustained tones (slow attack, high sustain), and smooth fade-outs (long release).
@@ -3451,7 +3331,6 @@ VOICE 2 PRESET 32 ADSR 0.3 0.5 0.8 1.5    ' Pad sound with custom envelope
 VOICE 3 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
 ```
 
-<a id="play-statement"></a>
 ### PLAY Statement
 
 The `PLAY` statement plays music or sound on a specific voice. **All `PLAY` statements play music in the background**—execution continues immediately without waiting for the music to finish.
@@ -3472,7 +3351,6 @@ PLAY voiceNumber%, mmlString$
 - **All `PLAY` statements execute asynchronously in the background**—the program continues immediately
 - Velocity in MML (`V` command) is relative to the global `VOLUME` setting
 
-<a id="mml-syntax-reference"></a>
 ### MML Syntax Reference
 
 Music Macro Language (MML) controls frequency (notes), timing, and velocity for all voices. MML is used within `PLAY` statements to specify musical sequences.
@@ -3549,7 +3427,6 @@ IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: "; notesLeft%; " notes"
 PLAY 1, "N60 L4"    ' Play note 60 (middle C) for quarter note duration
 ```
 
-<a id="mml-examples"></a>
 ### MML Examples
 
 **Simple Scale:**
@@ -3603,7 +3480,6 @@ TEMPO 120
 PLAY 0, "N60 L4 N65 L4 N67 L4"    ' Rising pitch pattern
 ```
 
-<a id="audio-examples"></a>
 ### Audio Examples
 
 **Example: Simple Melody:**
@@ -3696,14 +3572,12 @@ PLAY 0, "N60 L4"
 PLAY 1, "N64 L2"
 ```
 
-<a id="command-and-function-reference"></a>
 ## Command and Function Reference
 
 This section provides an alphabetical reference of all EduBASIC commands, mathematical functions, and operators.
 
 ---
 
-<a id="acos"></a>
 ### ACOS
 
 **Type:** Function (Trigonometric)  
@@ -3717,7 +3591,6 @@ PRINT angle#    ' Prints: 1.047... (π/3 radians)
 
 ---
 
-<a id="acosh"></a>
 ### ACOSH
 
 **Type:** Function (Hyperbolic)  
@@ -3730,7 +3603,6 @@ LET result# = ACOSH 2.0
 
 ---
 
-<a id="and"></a>
 ### AND
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -3744,7 +3616,6 @@ IF (x% > 0) AND (y% < 10) THEN PRINT "Valid"
 
 ---
 
-<a id="asin"></a>
 ### ASIN
 
 **Type:** Function (Trigonometric)  
@@ -3758,7 +3629,6 @@ PRINT angle#    ' Prints: 0.524... (π/6 radians)
 
 ---
 
-<a id="asinh"></a>
 ### ASINH
 
 **Type:** Function (Hyperbolic)  
@@ -3771,7 +3641,6 @@ LET result# = ASINH 1.0
 
 ---
 
-<a id="asc"></a>
 ### ASC
 
 **Type:** Operator (String)  
@@ -3785,7 +3654,6 @@ LET code% = ASC "a"        ' 97
 
 ---
 
-<a id="atan"></a>
 ### ATAN
 
 **Type:** Function (Trigonometric)  
@@ -3799,7 +3667,6 @@ PRINT angle#    ' Prints: 0.785... (π/4 radians)
 
 ---
 
-<a id="atanh"></a>
 ### ATANH
 
 **Type:** Function (Hyperbolic)  
@@ -3812,7 +3679,6 @@ LET result# = ATANH 0.5
 
 ---
 
-<a id="bin"></a>
 ### BIN
 
 **Type:** Operator (String)  
@@ -3827,7 +3693,6 @@ LET binStr$ = BIN -1     ' "11111111111111111111111111111111"
 
 ---
 
-<a id="cabs"></a>
 ### CABS
 
 **Type:** Function (Complex)  
@@ -3842,7 +3707,6 @@ PRINT magnitude#    ' Prints: 5.0
 
 ---
 
-<a id="call"></a>
 ### CALL
 
 **Type:** Command (Control Flow)  
@@ -3856,7 +3720,6 @@ DrawBox 20, 3, "#"    ' Same as CALL DrawBox 20, 3, "#"
 
 ---
 
-<a id="carg"></a>
 ### CARG
 
 **Type:** Function (Complex)  
@@ -3871,7 +3734,6 @@ PRINT angle#    ' Prints: 0.785... (π/4 radians)
 
 ---
 
-<a id="case"></a>
 ### CASE
 
 **Type:** Command (Control Flow)  
@@ -3891,7 +3753,6 @@ END SELECT
 
 ---
 
-<a id="cbrt"></a>
 ### CBRT
 
 **Type:** Function (Math)  
@@ -3905,7 +3766,6 @@ PRINT result#    ' Prints: 3.0
 
 ---
 
-<a id="chr"></a>
 ### CHR
 
 **Type:** Operator (String)  
@@ -3919,7 +3779,6 @@ LET newline$ = CHR 10     ' Newline character
 
 ---
 
-<a id="circle"></a>
 ### CIRCLE
 
 **Type:** Command (Graphics)  
@@ -3935,7 +3794,6 @@ CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 
 ---
 
-<a id="ceil"></a>
 ### CEIL
 
 **Type:** Operator (Rounding)  
@@ -3949,7 +3807,6 @@ PRINT CEIL -3.7    ' Prints: -3
 
 ---
 
-<a id="conj"></a>
 ### CONJ
 
 **Type:** Function (Complex)  
@@ -3964,7 +3821,6 @@ PRINT conjugate&    ' Prints: 3-4i
 
 ---
 
-<a id="cos"></a>
 ### COS
 
 **Type:** Function (Trigonometric)  
@@ -3991,7 +3847,6 @@ PRINT result#    ' Prints: 1.0
 
 ---
 
-<a id="cls-statement"></a>
 ### CLS
 
 **Type:** Command (Graphics)  
@@ -4005,7 +3860,6 @@ CLS WITH &H000033FF    ' Clear to dark blue
 
 ---
 
-<a id="close"></a>
 ### CLOSE
 
 **Type:** Command (File I/O)  
@@ -4020,7 +3874,6 @@ CLOSE file%
 
 ---
 
-<a id="color"></a>
 ### COLOR
 
 **Type:** Command (Text/Graphics)  
@@ -4039,7 +3892,6 @@ LINE FROM (50, 50) TO (150, 150) WITH &HFF0000FF    ' Red line (overrides global
 
 ---
 
-<a id="copy"></a>
 ### COPY
 
 **Type:** Command (File I/O)  
@@ -4066,7 +3918,6 @@ PRINT result#    ' Prints: 1.0
 
 ---
 
-<a id="csqrt"></a>
 ### CSQRT
 
 **Type:** Function (Complex)  
@@ -4081,7 +3932,6 @@ PRINT root&    ' Prints: 0+1i
 
 ---
 
-<a id="deg"></a>
 ### DEG
 
 **Type:** Operator (Unit Conversion)  
@@ -4095,7 +3945,6 @@ PRINT degrees#    ' Prints: 90.0
 
 ---
 
-<a id="delete"></a>
 ### DELETE
 
 **Type:** Command (File I/O)  
@@ -4109,7 +3958,6 @@ DELETE "/Users/name/old_data.bin"
 
 ---
 
-<a id="dim"></a>
 ### DIM
 
 **Type:** Command (Array Resizing)  
@@ -4126,7 +3974,6 @@ DIM matrix#[5, 10]            ' Resize to 5×10 two-dimensional array
 
 ---
 
-<a id="do"></a>
 ### DO
 
 **Type:** Command (Control Flow)  
@@ -4146,7 +3993,6 @@ LOOP UNTIL value% = 0
 
 ---
 
-<a id="else"></a>
 ### ELSE
 
 **Type:** Command (Control Flow)  
@@ -4163,7 +4009,6 @@ END IF
 
 ---
 
-<a id="elseif"></a>
 ### ELSEIF
 
 **Type:** Command (Control Flow)  
@@ -4182,7 +4027,6 @@ END IF
 
 ---
 
-<a id="end"></a>
 ### END
 
 **Type:** Command (Control Flow)  
@@ -4198,7 +4042,6 @@ END IF
 
 ---
 
-<a id="end-if"></a>
 ### END IF
 
 **Type:** Command (Control Flow)  
@@ -4213,7 +4056,6 @@ END IF
 
 ---
 
-<a id="end-select"></a>
 ### END SELECT
 
 **Type:** Command (Control Flow)  
@@ -4229,7 +4071,6 @@ END SELECT
 
 ---
 
-<a id="end-sub"></a>
 ### END SUB
 
 **Type:** Command (Control Flow)  
@@ -4244,7 +4085,6 @@ END SUB
 
 ---
 
-<a id="end-unless"></a>
 ### END UNLESS
 
 **Type:** Command (Control Flow)  
@@ -4259,7 +4099,6 @@ END UNLESS
 
 ---
 
-<a id="eof"></a>
 ### EOF
 
 **Type:** Operator (File I/O)  
@@ -4277,7 +4116,6 @@ CLOSE file%
 
 ---
 
-<a id="exit"></a>
 ### EXIT
 
 **Type:** Command (Control Flow)  
@@ -4296,7 +4134,6 @@ LOOP
 
 ---
 
-<a id="exp"></a>
 ### EXP
 
 **Type:** Function (Math)  
@@ -4310,7 +4147,6 @@ PRINT result#    ' Prints: 2.718... (e)
 
 ---
 
-<a id="expand"></a>
 ### EXPAND
 
 **Type:** Operator (Rounding)  
@@ -4324,7 +4160,6 @@ PRINT EXPAND -3.1    ' Prints: -4
 
 ---
 
-<a id="floor"></a>
 ### FLOOR
 
 **Type:** Operator (Rounding)  
@@ -4338,7 +4173,6 @@ PRINT FLOOR -3.2     ' Prints: -4
 
 ---
 
-<a id="find"></a>
 ### FIND
 
 **Type:** Operator (Array Search)  
@@ -4355,7 +4189,6 @@ IF found$ <> "" THEN PRINT "Found:", found$
 
 ---
 
-<a id="for"></a>
 ### FOR
 
 **Type:** Command (Control Flow)  
@@ -4374,7 +4207,6 @@ NEXT x#
 
 ---
 
-<a id="get"></a>
 ### GET
 
 **Type:** Command (Graphics)  
@@ -4388,7 +4220,6 @@ GET sprite%[] FROM (100, 100) TO (131, 131)
 
 ---
 
-<a id="gosub"></a>
 ### GOSUB
 
 **Type:** Command (Control Flow)  
@@ -4407,7 +4238,6 @@ RETURN
 
 ---
 
-<a id="goto"></a>
 ### GOTO
 
 **Type:** Command (Control Flow)  
@@ -4424,7 +4254,6 @@ LABEL Loop
 
 ---
 
-<a id="if"></a>
 ### IF
 
 **Type:** Command (Control Flow)  
@@ -4441,7 +4270,6 @@ END IF
 
 ---
 
-<a id="imag"></a>
 ### IMAG
 
 **Type:** Function (Complex)  
@@ -4456,7 +4284,6 @@ PRINT imagPart#    ' Prints: 4.0
 
 ---
 
-<a id="hex"></a>
 ### HEX
 
 **Type:** Operator (String)  
@@ -4472,7 +4299,6 @@ LET hexStr$ = HEX 4095    ' "FFF"
 
 ---
 
-<a id="imp"></a>
 ### IMP
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -4485,7 +4311,6 @@ LET result% = 5 IMP 3    ' Binary implication
 
 ---
 
-<a id="inkey"></a>
 ### INKEY
 
 **Type:** Operator (Input)  
@@ -4557,7 +4382,6 @@ END IF
 
 ---
 
-<a id="input"></a>
 ### INPUT
 
 **Type:** Command (Text I/O)  
@@ -4577,7 +4401,6 @@ INPUT scores%[]
 
 ---
 
-<a id="instr"></a>
 ### INSTR
 
 **Type:** Operator (String Search)  
@@ -4591,7 +4414,6 @@ LET pos% = "Hello world" INSTR "o" FROM 5    ' 5 (start search at position 5)
 
 ---
 
-<a id="indexof"></a>
 ### INDEXOF
 
 **Type:** Operator (Array Search)  
@@ -4608,7 +4430,6 @@ IF index% > 0 THEN PRINT "Found at index:", index%
 
 ---
 
-<a id="includes"></a>
 ### INCLUDES
 
 **Type:** Operator (Array Search)  
@@ -4622,7 +4443,6 @@ IF names$[] INCLUDES "Bob" THEN PRINT "Found"
 
 ---
 
-<a id="int"></a>
 ### INT
 
 **Type:** Operator (Math)  
@@ -4637,7 +4457,6 @@ PRINT INT -3.9   ' Prints: -3
 
 ---
 
-<a id="join"></a>
 ### JOIN
 
 **Type:** Operator (Array)  
@@ -4651,7 +4470,6 @@ LET joined$ = names$[] JOIN ", "    ' "Alice, Bob, Charlie"
 
 ---
 
-<a id="label"></a>
 ### LABEL
 
 **Type:** Command (Control Flow)  
@@ -4668,7 +4486,6 @@ PRINT "Looping..."
 
 ---
 
-<a id="lcase"></a>
 ### LCASE
 
 **Type:** Operator (String)  
@@ -4682,7 +4499,6 @@ LET lower$ = LCASE "WORLD"    ' "world"
 ---
 
 
-<a id="line"></a>
 ### LINE
 
 **Type:** Command (Graphics)  
@@ -4696,7 +4512,6 @@ LINE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled rectangle
 
 ---
 
-<a id="left"></a>
 ### LEFT
 
 **Type:** Operator (String)  
@@ -4711,7 +4526,6 @@ LET firstChar$ = text$ LEFT 1    ' "H"
 
 ---
 
-<a id="line-input"></a>
 ### LINE INPUT
 
 **Type:** Command (File I/O)  
@@ -4729,7 +4543,6 @@ CLOSE file%
 
 ---
 
-<a id="listdir"></a>
 ### LISTDIR
 
 **Type:** Command (File I/O)  
@@ -4745,7 +4558,6 @@ NEXT i%
 
 ---
 
-<a id="loc"></a>
 ### LOC
 
 **Type:** Operator (File I/O)  
@@ -4763,7 +4575,6 @@ CLOSE file%
 
 ---
 
-<a id="locate"></a>
 ### LOCATE
 
 **Type:** Command (Text I/O)  
@@ -4777,7 +4588,6 @@ PRINT "This text appears at row 10, column 20"
 
 ---
 
-<a id="let"></a>
 ### LET
 
 **Type:** Command (Variable Assignment)  
@@ -4798,7 +4608,6 @@ LET slice%[] = numbers%[2 TO 4]
 
 ---
 
-<a id="local"></a>
 ### LOCAL
 
 **Type:** Command (Variable Assignment)  
@@ -4815,7 +4624,6 @@ END SUB
 
 ---
 
-<a id="ltrim"></a>
 ### LTRIM
 
 **Type:** Operator (String)  
@@ -4828,7 +4636,6 @@ LET trimmed$ = LTRIM "  text"    ' "text"
 
 ---
 
-<a id="mid"></a>
 ### MID
 
 **Type:** Operator (String)  
@@ -4844,7 +4651,6 @@ LET char$ = text$ MID 1 TO 1    ' "H" (single character at position 1)
 
 ---
 
-<a id="log"></a>
 ### LOG
 
 **Type:** Function (Math)  
@@ -4858,7 +4664,6 @@ PRINT result#    ' Prints: 1.0 (approximately)
 
 ---
 
-<a id="log10"></a>
 ### LOG10
 
 **Type:** Function (Math)  
@@ -4872,7 +4677,6 @@ PRINT result#    ' Prints: 2.0
 
 ---
 
-<a id="log2"></a>
 ### LOG2
 
 **Type:** Function (Math)  
@@ -4886,7 +4690,6 @@ PRINT result#    ' Prints: 3.0
 
 ---
 
-<a id="loop"></a>
 ### LOOP
 
 **Type:** Command (Control Flow)  
@@ -4905,7 +4708,6 @@ LOOP UNTIL val% = 0
 
 ---
 
-<a id="mkdir"></a>
 ### MKDIR
 
 **Type:** Command (File I/O)  
@@ -4919,7 +4721,6 @@ MKDIR "/Users/name/data"
 
 ---
 
-<a id="mod"></a>
 ### MOD
 
 **Type:** Operator (Arithmetic)  
@@ -4936,7 +4737,6 @@ PRINT remainder%    ' Prints: 2
 
 ---
 
-<a id="move"></a>
 ### MOVE
 
 **Type:** Command (File I/O)  
@@ -4950,7 +4750,6 @@ MOVE "/temp/file.txt" TO "/final/file.txt"
 
 ---
 
-<a id="nand"></a>
 ### NAND
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -4963,7 +4762,6 @@ LET result% = 12 NAND 10
 
 ---
 
-<a id="next"></a>
 ### NEXT
 
 **Type:** Command (Control Flow)  
@@ -4982,7 +4780,6 @@ NEXT
 
 ---
 
-<a id="nor"></a>
 ### NOR
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -4995,7 +4792,6 @@ LET result% = 12 NOR 10
 
 ---
 
-<a id="not"></a>
 ### NOT
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -5009,7 +4805,6 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 
 ---
 
-<a id="open"></a>
 ### OPEN
 
 **Type:** Command (File I/O)  
@@ -5024,7 +4819,6 @@ OPEN "log.txt" FOR APPEND AS logFile%
 
 ---
 
-<a id="or"></a>
 ### OR
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -5038,7 +4832,6 @@ IF (x% > 0) OR (y% < 10) THEN PRINT "Valid"
 
 ---
 
-<a id="pop"></a>
 ### POP
 
 **Type:** Statement (Array)  
@@ -5052,7 +4845,6 @@ POP names$[] INTO name$
 
 ---
 
-<a id="paint"></a>
 ### PAINT
 
 **Type:** Command (Graphics)  
@@ -5066,7 +4858,6 @@ PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF    ' Fill bounded by blue pix
 
 ---
 
-<a id="play"></a>
 ### PLAY
 
 **Type:** Command (Audio)  
@@ -5087,7 +4878,6 @@ IF notesLeft% > 0 THEN PRINT "Still playing: "; notesLeft%; " notes remaining"
 
 ---
 
-<a id="print"></a>
 ### PRINT
 
 **Type:** Command (Text I/O)  
@@ -5105,7 +4895,6 @@ PRINT    ' Blank line
 
 ---
 
-<a id="pset"></a>
 ### PSET
 
 **Type:** Command (Graphics)  
@@ -5121,7 +4910,6 @@ NEXT i%
 
 ---
 
-<a id="put"></a>
 ### PUT
 
 **Type:** Command (Graphics)  
@@ -5135,7 +4923,6 @@ PUT player%[] AT (x%, y%)    ' Animate sprite
 
 ---
 
-<a id="push"></a>
 ### PUSH
 
 **Type:** Statement (Array)  
@@ -5149,7 +4936,6 @@ PUSH names$[], "David"
 
 ---
 
-<a id="rad"></a>
 ### RAD
 
 **Type:** Operator (Unit Conversion)  
@@ -5163,7 +4949,6 @@ PRINT radians#    ' Prints: 1.5708... (π/2 radians)
 
 ---
 
-<a id="randomize"></a>
 ### RANDOMIZE
 
 **Type:** Command (Random)  
@@ -5177,7 +4962,6 @@ RANDOMIZE 12345        ' Seed with specific value
 
 ---
 
-<a id="notes"></a>
 ### NOTES
 
 **Type:** Operator (Audio)  
@@ -5198,7 +4982,6 @@ PRINT "Voice 0 finished playing"
 
 ---
 
-<a id="read"></a>
 ### READ
 
 **Type:** Command (File I/O)  
@@ -5221,7 +5004,6 @@ READ data%[] FROM file%
 
 ---
 
-<a id="readfile"></a>
 ### READFILE
 
 **Type:** Command (File I/O)  
@@ -5236,7 +5018,6 @@ READFILE "data.json" INTO jsonData$
 
 ---
 
-<a id="real"></a>
 ### REAL
 
 **Type:** Function (Complex)  
@@ -5251,7 +5032,6 @@ PRINT realPart#    ' Prints: 3.0
 
 ---
 
-<a id="replace"></a>
 ### REPLACE
 
 **Type:** Operator (String)  
@@ -5264,7 +5044,6 @@ LET new$ = "Hello world" REPLACE "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 
 ---
 
-<a id="rectangle"></a>
 ### RECTANGLE
 
 **Type:** Command (Graphics)  
@@ -5279,7 +5058,6 @@ RECTANGLE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled red r
 
 ---
 
-<a id="return"></a>
 ### RETURN
 
 **Type:** Command (Control Flow)  
@@ -5298,7 +5076,6 @@ RETURN
 
 ---
 
-<a id="reverse"></a>
 ### REVERSE
 
 **Type:** Operator (Array)  
@@ -5311,7 +5088,6 @@ LET reversed%[] = REVERSE numbers%[]
 
 ---
 
-<a id="rmdir"></a>
 ### RMDIR
 
 **Type:** Command (File I/O)  
@@ -5325,7 +5101,6 @@ RMDIR "/Users/name/old_data"
 
 ---
 
-<a id="rnd"></a>
 ### RND
 
 **Type:** Operator (Random)  
@@ -5339,7 +5114,6 @@ LET dice% = INT (RND * 6) + 1    ' Random integer 1-6
 
 ---
 
-<a id="round"></a>
 ### ROUND
 
 **Type:** Operator (Rounding)  
@@ -5353,7 +5127,6 @@ PRINT ROUND 3.4      ' Prints: 3
 
 ---
 
-<a id="oval"></a>
 ### OVAL
 
 **Type:** Command (Graphics)  
@@ -5369,7 +5142,6 @@ OVAL AT (200, 200) WIDTH 80 HEIGHT 40 WITH &HFF00FFFF FILLED    ' Filled ellipse
 
 ---
 
-<a id="rtrim"></a>
 ### RTRIM
 
 **Type:** Operator (String)  
@@ -5382,7 +5154,6 @@ LET trimmed$ = RTRIM "text  "    ' "text"
 
 ---
 
-<a id="right"></a>
 ### RIGHT
 
 **Type:** Operator (String)  
@@ -5397,7 +5168,6 @@ LET lastChar$ = text$ RIGHT 1    ' "!"
 
 ---
 
-<a id="select-case"></a>
 ### SELECT CASE
 
 **Type:** Command (Control Flow)  
@@ -5417,7 +5187,6 @@ END SELECT
 
 ---
 
-<a id="seek"></a>
 ### SEEK
 
 **Type:** Command (File I/O)  
@@ -5434,7 +5203,6 @@ CLOSE file%
 
 ---
 
-<a id="set"></a>
 ### SET
 
 **Type:** Command (System Settings)  
@@ -5458,7 +5226,6 @@ SET VOLUME 0.0          ' Silent
 
 ---
 
-<a id="shift"></a>
 ### SHIFT
 
 **Type:** Statement (Array)  
@@ -5473,7 +5240,6 @@ SHIFT names$[] INTO name$
 ---
 
 
-<a id="sgn"></a>
 ### SGN
 
 **Type:** Function (Math)  
@@ -5488,7 +5254,6 @@ PRINT SGN 0        ' Prints: 0
 
 ---
 
-<a id="sin"></a>
 ### SIN
 
 **Type:** Function (Trigonometric)  
@@ -5502,7 +5267,6 @@ PRINT result#    ' Prints: 1.0
 
 ---
 
-<a id="sinh"></a>
 ### SINH
 
 **Type:** Function (Hyperbolic)  
@@ -5516,7 +5280,6 @@ PRINT result#    ' Prints: 0.0
 
 ---
 
-<a id="sqrt"></a>
 ### SQRT
 
 **Type:** Function (Math)  
@@ -5531,7 +5294,6 @@ PRINT result#    ' Prints: 4.0
 ---
 
 
-<a id="str"></a>
 ### STR
 
 **Type:** Operator (String)  
@@ -5548,7 +5310,6 @@ LET complexStr$ = STR (3-4i)    ' "3-4i"
 
 ---
 
-<a id="step"></a>
 ### STEP
 
 **Type:** Keyword (Control Flow)  
@@ -5563,7 +5324,6 @@ NEXT i%
 
 ---
 
-<a id="sub"></a>
 ### SUB
 
 **Type:** Command (Control Flow)  
@@ -5583,7 +5343,6 @@ END SUB
 
 ---
 
-<a id="swap"></a>
 ### SWAP
 
 **Type:** Command (Variable Operation)  
@@ -5605,7 +5364,6 @@ PRINT arr2%[]    ' Prints: 1, 2, 3
 
 ---
 
-<a id="tan"></a>
 ### TAN
 
 **Type:** Function (Trigonometric)  
@@ -5619,7 +5377,6 @@ PRINT result#    ' Prints: 1.0
 
 ---
 
-<a id="tanh"></a>
 ### TANH
 
 **Type:** Function (Hyperbolic)  
@@ -5633,7 +5390,6 @@ PRINT result#    ' Prints: 0.0
 
 ---
 
-<a id="then"></a>
 ### THEN
 
 **Type:** Keyword (Control Flow)  
@@ -5646,7 +5402,6 @@ IF x% > 0 THEN PRINT "Positive"
 
 ---
 
-<a id="timer"></a>
 ### TIMER
 
 **Type:** Operator (System)  
@@ -5660,7 +5415,6 @@ LET currentTime% = TIMER
 
 ---
 
-<a id="to"></a>
 ### TO
 
 **Type:** Keyword (Control Flow)  
@@ -5677,7 +5431,6 @@ CASE 90 TO 100
 
 ---
 
-<a id="trim"></a>
 ### TRIM
 
 **Type:** Operator (String)  
@@ -5690,7 +5443,6 @@ LET trimmed$ = TRIM "  text  "   ' "text"
 
 ---
 
-<a id="triangle"></a>
 ### TRIANGLE
 
 **Type:** Command (Graphics)  
@@ -5704,7 +5456,6 @@ TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED    ' Filled
 
 ---
 
-<a id="trunc"></a>
 ### TRUNC
 
 **Type:** Operator (Rounding)  
@@ -5718,7 +5469,6 @@ PRINT TRUNC -3.9     ' Prints: -3
 
 ---
 
-<a id="tempo"></a>
 ### TEMPO
 
 **Type:** Command (Audio)  
@@ -5733,7 +5483,6 @@ TEMPO 180    ' Set to 180 BPM (fast)
 
 ---
 
-<a id="ucase"></a>
 ### UCASE
 
 **Type:** Operator (String)  
@@ -5746,7 +5495,6 @@ LET upper$ = UCASE "hello"    ' "HELLO"
 
 ---
 
-<a id="unless"></a>
 ### UNLESS
 
 **Type:** Command (Control Flow)  
@@ -5770,7 +5518,6 @@ END UNLESS
 
 ---
 
-<a id="until"></a>
 ### UNTIL
 
 **Type:** Command (Control Flow)  
@@ -5793,7 +5540,6 @@ UEND
 
 ---
 
-<a id="uend"></a>
 ### UEND
 
 **Type:** Command (Control Flow)  
@@ -5809,7 +5555,6 @@ UEND
 
 ---
 
-<a id="unshift"></a>
 ### UNSHIFT
 
 **Type:** Statement (Array)  
@@ -5823,7 +5568,6 @@ UNSHIFT names$[], "Alice"
 
 ---
 
-<a id="val"></a>
 ### VAL
 
 **Type:** Operator (String)  
@@ -5843,7 +5587,6 @@ LET complexValue& = VAL "3-4i"    ' 3-4i (complex number, coerced to complex)
 
 ---
 
-<a id="voice"></a>
 ### VOICE
 
 **Type:** Command (Audio)  
@@ -5871,7 +5614,6 @@ VOICE 3 PRESET 10 ADSR 0.01 0.1 0.0 0.1    ' GRIT preset with custom ADSR
 
 ---
 
-<a id="volume"></a>
 ### VOLUME
 
 **Type:** Command (Audio)  
@@ -5887,7 +5629,6 @@ VOLUME 0      ' Silent
 
 ---
 
-<a id="wend"></a>
 ### WEND
 
 **Type:** Command (Control Flow)  
@@ -5903,7 +5644,6 @@ WEND
 
 ---
 
-<a id="while"></a>
 ### WHILE
 
 **Type:** Command (Control Flow)  
@@ -5920,7 +5660,6 @@ WEND
 
 ---
 
-<a id="write"></a>
 ### WRITE
 
 **Type:** Command (File I/O)  
@@ -5938,7 +5677,6 @@ CLOSE file%
 
 ---
 
-<a id="writefile"></a>
 ### WRITEFILE
 
 **Type:** Command (File I/O)  
@@ -5953,7 +5691,6 @@ WRITEFILE output$ TO "results.txt"
 
 ---
 
-<a id="xnor"></a>
 ### XNOR
 
 **Type:** Operator (Boolean/Bitwise)  
@@ -5966,7 +5703,6 @@ LET result% = 12 XNOR 10
 
 ---
 
-<a id="xor"></a>
 ### XOR
 
 **Type:** Operator (Boolean/Bitwise)  
