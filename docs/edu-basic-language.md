@@ -140,8 +140,7 @@ LET studentCount% = 10
 LET roomTemperature# = 98.6
 LET playerName$ = "Alice"
 LET impedance& = 3+4i
-LET player.name$ = "Bob"      ' Structure (no sigil)
-LET player.score% = 100        ' Structure member
+LET player = { name$: "Bob", score%: 100 }      ' Structure (no sigil)
 ```
 
 ### Variable Declaration
@@ -160,7 +159,7 @@ When a variable is first created (before any assignment), it has a default value
 | **Real** (`#`) | `0.0` | 64-bit floating-point |
 | **Complex** (`&`) | `0+0i` | 128-bit complex number (real and imaginary parts both 0) |
 | **String** (`$`) | `""` | Empty string |
-| **Structure** (no sigil) | `{}` | Empty structure (no members) |
+| **Structure** (no sigil) | `{ }` | Empty structure (no members) |
 | **Array** (`[]`) | `[]` | Empty array (size 0) |
 
 **Examples:**
@@ -169,7 +168,7 @@ LET count%        ' count% = 0 (default)
 LET value#        ' value# = 0.0 (default)
 LET z&            ' z& = 0+0i (default)
 LET name$         ' name$ = "" (default)
-LET player        ' player = {} (default, empty structure)
+LET player        ' player = { } (default, empty structure)
 LET numbers%[]    ' numbers%[] = [] (default, empty array, size 0)
 ```
 
@@ -291,6 +290,44 @@ LET names$[] = ["Alice", "Bob", "Charlie"]    ' String array
 LET mixed#[] = [1.5, 2.7, 3.14]               ' Real array
 LET empty%[] = []                              ' Empty array (size 0)
 LET complex&[] = [1+2i, 3+4i, 5+6i]           ' Complex array
+```
+
+#### Structure Literals
+
+Structure literals are written using curly braces with comma-separated key-value pairs:
+
+```
+{ name$: "Alice", score%: 100, level%: 5 }
+{ x%: 100, y%: 200 }
+{ }
+```
+
+**Rules:**
+- Structure literals use curly braces `{ }`
+- Members are specified as `key: value` pairs
+- Pairs are separated by commas
+- Keys are member names (without type sigils in the literal)
+- Values can be any data type (Integer, Real, Complex, String, Array, Structure)
+- Empty structure literal `{ }` creates a structure with no members
+- Structure literals can contain nested structures and arrays
+- Member names in literals do not use type sigils (the type sigil is part of the member name when accessing)
+
+**Examples:**
+```
+LET player = { name$: "Alice", score%: 100, level%: 5 }
+LET point = { x%: 100, y%: 200 }
+LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
+LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE }
+LET empty = { }                                 ' Empty structure (no members)
+
+' Structure with array members
+LET player = { name$: "Alice", scores%[]: [100, 95, 87, 92], inventory$[]: ["sword", "shield", "potion"] }
+
+' Structure with nested structures
+LET person = { name: { first$: "John", last$: "Doe" }, address: { street$: "123 Main St", city$: "Springfield", zip%: 12345 } }
+
+' Structure with both arrays and nested structures
+LET game = { player: { name$: "Hero", stats: { hp%: 100, mp%: 50 }, items$[]: ["sword", "shield"] }, enemies%[]: [10, 15, 20] }
 ```
 
 ### Type Coercion
@@ -418,13 +455,23 @@ Structures are untyped identifier-value dictionaries that allow you to group rel
 
 #### Structure Creation
 
-Structures are created by assigning values to members using the dot operator:
+Structures can be created in two ways:
+
+**1. Using structure literals (recommended):**
+
+```
+LET player = { name$: "Alice", score%: 100, level%: 5 }
+```
+
+**2. By assigning values to members individually using the dot operator:**
 
 ```
 LET player.name$ = "Alice"
 LET player.score% = 100
 LET player.level% = 5
 ```
+
+Both methods are equivalent. Structure literals are more concise for creating structures with multiple members, while individual assignment is useful for updating specific members or building structures incrementally.
 
 #### Member Access
 
@@ -440,24 +487,17 @@ IF player.level% > 10 THEN PRINT "Advanced player"
 
 ```
 ' Create a structure for a point
-LET point.x% = 100
-LET point.y% = 200
+LET point = { x%: 100, y%: 200 }
 
 ' Create a structure for a person
-LET person.firstName$ = "John"
-LET person.lastName$ = "Doe"
-LET person.age% = 30
-LET person.email$ = "john@example.com"
+LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
 
 ' Access structure members
 PRINT person.firstName$; " "; person.lastName$
 LET person.age% += 1
 
 ' Structures can contain any data type
-LET config.width% = 640
-LET config.height% = 480
-LET config.title$ = "My Game"
-LET config.fullscreen% = FALSE
+LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE }
 ```
 
 #### Nested Structures and Arrays
@@ -466,23 +506,13 @@ Structure members can themselves be arrays or structures, allowing for nested da
 
 ```
 ' Structure with array members
-LET player.name$ = "Alice"
-LET player.scores%[] = [100, 95, 87, 92]
-LET player.inventory$[] = ["sword", "shield", "potion"]
+LET player = { name$: "Alice", scores%[]: [100, 95, 87, 92], inventory$[]: ["sword", "shield", "potion"] }
 
 ' Structure with nested structures
-LET person.name.first$ = "John"
-LET person.name.last$ = "Doe"
-LET person.address.street$ = "123 Main St"
-LET person.address.city$ = "Springfield"
-LET person.address.zip% = 12345
+LET person = { name: { first$: "John", last$: "Doe" }, address: { street$: "123 Main St", city$: "Springfield", zip%: 12345 } }
 
 ' Structure with both arrays and nested structures
-LET game.player.name$ = "Hero"
-LET game.player.stats.hp% = 100
-LET game.player.stats.mp% = 50
-LET game.player.items$[] = ["sword", "shield"]
-LET game.enemies%[] = [10, 15, 20]
+LET game = { player: { name$: "Hero", stats: { hp%: 100, mp%: 50 }, items$[]: ["sword", "shield"] }, enemies%[]: [10, 15, 20] }
 
 ' Access nested structure members
 PRINT person.name.first$; " "; person.name.last$
@@ -498,16 +528,12 @@ LET player.scores%[2] = 98  ' Update second score
 Structures support the equality operator (`=`). Two structures are equal if all of their members are equal (recursively, including nested structures and array members).
 
 ```
-LET point1.x% = 100
-LET point1.y% = 200
-
-LET point2.x% = 100
-LET point2.y% = 200
+LET point1 = { x%: 100, y%: 200 }
+LET point2 = { x%: 100, y%: 200 }
 
 IF point1 = point2 THEN PRINT "Points are equal"    ' TRUE
 
-LET point3.x% = 100
-LET point3.y% = 201
+LET point3 = { x%: 100, y%: 201 }
 
 IF point1 = point3 THEN PRINT "Equal"    ' FALSE (y values differ)
 ```
