@@ -1,41 +1,16 @@
 <luna-window id="main-window" [showClose]="false" [showHelp]="false" [showMaximize]="false" [showMinimize]="false" [title]="title">
     <luna-tabs>
         <luna-tab id="console" label="Console">
-            <h3>Console Output</h3>
-            <p>This is the console tab where you can see application logs and debug information.</p>
-            <pre>
-> Application started
-> Loading modules...
-> All modules loaded successfully
-            </pre>
+            <app-console></app-console>
         </luna-tab>
         <luna-tab id="code" label="Code">
-            <h3>Code Editor</h3>
-            <p>This tab would contain your code editor interface.</p>
-            <pre>
-function greet(name: string): string {{ '{' }}
-    return `Hello, ${{ '{' }}name{{ '}' }}!`;
-{{ '}' }}
-            </pre>
+            <app-code-editor></app-code-editor>
         </luna-tab>
         <luna-tab id="files" label="Files">
-            <h3>File Explorer</h3>
-            <p>This tab shows the file structure of your project.</p>
-            <ul>
-                <li>src/</li>
-                <li>├── app/</li>
-                <li>├── components/</li>
-                <li>└── styles/</li>
-            </ul>
+            <app-files></app-files>
         </luna-tab>
         <luna-tab id="output" label="Output">
-            <h3>Build Output</h3>
-            <p>This tab displays build and compilation output.</p>
-            <pre>
-Building application...
-✓ Compiled successfully
-✓ Build completed in 2.5s
-            </pre>
+            <app-output></app-output>
         </luna-tab>
     </luna-tabs>
 </luna-window>
