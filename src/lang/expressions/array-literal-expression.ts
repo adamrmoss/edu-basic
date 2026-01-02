@@ -24,4 +24,15 @@ export class ArrayLiteralExpression extends Expression
             elementType: elementType
         };
     }
+
+    public toString(): string
+    {
+        if (this.elements.length === 0)
+        {
+            return '[ ]';
+        }
+
+        const elementStrings = this.elements.map(el => el.toString());
+        return `[${elementStrings.join(', ')}]`;
+    }
 }

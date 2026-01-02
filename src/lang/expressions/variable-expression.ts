@@ -15,4 +15,9 @@ export class VariableExpression extends Expression
     {
         return context.getVariable(this.name);
     }
+
+    public toString(): string
+    {
+        return this.name;
+    }
 }

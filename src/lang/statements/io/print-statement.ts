@@ -25,4 +25,21 @@ export class PrintStatement extends Statement
 
         return { result: ExecutionResult.Continue };
     }
+
+    public toString(): string
+    {
+        let result = 'PRINT';
+
+        if (this.expressions.length > 0)
+        {
+            result += ' ' + this.expressions.map(expr => expr.toString()).join('; ');
+        }
+
+        if (!this.newline)
+        {
+            result += ';';
+        }
+
+        return result;
+    }
 }

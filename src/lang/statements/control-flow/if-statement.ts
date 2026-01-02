@@ -71,4 +71,36 @@ export class IfStatement extends Statement
 
         return { result: ExecutionResult.Continue };
     }
+
+    public toString(): string
+    {
+        let result = `IF ${this.condition.toString()} THEN\n`;
+
+        for (const statement of this.thenBranch)
+        {
+            result += `    ${statement.toString()}\n`;
+        }
+
+        for (const elseIfBranch of this.elseIfBranches)
+        {
+            result += `ELSEIF ${elseIfBranch.condition.toString()} THEN\n`;
+            for (const statement of elseIfBranch.statements)
+            {
+                result += `    ${statement.toString()}\n`;
+            }
+        }
+
+        if (this.elseBranch !== null)
+        {
+            result += 'ELSE\n';
+            for (const statement of this.elseBranch)
+            {
+                result += `    ${statement.toString()}\n`;
+            }
+        }
+
+        result += 'END IF';
+
+        return result;
+    }
 }

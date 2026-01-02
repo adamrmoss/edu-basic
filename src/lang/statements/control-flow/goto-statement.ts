@@ -22,4 +22,9 @@ export class GotoStatement extends Statement
 
         return { result: ExecutionResult.Goto, gotoTarget: targetIndex };
     }
+
+    public toString(): string
+    {
+        return `GOTO ${this.labelName}`;
+    }
 }

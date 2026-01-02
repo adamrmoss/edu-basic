@@ -15,4 +15,9 @@ export class LabelStatement extends Statement
     {
         return { result: ExecutionResult.Continue };
     }
+
+    public toString(): string
+    {
+        return `LABEL ${this.labelName}`;
+    }
 }

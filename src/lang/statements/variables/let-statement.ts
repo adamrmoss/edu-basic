@@ -20,4 +20,9 @@ export class LetStatement extends Statement
 
         return { result: ExecutionResult.Continue };
     }
+
+    public toString(): string
+    {
+        return `LET ${this.variableName} = ${this.value.toString()}`;
+    }
 }

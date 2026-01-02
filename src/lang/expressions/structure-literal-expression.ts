@@ -25,4 +25,20 @@ export class StructureLiteralExpression extends Expression
             value: evaluatedMembers
         };
     }
+
+    public toString(): string
+    {
+        if (this.members.size === 0)
+        {
+            return '{ }';
+        }
+
+        const memberStrings: string[] = [];
+        for (const [key, expr] of this.members.entries())
+        {
+            memberStrings.push(`${key}: ${expr.toString()}`);
+        }
+
+        return `{ ${memberStrings.join(', ')} }`;
+    }
 }

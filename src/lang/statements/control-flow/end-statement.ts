@@ -13,4 +13,9 @@ export class EndStatement extends Statement
     {
         return { result: ExecutionResult.End };
     }
+
+    public toString(): string
+    {
+        return 'END';
+    }
 }
