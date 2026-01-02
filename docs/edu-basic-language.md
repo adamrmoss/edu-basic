@@ -122,7 +122,7 @@ Additionally, **structures** can be created to group related data together. Stru
 EduBASIC uses type sigils (special characters) at the end of variable names to indicate the variable's type. Sigils are **required** for all variables and apply **only** to variable identifiers—they are never used in literals.
 
 | Data Type | Sigil    | Example Variable | Size     |
-|-----------|----------|-----------------|-----------|
+|-----------|----------|------------------|----------|
 | Integer   | `%`      | `count%`         | 32-bit   |
 | Real      | `#`      | `value#`         | 64-bit   |
 | String    | `$`      | `name$`          | Variable |
@@ -154,22 +154,22 @@ LET player = { name$: "Bob", score%: 100 }      ' Structure (no sigil)
 
 ### Variable Declaration
 
-Variables in EduBASIC are **implicitly declared**—you simply assign a value to create a variable. **No variables need to be declared ahead of time**, whether they are scalars, structures, or arrays.
+Variables in EduBASIC are **implicitly declared**—you simply assign a value with the `LET` or `LOCAL` statements to create a variable. **No variables need to be declared ahead of time**, whether they are scalars, structures, or arrays.
 
-The `DIM` keyword is used **only** for resizing arrays (changing the size of an array). Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. All other variables are created automatically when first assigned.
+The `DIM` statement is used **only** for resizing arrays (changing the size of an array). Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. All other variables are created automatically when first assigned with `LET` or `LOCAL`.
 
 ### Default Values
 
 When a variable is first created (before any assignment), it has a default value based on its type:
 
-| Type | Default Value | Notes |
-|------|---------------|-------|
-| **Integer** (`%`) | `0` | 32-bit signed integer |
-| **Real** (`#`) | `0.0` | 64-bit floating-point |
-| **Complex** (`&`) | `0+0i` | 128-bit complex number (real and imaginary parts both 0) |
-| **String** (`$`) | `""` | Empty string |
-| **Structure** (no sigil) | `{ }` | Empty structure (no members) |
-| **Array** (`[]`) | `[]` | Empty array (size 0) |
+| Type                       | Default Value | Notes                                                       |
+|----------------------------|---------------|-------------------------------------------------------------|
+| **Integer** (`%`)          | `0`           | 32-bit signed integer                                       |
+| **Real** (`#`)             | `0.0`         | 64-bit floating-point                                       |
+| **Complex** (`&`)          | `0+0i`        | 128-bit complex number (real and imaginary parts both 0)    |
+| **String** (`$`)           | `""`          | Empty string                                                |
+| **Structure** (no sigil)   | `{ }`         | Empty structure (no members)                                |
+| **Array** (`[]`)           | `[]`          | Empty array (size 0)                                        |
 
 **Examples:**
 ```
@@ -297,7 +297,7 @@ Array literals are written using square brackets with comma-separated values:
 LET numbers%[] = [1, 2, 3, 4, 5]              ' Integer array
 LET names$[] = ["Alice", "Bob", "Charlie"]    ' String array
 LET mixed#[] = [1.5, 2.7, 3.14]               ' Real array
-LET empty%[] = []                              ' Empty array (size 0)
+LET empty%[] = []                             ' Empty array (size 0)
 LET complex&[] = [1+2i, 3+4i, 5+6i]           ' Complex array
 ```
 
@@ -1651,17 +1651,19 @@ PRINT "y ="; y%        ' Prints: y = 999 (changed, passed by reference)
 
 #### Local Variables
 
-Variables created with `LET` inside a `SUB` are **module-level** (global). To create variables that are local to the subroutine, use the `LOCAL` keyword:
+Variables created with the `LET` statement inside a `SUB` are **module-level** (global). To create variables that are local to the current stack frame, use the `LOCAL` statement:
 
 ```
 LOCAL variableName = value
 ```
 
-Local variables:
-- Are only accessible within the current `SUB`
-- Are destroyed when the `SUB` exits
-- Do not conflict with module-level variables of the same name
-- Must still include type sigils
+The `LOCAL` statement creates variables scoped to the current stack frame:
+- Inside a `SUB`: variables are local to that procedure's stack frame
+- Outside any `SUB`: variables are local to the bottom-level stack frame
+- Local variables are only accessible within their stack frame
+- Local variables are destroyed when their stack frame is popped (when the `SUB` exits)
+- Local variables do not conflict with module-level variables of the same name
+- Local variables must still include type sigils
 
 **Examples:**
 
@@ -4454,7 +4456,7 @@ DELETE "/Users/name/old_data.bin"
 
 ### DIM
 
-**Type:** Command (Array Resizing)  
+**Type:** Statement (Array Resizing)  
 **Syntax:** `DIM arrayName[size]` or `DIM arrayName[start TO end]`  
 **Description:** Resizes an array. Arrays are one-based by default. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. `DIM` is **only** used for resizing arrays—no other variables need to be declared.  
 **Example:**
@@ -5153,7 +5155,7 @@ PRINT "This text appears at row 10, column 20"
 
 ### LET
 
-**Type:** Command (Variable Assignment)  
+**Type:** Statement (Variable Assignment)  
 **Syntax:** `LET variable = expression` or `LET array[] = expression`  
 **Description:** Assigns a value to a variable. Creates module-level (global) variables. Can assign to scalars or arrays. For arrays, the expression can be an array literal, another array, or an array slice.  
 **Example:**
@@ -5173,9 +5175,9 @@ LET slice%[] = numbers%[2 TO 4]
 
 ### LOCAL
 
-**Type:** Command (Variable Assignment)  
+**Type:** Statement (Variable Assignment)  
 **Syntax:** `LOCAL variable = expression` or `LOCAL array[] = expression`  
-**Description:** Creates a variable local to the current `SUB` procedure. Can create local scalars or arrays.  
+**Description:** Creates a variable local to the current stack frame. Inside a `SUB`, the variable is scoped to that procedure's stack frame and destroyed when the `SUB` exits. Outside any `SUB`, the variable is scoped to the top-level stack frame. Can create local scalars or arrays.  
 **Example:**
 ```
 SUB Calculate ()

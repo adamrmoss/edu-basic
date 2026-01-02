@@ -1,5 +1,5 @@
-import { Statement } from './statement';
-import { LabelStatement } from './label-statement';
+import { Statement } from './statements/statement';
+import { LabelStatement } from './statements/control-flow/label-statement';
 
 export class Program
 {
@@ -154,4 +154,3 @@ export class Program
         }
     }
 }
-
