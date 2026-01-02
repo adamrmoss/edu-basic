@@ -169,7 +169,7 @@ When a variable is first created (before any assignment), it has a default value
 | **Complex** (`&`)          | `0+0i`        | 128-bit complex number (real and imaginary parts both 0)    |
 | **String** (`$`)           | `""`          | Empty string                                                |
 | **Structure** (no sigil)   | `{ }`         | Empty structure (no members)                                |
-| **Array** (`[]`)           | `[]`          | Empty array (size 0)                                        |
+| **Array** (`[]`)           | `[ ]`         | Empty array (size 0)                                        |
 
 **Examples:**
 ```
@@ -178,7 +178,7 @@ LET value#        ' value# = 0.0 (default)
 LET z&            ' z& = 0+0i (default)
 LET name$         ' name$ = "" (default)
 LET player        ' player = { } (default, empty structure)
-LET numbers%[]    ' numbers%[] = [] (default, empty array, size 0)
+LET numbers%[]    ' numbers%[] = [ ] (default, empty array, size 0)
 ```
 
 **Important Notes:**
@@ -281,14 +281,14 @@ Array literals are written using square brackets with comma-separated values:
 [1, 2, 3, 4, 5]
 ["Alice", "Bob", "Charlie"]
 [1.5, 2.7, 3.14]
-[]
+[ ]
 ```
 
 **Rules:**
 - Array literals use square brackets `[]`
 - Elements are separated by commas
 - Elements can be any data type (Integer, Real, Complex, String)
-- Empty array literal `[]` creates an array with size 0
+- Empty array literal `[ ]` creates an array with size 0
 - Array literals create arrays starting at index 1 (one-based)
 - All elements in an array literal must be of compatible types (type coercion applies)
 
@@ -297,7 +297,7 @@ Array literals are written using square brackets with comma-separated values:
 LET numbers%[] = [1, 2, 3, 4, 5]              ' Integer array
 LET names$[] = ["Alice", "Bob", "Charlie"]    ' String array
 LET mixed#[] = [1.5, 2.7, 3.14]               ' Real array
-LET empty%[] = []                             ' Empty array (size 0)
+LET empty%[] = [ ]                            ' Empty array (size 0)
 LET complex&[] = [1+2i, 3+4i, 5+6i]           ' Complex array
 ```
 
@@ -446,17 +446,17 @@ LET e& = 3.14+2i      ' Complex literal
 
 #### Summary
 
-| Operation | Result Type | Notes |
-|-----------|-------------|-------|
-| Integer op Integer | Integer | Except division (`/`) which yields Real; MOD yields Integer |
-| Integer op Real | Real | Integer promoted to Real |
-| Integer op Complex | Complex | Integer promoted to Complex |
-| Real op Real | Real | MOD yields Real |
-| Real op Complex | Complex | Real promoted to Complex |
-| Complex op Complex | Complex | |
-| Assign Real to Integer | Integer | Truncated (not rounded) |
-| Assign Complex to Real | Real | Imaginary part lost |
-| Assign Complex to Integer | Integer | Real part truncated, imaginary lost |
+| Operation                 | Result Type | Notes                                                       |
+|---------------------------|-------------|-------------------------------------------------------------|
+| Integer op Integer        | Integer     | Except division (`/`) which yields Real; MOD yields Integer |
+| Integer op Real           | Real        | Integer promoted to Real                                    |
+| Integer op Complex        | Complex     | Integer promoted to Complex                                 |
+| Real op Real              | Real        | MOD yields Real                                             |
+| Real op Complex           | Complex     | Real promoted to Complex                                    |
+| Complex op Complex        | Complex     |                                                             |
+| Assign Real to Integer    | Integer     | Truncated (not rounded)                                     |
+| Assign Complex to Real    | Real        | Imaginary part lost                                         |
+| Assign Complex to Integer | Integer     | Real part truncated, imaginary lost                         |
 
 ### Structures
 
@@ -472,24 +472,24 @@ Structures can be created in two ways:
 LET player = { name$: "Alice", score%: 100, level%: 5 }
 ```
 
-**2. By assigning values to members individually using the dot operator:**
+**2. By assigning values to members individually using associative array syntax:**
 
 ```
-LET player.name$ = "Alice"
-LET player.score% = 100
-LET player.level% = 5
+LET player[name$] = "Alice"
+LET player[score%] = 100
+LET player[level%] = 5
 ```
 
 Both methods are equivalent. Structure literals are more concise for creating structures with multiple members, while individual assignment is useful for updating specific members or building structures incrementally.
 
 #### Member Access
 
-Structure members are accessed using the dot operator:
+Structure members are accessed using associative array syntax:
 
 ```
-PRINT player.name$    ' Prints: Alice
-LET player.score% += 10
-IF player.level% > 10 THEN PRINT "Advanced player"
+PRINT player[name$]    ' Prints: Alice
+LET player[score%] += 10
+IF player[level%] > 10 THEN PRINT "Advanced player"
 ```
 
 #### Structure Examples
@@ -502,8 +502,8 @@ LET point = { x%: 100, y%: 200 }
 LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
 
 ' Access structure members
-PRINT person.firstName$; " "; person.lastName$
-LET person.age% += 1
+PRINT person[firstName$]; " "; person[lastName$]
+LET person[age%] += 1
 
 ' Structures can contain any data type
 LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE% }
@@ -524,12 +524,12 @@ LET person = { name: { first$: "John", last$: "Doe" }, address: { street$: "123 
 LET game = { player: { name$: "Hero", stats: { hp%: 100, mp%: 50 }, items$[]: ["sword", "shield"] }, enemies%[]: [10, 15, 20] }
 
 ' Access nested structure members
-PRINT person.name.first$; " "; person.name.last$
-PRINT person.address.street$
+PRINT person[name][first$]; " "; person[name][last$]
+PRINT person[address][street$]
 
 ' Access array members within structures
-PRINT player.scores%[1]    ' First score
-LET player.scores%[2] = 98  ' Update second score
+PRINT player[scores%][1]    ' First score
+LET player[scores%][2] = 98  ' Update second score
 ```
 
 #### Structure Comparison
@@ -605,7 +605,7 @@ Arrays can be initialized using array literals with square brackets:
 LET numbers%[] = [1, 2, 3, 4, 5]
 LET names$[] = ["Alice", "Bob", "Charlie"]
 LET mixed#[] = [1.5, 2.7, 3.14]
-LET empty%[] = []
+LET empty%[] = [ ]
 ```
 
 Array literals create arrays starting at index 1 (one-based).
