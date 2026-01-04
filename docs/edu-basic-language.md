@@ -101,6 +101,29 @@
   - [Audio Examples](#audio-examples)
 - [Command and Function Reference](#command-and-function-reference)
   - (Alphabetical listing of 100+ commands, functions, and operators)
+- [Appendix: Complete Operator Reference](#appendix-complete-operator-reference)
+  - [Arithmetic Operators](#arithmetic-operators)
+  - [Assignment Operators](#assignment-operators)
+  - [Comparison Operators](#comparison-operators)
+  - [Logical (Bitwise) Operators](#logical-bitwise-operators)
+  - [String Operators](#string-operators)
+  - [Array Operators](#array-operators)
+  - [Mathematical Function Operators (Prefix Unary)](#mathematical-function-operators-prefix-unary)
+    - [Trigonometric Functions](#trigonometric-functions)
+    - [Hyperbolic Functions](#hyperbolic-functions)
+    - [Exponential and Logarithmic Functions](#exponential-and-logarithmic-functions)
+    - [Root Functions](#root-functions)
+    - [Rounding and Truncation Functions](#rounding-and-truncation-functions)
+    - [Other Mathematical Functions](#other-mathematical-functions)
+  - [Complex Number Operators (Prefix Unary)](#complex-number-operators-prefix-unary)
+  - [Type Conversion Operators (Prefix Unary)](#type-conversion-operators-prefix-unary)
+  - [String Manipulation Operators (Prefix Unary)](#string-manipulation-operators-prefix-unary)
+  - [Unit Conversion Operators (Postfix Unary)](#unit-conversion-operators-postfix-unary)
+  - [File I/O Operators](#file-io-operators)
+  - [Nullary Operators (Zero Arguments)](#nullary-operators-zero-arguments)
+  - [Audio Operators](#audio-operators)
+  - [Special Operators](#special-operators)
+  - [Operator Precedence Summary](#operator-precedence-summary)
 
 ---
 
@@ -6428,4 +6451,265 @@ LET result% = 12 XNOR 10
 ```
 LET result% = 12 XOR 10    ' Binary: 1100 XOR 1010 = 0110 (6)
 ```
+
+---
+
+## Appendix: Complete Operator Reference
+
+This appendix provides a comprehensive listing of all operators in EduBASIC, organized by category.
+
+### Arithmetic Operators
+
+| Operator    | Description              | Example                     | Returns |
+|-------------|--------------------------|-----------------------------|---------|
+| `+`         | Addition                 | `5 + 3`                     | Integer or Real |
+| `-`         | Subtraction              | `10 - 4`                    | Integer or Real |
+| `*`         | Multiplication           | `6 * 7`                     | Integer or Real |
+| `/`         | Division                 | `15 / 4`                    | Real |
+| `MOD`       | Modulo (remainder)       | `17 MOD 5`                  | Integer |
+| `^`         | Exponentiation           | `2 ^ 8`                     | Real |
+| `**`        | Exponentiation (alt)     | `2 ** 8`                    | Real |
+| `!`         | Factorial                | `5!`                        | Integer |
+| `+`         | Unary plus               | `+x#`                       | Same as operand |
+| `-`         | Unary minus (negation)   | `-x#`                       | Same as operand |
+
+**Note:** Exponentiation (`^`, `**`) is right-associative. All other operators are left-associative.
+
+### Assignment Operators
+
+| Operator | Description                   | Example           | Equivalent To      |
+|----------|-------------------------------|-------------------|--------------------|
+| `=`      | Assignment                    | `LET x% = 5`      | N/A                |
+| `+=`     | Addition assignment           | `LET x% += 5`     | `LET x% = x% + 5`  |
+| `-=`     | Subtraction assignment        | `LET x% -= 3`     | `LET x% = x% - 3`  |
+| `*=`     | Multiplication assignment     | `LET x% *= 2`     | `LET x% = x% * 2`  |
+| `/=`     | Division assignment           | `LET x% /= 4`     | `LET x% = x% / 4`  |
+| `^=`     | Exponentiation assignment     | `LET x% ^= 2`     | `LET x% = x% ^ 2`  |
+
+**Note:** The `LET` keyword is required for all assignments.
+
+### Comparison Operators
+
+| Operator | Description               | Example         | Returns            |
+|----------|---------------------------|-----------------|--------------------|
+| `=`      | Equal to                  | `x% = y%`       | Integer (0 or -1)  |
+| `<>`     | Not equal to              | `x% <> y%`      | Integer (0 or -1)  |
+| `<`      | Less than                 | `x% < y%`       | Integer (0 or -1)  |
+| `>`      | Greater than              | `x% > y%`       | Integer (0 or -1)  |
+| `<=`     | Less than or equal to     | `x% <= y%`      | Integer (0 or -1)  |
+| `>=`     | Greater than or equal to  | `x% >= y%`      | Integer (0 or -1)  |
+
+**Note:** Comparison operators return `-1` for true, `0` for false. They work with all data types including strings (lexicographic comparison) and arrays (element-wise comparison).
+
+### Logical (Bitwise) Operators
+
+| Operator | Description                    | Example          | Returns |
+|----------|--------------------------------|------------------|---------|
+| `AND`    | Bitwise AND                    | `x% AND y%`      | Integer |
+| `OR`     | Bitwise OR                     | `x% OR y%`       | Integer |
+| `NOT`    | Bitwise NOT (complement)       | `NOT x%`         | Integer |
+| `XOR`    | Bitwise XOR (exclusive OR)     | `x% XOR y%`      | Integer |
+| `NAND`   | Bitwise NAND (NOT AND)         | `x% NAND y%`     | Integer |
+| `NOR`    | Bitwise NOR (NOT OR)           | `x% NOR y%`      | Integer |
+| `XNOR`   | Bitwise XNOR (exclusive NOR)   | `x% XNOR y%`     | Integer |
+| `IMP`    | Bitwise implication            | `x% IMP y%`      | Integer |
+
+**Note:** All logical operators are bitwise. Boolean constants: `FALSE%` = `0`, `TRUE%` = `-1`.
+
+### String Operators
+
+| Operator    | Description                      | Example                                  | Returns |
+|-------------|----------------------------------|------------------------------------------|---------|
+| `+`         | String concatenation             | `"Hello" + " " + "World"`                | String  |
+| `LEFT`      | Extract left portion             | `text$ LEFT 5`                           | String  |
+| `RIGHT`     | Extract right portion            | `text$ RIGHT 6`                          | String  |
+| `MID`       | Extract substring                | `text$ MID 8 TO 12`                      | String  |
+| `INSTR`     | Find substring position          | `"Hello world" INSTR "world"`            | Integer |
+| `INSTR FROM`| Find substring from position     | `"Hello world" INSTR "o" FROM 5`         | Integer |
+| `REPLACE WITH`| Replace substring              | `"Hello" REPLACE "ll" WITH "y"`          | String  |
+| `JOIN`      | Join array elements              | `names$[] JOIN ", "`                     | String  |
+| `STARTSWITH`| Check if starts with prefix      | `filename$ STARTSWITH "doc"`             | Integer (0 or -1) |
+| `ENDSWITH`  | Check if ends with suffix        | `filename$ ENDSWITH ".txt"`              | Integer (0 or -1) |
+| `\| \|`     | String length                    | `\| text$ \|`                            | Integer |
+
+### Array Operators
+
+| Operator    | Description                      | Example                                  | Returns |
+|-------------|----------------------------------|------------------------------------------|---------|
+| `+`         | Array concatenation              | `arr1%[] + arr2%[]`                      | Array   |
+| `FIND`      | Find element in array            | `numbers%[] FIND 5`                      | Element value or 0 |
+| `INDEXOF`   | Find index of element            | `numbers%[] INDEXOF 5`                   | Integer (index or 0) |
+| `INCLUDES`  | Check if array includes element  | `numbers%[] INCLUDES 5`                  | Integer (0 or -1) |
+| `REVERSE`   | Reverse array elements           | `REVERSE numbers%[]`                     | Array   |
+| `JOIN`      | Join array elements into string  | `names$[] JOIN ", "`                     | String  |
+| `\| \|`     | Array length                     | `\| numbers%[] \|`                       | Integer |
+
+### Mathematical Operators
+
+#### Trigonometric Operators
+
+| Operator  | Description                  | Example           | Returns |
+|-----------|------------------------------|-------------------|---------|
+| `SIN`     | Sine (radians)               | `SIN angle#`      | Real    |
+| `COS`     | Cosine (radians)             | `COS angle#`      | Real    |
+| `TAN`     | Tangent (radians)            | `TAN angle#`      | Real    |
+| `ASIN`    | Arcsine (returns radians)    | `ASIN ratio#`     | Real    |
+| `ACOS`    | Arccosine (returns radians)  | `ACOS ratio#`     | Real    |
+| `ATAN`    | Arctangent (returns radians) | `ATAN slope#`     | Real    |
+
+#### Hyperbolic Operators
+
+| Operator  | Description                     | Example             | Returns |
+|-----------|---------------------------------|---------------------|---------|
+| `SINH`    | Hyperbolic sine                 | `SINH value#`       | Real    |
+| `COSH`    | Hyperbolic cosine               | `COSH value#`       | Real    |
+| `TANH`    | Hyperbolic tangent              | `TANH value#`       | Real    |
+| `ASINH`   | Inverse hyperbolic sine         | `ASINH value#`      | Real    |
+| `ACOSH`   | Inverse hyperbolic cosine       | `ACOSH value#`      | Real    |
+| `ATANH`   | Inverse hyperbolic tangent      | `ATANH value#`      | Real    |
+
+#### Exponential and Logarithmic Operators
+
+| Operator  | Description                | Example            | Returns |
+|-----------|----------------------------|--------------------|---------|
+| `EXP`     | e raised to power          | `EXP power#`       | Real    |
+| `LOG`     | Natural logarithm (base e) | `LOG value#`       | Real    |
+| `LOG10`   | Common logarithm (base 10) | `LOG10 value#`     | Real    |
+| `LOG2`    | Binary logarithm (base 2)  | `LOG2 value#`      | Real    |
+
+#### Root Operators
+
+| Operator  | Description    | Example            | Returns |
+|-----------|----------------|--------------------|---------|
+| `SQRT`    | Square root    | `SQRT number#`     | Real    |
+| `CBRT`    | Cube root      | `CBRT number#`     | Real    |
+
+#### Rounding and Truncation Operators
+
+| Operator  | Description                           | Example            | Returns |
+|-----------|---------------------------------------|--------------------|---------|
+| `ROUND`   | Round to nearest integer (ties up)    | `ROUND 3.5`        | Real    |
+| `FLOOR`   | Round toward negative infinity        | `FLOOR 3.7`        | Real    |
+| `CEIL`    | Round toward positive infinity        | `CEIL 3.2`         | Real    |
+| `TRUNC`   | Round toward zero                     | `TRUNC 3.9`        | Real    |
+| `EXPAND`  | Round away from zero                  | `EXPAND 3.1`       | Real    |
+| `INT`     | Integer conversion (floor for pos, ceil for neg) | `INT 3.7` | Integer |
+
+#### Other Mathematical Operators
+
+| Operator  | Description                    | Example            | Returns |
+|-----------|--------------------------------|--------------------|---------|
+| `SGN`     | Sign of number (-1, 0, or 1)   | `SGN value#`       | Integer |
+| `\| \|`   | Absolute value / norm          | `\| -5 \|` or `\| 3+4i \|` | Real |
+
+### Complex Number Operators
+
+| Operator  | Description                   | Example           | Returns |
+|-----------|-------------------------------|-------------------|---------|
+| `REAL`    | Real part of complex number   | `REAL z&`         | Real    |
+| `IMAG`    | Imaginary part of complex     | `IMAG z&`         | Real    |
+| `CONJ`    | Complex conjugate             | `CONJ z&`         | Complex |
+| `CABS`    | Absolute value (magnitude)    | `CABS z&`         | Real    |
+| `CARG`    | Argument (phase angle) in radians | `CARG z&`     | Real    |
+| `CSQRT`   | Complex square root           | `CSQRT z&`        | Complex |
+
+### Type Conversion Operators
+
+| Operator  | Description                    | Example              | Returns |
+|-----------|--------------------------------|----------------------|---------|
+| `INT`     | Convert to integer             | `INT 3.7`            | Integer |
+| `STR`     | Convert to string              | `STR 42`             | String  |
+| `VAL`     | Convert string to number       | `VAL "123"`          | Integer, Real, or Complex |
+| `HEX`     | Convert to hexadecimal string  | `HEX 255`            | String  |
+| `BIN`     | Convert to binary string       | `BIN 10`             | String  |
+| `CHR`     | Convert ASCII code to character| `CHR 65`             | String  |
+| `ASC`     | Convert character to ASCII code| `ASC "A"`            | Integer |
+
+### String Manipulation Operators
+
+| Operator  | Description                    | Example              | Returns |
+|-----------|--------------------------------|----------------------|---------|
+| `UCASE`   | Convert to uppercase           | `UCASE "hello"`      | String  |
+| `LCASE`   | Convert to lowercase           | `LCASE "WORLD"`      | String  |
+| `LTRIM`   | Remove leading spaces          | `LTRIM "  text"`     | String  |
+| `RTRIM`   | Remove trailing spaces         | `RTRIM "text  "`     | String  |
+| `TRIM`    | Remove leading/trailing spaces | `TRIM "  text  "`    | String  |
+| `REVERSE` | Reverse string                 | `REVERSE "abc"`      | String  |
+
+### Unit Conversion Operators
+
+| Operator | Description                  | Example                       | Returns |
+|----------|------------------------------|-------------------------------|---------|
+| `DEG`    | Convert radians to degrees   | `(3.14159 / 2) DEG`           | Real    |
+| `RAD`    | Convert degrees to radians   | `90 RAD`                      | Real    |
+
+### File I/O Operators
+
+| Operator  | Description                    | Example              | Returns |
+|-----------|--------------------------------|----------------------|---------|
+| `EOF`     | Check if at end of file        | `EOF fileHandle%`    | Integer (0 or -1) |
+| `LOC`     | Get current byte position      | `LOC fileHandle%`    | Integer |
+| `EXISTS`  | Check if file/directory exists | `EXISTS "data.txt"`  | Integer (0 or -1) |
+
+### Nullary Operators
+
+These operators take no arguments and return a value. They use type sigils to indicate their return type.
+
+| Operator  | Description                          | Example      | Returns |
+|-----------|--------------------------------------|--------------|---------|
+| `RND#`    | Random real number in [0, 1)         | `RND#`       | Real    |
+| `PI#`     | Mathematical constant π              | `PI#`        | Real    |
+| `E#`      | Mathematical constant e              | `E#`         | Real    |
+| `TRUE%`   | Boolean constant (value: -1)         | `TRUE%`      | Integer |
+| `FALSE%`  | Boolean constant (value: 0)          | `FALSE%`     | Integer |
+| `INKEY$`  | Currently pressed key (non-blocking) | `INKEY$`     | String  |
+| `DATE$`   | Current date (YYYY-MM-DD format)     | `DATE$`      | String  |
+| `TIME$`   | Current time (HH:MM:SS format)       | `TIME$`      | String  |
+| `NOW%`    | Current Unix timestamp               | `NOW%`       | Integer |
+
+### Audio Operators
+
+| Operator  | Description                           | Example      | Returns |
+|-----------|---------------------------------------|--------------|---------|
+| `NOTES`   | Number of notes remaining in voice    | `NOTES 0`    | Integer |
+
+### Special Operators
+
+| Operator     | Description                        | Example                    | Returns |
+|--------------|------------------------------------|----------------------------|---------|
+| `( )`        | Grouping (override precedence)     | `(2 + 3) * 4`              | Varies  |
+| `[ ]`        | Array subscript / structure member | `arr%[5]` or `obj[member$]`| Varies  |
+| `[1 TO 5]`   | Array slicing                      | `arr%[1 TO 5]`             | Array   |
+| `[...]`      | Array slice to end                 | `arr%[5 TO ...]`           | Array   |
+| `[ ]`        | Empty array literal                | `[ ]`                      | Array   |
+| `[1, 2, 3]`  | Array literal                      | `[1, 2, 3]`                | Array   |
+| `{ }`        | Empty structure literal            | `{ }`                      | Structure |
+| `{ a$: "x" }`| Structure literal                  | `{ name$: "Bob", age%: 30 }` | Structure |
+
+### Operator Precedence Summary
+
+1. **Parentheses** `( )` (highest precedence)
+2. **Prefix operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
+3. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%`
+4. **Postfix operators**: `!` (factorial), `DEG`, `RAD`
+5. **Absolute value / norm / length**: `| |`
+6. **Unary**: `+` and `-`
+7. **Exponentiation**: `^` or `**` (right-associative)
+8. **Multiplicative**: `*`, `/`, `MOD`
+9. **Additive**: `+`, `-`
+10. **Array search**: `FIND`, `INDEXOF`, `INCLUDES`
+11. **String/Array operators**: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
+12. **Comparison**: `=`, `<>`, `<`, `>`, `<=`, `>=`
+13. **Logical NOT**: `NOT`
+14. **Logical AND**: `AND`, `NAND`
+15. **Logical OR**: `OR`, `NOR`
+16. **Logical XOR**: `XOR`, `XNOR`
+17. **Logical IMP**: `IMP` (lowest precedence)
+
+**Notes:**
+- When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative
+- Constants take zero arguments and can appear anywhere in an expression
+- All constants use type sigils in their identifiers to indicate return types
+
+---
 
