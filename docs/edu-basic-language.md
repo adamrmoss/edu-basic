@@ -108,19 +108,19 @@
   - [Logical (Bitwise) Operators](#logical-bitwise-operators)
   - [String Operators](#string-operators)
   - [Array Operators](#array-operators)
-  - [Mathematical Function Operators (Prefix Unary)](#mathematical-function-operators-prefix-unary)
-    - [Trigonometric Functions](#trigonometric-functions)
-    - [Hyperbolic Functions](#hyperbolic-functions)
-    - [Exponential and Logarithmic Functions](#exponential-and-logarithmic-functions)
-    - [Root Functions](#root-functions)
-    - [Rounding and Truncation Functions](#rounding-and-truncation-functions)
-    - [Other Mathematical Functions](#other-mathematical-functions)
-  - [Complex Number Operators (Prefix Unary)](#complex-number-operators-prefix-unary)
-  - [Type Conversion Operators (Prefix Unary)](#type-conversion-operators-prefix-unary)
-  - [String Manipulation Operators (Prefix Unary)](#string-manipulation-operators-prefix-unary)
-  - [Unit Conversion Operators (Postfix Unary)](#unit-conversion-operators-postfix-unary)
+  - [Mathematical Operators](#mathematical-operators)
+    - [Trigonometric Operators](#trigonometric-operators)
+    - [Hyperbolic Operators](#hyperbolic-operators)
+    - [Exponential and Logarithmic Operators](#exponential-and-logarithmic-operators)
+    - [Root Operators](#root-operators)
+    - [Rounding and Truncation Operators](#rounding-and-truncation-operators)
+    - [Other Mathematical Operators](#other-mathematical-operators)
+  - [Complex Number Operators](#complex-number-operators)
+  - [Type Conversion Operators](#type-conversion-operators)
+  - [String Manipulation Operators](#string-manipulation-operators)
+  - [Unit Conversion Operators](#unit-conversion-operators)
   - [File I/O Operators](#file-io-operators)
-  - [Nullary Operators (Zero Arguments)](#nullary-operators-zero-arguments)
+  - [Constants](#constants)
   - [Audio Operators](#audio-operators)
   - [Special Operators](#special-operators)
   - [Operator Precedence Summary](#operator-precedence-summary)
@@ -1010,10 +1010,10 @@ IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE% (shorter array)
 
 EduBASIC follows standard mathematical operator precedence:
 
-1. Parentheses `()` (highest precedence)
-2. Prefix unary operators: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
-3. Nullary operators: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%`
-4. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
+1. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
+2. Parentheses `()`
+3. **Prefix operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
+4. **Postfix operators**: `!` (factorial), `DEG`, `RAD`
 5. Absolute value / norm / array length / string length `| |`
 6. Unary `+` and `-`
 7. Exponentiation `^` or `**` (right-associative)
@@ -1023,12 +1023,10 @@ EduBASIC follows standard mathematical operator precedence:
 11. String/Array operators: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
 12. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
 13. `NOT` (unary logical)
-14. `AND`, `NAND` (binary logical)
-15. `OR`, `NOR` (binary logical)
-16. `XOR`, `XNOR` (binary logical)
-17. `IMP` (binary logical, lowest precedence)
-
-**Note:** Nullary operators (`RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%`) take zero arguments and do not participate in operator precedence. They can appear anywhere in an expression and are evaluated independently. All nullary operators use type sigils to indicate their return type.
+14. **Logical AND**: `AND`, `NAND`
+15. **Logical OR**: `OR`, `NOR`
+16. **Logical XOR**: `XOR`, `XNOR`
+17. **Logical IMP**: `IMP` (lowest precedence)
 
 When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.
 
@@ -1037,7 +1035,7 @@ When operators have the same precedence, evaluation proceeds left to right, exce
 EduBASIC provides the `RND#` operator to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
 
 **Random Number Operator:**
-- `RND#` - Nullary operator (takes zero arguments) that returns a random real number in the range [0, 1)
+- `RND#` - Returns a random real number in the range [0, 1)
 
 **Random Number Generator Seed:**
 
@@ -1057,8 +1055,8 @@ Seeds the generator with a specific integer value. Using the same seed value pro
 
 
 **Mathematical Constants:**
-- `PI#` - Nullary operator (takes zero arguments) that returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793)
-- `E#` - Nullary operator (takes zero arguments) that returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045)
+- `PI#` - Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793)
+- `E#` - Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045)
 
 **Examples:**
 
@@ -1954,7 +1952,7 @@ END TRY
 
 ### Date and Time Functions
 
-EduBASIC provides simple date and time nullary operators for educational purposes. These operators return formatted strings or integer timestamps that are easy to display and work with.
+EduBASIC provides simple date and time operators for educational purposes. These operators return formatted strings or integer timestamps that are easy to display and work with.
 
 **`DATE$` - Current date as string:**
 ```
@@ -2012,8 +2010,8 @@ END IF
 ```
 
 **Design Notes:**
-- `DATE$` and `TIME$` are nullary operators that return strings for simplicity and ease of display
-- `NOW%` is a nullary operator that returns an integer timestamp for calculations
+- `DATE$` and `TIME$` return strings for simplicity and ease of display
+- `NOW%` returns an integer timestamp for calculations
 - All functions use UTC time to avoid timezone complexity in educational contexts
 - The string formats (YYYY-MM-DD and HH:MM:SS) are standard and unambiguous
 - No date parsing or manipulation functions are provided initially—keep it simple for educational use
@@ -2354,7 +2352,7 @@ EduBASIC provides non-blocking keyboard input through the `INKEY$` operator, whi
 
 #### INKEY$ Operator
 
-The `INKEY$` operator is a nullary operator (takes zero arguments) that returns the currently pressed key as a string.
+The `INKEY$` operator returns the currently pressed key as a string.
 
 **Key Detection:**
 - `INKEY$` returns the currently pressed key as a string
@@ -4438,7 +4436,7 @@ PRINT root&    ' Prints: 0+1i
 
 **Type:** Operator (Date/Time)  
 **Syntax:** `DATE$`  
-**Description:** Nullary operator (takes zero arguments) that returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format).  
+**Description:** Returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format).  
 **Example:**
 ```
 LET today$ = DATE$
@@ -4701,7 +4699,7 @@ PRINT EXPAND -3.1    ' Prints: -4
 
 **Type:** Operator (Math Constant)  
 **Syntax:** `E#`  
-**Description:** Nullary operator (takes zero arguments) that returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045).  
+**Description:** Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045).  
 **Example:**
 ```
 LET eValue# = E#
@@ -4903,7 +4901,7 @@ LET result% = 5 IMP 3    ' Binary implication
 
 **Type:** Operator (Input)  
 **Syntax:** `INKEY$`  
-**Description:** Nullary operator (takes zero arguments) that returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name.  
+**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name.  
 **Return Values:**
 - **Empty string (`""`):** No key is currently pressed
 - **Printable characters:** Returns the character as a string (e.g., `"a"`, `"A"`, `"1"`, `" "`)
@@ -5397,7 +5395,7 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 
 **Type:** Operator (Date/Time)  
 **Syntax:** `NOW%`  
-**Description:** Nullary operator (takes zero arguments) that returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.  
+**Description:** Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.  
 **Example:**
 ```
 LET timestamp% = NOW%
@@ -5490,7 +5488,7 @@ IF notesLeft% > 0 THEN PRINT "Still playing: "; notesLeft%; " notes remaining"
 
 **Type:** Operator (Math Constant)  
 **Syntax:** `PI#`  
-**Description:** Nullary operator (takes zero arguments) that returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793).  
+**Description:** Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793).  
 **Example:**
 ```
 LET piValue# = PI#
@@ -5731,7 +5729,7 @@ RMDIR "/Users/name/old_data"
 
 **Type:** Operator (Random)  
 **Syntax:** `RND#`  
-**Description:** Nullary operator (takes zero arguments) that returns a random real number in the range [0, 1).  
+**Description:** Returns a random real number in the range [0, 1).  
 **Example:**
 ```
 LET random# = RND#
@@ -6047,7 +6045,7 @@ PRINT result#    ' Prints: 0.0
 
 **Type:** Operator (Date/Time)  
 **Syntax:** `TIME$`  
-**Description:** Nullary operator (takes zero arguments) that returns the current time as a string in `HH:MM:SS` format (24-hour format).  
+**Description:** Returns the current time as a string in `HH:MM:SS` format (24-hour format).  
 **Example:**
 ```
 LET now$ = TIME$
@@ -6165,7 +6163,7 @@ PRINT TRUNC -3.9     ' Prints: -3
 
 **Type:** Operator (Boolean Constant)  
 **Syntax:** `TRUE%`  
-**Description:** Nullary operator (takes zero arguments) that returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`).  
+**Description:** Returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`).  
 **Example:**
 ```
 LET flag% = TRUE%
@@ -6182,7 +6180,7 @@ LET check% = (x% > 0) AND TRUE%    ' Bitwise AND with TRUE%
 
 **Type:** Operator (Boolean Constant)  
 **Syntax:** `FALSE%`  
-**Description:** Nullary operator (takes zero arguments) that returns the canonical boolean false value as an integer (0).  
+**Description:** Returns the canonical boolean false value as an integer (0).  
 **Example:**
 ```
 LET flag% = FALSE%
@@ -6651,7 +6649,7 @@ This appendix provides a comprehensive listing of all operators in EduBASIC, org
 | `LOC`     | Get current byte position      | `LOC fileHandle%`    | Integer |
 | `EXISTS`  | Check if file/directory exists | `EXISTS "data.txt"`  | Integer (0 or -1) |
 
-### Nullary Operators
+### Constants
 
 These operators take no arguments and return a value. They use type sigils to indicate their return type.
 
@@ -6688,23 +6686,27 @@ These operators take no arguments and return a value. They use type sigils to in
 
 ### Operator Precedence Summary
 
-1. **Parentheses** `( )` (highest precedence)
-2. **Prefix operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
-3. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%`
-4. **Postfix operators**: `!` (factorial), `DEG`, `RAD`
-5. **Absolute value / norm / length**: `| |`
-6. **Unary**: `+` and `-`
-7. **Exponentiation**: `^` or `**` (right-associative)
-8. **Multiplicative**: `*`, `/`, `MOD`
-9. **Additive**: `+`, `-`
-10. **Array search**: `FIND`, `INDEXOF`, `INCLUDES`
-11. **String/Array operators**: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
-12. **Comparison**: `=`, `<>`, `<`, `>`, `<=`, `>=`
-13. **Logical NOT**: `NOT`
-14. **Logical AND**: `AND`, `NAND`
-15. **Logical OR**: `OR`, `NOR`
-16. **Logical XOR**: `XOR`, `XNOR`
-17. **Logical IMP**: `IMP` (lowest precedence)
+1. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
+2. **Parentheses** `( )`
+3. **Mathematical operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`
+4. **Complex operators**: `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`
+5. **Type conversion operators**: `INT`, `STR`, `VAL`, `HEX`, `BIN`
+6. **String manipulation operators**: `ASC`, `CHR`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`
+7. **File I/O operators**: `EOF`, `LOC`, `NOTES`
+8. **Postfix operators**: `!` (factorial), `DEG`, `RAD`
+9. **Absolute value / norm / length**: `| |`
+10. **Unary**: `+` and `-`
+11. **Exponentiation**: `^` or `**` (right-associative)
+12. **Multiplicative**: `*`, `/`, `MOD`
+13. **Additive**: `+`, `-`
+14. **Array search**: `FIND`, `INDEXOF`, `INCLUDES`
+15. **String/Array operators**: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
+16. **Comparison**: `=`, `<>`, `<`, `>`, `<=`, `>=`
+17. **Logical NOT**: `NOT`
+18. **Logical AND**: `AND`, `NAND`
+19. **Logical OR**: `OR`, `NOR`
+20. **Logical XOR**: `XOR`, `XNOR`
+21. **Logical IMP**: `IMP` (lowest precedence)
 
 **Notes:**
 - When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative

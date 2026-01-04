@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Token, TokenType, Tokenizer } from './tokenizer.service';
 import { Expression } from '../../lang/expressions/expression';
-import { LiteralExpression } from '../../lang/expressions/literal-expression';
-import { ArithmeticExpression, ArithmeticOperator } from '../../lang/expressions/arithmetic-expression';
-import { ComparisonExpression, ComparisonOperator } from '../../lang/expressions/comparison-expression';
-import { LogicalExpression, LogicalOperator } from '../../lang/expressions/logical-expression';
-import { UnaryOperatorExpression, UnaryOperator } from '../../lang/expressions/unary-operator-expression';
-import { VariableExpression } from '../../lang/expressions/variable-expression';
-import { ParenthesizedExpression } from '../../lang/expressions/parenthesized-expression';
+import { LiteralExpression } from '../../lang/expressions/literals/literal-expression';
+import { ArithmeticExpression, ArithmeticOperator } from '../../lang/expressions/arithmetic/arithmetic-expression';
+import { ComparisonExpression, ComparisonOperator } from '../../lang/expressions/comparison/comparison-expression';
+import { LogicalExpression, LogicalOperator } from '../../lang/expressions/logical/logical-expression';
+import { UnaryOperatorExpression, UnaryOperator } from '../../lang/expressions/arithmetic/unary-operator-expression';
+import { VariableExpression } from '../../lang/expressions/special/variable-expression';
+import { ParenthesizedExpression } from '../../lang/expressions/special/parenthesized-expression';
 import { EduBasicType } from '../../lang/edu-basic-value';
 
 @Injectable({
