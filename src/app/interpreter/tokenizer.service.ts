@@ -475,8 +475,8 @@ export class Tokenizer
     {
         const keywords = new Set([
             'LET', 'DIM', 'LOCAL', 'IF', 'THEN', 'ELSE', 'ELSEIF', 'END', 'FOR', 'TO', 'STEP', 'NEXT',
-            'WHILE', 'WEND', 'DO', 'LOOP', 'UNTIL', 'UNLESS', 'SELECT', 'CASE', 'GOSUB', 'RETURN',
-            'GOTO', 'PRINT', 'INPUT', 'READ', 'DATA', 'RESTORE', 'CLS', 'COLOR', 'LOCATE',
+            'WHILE', 'WEND', 'DO', 'LOOP', 'UNTIL', 'UEND', 'UNLESS', 'SELECT', 'CASE', 'GOSUB', 'RETURN',
+            'GOTO', 'LABEL', 'CALL', 'PRINT', 'INPUT', 'READ', 'DATA', 'RESTORE', 'CLS', 'COLOR', 'LOCATE',
             'PSET', 'LINE', 'CIRCLE', 'RECTANGLE', 'OVAL', 'TRIANGLE', 'PAINT', 'GET', 'PUT',
             'OPEN', 'CLOSE', 'WRITE', 'SEEK', 'EOF', 'LOC', 'EXISTS',
             'PLAY', 'TEMPO', 'VOLUME', 'VOICE', 'ATTACK', 'DECAY', 'SUSTAIN', 'RELEASE',
@@ -491,7 +491,8 @@ export class Tokenizer
             'INSTR', 'JOIN', 'REPLACE', 'FIND', 'INDEXOF', 'INCLUDES',
             'RND', 'PI', 'E', 'TRUE', 'FALSE', 'INKEY', 'DATE', 'TIME', 'NOW',
             'DEG', 'RAD', 'EXPAND', 'NOTES', 'TURTLE', 'ARC', 'READFILE', 'WRITEFILE',
-            'LISTDIR', 'MKDIR', 'RMDIR', 'COPY', 'MOVE', 'DELETE', 'SET', 'STARTSWITH', 'ENDSWITH'
+            'LISTDIR', 'MKDIR', 'RMDIR', 'COPY', 'MOVE', 'DELETE', 'SET', 'STARTSWITH', 'ENDSWITH',
+            'PUSH', 'POP', 'SHIFT', 'UNSHIFT', 'FROM', 'WITH', 'AS', 'FOR', 'BYREF', 'APPEND', 'OVERWRITE'
         ]);
 
         return keywords.has(word);

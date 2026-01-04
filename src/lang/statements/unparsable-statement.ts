@@ -4,14 +4,17 @@ import { Program } from '../program';
 
 export class UnparsableStatement extends Statement
 {
-    constructor(private readonly sourceText: string)
+    constructor(
+        private readonly sourceText: string,
+        public readonly errorMessage?: string
+    )
     {
         super();
     }
 
     public execute(context: ExecutionContext, program: Program): ExecutionStatus
     {
-        throw new Error(`Cannot execute unparsable statement: ${this.sourceText}`);
+        throw new Error(this.errorMessage || `Cannot execute unparsable statement: ${this.sourceText}`);
     }
 
     public toString(): string
