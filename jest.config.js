@@ -4,7 +4,7 @@ module.exports = {
         '<rootDir>/setup-jest.ts',
     ],
     testMatch: [
-        '**/*.spec.ts',
+        '**/specs/**/*.spec.ts',
     ],
     collectCoverageFrom: [
         'src/**/*.ts',
