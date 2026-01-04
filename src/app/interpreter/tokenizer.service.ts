@@ -8,6 +8,7 @@ export enum TokenType
     String,
     
     Identifier,
+    Keyword,
     
     Plus,
     Minus,
@@ -15,7 +16,6 @@ export enum TokenType
     Slash,
     Caret,
     StarStar,
-    Mod,
     
     Equal,
     NotEqual,
@@ -23,15 +23,6 @@ export enum TokenType
     Greater,
     LessEqual,
     GreaterEqual,
-    
-    And,
-    Or,
-    Not,
-    Xor,
-    Nand,
-    Nor,
-    Xnor,
-    Imp,
     
     LeftParen,
     RightParen,
@@ -45,11 +36,6 @@ export enum TokenType
     Semicolon,
     Pipe,
     Exclamation,
-    
-    Deg,
-    Rad,
-    
-    Keyword,
 }
 
 export interface Token
