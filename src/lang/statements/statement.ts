@@ -18,5 +18,12 @@ export interface ExecutionStatus
 
 export abstract class Statement extends RuntimeNode
 {
+    public indentLevel: number = 0;
+
     public abstract execute(context: ExecutionContext, program: Program): ExecutionStatus;
+
+    public getIndentAdjustment(): number
+    {
+        return 0;
+    }
 }

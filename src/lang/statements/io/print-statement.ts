@@ -15,13 +15,26 @@ export class PrintStatement extends Statement
 
     public execute(context: ExecutionContext, program: Program): ExecutionStatus
     {
-        // TODO: Need output mechanism - for now just evaluate expressions
-        // In a real implementation, this would send output to console/display
         const values = this.expressions.map(expr => expr.evaluate(context));
 
-        // TODO: Format and output the values
-        // TODO: Handle newline parameter
-        // Placeholder: would call something like context.output(values, this.newline)
+        for (let i = 0; i < values.length; i++)
+        {
+            const value = values[i];
+            const text = value.value?.toString() ?? '';
+            program.videoBuffer.printText(text);
+
+            if (i < values.length - 1)
+            {
+                program.videoBuffer.printText(' ');
+            }
+        }
+
+        if (this.newline)
+        {
+            program.videoBuffer.newLine();
+        }
+
+        program.videoBuffer.flush();
 
         return { result: ExecutionResult.Continue };
     }

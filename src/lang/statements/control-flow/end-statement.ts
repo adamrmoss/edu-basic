@@ -9,6 +9,11 @@ export class EndStatement extends Statement
         super();
     }
 
+    public getIndentAdjustment(): number
+    {
+        return -1;
+    }
+
     public execute(context: ExecutionContext, program: Program): ExecutionStatus
     {
         return { result: ExecutionResult.End };

@@ -16,6 +16,11 @@ export class IfStatement extends Statement
         super();
     }
 
+    public getIndentAdjustment(): number
+    {
+        return 1;
+    }
+
     public execute(context: ExecutionContext, program: Program): ExecutionStatus
     {
         const conditionValue = this.condition.evaluate(context);
