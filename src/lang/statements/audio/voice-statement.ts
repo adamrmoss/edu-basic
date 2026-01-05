@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class VoiceStatement extends Statement
 {
@@ -16,12 +17,14 @@ export class VoiceStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement VOICE statement
-        // - Configure audio voice with timbre and ADSR envelope
-        // - Support PRESET, WITH, and ADSR options
-        throw new Error('VOICE statement not yet implemented');
+        const voiceValue = this.voiceNumber.evaluate(context);
+        const voice = voiceValue.type === 'integer' || voiceValue.type === 'real' ? Math.floor(voiceValue.value as number) : 0;
+        
+        audio.setVoice(voice);
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

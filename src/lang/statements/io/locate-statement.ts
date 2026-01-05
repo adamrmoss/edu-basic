@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class LocateStatement extends Statement
 {
@@ -13,17 +14,17 @@ export class LocateStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement LOCATE statement
-        // Evaluate row and column expressions
-        // Set text cursor position in video buffer
         const rowValue = this.row.evaluate(context);
         const colValue = this.column.evaluate(context);
-
-        // program.videoBuffer.setCursorPosition(rowValue.value, colValue.value);
-
-        throw new Error('LOCATE statement not yet implemented');
+        
+        const row = Math.floor(rowValue.type === 'integer' || rowValue.type === 'real' ? rowValue.value as number : 0);
+        const col = Math.floor(colValue.type === 'integer' || colValue.type === 'real' ? colValue.value as number : 0);
+        
+        graphics.setCursorPosition(row, col);
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

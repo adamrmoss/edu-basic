@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class CaseStatement extends Statement
 {
@@ -14,7 +15,7 @@ export class CaseStatement extends Statement
         return 0;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
         // CASE is handled by SELECT CASE execution logic
         return { result: ExecutionResult.Continue };

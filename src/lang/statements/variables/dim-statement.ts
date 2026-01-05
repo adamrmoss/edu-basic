@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class DimStatement extends Statement
 {
@@ -13,12 +14,50 @@ export class DimStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement array resizing
-        // Evaluate dimension expressions to get sizes
-        // Create or resize the array in the execution context
-        throw new Error('DIM statement not yet implemented');
+        const sizes: number[] = [];
+        
+        for (const dim of this.dimensions)
+        {
+            const sizeValue = dim.evaluate(context);
+            const size = Math.floor(sizeValue.type === 'integer' || sizeValue.type === 'real' ? sizeValue.value as number : 0);
+            
+            if (size < 0)
+            {
+                throw new Error(`DIM: Array dimension cannot be negative`);
+            }
+            
+            sizes.push(size);
+        }
+        
+        const array = this.createMultiDimensionalArray(sizes);
+        context.setVariable(this.arrayName, { type: 'array', value: array });
+        
+        return { result: ExecutionResult.Continue };
+    }
+    
+    private createMultiDimensionalArray(sizes: number[]): any[]
+    {
+        if (sizes.length === 0)
+        {
+            return [];
+        }
+        
+        if (sizes.length === 1)
+        {
+            return new Array(sizes[0]).fill({ type: 'integer', value: 0 });
+        }
+        
+        const result: any[] = [];
+        const [firstSize, ...restSizes] = sizes;
+        
+        for (let i = 0; i < firstSize; i++)
+        {
+            result.push(this.createMultiDimensionalArray(restSizes));
+        }
+        
+        return result;
     }
 
     public toString(): string

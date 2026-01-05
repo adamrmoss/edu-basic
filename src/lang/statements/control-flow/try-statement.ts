@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export interface CatchClause
 {
@@ -24,13 +25,8 @@ export class TryStatement extends Statement
         return 1;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement TRY-CATCH-FINALLY
-        // - Execute try body
-        // - Catch exceptions and store in catch variable
-        // - Execute matching catch clause
-        // - Always execute finally clause
         throw new Error('TRY statement not yet implemented');
     }
 

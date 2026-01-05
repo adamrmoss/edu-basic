@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class GosubStatement extends Statement
 {
@@ -11,12 +12,9 @@ export class GosubStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement GOSUB with return stack
-        // Need to push current position onto return stack
-        // Then jump to label like GOTO
-        throw new Error('GOSUB statement not yet implemented');
+        throw new Error('GOSUB requires Program for label lookup and return stack - needs refactoring');
     }
 
     public toString(): string

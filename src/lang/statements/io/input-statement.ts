@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class InputStatement extends Statement
 {
@@ -12,11 +13,8 @@ export class InputStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement INPUT statement
-        // Need to integrate with console service to get user input
-        // Parse input and store in variable
         throw new Error('INPUT statement not yet implemented');
     }
 

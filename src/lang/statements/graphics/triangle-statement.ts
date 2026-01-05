@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class TriangleStatement extends Statement
 {
@@ -19,12 +20,40 @@ export class TriangleStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement TRIANGLE statement
-        // - Evaluate three vertices and optional color
-        // - Draw triangle (filled or outline) in graphics buffer
-        throw new Error('TRIANGLE statement not yet implemented');
+        const x1Val = this.x1.evaluate(context);
+        const y1Val = this.y1.evaluate(context);
+        const x2Val = this.x2.evaluate(context);
+        const y2Val = this.y2.evaluate(context);
+        const x3Val = this.x3.evaluate(context);
+        const y3Val = this.y3.evaluate(context);
+        
+        const x1 = Math.floor(x1Val.type === 'integer' || x1Val.type === 'real' ? x1Val.value as number : 0);
+        const y1 = Math.floor(y1Val.type === 'integer' || y1Val.type === 'real' ? y1Val.value as number : 0);
+        const x2 = Math.floor(x2Val.type === 'integer' || x2Val.type === 'real' ? x2Val.value as number : 0);
+        const y2 = Math.floor(y2Val.type === 'integer' || y2Val.type === 'real' ? y2Val.value as number : 0);
+        const x3 = Math.floor(x3Val.type === 'integer' || x3Val.type === 'real' ? x3Val.value as number : 0);
+        const y3 = Math.floor(y3Val.type === 'integer' || y3Val.type === 'real' ? y3Val.value as number : 0);
+        
+        if (this.color)
+        {
+            const colorValue = this.color.evaluate(context);
+            const rgba = colorValue.type === 'integer' ? colorValue.value as number : 0xFFFFFFFF;
+            
+            const r = (rgba >> 24) & 0xFF;
+            const g = (rgba >> 16) & 0xFF;
+            const b = (rgba >> 8) & 0xFF;
+            const a = rgba & 0xFF;
+            
+            graphics.drawTriangle(x1, y1, x2, y2, x3, y3, this.filled, { r, g, b, a });
+        }
+        else
+        {
+            graphics.drawTriangle(x1, y1, x2, y2, x3, y3, this.filled);
+        }
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

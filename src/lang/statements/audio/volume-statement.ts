@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class VolumeStatement extends Statement
 {
@@ -12,12 +13,14 @@ export class VolumeStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement VOLUME statement
-        // - Evaluate volume level (0.0 to 1.0)
-        // - Set global audio volume
-        throw new Error('VOLUME statement not yet implemented');
+        const volumeValue = this.level.evaluate(context);
+        const volume = volumeValue.type === 'integer' || volumeValue.type === 'real' ? volumeValue.value as number : 100;
+        
+        audio.setVolume(volume);
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

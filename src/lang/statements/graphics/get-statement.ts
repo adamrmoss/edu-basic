@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class GetStatement extends Statement
 {
@@ -16,12 +17,8 @@ export class GetStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement GET statement (capture sprite)
-        // - Evaluate rectangle coordinates
-        // - Capture screen region into array
-        // - Array format: [width, height, pixel1, pixel2, ...]
         throw new Error('GET statement not yet implemented');
     }
 

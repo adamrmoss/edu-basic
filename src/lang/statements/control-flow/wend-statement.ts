@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class WendStatement extends Statement
 {
@@ -14,9 +15,8 @@ export class WendStatement extends Statement
         return -1;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // WEND is handled by loop execution logic
         return { result: ExecutionResult.Continue };
     }
 

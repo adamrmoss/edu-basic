@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 import { EduBasicType } from '../../edu-basic-value';
 
 export enum DoLoopVariant
@@ -29,28 +30,27 @@ export class DoLoopStatement extends Statement
         return 1;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
         switch (this.variant)
         {
             case DoLoopVariant.DoWhile:
-                return this.executeDoWhile(context, program);
+                return this.executeDoWhile(context, graphics, audio);
             case DoLoopVariant.DoUntil:
-                return this.executeDoUntil(context, program);
+                return this.executeDoUntil(context, graphics, audio);
             case DoLoopVariant.DoLoopWhile:
-                return this.executeDoLoopWhile(context, program);
+                return this.executeDoLoopWhile(context, graphics, audio);
             case DoLoopVariant.DoLoopUntil:
-                return this.executeDoLoopUntil(context, program);
+                return this.executeDoLoopUntil(context, graphics, audio);
             case DoLoopVariant.DoLoop:
-                return this.executeDoLoop(context, program);
+                return this.executeDoLoop(context, graphics, audio);
             default:
                 throw new Error('Unknown DO loop variant');
         }
     }
 
-    private executeDoWhile(context: ExecutionContext, program: Program): ExecutionStatus
+    private executeDoWhile(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // DO WHILE condition ... LOOP (test at top)
         while (true)
         {
             const conditionValue = this.condition!.evaluate(context);
@@ -65,23 +65,19 @@ export class DoLoopStatement extends Statement
                 break;
             }
 
-            const status = this.executeBody(context, program);
+            const status = this.executeBody(context, graphics, audio);
 
             if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
             {
                 return status;
             }
-
-            // TODO: Handle EXIT DO
-            // TODO: Handle CONTINUE DO
         }
 
         return { result: ExecutionResult.Continue };
     }
 
-    private executeDoUntil(context: ExecutionContext, program: Program): ExecutionStatus
+    private executeDoUntil(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // DO UNTIL condition ... LOOP (test at top)
         while (true)
         {
             const conditionValue = this.condition!.evaluate(context);
@@ -96,26 +92,22 @@ export class DoLoopStatement extends Statement
                 break;
             }
 
-            const status = this.executeBody(context, program);
+            const status = this.executeBody(context, graphics, audio);
 
             if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
             {
                 return status;
             }
-
-            // TODO: Handle EXIT DO
-            // TODO: Handle CONTINUE DO
         }
 
         return { result: ExecutionResult.Continue };
     }
 
-    private executeDoLoopWhile(context: ExecutionContext, program: Program): ExecutionStatus
+    private executeDoLoopWhile(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // DO ... LOOP WHILE condition (test at bottom)
         while (true)
         {
-            const status = this.executeBody(context, program);
+            const status = this.executeBody(context, graphics, audio);
 
             if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
             {
@@ -133,20 +125,16 @@ export class DoLoopStatement extends Statement
             {
                 break;
             }
-
-            // TODO: Handle EXIT DO
-            // TODO: Handle CONTINUE DO
         }
 
         return { result: ExecutionResult.Continue };
     }
 
-    private executeDoLoopUntil(context: ExecutionContext, program: Program): ExecutionStatus
+    private executeDoLoopUntil(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // DO ... LOOP UNTIL condition (test at bottom)
         while (true)
         {
-            const status = this.executeBody(context, program);
+            const status = this.executeBody(context, graphics, audio);
 
             if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
             {
@@ -164,36 +152,29 @@ export class DoLoopStatement extends Statement
             {
                 break;
             }
-
-            // TODO: Handle EXIT DO
-            // TODO: Handle CONTINUE DO
         }
 
         return { result: ExecutionResult.Continue };
     }
 
-    private executeDoLoop(context: ExecutionContext, program: Program): ExecutionStatus
+    private executeDoLoop(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // DO ... LOOP (infinite loop)
         while (true)
         {
-            const status = this.executeBody(context, program);
+            const status = this.executeBody(context, graphics, audio);
 
             if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
             {
                 return status;
             }
-
-            // TODO: Handle EXIT DO
-            // TODO: Handle CONTINUE DO
         }
     }
 
-    private executeBody(context: ExecutionContext, program: Program): ExecutionStatus
+    private executeBody(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
         for (const statement of this.body)
         {
-            const status = statement.execute(context, program);
+            const status = statement.execute(context, graphics, audio);
 
             if (status.result !== ExecutionResult.Continue)
             {

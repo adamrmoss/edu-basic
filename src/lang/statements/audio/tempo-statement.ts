@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class TempoStatement extends Statement
 {
@@ -12,12 +13,14 @@ export class TempoStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement TEMPO statement
-        // - Evaluate BPM expression
-        // - Set audio tempo for PLAY commands
-        throw new Error('TEMPO statement not yet implemented');
+        const bpmValue = this.bpm.evaluate(context);
+        const bpm = bpmValue.type === 'integer' || bpmValue.type === 'real' ? bpmValue.value as number : 120;
+        
+        audio.setTempo(bpm);
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

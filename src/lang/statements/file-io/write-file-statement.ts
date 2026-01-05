@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class WriteFileStatement extends Statement
 {
@@ -13,11 +14,8 @@ export class WriteFileStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement WRITE statement
-        // - Evaluate file handle and expression
-        // - Write data to file (text or binary based on type)
         throw new Error('WRITE statement not yet implemented');
     }
 

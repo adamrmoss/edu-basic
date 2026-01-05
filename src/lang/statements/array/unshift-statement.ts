@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class UnshiftStatement extends Statement
 {
@@ -13,12 +14,19 @@ export class UnshiftStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement UNSHIFT statement
-        // - Evaluate value
-        // - Add element to beginning of array
-        throw new Error('UNSHIFT statement not yet implemented');
+        const valueResult = this.value.evaluate(context);
+        const array = context.getVariable(this.arrayVariable);
+        
+        if (array.type !== 'array')
+        {
+            throw new Error(`UNSHIFT: ${this.arrayVariable} is not an array`);
+        }
+        
+        (array.value as any[]).unshift(valueResult);
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

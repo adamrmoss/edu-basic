@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class ShiftStatement extends Statement
 {
@@ -12,12 +13,30 @@ export class ShiftStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement SHIFT statement
-        // - Remove first element from array
-        // - Optionally store in target variable
-        throw new Error('SHIFT statement not yet implemented');
+        const array = context.getVariable(this.arrayVariable);
+        
+        if (array.type !== 'array')
+        {
+            throw new Error(`SHIFT: ${this.arrayVariable} is not an array`);
+        }
+        
+        const arrayData = array.value as any[];
+        
+        if (arrayData.length === 0)
+        {
+            throw new Error(`SHIFT: ${this.arrayVariable} is empty`);
+        }
+        
+        const value = arrayData.shift();
+        
+        if (this.targetVariable)
+        {
+            context.setVariable(this.targetVariable, value);
+        }
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

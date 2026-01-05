@@ -3,6 +3,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Program } from '../../lang/program';
 import { ConsoleService } from '../console/console.service';
+import { GraphicsService } from './graphics.service';
+import { AudioService } from './audio.service';
 
 export enum InterpreterState
 {
@@ -36,7 +38,9 @@ export class InterpreterService
     public readonly isRunning$: Observable<boolean> = this.isRunningSubject.asObservable();
 
     constructor(
-        private readonly consoleService: ConsoleService
+        private readonly consoleService: ConsoleService,
+        private readonly graphicsService: GraphicsService,
+        private readonly audioService: AudioService
     )
     {
     }
@@ -65,6 +69,11 @@ export class InterpreterService
     {
         this.programSubject.next(program);
         this.parseResultSubject.next(null);
+    }
+
+    public createProgram(): Program
+    {
+        return new Program();
     }
 
     public parse(sourceCode: string): ParseResult

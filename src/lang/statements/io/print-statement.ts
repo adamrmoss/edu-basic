@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class PrintStatement extends Statement
 {
@@ -13,7 +14,7 @@ export class PrintStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
         const values = this.expressions.map(expr => expr.evaluate(context));
 
@@ -21,20 +22,20 @@ export class PrintStatement extends Statement
         {
             const value = values[i];
             const text = value.value?.toString() ?? '';
-            program.videoBuffer.printText(text);
+            graphics.printText(text);
 
             if (i < values.length - 1)
             {
-                program.videoBuffer.printText(' ');
+                graphics.printText(' ');
             }
         }
 
         if (this.newline)
         {
-            program.videoBuffer.newLine();
+            graphics.newLine();
         }
 
-        program.videoBuffer.flush();
+        graphics.flush();
 
         return { result: ExecutionResult.Continue };
     }

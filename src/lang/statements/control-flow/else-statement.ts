@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class ElseStatement extends Statement
 {
@@ -14,9 +15,8 @@ export class ElseStatement extends Statement
         return 0;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // ELSE is handled by block structure analysis, not executed directly
         return { result: ExecutionResult.Continue };
     }
 

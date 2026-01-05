@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 import { EduBasicType } from '../../edu-basic-value';
 
 export enum CaseMatchType
@@ -38,7 +39,7 @@ export class SelectCaseStatement extends Statement
         return 1;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
         const testValue = this.testExpression.evaluate(context);
 
@@ -46,7 +47,7 @@ export class SelectCaseStatement extends Statement
         {
             if (this.matchesCase(testValue, caseClause, context))
             {
-                return this.executeStatements(caseClause.statements, context, program);
+                return this.executeStatements(caseClause.statements, context, graphics, audio);
             }
         }
 
@@ -58,7 +59,6 @@ export class SelectCaseStatement extends Statement
         switch (caseClause.matchType)
         {
             case CaseMatchType.Value:
-                // CASE value1, value2, value3
                 for (const expr of caseClause.values!)
                 {
                     const value = expr.evaluate(context);
@@ -70,19 +70,16 @@ export class SelectCaseStatement extends Statement
                 return false;
 
             case CaseMatchType.Range:
-                // CASE value1 TO value2
                 const rangeStart = caseClause.rangeStart!.evaluate(context);
                 const rangeEnd = caseClause.rangeEnd!.evaluate(context);
                 return this.compareValues(testValue, rangeStart) >= 0 &&
                        this.compareValues(testValue, rangeEnd) <= 0;
 
             case CaseMatchType.Relational:
-                // CASE IS > value
                 const relValue = caseClause.relationalValue!.evaluate(context);
                 return this.evaluateRelational(testValue, caseClause.relationalOp!, relValue);
 
             case CaseMatchType.Else:
-                // CASE ELSE
                 return true;
 
             default:
@@ -92,13 +89,11 @@ export class SelectCaseStatement extends Statement
 
     private valuesEqual(a: any, b: any): boolean
     {
-        // TODO: Implement proper value comparison for all types
         return a.value === b.value;
     }
 
     private compareValues(a: any, b: any): number
     {
-        // TODO: Implement proper value comparison for all types
         if (a.value < b.value)
         {
             return -1;
@@ -138,12 +133,13 @@ export class SelectCaseStatement extends Statement
     private executeStatements(
         statements: Statement[],
         context: ExecutionContext,
-        program: Program
+        graphics: Graphics,
+        audio: Audio
     ): ExecutionStatus
     {
         for (const statement of statements)
         {
-            const status = statement.execute(context, program);
+            const status = statement.execute(context, graphics, audio);
 
             if (status.result !== ExecutionResult.Continue)
             {

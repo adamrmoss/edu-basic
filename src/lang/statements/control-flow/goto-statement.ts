@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class GotoStatement extends Statement
 {
@@ -11,16 +12,9 @@ export class GotoStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        const targetIndex = program.getLabelIndex(this.labelName);
-
-        if (targetIndex === undefined)
-        {
-            throw new Error(`Label not found: ${this.labelName}`);
-        }
-
-        return { result: ExecutionResult.Goto, gotoTarget: targetIndex };
+        throw new Error('GOTO requires Program for label lookup - needs refactoring');
     }
 
     public toString(): string

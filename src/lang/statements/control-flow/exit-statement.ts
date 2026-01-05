@@ -1,6 +1,7 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export enum ExitTarget
 {
@@ -19,10 +20,8 @@ export class ExitStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement EXIT statement with loop/sub context tracking
-        // Need to return a special exit status that the containing loop/sub recognizes
         throw new Error('EXIT statement not yet implemented');
     }
 

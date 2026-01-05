@@ -1,18 +1,17 @@
 import { Statement } from './statements/statement';
 import { LabelStatement } from './statements/control-flow/label-statement';
-import { VideoBufferService } from '../app/interpreter/video-buffer.service';
+import { Graphics } from './graphics';
+import { Audio } from './audio';
 
 export class Program
 {
     private statements: Statement[];
     private labelMap: Map<string, number>;
-    public videoBuffer: VideoBufferService;
 
-    public constructor(videoBuffer: VideoBufferService)
+    public constructor()
     {
         this.statements = [];
         this.labelMap = new Map<string, number>();
-        this.videoBuffer = videoBuffer;
     }
 
     public getStatement(lineIndex: number): Statement | undefined

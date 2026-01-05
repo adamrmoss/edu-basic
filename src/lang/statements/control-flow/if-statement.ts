@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 import { EduBasicType } from '../../edu-basic-value';
 
 export class IfStatement extends Statement
@@ -21,7 +22,7 @@ export class IfStatement extends Statement
         return 1;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
         const conditionValue = this.condition.evaluate(context);
 
@@ -32,7 +33,7 @@ export class IfStatement extends Statement
 
         if (conditionValue.value !== 0)
         {
-            return this.executeStatements(this.thenBranch, context, program);
+            return this.executeStatements(this.thenBranch, context, graphics, audio);
         }
 
         for (const elseIfBranch of this.elseIfBranches)
@@ -46,13 +47,13 @@ export class IfStatement extends Statement
 
             if (elseIfConditionValue.value !== 0)
             {
-                return this.executeStatements(elseIfBranch.statements, context, program);
+                return this.executeStatements(elseIfBranch.statements, context, graphics, audio);
             }
         }
 
         if (this.elseBranch !== null)
         {
-            return this.executeStatements(this.elseBranch, context, program);
+            return this.executeStatements(this.elseBranch, context, graphics, audio);
         }
 
         return { result: ExecutionResult.Continue };
@@ -61,12 +62,13 @@ export class IfStatement extends Statement
     private executeStatements(
         statements: Statement[],
         context: ExecutionContext,
-        program: Program
+        graphics: Graphics,
+        audio: Audio
     ): ExecutionStatus
     {
         for (const statement of statements)
         {
-            const status = statement.execute(context, program);
+            const status = statement.execute(context, graphics, audio);
 
             if (status.result !== ExecutionResult.Continue)
             {

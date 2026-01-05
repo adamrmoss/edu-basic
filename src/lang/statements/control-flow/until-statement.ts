@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 import { EduBasicType } from '../../edu-basic-value';
 
 export class UntilStatement extends Statement
@@ -19,9 +20,8 @@ export class UntilStatement extends Statement
         return 1;
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // UNTIL is equivalent to WHILE NOT
         while (true)
         {
             const conditionValue = this.condition.evaluate(context);
@@ -36,25 +36,22 @@ export class UntilStatement extends Statement
                 break;
             }
 
-            const status = this.executeBody(context, program);
+            const status = this.executeBody(context, graphics, audio);
 
             if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
             {
                 return status;
             }
-
-            // TODO: Handle EXIT UNTIL
-            // TODO: Handle CONTINUE UNTIL
         }
 
         return { result: ExecutionResult.Continue };
     }
 
-    private executeBody(context: ExecutionContext, program: Program): ExecutionStatus
+    private executeBody(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
         for (const statement of this.body)
         {
-            const status = statement.execute(context, program);
+            const status = statement.execute(context, graphics, audio);
 
             if (status.result !== ExecutionResult.Continue)
             {

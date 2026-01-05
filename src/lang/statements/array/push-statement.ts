@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class PushStatement extends Statement
 {
@@ -13,12 +14,19 @@ export class PushStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement PUSH statement
-        // - Evaluate value
-        // - Add element to end of array
-        throw new Error('PUSH statement not yet implemented');
+        const valueResult = this.value.evaluate(context);
+        const array = context.getVariable(this.arrayVariable);
+        
+        if (array.type !== 'array')
+        {
+            throw new Error(`PUSH: ${this.arrayVariable} is not an array`);
+        }
+        
+        (array.value as any[]).push(valueResult);
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string

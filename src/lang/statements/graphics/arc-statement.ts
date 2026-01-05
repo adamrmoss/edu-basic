@@ -1,7 +1,8 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
-import { Program } from '../../program';
+import { Graphics } from '../../graphics';
+import { Audio } from '../../audio';
 
 export class ArcStatement extends Statement
 {
@@ -17,12 +18,38 @@ export class ArcStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, program: Program): ExecutionStatus
+    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
     {
-        // TODO: Implement ARC statement
-        // - Evaluate center, radius, angles, and optional color
-        // - Draw arc in graphics buffer
-        throw new Error('ARC statement not yet implemented');
+        const cxVal = this.centerX.evaluate(context);
+        const cyVal = this.centerY.evaluate(context);
+        const rVal = this.radius.evaluate(context);
+        const startVal = this.startAngle.evaluate(context);
+        const endVal = this.endAngle.evaluate(context);
+        
+        const cx = Math.floor(cxVal.type === 'integer' || cxVal.type === 'real' ? cxVal.value as number : 0);
+        const cy = Math.floor(cyVal.type === 'integer' || cyVal.type === 'real' ? cyVal.value as number : 0);
+        const radius = Math.floor(rVal.type === 'integer' || rVal.type === 'real' ? rVal.value as number : 0);
+        const startAngle = startVal.type === 'integer' || startVal.type === 'real' ? startVal.value as number : 0;
+        const endAngle = endVal.type === 'integer' || endVal.type === 'real' ? endVal.value as number : 0;
+        
+        if (this.color)
+        {
+            const colorValue = this.color.evaluate(context);
+            const rgba = colorValue.type === 'integer' ? colorValue.value as number : 0xFFFFFFFF;
+            
+            const r = (rgba >> 24) & 0xFF;
+            const g = (rgba >> 16) & 0xFF;
+            const b = (rgba >> 8) & 0xFF;
+            const a = rgba & 0xFF;
+            
+            graphics.drawArc(cx, cy, radius, startAngle, endAngle, { r, g, b, a });
+        }
+        else
+        {
+            graphics.drawArc(cx, cy, radius, startAngle, endAngle);
+        }
+        
+        return { result: ExecutionResult.Continue };
     }
 
     public toString(): string
