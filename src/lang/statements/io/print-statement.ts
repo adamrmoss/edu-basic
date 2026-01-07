@@ -3,6 +3,8 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class PrintStatement extends Statement
 {
@@ -14,7 +16,13 @@ export class PrintStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         const values = this.expressions.map(expr => expr.evaluate(context));
 
@@ -40,7 +48,7 @@ export class PrintStatement extends Statement
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         let result = 'PRINT';
 

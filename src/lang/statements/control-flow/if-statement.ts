@@ -3,7 +3,12 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
+import { EndStatement, EndType } from './end-statement';
+import { ElseStatement } from './else-statement';
+import { ElseIfStatement } from './elseif-statement';
 
 export class IfStatement extends Statement
 {
@@ -17,13 +22,20 @@ export class IfStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return 1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
+        const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
 
         if (conditionValue.type !== EduBasicType.Integer)
@@ -33,53 +45,113 @@ export class IfStatement extends Statement
 
         if (conditionValue.value !== 0)
         {
-            return this.executeStatements(this.thenBranch, context, graphics, audio);
-        }
-
-        for (const elseIfBranch of this.elseIfBranches)
-        {
-            const elseIfConditionValue = elseIfBranch.condition.evaluate(context);
-
-            if (elseIfConditionValue.type !== EduBasicType.Integer)
+            if (this.thenBranch.length > 0)
             {
-                throw new Error('ELSEIF condition must evaluate to an integer');
+                runtime.pushControlFrame({
+                    type: 'if',
+                    startLine: currentPc,
+                    endLine: this.findEndIf(program, currentPc) ?? currentPc,
+                    nestedStatements: this.thenBranch,
+                    nestedIndex: 0
+                });
+
+                return { result: ExecutionResult.Continue };
+            }
+            else
+            {
+                const endIfLine = this.findEndIf(program, currentPc);
+
+                if (endIfLine !== undefined)
+                {
+                    return { result: ExecutionResult.Goto, gotoTarget: endIfLine };
+                }
+            }
+        }
+        else
+        {
+            let executedBranch = false;
+
+            for (const elseIfBranch of this.elseIfBranches)
+            {
+                const elseIfConditionValue = elseIfBranch.condition.evaluate(context);
+
+                if (elseIfConditionValue.type !== EduBasicType.Integer)
+                {
+                    throw new Error('ELSEIF condition must evaluate to an integer');
+                }
+
+                if (elseIfConditionValue.value !== 0)
+                {
+                    if (elseIfBranch.statements.length > 0)
+                    {
+                        runtime.pushControlFrame({
+                            type: 'if',
+                            startLine: currentPc,
+                            endLine: this.findEndIf(program, currentPc) ?? currentPc,
+                            nestedStatements: elseIfBranch.statements,
+                            nestedIndex: 0
+                        });
+
+                        return { result: ExecutionResult.Continue };
+                    }
+
+                    executedBranch = true;
+                    break;
+                }
             }
 
-            if (elseIfConditionValue.value !== 0)
+            if (!executedBranch && this.elseBranch !== null && this.elseBranch.length > 0)
             {
-                return this.executeStatements(elseIfBranch.statements, context, graphics, audio);
-            }
-        }
+                runtime.pushControlFrame({
+                    type: 'if',
+                    startLine: currentPc,
+                    endLine: this.findEndIf(program, currentPc) ?? currentPc,
+                    nestedStatements: this.elseBranch,
+                    nestedIndex: 0
+                });
 
-        if (this.elseBranch !== null)
-        {
-            return this.executeStatements(this.elseBranch, context, graphics, audio);
+                return { result: ExecutionResult.Continue };
+            }
+            else if (!executedBranch)
+            {
+                const endIfLine = this.findEndIf(program, currentPc);
+
+                if (endIfLine !== undefined)
+                {
+                    return { result: ExecutionResult.Goto, gotoTarget: endIfLine };
+                }
+            }
         }
 
         return { result: ExecutionResult.Continue };
     }
 
-    private executeStatements(
-        statements: Statement[],
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio
-    ): ExecutionStatus
+    private findEndIf(program: Program, startLine: number): number | undefined
     {
-        for (const statement of statements)
-        {
-            const status = statement.execute(context, graphics, audio);
+        const statements = program.getStatements();
 
-            if (status.result !== ExecutionResult.Continue)
+        for (let i = startLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
             {
-                return status;
+                if (stmt.indentLevel === this.indentLevel)
+                {
+                    return i;
+                }
+            }
+
+            if (stmt.indentLevel < this.indentLevel)
+            {
+                break;
             }
         }
 
-        return { result: ExecutionResult.Continue };
+        return undefined;
     }
 
-    public toString(): string
+    public override toString(): string
     {
         let result = `IF ${this.condition.toString()} THEN\n`;
 
@@ -111,3 +183,4 @@ export class IfStatement extends Statement
         return result;
     }
 }
+

@@ -433,12 +433,43 @@ export class Graphics
             }
         }
 
-        if (this.context)
+        if (this.context && this.buffer)
         {
-            const canvasY = this.height - y - this.charHeight;
-            this.context.fillStyle = `rgba(${this.foregroundColor.r}, ${this.foregroundColor.g}, ${this.foregroundColor.b}, ${this.foregroundColor.a / 255})`;
-            this.context.font = '16px "IBM Plex Mono", monospace';
-            this.context.fillText(char, x, canvasY + 12);
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = this.charWidth;
+            tempCanvas.height = this.charHeight;
+            const tempContext = tempCanvas.getContext('2d');
+            
+            if (tempContext)
+            {
+                tempContext.translate(0, this.charHeight);
+                tempContext.scale(1, -1);
+                tempContext.fillStyle = `rgba(${this.foregroundColor.r}, ${this.foregroundColor.g}, ${this.foregroundColor.b}, ${this.foregroundColor.a / 255})`;
+                tempContext.font = '16px "IBM Plex Mono", monospace';
+                tempContext.textBaseline = 'top';
+                tempContext.fillText(char, 0, 0);
+                
+                const textData = tempContext.getImageData(0, 0, this.charWidth, this.charHeight);
+                
+                for (let textRow = 0; textRow < this.charHeight; textRow++)
+                {
+                    for (let dx = 0; dx < this.charWidth; dx++)
+                    {
+                        const textIndex = (textRow * this.charWidth + dx) * 4;
+                        const alpha = textData.data[textIndex + 3];
+                        
+                        if (alpha > 0)
+                        {
+                            const fg = this.foregroundColor;
+                            const blendedR = Math.floor((fg.r * alpha + bg.r * (255 - alpha)) / 255);
+                            const blendedG = Math.floor((fg.g * alpha + bg.g * (255 - alpha)) / 255);
+                            const blendedB = Math.floor((fg.b * alpha + bg.b * (255 - alpha)) / 255);
+                            
+                            this.drawPixel(x + dx, y + textRow, { r: blendedR, g: blendedG, b: blendedB, a: 255 });
+                        }
+                    }
+                }
+            }
         }
 
         this.flush();

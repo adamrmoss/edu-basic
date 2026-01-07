@@ -469,6 +469,8 @@ LET e& = 3.14+2i      ' Complex literal
 
 #### Summary
 
+**Arithmetic Operations:**
+
 | Operation                 | Result Type | Notes                                                       |
 |---------------------------|-------------|-------------------------------------------------------------|
 | Integer op Integer        | Integer     | Except division (`/`) which yields Real; MOD yields Integer |
@@ -476,7 +478,29 @@ LET e& = 3.14+2i      ' Complex literal
 | Integer op Complex        | Complex     | Integer promoted to Complex                                 |
 | Real op Real              | Real        | MOD yields Real                                             |
 | Real op Complex           | Complex     | Real promoted to Complex                                    |
-| Complex op Complex        | Complex     |                                                             |
+| Complex op Complex        | Complex     | MOD not applicable to complex numbers                       |
+
+**Mathematical Operators (Trigonometric, Hyperbolic, Exponential, Logarithmic, Roots):**
+
+| Operator Type                          | Operand Type | Result Type | Notes                                                       |
+|----------------------------------------|--------------|-------------|------------------------------------------------------------|
+| SIN, COS, TAN, ASIN, ACOS, ATAN        | Integer/Real  | Real        | Standard trigonometric functions                            |
+| SIN, COS, TAN, ASIN, ACOS, ATAN        | Complex       | Complex     | Complex extensions of trigonometric functions               |
+| SINH, COSH, TANH, ASINH, ACOSH, ATANH  | Integer/Real  | Real        | Standard hyperbolic functions                               |
+| SINH, COSH, TANH, ASINH, ACOSH, ATANH  | Complex       | Complex     | Complex extensions of hyperbolic functions                  |
+| EXP, LOG, LOG10, LOG2                  | Integer/Real  | Real        | Standard exponential and logarithmic functions              |
+| EXP, LOG, LOG10, LOG2                  | Complex       | Complex     | Complex extensions of exponential and logarithmic functions  |
+| SQRT, CBRT                             | Integer/Real  | Real        | Standard root functions                                     |
+| SQRT, CBRT                             | Complex       | Complex     | Complex extensions of root functions                        |
+| ROUND, FLOOR, CEIL, TRUNC, EXPAND      | Integer/Real  | Real        | Rounding and truncation functions                           |
+| ROUND, FLOOR, CEIL, TRUNC, EXPAND      | Complex       | Error       | Not applicable to complex numbers                           |
+| SGN                                    | Integer/Real  | Integer     | Sign function                                               |
+| SGN                                    | Complex       | Error       | Not applicable to complex numbers                           |
+
+**Assignment Coercion:**
+
+| Assignment                | Result Type | Notes                                                       |
+|---------------------------|-------------|-------------------------------------------------------------|
 | Assign Real to Integer    | Integer     | Truncated (not rounded)                                     |
 | Assign Complex to Real    | Real        | Imaginary part lost                                         |
 | Assign Complex to Integer | Integer     | Real part truncated, imaginary lost                         |
@@ -6546,59 +6570,63 @@ This appendix provides a comprehensive listing of all operators in EduBASIC, org
 
 #### Trigonometric Operators
 
-| Operator  | Description                  | Example           | Returns |
-|-----------|------------------------------|-------------------|---------|
-| `SIN`     | Sine (radians)               | `SIN angle#`      | Real    |
-| `COS`     | Cosine (radians)             | `COS angle#`      | Real    |
-| `TAN`     | Tangent (radians)            | `TAN angle#`      | Real    |
-| `ASIN`    | Arcsine (returns radians)    | `ASIN ratio#`     | Real    |
-| `ACOS`    | Arccosine (returns radians)  | `ACOS ratio#`     | Real    |
-| `ATAN`    | Arctangent (returns radians) | `ATAN slope#`     | Real    |
+| Operator  | Description                  | Example           | Operand Types | Returns |
+|-----------|------------------------------|-------------------|---------------|---------|
+| `SIN`     | Sine (radians)               | `SIN angle#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `COS`     | Cosine (radians)             | `COS angle#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `TAN`     | Tangent (radians)            | `TAN angle#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ASIN`    | Arcsine (returns radians)    | `ASIN ratio#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ACOS`    | Arccosine (returns radians)  | `ACOS ratio#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ATAN`    | Arctangent (returns radians) | `ATAN slope#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
 
 #### Hyperbolic Operators
 
-| Operator  | Description                     | Example             | Returns |
-|-----------|---------------------------------|---------------------|---------|
-| `SINH`    | Hyperbolic sine                 | `SINH value#`       | Real    |
-| `COSH`    | Hyperbolic cosine               | `COSH value#`       | Real    |
-| `TANH`    | Hyperbolic tangent              | `TANH value#`       | Real    |
-| `ASINH`   | Inverse hyperbolic sine         | `ASINH value#`      | Real    |
-| `ACOSH`   | Inverse hyperbolic cosine       | `ACOSH value#`      | Real    |
-| `ATANH`   | Inverse hyperbolic tangent      | `ATANH value#`      | Real    |
+| Operator  | Description                     | Example             | Operand Types | Returns |
+|-----------|---------------------------------|---------------------|---------------|---------|
+| `SINH`    | Hyperbolic sine                 | `SINH value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `COSH`    | Hyperbolic cosine               | `COSH value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `TANH`    | Hyperbolic tangent              | `TANH value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ASINH`   | Inverse hyperbolic sine         | `ASINH value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ACOSH`   | Inverse hyperbolic cosine       | `ACOSH value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ATANH`   | Inverse hyperbolic tangent      | `ATANH value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
 
 #### Exponential and Logarithmic Operators
 
-| Operator  | Description                | Example            | Returns |
-|-----------|----------------------------|--------------------|---------|
-| `EXP`     | e raised to power          | `EXP power#`       | Real    |
-| `LOG`     | Natural logarithm (base e) | `LOG value#`       | Real    |
-| `LOG10`   | Common logarithm (base 10) | `LOG10 value#`     | Real    |
-| `LOG2`    | Binary logarithm (base 2)  | `LOG2 value#`      | Real    |
+| Operator  | Description                | Example            | Operand Types | Returns |
+|-----------|----------------------------|--------------------|---------------|---------|
+| `EXP`     | e raised to power          | `EXP power#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `LOG`     | Natural logarithm (base e) | `LOG value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `LOG10`   | Common logarithm (base 10) | `LOG10 value#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `LOG2`    | Binary logarithm (base 2)  | `LOG2 value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
 
 #### Root Operators
 
-| Operator  | Description    | Example            | Returns |
-|-----------|----------------|--------------------|---------|
-| `SQRT`    | Square root    | `SQRT number#`     | Real    |
-| `CBRT`    | Cube root      | `CBRT number#`     | Real    |
+| Operator  | Description    | Example            | Operand Types | Returns |
+|-----------|----------------|--------------------|---------------|---------|
+| `SQRT`    | Square root    | `SQRT number#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `CBRT`    | Cube root      | `CBRT number#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
 
 #### Rounding and Truncation Operators
 
-| Operator  | Description                           | Example            | Returns |
-|-----------|---------------------------------------|--------------------|---------|
-| `ROUND`   | Round to nearest integer (ties up)    | `ROUND 3.5`        | Real    |
-| `FLOOR`   | Round toward negative infinity        | `FLOOR 3.7`        | Real    |
-| `CEIL`    | Round toward positive infinity        | `CEIL 3.2`         | Real    |
-| `TRUNC`   | Round toward zero                     | `TRUNC 3.9`        | Real    |
-| `EXPAND`  | Round away from zero                  | `EXPAND 3.1`       | Real    |
-| `INT`     | Integer conversion (floor for pos, ceil for neg) | `INT 3.7` | Integer |
+| Operator  | Description                           | Example            | Operand Types | Returns |
+|-----------|---------------------------------------|--------------------|---------------|---------|
+| `ROUND`   | Round to nearest integer (ties up)    | `ROUND 3.5`        | Integer, Real | Real    |
+| `FLOOR`   | Round toward negative infinity        | `FLOOR 3.7`        | Integer, Real | Real    |
+| `CEIL`    | Round toward positive infinity        | `CEIL 3.2`         | Integer, Real | Real    |
+| `TRUNC`   | Round toward zero                     | `TRUNC 3.9`        | Integer, Real | Real    |
+| `EXPAND`  | Round away from zero                  | `EXPAND 3.1`       | Integer, Real | Real    |
+| `INT`     | Integer conversion (floor for pos, ceil for neg) | `INT 3.7` | Integer, Real | Integer |
+
+**Note:** Rounding and truncation operators are not applicable to complex numbers.
 
 #### Other Mathematical Operators
 
-| Operator  | Description                    | Example            | Returns |
-|-----------|--------------------------------|--------------------|---------|
-| `SGN`     | Sign of number (-1, 0, or 1)   | `SGN value#`       | Integer |
-| `\| \|`   | Absolute value / norm          | `\| -5 \|` or `\| 3+4i \|` | Real |
+| Operator  | Description                    | Example            | Operand Types | Returns |
+|-----------|--------------------------------|--------------------|---------------|---------|
+| `SGN`     | Sign of number (-1, 0, or 1)   | `SGN value#`       | Integer, Real | Integer |
+| `\| \|`   | Absolute value / norm          | `\| -5 \|` or `\| 3+4i \|` | Integer, Real, Complex | Real |
+
+**Note:** The `SGN` operator is not applicable to complex numbers. Use `CABS` for complex number magnitude.
 
 ### Complex Number Operators
 

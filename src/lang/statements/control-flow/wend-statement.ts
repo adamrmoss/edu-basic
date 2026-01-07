@@ -2,6 +2,10 @@ import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
+import { WhileStatement } from './while-statement';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class WendStatement extends Statement
 {
@@ -10,17 +14,53 @@ export class WendStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return -1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
+        const whileFrame = runtime.findControlFrame('while');
+
+        if (whileFrame)
+        {
+            const whileStmt = program.getStatement(whileFrame.startLine);
+
+            if (whileStmt instanceof WhileStatement)
+            {
+                const conditionValue = whileStmt.condition.evaluate(context);
+
+                if (conditionValue.type !== EduBasicType.Integer)
+                {
+                    throw new Error('WHILE condition must evaluate to an integer');
+                }
+
+                if (conditionValue.value !== 0)
+                {
+                    if (whileFrame.nestedStatements && whileFrame.nestedStatements.length > 0)
+                    {
+                        whileFrame.nestedIndex = 0;
+                        return { result: ExecutionResult.Goto, gotoTarget: whileFrame.startLine };
+                    }
+                }
+                else
+                {
+                    runtime.popControlFrame();
+                }
+            }
+        }
+
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         return 'WEND';
     }

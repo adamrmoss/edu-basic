@@ -2,6 +2,8 @@ import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export interface CatchClause
 {
@@ -20,17 +22,55 @@ export class TryStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return 1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
-        throw new Error('TRY statement not yet implemented');
+        if (this.tryBody.length > 0)
+        {
+            const currentPc = context.getProgramCounter();
+
+            runtime.pushControlFrame({
+                type: 'if',
+                startLine: currentPc,
+                endLine: this.findEndTry(program, currentPc) ?? currentPc,
+                nestedStatements: this.tryBody,
+                nestedIndex: 0
+            });
+
+            return { result: ExecutionResult.Continue };
+        }
+
+        return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    private findEndTry(program: Program, startLine: number): number | undefined
+    {
+        const statements = program.getStatements();
+
+        for (let i = startLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt.toString() === 'END TRY')
+            {
+                return i;
+            }
+        }
+
+        return undefined;
+    }
+
+    public override toString(): string
     {
         let result = 'TRY\n';
 

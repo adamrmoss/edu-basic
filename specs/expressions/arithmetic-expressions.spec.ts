@@ -269,6 +269,118 @@ describe('Arithmetic Expressions', () =>
         });
     });
 
+    describe('Complex number operations', () =>
+    {
+        it('should add two complex numbers', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Complex);
+            expect(result.value.real).toBe(4);
+            expect(result.value.imaginary).toBe(6);
+        });
+
+        it('should subtract complex numbers', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 5, imaginary: 6 } });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 2, imaginary: 3 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Subtract, right);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Complex);
+            expect(result.value.real).toBe(3);
+            expect(result.value.imaginary).toBe(3);
+        });
+
+        it('should multiply complex numbers', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Multiply, right);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Complex);
+            expect(result.value.real).toBe(-5);
+            expect(result.value.imaginary).toBe(10);
+        });
+
+        it('should divide complex numbers', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 1 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Divide, right);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Complex);
+            expect(result.value.real).toBeCloseTo(1.5);
+            expect(result.value.imaginary).toBeCloseTo(0.5);
+        });
+
+        it('should add integer and complex number', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Complex);
+            expect(result.value.real).toBe(8);
+            expect(result.value.imaginary).toBe(4);
+        });
+
+        it('should add real and complex number', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Real, value: 2.5 });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1.5, imaginary: 3 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Complex);
+            expect(result.value.real).toBeCloseTo(4.0);
+            expect(result.value.imaginary).toBe(3);
+        });
+
+        it('should compute complex power', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 0, imaginary: 1 } });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Power, right);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Complex);
+            expect(result.value.real).toBeCloseTo(-1.0);
+            expect(result.value.imaginary).toBeCloseTo(0.0);
+        });
+
+        it('should throw error on complex modulo', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 5, imaginary: 3 } });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 2, imaginary: 1 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Modulo, right);
+
+            expect(() => expr.evaluate(context)).toThrow('Modulo operator is not applicable to complex numbers');
+        });
+
+        it('should throw error on division by zero complex number', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 5, imaginary: 3 } });
+            const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } });
+            const expr = new ArithmeticExpression(left, ArithmeticOperator.Divide, right);
+
+            expect(() => expr.evaluate(context)).toThrow('Division by zero');
+        });
+    });
+
     describe('Complex Expressions', () =>
     {
         it('should evaluate nested arithmetic expressions', () =>

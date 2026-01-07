@@ -3,6 +3,8 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class LocalStatement extends Statement
 {
@@ -14,7 +16,13 @@ export class LocalStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         const evaluatedValue = this.value.evaluate(context);
         context.setVariable(this.variableName, evaluatedValue, true);
@@ -22,7 +30,7 @@ export class LocalStatement extends Statement
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         return `LOCAL ${this.variableName} = ${this.value.toString()}`;
     }

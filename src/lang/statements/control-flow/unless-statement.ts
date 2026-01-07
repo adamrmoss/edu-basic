@@ -3,7 +3,10 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
+import { EndStatement, EndType } from './end-statement';
 
 export class UnlessStatement extends Statement
 {
@@ -16,13 +19,20 @@ export class UnlessStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return 1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
+        const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
 
         if (conditionValue.type !== EduBasicType.Integer)
@@ -32,38 +42,82 @@ export class UnlessStatement extends Statement
 
         if (conditionValue.value === 0)
         {
-            return this.executeStatements(this.thenBranch, context, graphics, audio);
-        }
-
-        if (this.elseBranch !== null)
-        {
-            return this.executeStatements(this.elseBranch, context, graphics, audio);
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    private executeStatements(
-        statements: Statement[],
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio
-    ): ExecutionStatus
-    {
-        for (const statement of statements)
-        {
-            const status = statement.execute(context, graphics, audio);
-
-            if (status.result !== ExecutionResult.Continue)
+            if (this.thenBranch.length > 0)
             {
-                return status;
+                runtime.pushControlFrame({
+                    type: 'if',
+                    startLine: currentPc,
+                    endLine: this.findEndUnless(program, currentPc) ?? currentPc,
+                    nestedStatements: this.thenBranch,
+                    nestedIndex: 0
+                });
+
+                return { result: ExecutionResult.Continue };
+            }
+            else
+            {
+                const endUnlessLine = this.findEndUnless(program, currentPc);
+
+                if (endUnlessLine !== undefined)
+                {
+                    return { result: ExecutionResult.Goto, gotoTarget: endUnlessLine };
+                }
+            }
+        }
+        else
+        {
+            if (this.elseBranch !== null && this.elseBranch.length > 0)
+            {
+                runtime.pushControlFrame({
+                    type: 'if',
+                    startLine: currentPc,
+                    endLine: this.findEndUnless(program, currentPc) ?? currentPc,
+                    nestedStatements: this.elseBranch,
+                    nestedIndex: 0
+                });
+
+                return { result: ExecutionResult.Continue };
+            }
+            else
+            {
+                const endUnlessLine = this.findEndUnless(program, currentPc);
+
+                if (endUnlessLine !== undefined)
+                {
+                    return { result: ExecutionResult.Goto, gotoTarget: endUnlessLine };
+                }
             }
         }
 
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    private findEndUnless(program: Program, startLine: number): number | undefined
+    {
+        const statements = program.getStatements();
+
+        for (let i = startLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.Unless)
+            {
+                if (stmt.indentLevel === this.indentLevel)
+                {
+                    return i;
+                }
+            }
+
+            if (stmt.indentLevel < this.indentLevel)
+            {
+                break;
+            }
+        }
+
+        return undefined;
+    }
+
+    public override toString(): string
     {
         let result = `UNLESS ${this.condition.toString()} THEN\n`;
 

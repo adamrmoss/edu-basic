@@ -3,6 +3,8 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class VoiceStatement extends Statement
 {
@@ -17,7 +19,13 @@ export class VoiceStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         const voiceValue = this.voiceNumber.evaluate(context);
         const voice = voiceValue.type === 'integer' || voiceValue.type === 'real' ? Math.floor(voiceValue.value as number) : 0;
@@ -27,7 +35,7 @@ export class VoiceStatement extends Statement
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         let result = `VOICE ${this.voiceNumber.toString()}`;
 

@@ -2,6 +2,8 @@ import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export enum ContinueTarget
 {
@@ -19,12 +21,47 @@ export class ContinueStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
-        throw new Error('CONTINUE statement not yet implemented');
+        let frameType: 'if' | 'while' | 'do' | 'for' | undefined;
+
+        switch (this.target)
+        {
+            case ContinueTarget.For:
+                frameType = 'for';
+                break;
+            case ContinueTarget.While:
+                frameType = 'while';
+                break;
+            case ContinueTarget.Do:
+                frameType = 'do';
+                break;
+        }
+
+        if (frameType)
+        {
+            const frame = runtime.findControlFrame(frameType);
+
+            if (frame)
+            {
+                if (frame.nestedStatements && frame.nestedStatements.length > 0)
+                {
+                    frame.nestedIndex = 0;
+                    return { result: ExecutionResult.Goto, gotoTarget: frame.startLine };
+                }
+            }
+        }
+
+        return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         switch (this.target)
         {

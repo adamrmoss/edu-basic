@@ -3,6 +3,8 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class PushStatement extends Statement
 {
@@ -14,7 +16,13 @@ export class PushStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         const valueResult = this.value.evaluate(context);
         const array = context.getVariable(this.arrayVariable);
@@ -29,7 +37,7 @@ export class PushStatement extends Statement
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         return `PUSH ${this.arrayVariable}, ${this.value.toString()}`;
     }

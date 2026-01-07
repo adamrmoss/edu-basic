@@ -3,6 +3,8 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class OvalStatement extends Statement
 {
@@ -18,7 +20,13 @@ export class OvalStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         const cxVal = this.centerX.evaluate(context);
         const cyVal = this.centerY.evaluate(context);
@@ -55,7 +63,7 @@ export class OvalStatement extends Statement
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         let result = `OVAL AT (${this.centerX.toString()}, ${this.centerY.toString()}) RADII (${this.radiusX.toString()}, ${this.radiusY.toString()})`;
 

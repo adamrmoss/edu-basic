@@ -2,6 +2,8 @@ import { Statement, ExecutionStatus, ExecutionResult } from './statement';
 import { ExecutionContext } from '../execution-context';
 import { Graphics } from '../graphics';
 import { Audio } from '../audio';
+import { Program } from '../program';
+import { RuntimeExecution } from '../runtime-execution';
 
 export class UnparsableStatement extends Statement
 {
@@ -13,12 +15,18 @@ export class UnparsableStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         throw new Error(this.errorMessage || `Cannot execute unparsable statement: ${this.sourceText}`);
     }
 
-    public toString(): string
+    public override toString(): string
     {
         return this.sourceText;
     }

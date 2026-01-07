@@ -3,7 +3,10 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
+import { LoopStatement } from './loop-statement';
 
 export enum DoLoopVariant
 {
@@ -25,167 +28,164 @@ export class DoLoopStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return 1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
+        const currentPc = context.getProgramCounter();
+        const loopLine = this.findLoop(program, currentPc);
+
         switch (this.variant)
         {
             case DoLoopVariant.DoWhile:
-                return this.executeDoWhile(context, graphics, audio);
+                return this.executeDoWhile(context, graphics, audio, program, runtime, currentPc, loopLine);
             case DoLoopVariant.DoUntil:
-                return this.executeDoUntil(context, graphics, audio);
+                return this.executeDoUntil(context, graphics, audio, program, runtime, currentPc, loopLine);
             case DoLoopVariant.DoLoopWhile:
-                return this.executeDoLoopWhile(context, graphics, audio);
             case DoLoopVariant.DoLoopUntil:
-                return this.executeDoLoopUntil(context, graphics, audio);
             case DoLoopVariant.DoLoop:
-                return this.executeDoLoop(context, graphics, audio);
-            default:
-                throw new Error('Unknown DO loop variant');
+                if (this.body.length > 0)
+                {
+                    runtime.pushControlFrame({
+                        type: 'do',
+                        startLine: currentPc,
+                        endLine: loopLine ?? currentPc,
+                        nestedStatements: this.body,
+                        nestedIndex: 0,
+                        condition: this.condition
+                    });
+
+                    return { result: ExecutionResult.Continue };
+                }
+                break;
         }
+
+        return { result: ExecutionResult.Continue };
     }
 
-    private executeDoWhile(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    private executeDoWhile(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution,
+        currentPc: number,
+        loopLine: number | undefined
+    ): ExecutionStatus
     {
-        while (true)
-        {
-            const conditionValue = this.condition!.evaluate(context);
+        const conditionValue = this.condition!.evaluate(context);
 
-            if (conditionValue.type !== EduBasicType.Integer)
+        if (conditionValue.type !== EduBasicType.Integer)
+        {
+            throw new Error('DO WHILE condition must evaluate to an integer');
+        }
+
+        if (conditionValue.value === 0)
+        {
+            if (loopLine !== undefined)
             {
-                throw new Error('DO WHILE condition must evaluate to an integer');
+                return { result: ExecutionResult.Goto, gotoTarget: loopLine };
+            }
+        }
+        else
+        {
+            if (this.body.length > 0)
+            {
+                runtime.pushControlFrame({
+                    type: 'do',
+                    startLine: currentPc,
+                    endLine: loopLine ?? currentPc,
+                    nestedStatements: this.body,
+                    nestedIndex: 0,
+                    condition: this.condition
+                });
+
+                return { result: ExecutionResult.Continue };
+            }
+        }
+
+        return { result: ExecutionResult.Continue };
+    }
+
+    private executeDoUntil(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution,
+        currentPc: number,
+        loopLine: number | undefined
+    ): ExecutionStatus
+    {
+        const conditionValue = this.condition!.evaluate(context);
+
+        if (conditionValue.type !== EduBasicType.Integer)
+        {
+            throw new Error('DO UNTIL condition must evaluate to an integer');
+        }
+
+        if (conditionValue.value !== 0)
+        {
+            if (loopLine !== undefined)
+            {
+                return { result: ExecutionResult.Goto, gotoTarget: loopLine };
+            }
+        }
+        else
+        {
+            if (this.body.length > 0)
+            {
+                runtime.pushControlFrame({
+                    type: 'do',
+                    startLine: currentPc,
+                    endLine: loopLine ?? currentPc,
+                    nestedStatements: this.body,
+                    nestedIndex: 0,
+                    condition: this.condition
+                });
+
+                return { result: ExecutionResult.Continue };
+            }
+        }
+
+        return { result: ExecutionResult.Continue };
+    }
+
+    private findLoop(program: Program, startLine: number): number | undefined
+    {
+        const statements = program.getStatements();
+
+        for (let i = startLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof LoopStatement)
+            {
+                if (stmt.indentLevel === this.indentLevel)
+                {
+                    return i;
+                }
             }
 
-            if (conditionValue.value === 0)
+            if (stmt.indentLevel < this.indentLevel)
             {
                 break;
             }
-
-            const status = this.executeBody(context, graphics, audio);
-
-            if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
-            {
-                return status;
-            }
         }
 
-        return { result: ExecutionResult.Continue };
+        return undefined;
     }
 
-    private executeDoUntil(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
-    {
-        while (true)
-        {
-            const conditionValue = this.condition!.evaluate(context);
-
-            if (conditionValue.type !== EduBasicType.Integer)
-            {
-                throw new Error('DO UNTIL condition must evaluate to an integer');
-            }
-
-            if (conditionValue.value !== 0)
-            {
-                break;
-            }
-
-            const status = this.executeBody(context, graphics, audio);
-
-            if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
-            {
-                return status;
-            }
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    private executeDoLoopWhile(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
-    {
-        while (true)
-        {
-            const status = this.executeBody(context, graphics, audio);
-
-            if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
-            {
-                return status;
-            }
-
-            const conditionValue = this.condition!.evaluate(context);
-
-            if (conditionValue.type !== EduBasicType.Integer)
-            {
-                throw new Error('LOOP WHILE condition must evaluate to an integer');
-            }
-
-            if (conditionValue.value === 0)
-            {
-                break;
-            }
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    private executeDoLoopUntil(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
-    {
-        while (true)
-        {
-            const status = this.executeBody(context, graphics, audio);
-
-            if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
-            {
-                return status;
-            }
-
-            const conditionValue = this.condition!.evaluate(context);
-
-            if (conditionValue.type !== EduBasicType.Integer)
-            {
-                throw new Error('LOOP UNTIL condition must evaluate to an integer');
-            }
-
-            if (conditionValue.value !== 0)
-            {
-                break;
-            }
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    private executeDoLoop(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
-    {
-        while (true)
-        {
-            const status = this.executeBody(context, graphics, audio);
-
-            if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
-            {
-                return status;
-            }
-        }
-    }
-
-    private executeBody(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
-    {
-        for (const statement of this.body)
-        {
-            const status = statement.execute(context, graphics, audio);
-
-            if (status.result !== ExecutionResult.Continue)
-            {
-                return status;
-            }
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    public toString(): string
+    public override toString(): string
     {
         let result = '';
 
@@ -227,4 +227,5 @@ export class DoLoopStatement extends Statement
         return result;
     }
 }
+
 

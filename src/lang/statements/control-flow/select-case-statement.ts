@@ -3,7 +3,10 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
+import { EndStatement, EndType } from './end-statement';
 
 export enum CaseMatchType
 {
@@ -34,24 +37,85 @@ export class SelectCaseStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return 1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
+        const currentPc = context.getProgramCounter();
         const testValue = this.testExpression.evaluate(context);
 
         for (const caseClause of this.cases)
         {
             if (this.matchesCase(testValue, caseClause, context))
             {
-                return this.executeStatements(caseClause.statements, context, graphics, audio);
+                if (caseClause.statements.length > 0)
+                {
+                    runtime.pushControlFrame({
+                        type: 'if',
+                        startLine: currentPc,
+                        endLine: this.findEndSelect(program, currentPc) ?? currentPc,
+                        nestedStatements: caseClause.statements,
+                        nestedIndex: 0
+                    });
+
+                    return { result: ExecutionResult.Continue };
+                }
+                else
+                {
+                    const endSelectLine = this.findEndSelect(program, currentPc);
+
+                    if (endSelectLine !== undefined)
+                    {
+                        return { result: ExecutionResult.Goto, gotoTarget: endSelectLine };
+                    }
+                }
+
+                break;
             }
         }
 
+        const endSelectLine = this.findEndSelect(program, currentPc);
+
+        if (endSelectLine !== undefined)
+        {
+            return { result: ExecutionResult.Goto, gotoTarget: endSelectLine };
+        }
+
         return { result: ExecutionResult.Continue };
+    }
+
+    private findEndSelect(program: Program, startLine: number): number | undefined
+    {
+        const statements = program.getStatements();
+
+        for (let i = startLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.Select)
+            {
+                if (stmt.indentLevel === this.indentLevel)
+                {
+                    return i;
+                }
+            }
+
+            if (stmt.indentLevel < this.indentLevel)
+            {
+                break;
+            }
+        }
+
+        return undefined;
     }
 
     private matchesCase(testValue: any, caseClause: CaseClause, context: ExecutionContext): boolean
@@ -130,27 +194,8 @@ export class SelectCaseStatement extends Statement
         }
     }
 
-    private executeStatements(
-        statements: Statement[],
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio
-    ): ExecutionStatus
-    {
-        for (const statement of statements)
-        {
-            const status = statement.execute(context, graphics, audio);
 
-            if (status.result !== ExecutionResult.Continue)
-            {
-                return status;
-            }
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    public toString(): string
+    public override toString(): string
     {
         let result = `SELECT CASE ${this.testExpression.toString()}\n`;
 

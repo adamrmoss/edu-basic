@@ -2,6 +2,8 @@ import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export enum SetOption
 {
@@ -23,12 +25,18 @@ export class SetStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         throw new Error('SET statement not yet implemented');
     }
 
-    public toString(): string
+    public override toString(): string
     {
         switch (this.option)
         {

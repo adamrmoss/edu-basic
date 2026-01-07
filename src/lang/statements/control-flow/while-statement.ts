@@ -3,7 +3,10 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
+import { WendStatement } from './wend-statement';
 
 export class WhileStatement extends Statement
 {
@@ -15,54 +18,82 @@ export class WhileStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return 1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
-        while (true)
-        {
-            const conditionValue = this.condition.evaluate(context);
+        const currentPc = context.getProgramCounter();
+        const conditionValue = this.condition.evaluate(context);
 
-            if (conditionValue.type !== EduBasicType.Integer)
+        if (conditionValue.type !== EduBasicType.Integer)
+        {
+            throw new Error('WHILE condition must evaluate to an integer');
+        }
+
+        if (conditionValue.value === 0)
+        {
+            const wendLine = this.findWend(program, currentPc);
+
+            if (wendLine !== undefined)
             {
-                throw new Error('WHILE condition must evaluate to an integer');
+                return { result: ExecutionResult.Goto, gotoTarget: wendLine };
+            }
+        }
+        else
+        {
+            if (this.body.length > 0)
+            {
+                runtime.pushControlFrame({
+                    type: 'while',
+                    startLine: currentPc,
+                    endLine: this.findWend(program, currentPc) ?? currentPc,
+                    nestedStatements: this.body,
+                    nestedIndex: 0,
+                    condition: this.condition
+                });
+
+                return { result: ExecutionResult.Continue };
+            }
+        }
+
+        return { result: ExecutionResult.Continue };
+    }
+
+    private findWend(program: Program, startLine: number): number | undefined
+    {
+        const statements = program.getStatements();
+
+        for (let i = startLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof WendStatement)
+            {
+                if (stmt.indentLevel === this.indentLevel)
+                {
+                    return i;
+                }
             }
 
-            if (conditionValue.value === 0)
+            if (stmt.indentLevel < this.indentLevel)
             {
                 break;
             }
-
-            const status = this.executeBody(context, graphics, audio);
-
-            if (status.result === ExecutionResult.End || status.result === ExecutionResult.Goto)
-            {
-                return status;
-            }
         }
 
-        return { result: ExecutionResult.Continue };
+        return undefined;
     }
 
-    private executeBody(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
-    {
-        for (const statement of this.body)
-        {
-            const status = statement.execute(context, graphics, audio);
-
-            if (status.result !== ExecutionResult.Continue)
-            {
-                return status;
-            }
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    public toString(): string
+    public override toString(): string
     {
         let result = `WHILE ${this.condition.toString()}\n`;
 

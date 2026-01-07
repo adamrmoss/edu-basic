@@ -2,6 +2,8 @@ import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export enum EndType
 {
@@ -20,22 +22,38 @@ export class EndStatement extends Statement
         super();
     }
 
-    public getIndentAdjustment(): number
+    public override getIndentAdjustment(): number
     {
         return -1;
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         if (this.endType === EndType.Program)
         {
             return { result: ExecutionResult.End };
         }
+
+        if (this.endType === EndType.If)
+        {
+            const ifFrame = runtime.findControlFrame('if');
+
+            if (ifFrame)
+            {
+                runtime.popControlFrame();
+            }
+        }
         
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         switch (this.endType)
         {

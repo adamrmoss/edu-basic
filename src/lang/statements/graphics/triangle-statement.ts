@@ -3,6 +3,8 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class TriangleStatement extends Statement
 {
@@ -20,7 +22,13 @@ export class TriangleStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         const x1Val = this.x1.evaluate(context);
         const y1Val = this.y1.evaluate(context);
@@ -56,7 +64,7 @@ export class TriangleStatement extends Statement
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         let result = `TRIANGLE (${this.x1.toString()}, ${this.y1.toString()}) (${this.x2.toString()}, ${this.y2.toString()}) (${this.x3.toString()}, ${this.y3.toString()})`;
 

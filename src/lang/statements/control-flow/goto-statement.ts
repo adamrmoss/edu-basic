@@ -2,6 +2,8 @@ import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class GotoStatement extends Statement
 {
@@ -12,12 +14,25 @@ export class GotoStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
-        throw new Error('GOTO requires Program for label lookup - needs refactoring');
+        const labelIndex = program.getLabelIndex(this.labelName);
+
+        if (labelIndex === undefined)
+        {
+            throw new Error(`Label '${this.labelName}' not found`);
+        }
+
+        return { result: ExecutionResult.Goto, gotoTarget: labelIndex };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         return `GOTO ${this.labelName}`;
     }

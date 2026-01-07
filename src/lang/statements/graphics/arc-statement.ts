@@ -3,6 +3,8 @@ import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
+import { Program } from '../../program';
+import { RuntimeExecution } from '../../runtime-execution';
 
 export class ArcStatement extends Statement
 {
@@ -18,7 +20,13 @@ export class ArcStatement extends Statement
         super();
     }
 
-    public execute(context: ExecutionContext, graphics: Graphics, audio: Audio): ExecutionStatus
+    public override execute(
+        context: ExecutionContext,
+        graphics: Graphics,
+        audio: Audio,
+        program: Program,
+        runtime: RuntimeExecution
+    ): ExecutionStatus
     {
         const cxVal = this.centerX.evaluate(context);
         const cyVal = this.centerY.evaluate(context);
@@ -52,7 +60,7 @@ export class ArcStatement extends Statement
         return { result: ExecutionResult.Continue };
     }
 
-    public toString(): string
+    public override toString(): string
     {
         let result = `ARC AT (${this.centerX.toString()}, ${this.centerY.toString()}) RADIUS ${this.radius.toString()} FROM ${this.startAngle.toString()} TO ${this.endAngle.toString()}`;
 
