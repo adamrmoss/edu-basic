@@ -1,0 +1,55 @@
+@use 'ng-luna/theme/_palette.scss' as *;
+
+.console-container
+{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: $navy;
+    color: $white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    padding: 8px;
+}
+
+.console-output
+{
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 8px;
+}
+
+.console-line
+{
+    white-space: pre-wrap;
+    margin: 2px 0;
+
+    &.error
+    {
+        color: $orange;
+    }
+}
+
+.console-input-line
+{
+    display: flex;
+    align-items: center;
+}
+
+.console-prompt
+{
+    margin-right: 8px;
+    color: $blue-bright;
+}
+
+.console-input
+{
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: $white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+}
+

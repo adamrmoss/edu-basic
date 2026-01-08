@@ -11,6 +11,7 @@
   - [Variable Declaration](#variable-declaration)
   - [Literals](#literals)
   - [Type Coercion](#type-coercion)
+  - [Structures](#structures)
   - [Arrays](#arrays)
   - [Arithmetic Operations](#arithmetic-operations)
   - [Boolean Operations](#boolean-operations)
@@ -29,8 +30,13 @@
   - [UNTIL Loop](#until-loop)
   - [DO Loop](#do-loop)
   - [EXIT Statement](#exit-statement)
+  - [CONTINUE Statement](#continue-statement)
   - [SUB Procedures](#sub-procedures)
   - [END Statement](#end-statement)
+  - [SLEEP Statement](#sleep-statement)
+  - [Error Handling](#error-handling)
+    - [TRY...CATCH...FINALLY Statement](#trycatchfinally-statement)
+    - [THROW Statement](#throw-statement)
   - [Summary: Structured vs. Unstructured Flow Control](#summary-structured-vs-unstructured-flow-control)
 - [Text I/O](#text-io)
   - [PRINT Statement](#print-statement)
@@ -44,7 +50,8 @@
     - [String Slicing](#string-slicing)
     - [String Length](#string-length)
     - [String Comparison](#string-comparison)
-    - [String Functions](#string-functions)
+    - [String Operators](#string-operators)
+    - [STARTSWITH and ENDSWITH Operators](#startswith-and-endswith-operators)
 - [File I/O](#file-io)
   - [Opening and Closing Files](#opening-and-closing-files)
     - [OPEN Statement](#open-statement)
@@ -56,8 +63,9 @@
     - [WRITE Statement (Text and Binary)](#write-statement-text-and-binary)
   - [File Navigation](#file-navigation)
     - [SEEK Statement](#seek-statement)
-    - [EOF Function](#eof-function)
-    - [LOC Function](#loc-function)
+    - [EOF Operator](#eof-operator)
+    - [LOC Operator](#loc-operator)
+    - [EXISTS Operator](#exists-operator)
   - [Convenience File Operations](#convenience-file-operations)
     - [READFILE Statement](#readfile-statement)
     - [WRITEFILE Statement](#writefile-statement)
@@ -75,10 +83,12 @@
   - [RECTANGLE Statement](#rectangle-statement)
   - [OVAL Statement](#oval-statement)
   - [CIRCLE Statement](#circle-statement)
+  - [ARC Statement](#arc-statement)
   - [TRIANGLE Statement](#triangle-statement)
   - [PAINT Statement](#paint-statement)
   - [GET Statement](#get-statement)
   - [PUT Statement](#put-statement)
+  - [TURTLE Statement](#turtle-statement)
   - [Graphics Examples](#graphics-examples)
 - [Audio](#audio)
   - [TEMPO Statement](#tempo-statement)
@@ -91,6 +101,29 @@
   - [Audio Examples](#audio-examples)
 - [Command and Function Reference](#command-and-function-reference)
   - (Alphabetical listing of 100+ commands, functions, and operators)
+- [Appendix: Complete Operator Reference](#appendix-complete-operator-reference)
+  - [Arithmetic Operators](#arithmetic-operators)
+  - [Assignment Operators](#assignment-operators)
+  - [Comparison Operators](#comparison-operators)
+  - [Logical (Bitwise) Operators](#logical-bitwise-operators)
+  - [String Operators](#string-operators)
+  - [Array Operators](#array-operators)
+  - [Mathematical Operators](#mathematical-operators)
+    - [Trigonometric Operators](#trigonometric-operators)
+    - [Hyperbolic Operators](#hyperbolic-operators)
+    - [Exponential and Logarithmic Operators](#exponential-and-logarithmic-operators)
+    - [Root Operators](#root-operators)
+    - [Rounding and Truncation Operators](#rounding-and-truncation-operators)
+    - [Other Mathematical Operators](#other-mathematical-operators)
+  - [Complex Number Operators](#complex-number-operators)
+  - [Type Conversion Operators](#type-conversion-operators)
+  - [String Manipulation Operators](#string-manipulation-operators)
+  - [Unit Conversion Operators](#unit-conversion-operators)
+  - [File I/O Operators](#file-io-operators)
+  - [Constants](#constants)
+  - [Audio Operators](#audio-operators)
+  - [Special Operators](#special-operators)
+  - [Operator Precedence Summary](#operator-precedence-summary)
 
 ---
 
@@ -105,14 +138,14 @@ EduBASIC provides four built-in scalar data types:
 - **Complex** (128-bit complex number with real and imaginary parts)
 - **String** (text data)
 
-Additionally, user-defined **structures** can be created to group related data together.
+Additionally, **structures** can be created to group related data together. Structures are untyped identifier-value dictionaries that allow you to store multiple values under named members.
 
 ### Type Sigils
 
 EduBASIC uses type sigils (special characters) at the end of variable names to indicate the variable's type. Sigils are **required** for all variables and apply **only** to variable identifiers—they are never used in literals.
 
 | Data Type | Sigil    | Example Variable | Size     |
-|-----------|----------|-----------------|-----------|
+|-----------|----------|------------------|----------|
 | Integer   | `%`      | `count%`         | 32-bit   |
 | Real      | `#`      | `value#`         | 64-bit   |
 | String    | `$`      | `name$`          | Variable |
@@ -139,15 +172,43 @@ LET studentCount% = 10
 LET roomTemperature# = 98.6
 LET playerName$ = "Alice"
 LET impedance& = 3+4i
+LET player = { name$: "Bob", score%: 100 }      ' Structure (no sigil)
 ```
 
 ### Variable Declaration
 
-Variables in EduBASIC are **implicitly declared**—you simply assign a value to create a variable. The `DIM` keyword is used **only** for:
-- Declaring arrays
-- Declaring structures
+Variables in EduBASIC are **implicitly declared**—you simply assign a value with the `LET` or `LOCAL` statements to create a variable. **No variables need to be declared ahead of time**, whether they are scalars, structures, or arrays.
 
-You do not need to declare simple scalar variables before using them.
+The `DIM` statement is used **only** for resizing arrays (changing the size of an array). Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. All other variables are created automatically when first assigned with `LET` or `LOCAL`.
+
+### Default Values
+
+When a variable is first created (before any assignment), it has a default value based on its type:
+
+| Type                       | Default Value | Notes                                                       |
+|----------------------------|---------------|-------------------------------------------------------------|
+| **Integer** (`%`)          | `0`           | 32-bit signed integer                                       |
+| **Real** (`#`)             | `0.0`         | 64-bit floating-point                                       |
+| **Complex** (`&`)          | `0+0i`        | 128-bit complex number (real and imaginary parts both 0)    |
+| **String** (`$`)           | `""`          | Empty string                                                |
+| **Structure** (no sigil)   | `{ }`         | Empty structure (no members)                                |
+| **Array** (`[]`)           | `[ ]`         | Empty array (size 0)                                        |
+
+**Examples:**
+```
+LET count%        ' count% = 0 (default)
+LET value#        ' value# = 0.0 (default)
+LET z&            ' z& = 0+0i (default)
+LET name$         ' name$ = "" (default)
+LET player        ' player = { } (default, empty structure)
+LET numbers%[]    ' numbers%[] = [ ] (default, empty array, size 0)
+```
+
+**Important Notes:**
+- Default values apply when a variable is first referenced before any assignment
+- Arrays default to size 0 (empty array)
+- Structures default to an empty structure with no members
+- You can use `DIM` to resize an array even if it hasn't been assigned yet (it's treated as size 0)
 
 ### Literals
 
@@ -235,39 +296,352 @@ String literals are enclosed in double quotes:
 "Line 1\nLine 2"
 ```
 
+#### Array Literals
+
+Array literals are written using square brackets with comma-separated values:
+
+```
+[1, 2, 3, 4, 5]
+["Alice", "Bob", "Charlie"]
+[1.5, 2.7, 3.14]
+[ ]
+```
+
+**Rules:**
+- Array literals use square brackets `[]`
+- Elements are separated by commas
+- Elements can be any data type (Integer, Real, Complex, String)
+- Empty array literal `[ ]` creates an array with size 0
+- Array literals create arrays starting at index 1 (one-based)
+- All elements in an array literal must be of compatible types (type coercion applies)
+
+**Examples:**
+```
+LET numbers%[] = [1, 2, 3, 4, 5]              ' Integer array
+LET names$[] = ["Alice", "Bob", "Charlie"]    ' String array
+LET mixed#[] = [1.5, 2.7, 3.14]               ' Real array
+LET empty%[] = [ ]                            ' Empty array (size 0)
+LET complex&[] = [1+2i, 3+4i, 5+6i]           ' Complex array
+```
+
+#### Structure Literals
+
+Structure literals are written using curly braces with comma-separated key-value pairs:
+
+```
+{ name$: "Alice", score%: 100, level%: 5 }
+{ x%: 100, y%: 200 }
+{ }
+```
+
+**Rules:**
+- Structure literals use curly braces `{ }`
+- Members are specified as `key: value` pairs
+- Pairs are separated by commas
+- Keys are member names (without type sigils in the literal)
+- Values can be any data type (Integer, Real, Complex, String, Array, Structure)
+- Empty structure literal `{ }` creates a structure with no members
+- Structure literals can contain nested structures and arrays
+- Member names in literals do not use type sigils (the type sigil is part of the member name when accessing)
+
+**Examples:**
+```
+LET player = { name$: "Alice", score%: 100, level%: 5 }
+LET point = { x%: 100, y%: 200 }
+LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
+LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE% }
+LET empty = { }                                 ' Empty structure (no members)
+
+' Structure with array members
+LET player = { name$: "Alice", scores%[]: [100, 95, 87, 92], inventory$[]: ["sword", "shield", "potion"] }
+
+' Structure with nested structures
+LET person = { name: { first$: "John", last$: "Doe" }, address: { street$: "123 Main St", city$: "Springfield", zip%: 12345 } }
+
+' Structure with both arrays and nested structures
+LET game = { player: { name$: "Hero", stats: { hp%: 100, mp%: 50 }, items$[]: ["sword", "shield"] }, enemies%[]: [10, 15, 20] }
+```
+
 ### Type Coercion
 
-EduBASIC automatically promotes numeric types when they are mixed in expressions:
-- Integer → Real → Complex (promotes naturally)
-- Complex arithmetic always yields Complex results
-- Literal types are inferred from their syntax
+EduBASIC automatically converts between numeric types when they are mixed in expressions or assigned to variables. Type coercion follows a hierarchy: **Integer → Real → Complex**.
+
+#### Upcasting (Type Promotion)
+
+**Upcasting** occurs automatically when numeric types are mixed in expressions. The result type is always the highest type in the hierarchy:
+
+- **Integer + Integer** → Integer
+- **Integer + Real** → Real
+- **Integer + Complex** → Complex
+- **Real + Real** → Real
+- **Real + Complex** → Complex
+- **Complex + Complex** → Complex
+
+**Examples:**
+```
+LET a% = 5
+LET b# = 3.14
+LET c& = 2+3i
+
+LET result1# = a% + b#        ' Integer + Real → Real (8.14)
+LET result2& = a% + c&         ' Integer + Complex → Complex (7+3i)
+LET result3& = b# + c&        ' Real + Complex → Complex (5.14+3i)
+LET result4& = c& + c&         ' Complex + Complex → Complex (4+6i)
+```
+
+**Arithmetic Operations:**
+- All arithmetic operations (`+`, `-`, `*`, `/`, `^`, `MOD`) follow the same promotion rules
+- Division (`/`) always produces a Real result, even when dividing two integers
+- Modulo (`MOD`) works with both Integer and Real operands, producing a Real result when either operand is Real
+- Exponentiation (`^`) follows normal promotion rules
+
+**Examples:**
+```
+LET quotient# = 15 / 4        ' Integer / Integer → Real (3.75)
+LET remainder% = 17 MOD 5     ' Integer MOD Integer → Integer (2)
+LET remainder# = 17.5 MOD 5    ' Real MOD Integer → Real (2.5)
+LET remainder# = 17 MOD 5.5   ' Integer MOD Real → Real (0.5)
+LET remainder# = 17.5 MOD 5.5  ' Real MOD Real → Real (1.0)
+LET power# = 2 ^ 8            ' Integer ^ Integer → Real (256.0)
+LET mixed# = 5 + 3.14         ' Integer + Real → Real (8.14)
+LET complex& = 5 + 3i          ' Integer + Complex → Complex (5+3i)
+```
+
+#### Downcasting (Type Demotion)
+
+**Downcasting** occurs when assigning a value to a variable with a lower type in the hierarchy. Downcasting may result in loss of precision or information:
+
+- **Real → Integer**: Truncates the decimal part (rounds toward zero)
+- **Complex → Real**: Extracts only the real part, discards imaginary part
+- **Complex → Integer**: Extracts real part and truncates to integer
+
+**Examples:**
+```
+LET realValue# = 3.9
+LET intValue% = realValue#    ' Real → Integer: 3 (truncated, not rounded)
+
+LET complexValue& = 5.7+2.3i
+LET realResult# = complexValue&    ' Complex → Real: 5.7 (imaginary part lost)
+LET intResult% = complexValue&      ' Complex → Integer: 5 (real part truncated)
+
+LET anotherComplex& = 3.14+0i
+LET intFromComplex% = anotherComplex&    ' Complex → Integer: 3
+```
+
+**Important Notes:**
+- Downcasting to Integer truncates (rounds toward zero), it does not round
+- Downcasting from Complex to Real or Integer loses the imaginary component
+- No automatic downcasting occurs in expressions—only in assignments
+
+#### Assignment Coercion
+
+When assigning a value to a variable, the value is coerced to match the variable's type:
+
+```
+LET integerVar% = 42          ' Integer → Integer (no change)
+LET integerVar% = 42.7        ' Real → Integer: 42 (truncated)
+LET integerVar% = 42.7+0i     ' Complex → Integer: 42 (real part, truncated)
+
+LET realVar# = 42             ' Integer → Real: 42.0 (promoted)
+LET realVar# = 42.7           ' Real → Real (no change)
+LET realVar# = 42.7+3i        ' Complex → Real: 42.7 (imaginary part lost)
+
+LET complexVar& = 42           ' Integer → Complex: 42+0i (promoted)
+LET complexVar& = 42.7        ' Real → Complex: 42.7+0i (promoted)
+LET complexVar& = 42.7+3i     ' Complex → Complex (no change)
+```
+
+#### Literal Type Inference
+
+Literal types are inferred from their syntax:
+- Numbers without decimal point or exponent → Integer
+- Numbers with decimal point or exponent → Real
+- Numbers with `i` or `I` suffix → Complex
+
+**Examples:**
+```
+LET a% = 42           ' Integer literal
+LET b# = 42.0         ' Real literal
+LET c# = 42           ' Integer literal coerced to Real
+LET d& = 42+0i        ' Complex literal
+LET e& = 3.14+2i      ' Complex literal
+```
+
+#### Summary
+
+**Arithmetic Operations:**
+
+| Operation                 | Result Type | Notes                                                       |
+|---------------------------|-------------|-------------------------------------------------------------|
+| Integer op Integer        | Integer     | Except division (`/`) which yields Real; MOD yields Integer |
+| Integer op Real           | Real        | Integer promoted to Real                                    |
+| Integer op Complex        | Complex     | Integer promoted to Complex                                 |
+| Real op Real              | Real        | MOD yields Real                                             |
+| Real op Complex           | Complex     | Real promoted to Complex                                    |
+| Complex op Complex        | Complex     | MOD not applicable to complex numbers                       |
+
+**Mathematical Operators (Trigonometric, Hyperbolic, Exponential, Logarithmic, Roots):**
+
+| Operator Type                          | Operand Type | Result Type | Notes                                                       |
+|----------------------------------------|--------------|-------------|------------------------------------------------------------|
+| SIN, COS, TAN, ASIN, ACOS, ATAN        | Integer/Real  | Real        | Standard trigonometric functions                            |
+| SIN, COS, TAN, ASIN, ACOS, ATAN        | Complex       | Complex     | Complex extensions of trigonometric functions               |
+| SINH, COSH, TANH, ASINH, ACOSH, ATANH  | Integer/Real  | Real        | Standard hyperbolic functions                               |
+| SINH, COSH, TANH, ASINH, ACOSH, ATANH  | Complex       | Complex     | Complex extensions of hyperbolic functions                  |
+| EXP, LOG, LOG10, LOG2                  | Integer/Real  | Real        | Standard exponential and logarithmic functions              |
+| EXP, LOG, LOG10, LOG2                  | Complex       | Complex     | Complex extensions of exponential and logarithmic functions  |
+| SQRT, CBRT                             | Integer/Real  | Real        | Standard root functions                                     |
+| SQRT, CBRT                             | Complex       | Complex     | Complex extensions of root functions                        |
+| ROUND, FLOOR, CEIL, TRUNC, EXPAND      | Integer/Real  | Real        | Rounding and truncation functions                           |
+| ROUND, FLOOR, CEIL, TRUNC, EXPAND      | Complex       | Error       | Not applicable to complex numbers                           |
+| SGN                                    | Integer/Real  | Integer     | Sign function                                               |
+| SGN                                    | Complex       | Error       | Not applicable to complex numbers                           |
+
+**Assignment Coercion:**
+
+| Assignment                | Result Type | Notes                                                       |
+|---------------------------|-------------|-------------------------------------------------------------|
+| Assign Real to Integer    | Integer     | Truncated (not rounded)                                     |
+| Assign Complex to Real    | Real        | Imaginary part lost                                         |
+| Assign Complex to Integer | Integer     | Real part truncated, imaginary lost                         |
+
+### Structures
+
+Structures are untyped identifier-value dictionaries that allow you to group related data together. Structure variables do not use type sigils and are created automatically when first assigned.
+
+#### Structure Creation
+
+Structures can be created in two ways:
+
+**1. Using structure literals (recommended):**
+
+```
+LET player = { name$: "Alice", score%: 100, level%: 5 }
+```
+
+**2. By assigning values to members individually using associative array syntax:**
+
+```
+LET player[name$] = "Alice"
+LET player[score%] = 100
+LET player[level%] = 5
+```
+
+Both methods are equivalent. Structure literals are more concise for creating structures with multiple members, while individual assignment is useful for updating specific members or building structures incrementally.
+
+#### Member Access
+
+Structure members are accessed using associative array syntax:
+
+```
+PRINT player[name$]    ' Prints: Alice
+LET player[score%] += 10
+IF player[level%] > 10 THEN PRINT "Advanced player"
+```
+
+#### Structure Examples
+
+```
+' Create a structure for a point
+LET point = { x%: 100, y%: 200 }
+
+' Create a structure for a person
+LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
+
+' Access structure members
+PRINT person[firstName$]; " "; person[lastName$]
+LET person[age%] += 1
+
+' Structures can contain any data type
+LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE% }
+```
+
+#### Nested Structures and Arrays
+
+Structure members can themselves be arrays or structures, allowing for nested data structures:
+
+```
+' Structure with array members
+LET player = { name$: "Alice", scores%[]: [100, 95, 87, 92], inventory$[]: ["sword", "shield", "potion"] }
+
+' Structure with nested structures
+LET person = { name: { first$: "John", last$: "Doe" }, address: { street$: "123 Main St", city$: "Springfield", zip%: 12345 } }
+
+' Structure with both arrays and nested structures
+LET game = { player: { name$: "Hero", stats: { hp%: 100, mp%: 50 }, items$[]: ["sword", "shield"] }, enemies%[]: [10, 15, 20] }
+
+' Access nested structure members
+PRINT person[name][first$]; " "; person[name][last$]
+PRINT person[address][street$]
+
+' Access array members within structures
+PRINT player[scores%][1]    ' First score
+LET player[scores%][2] = 98  ' Update second score
+```
+
+#### Structure Comparison
+
+Structures support the equality operator (`=`). Two structures are equal if all of their members are equal (recursively, including nested structures and array members).
+
+```
+LET point1 = { x%: 100, y%: 200 }
+LET point2 = { x%: 100, y%: 200 }
+
+IF point1 = point2 THEN PRINT "Points are equal"    ' TRUE%
+
+LET point3 = { x%: 100, y%: 201 }
+
+IF point1 = point3 THEN PRINT "Equal"    ' FALSE% (y values differ)
+```
+
+**Important Notes:**
+- The equality operator (`=`) is defined for structures
+- Two structures are equal if all their members are equal (including nested structures and arrays)
+- Inequality operators (`<>`, `<`, `>`, `<=`, `>=`) are **not** defined for structures
+- Structure variables do not use type sigils (no `%`, `#`, `$`, or `&`)
+- Structures are untyped—members can hold any data type
+- Structure members can be arrays (using `[]` syntax)
+- Structure members can be other structures (nested structures)
+- Members are created automatically when first assigned
+- No declaration is needed before using a structure
 
 ### Arrays
 
-Arrays are declared using the `DIM` keyword with square brackets. Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
+Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
 
 **Important:** When referring to an entire array (not a single element), you must use the `[]` syntax. For example, `numbers%[]` refers to the entire array, while `numbers%` (without `[]`) would refer to a scalar variable. This distinction is required because `numbers%` could be either a scalar or an array name, so `[]` is necessary to unambiguously refer to the entire array.
 
-#### Array Declaration
+#### Array Creation
 
-**Default one-based array:**
-```
-DIM numbers%[10]
-```
+Arrays are created automatically when first assigned. No declaration is needed:
 
-This creates an array with indices 1 through 10.
-
-**Custom range:**
 ```
-DIM studentNames$[0 TO 11]
+LET numbers%[] = [1, 2, 3, 4, 5]
+LET names$[] = ["Alice", "Bob", "Charlie"]
 ```
 
-This creates an array with indices 0 through 11.
+**Important:** Undeclared arrays (arrays that haven't been assigned yet) are presumed to have size 0. You can assign to them or resize them with `DIM` before use.
+
+#### Array Resizing
+
+The `DIM` keyword is used **only** for resizing arrays. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet.
+
+**Resize to a new size:**
+```
+DIM numbers%[10]    ' Resize to 10 elements (indices 1-10), creates array if it doesn't exist
+LET numbers%[] = [1, 2, 3]
+DIM numbers%[20]    ' Resize existing array to 20 elements
+```
+
+**Resize with custom range:**
+```
+DIM data%[0 TO 11]    ' Resize to indices 0-11, creates array if it doesn't exist
+```
 
 **Multi-dimensional arrays:**
 ```
-DIM matrix#[5, 10]
-DIM grid%[1 TO 10, 1 TO 20]
+DIM matrix#[5, 10]    ' Resize to 5×10 matrix, creates array if it doesn't exist
+DIM grid%[1 TO 10, 1 TO 20]    ' Resize with custom ranges
 ```
 
 #### Array Literals
@@ -278,7 +652,7 @@ Arrays can be initialized using array literals with square brackets:
 LET numbers%[] = [1, 2, 3, 4, 5]
 LET names$[] = ["Alice", "Bob", "Charlie"]
 LET mixed#[] = [1.5, 2.7, 3.14]
-LET empty%[] = []
+LET empty%[] = [ ]
 ```
 
 Array literals create arrays starting at index 1 (one-based).
@@ -370,46 +744,46 @@ UNSHIFT names$[], "Alice"
 
 #### Array Search Operators
 
-Array search operations are implemented as binary operators with type sigils:
+Array search operations are implemented as binary operators:
 
-**FIND% Operator:**
+**FIND Operator:**
 Finds the first element in an array that matches a value. Returns the element value if found, or 0 (for numeric arrays) or "" (for string arrays) if not found.
 
 ```
-LET found% = numbers%[] FIND% 5
-LET found$ = names$[] FIND% "Bob"
+LET found% = numbers%[] FIND 5
+LET found$ = names$[] FIND "Bob"
 ```
 
-**INDEXOF% Operator:**
+**INDEXOF Operator:**
 Finds the index of the first occurrence of a value in an array. Returns 0 if not found.
 
 ```
-LET index% = numbers%[] INDEXOF% 5
-LET index% = names$[] INDEXOF% "Bob"
+LET index% = numbers%[] INDEXOF 5
+LET index% = names$[] INDEXOF "Bob"
 ```
 
-**INCLUDES% Operator:**
-Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.
+**INCLUDES Operator:**
+Checks if an array includes a value. Returns TRUE% (-1) if found, FALSE% (0) if not found.
 
 ```
-IF numbers%[] INCLUDES% 5 THEN PRINT "Found"
-IF names$[] INCLUDES% "Bob" THEN PRINT "Found"
+IF numbers%[] INCLUDES 5 THEN PRINT "Found"
+IF names$[] INCLUDES "Bob" THEN PRINT "Found"
 ```
 
-#### Array Functions
+#### Array Operators
 
-**REVERSE Function:**
+**REVERSE Operator:**
 Returns a new array with elements in reverse order.
 
 ```
 LET reversed%[] = REVERSE numbers%[]
 ```
 
-**JOIN$ Operator:**
+**JOIN Operator:**
 Joins array elements into a string with a separator.
 
 ```
-LET joined$ = names$[] JOIN$ ", "    ' "Alice, Bob, Charlie"
+LET joined$ = names$[] JOIN ", "    ' "Alice, Bob, Charlie"
 ```
 
 **Array Manipulation with Operators:**
@@ -517,9 +891,9 @@ LET arrayLength% = | numbers%[] |
 LET stringLength% = | text$ |
 ```
 
-#### Arithmetic Functions
+#### Arithmetic Operators and Mathematical Functions
 
-EduBASIC provides a comprehensive set of arithmetic functions for mathematical computations:
+EduBASIC provides a comprehensive set of arithmetic operators and mathematical functions:
 
 **Trigonometric Functions:**
 
@@ -559,7 +933,7 @@ EduBASIC provides a comprehensive set of arithmetic functions for mathematical c
 | `SQRT x#` | Square root of x | `LET result# = SQRT number#` |
 | `CBRT x#` | Cube root of x   | `LET result# = CBRT number#` |
 
-**Rounding and Truncation Functions:**
+**Rounding and Truncation Operators:**
 
 | Function    | Description                              | Example                                                        |
 |-------------|------------------------------------------|----------------------------------------------------------------|
@@ -569,7 +943,7 @@ EduBASIC provides a comprehensive set of arithmetic functions for mathematical c
 | `TRUNC x#`  | Round toward zero                        | `LET result# = TRUNC 3.9` returns 3, `TRUNC -3.9` returns -3   |
 | `EXPAND x#` | Round away from zero                     | `LET result# = EXPAND 3.1` returns 4, `EXPAND -3.1` returns -4 |
 
-**Sign Function:**
+**Sign Operator:**
 
 | Function | Description            | Example                    |
 |----------|------------------------|----------------------------|
@@ -590,7 +964,7 @@ EduBASIC provides a comprehensive set of arithmetic functions for mathematical c
 
 | Function | Description                 | Example             |
 |----------|-----------------------------|---------------------|
-| `RND`    | Random real in range [0, 1) | `LET random# = RND` |
+| `RND#`    | Random real in range [0, 1) | `LET random# = RND#` |
 
 ### Boolean Operations
 
@@ -616,16 +990,16 @@ There is no separate boolean data type.
 Since there is no separate boolean data type, all boolean operators are **bitwise operators** that work on integers.
 
 **Boolean Constants:**
-- `FALSE` = `0`
-- `TRUE` = `-1`
+- `FALSE%` = `0`
+- `TRUE%` = `-1`
 
-Any non-zero value is treated as true in conditional expressions, but the canonical `TRUE` value is `-1`. This is because `-1` in binary representation has all bits set to 1 (two's complement), which makes bitwise operations behave correctly. For example, `TRUE AND TRUE` yields `TRUE` (`-1 AND -1 = -1`), while if `TRUE` were `1`, then `1 AND 1 = 1` would only preserve the least significant bit.
+Any non-zero value is treated as true in conditional expressions, but the canonical `TRUE%` value is `-1`. This is because `-1` in binary representation has all bits set to 1 (two's complement), which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`), while if `TRUE%` were `1`, then `1 AND 1 = 1` would only preserve the least significant bit.
 
 ### Comparison Operations
 
 Standard comparison operators are available for all data types, including arrays:
 
-| Operator | Description           | Returns TRUE (-1) when...                  |
+| Operator | Description           | Returns TRUE% (-1) when...                  |
 |----------|-----------------------|--------------------------------------------|
 | `=`      | Equal to              | Both operands have the same value          |
 | `<>`     | Not equal to          | Operands have different values             |
@@ -634,7 +1008,7 @@ Standard comparison operators are available for all data types, including arrays
 | `<=`     | Less than or equal    | Left operand is smaller or equal to right  |
 | `>=`     | Greater than or equal | Left operand is larger or equal to right   |
 
-Comparison operations return integer values: `FALSE` (0) or `TRUE` (-1).
+Comparison operations return integer values: `FALSE%` (0) or `TRUE%` (-1).
 
 For arrays, comparison operators work element-wise:
 - Arrays are equal (`=`) if they have the same length and all corresponding elements are equal
@@ -650,41 +1024,42 @@ LET arr2%[] = [1, 2, 3]
 LET arr3%[] = [1, 2, 4]
 LET arr4%[] = [1, 2]
 
-IF arr1%[] = arr2%[] THEN PRINT "Equal"    ' TRUE
-IF arr1%[] <> arr3%[] THEN PRINT "Different"    ' TRUE
-IF arr1%[] < arr3%[] THEN PRINT "Less"    ' TRUE (3 < 4)
-IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE (shorter array)
+IF arr1%[] = arr2%[] THEN PRINT "Equal"    ' TRUE%
+IF arr1%[] <> arr3%[] THEN PRINT "Different"    ' TRUE%
+IF arr1%[] < arr3%[] THEN PRINT "Less"    ' TRUE% (3 < 4)
+IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE% (shorter array)
 ```
 
 ### Operator Precedence
 
 EduBASIC follows standard mathematical operator precedence:
 
-1. Parentheses `()` (highest precedence)
-2. Prefix unary operators (all functions): `SIN#`, `COS#`, `TAN#`, `ASIN#`, `ACOS#`, `ATAN#`, `SINH#`, `COSH#`, `TANH#`, `ASINH#`, `ACOSH#`, `ATANH#`, `EXP#`, `LOG#`, `LOG10#`, `LOG2#`, `SQRT#`, `CBRT#`, `FLOOR#`, `CEIL#`, `ROUND#`, `TRUNC#`, `EXPAND#`, `SGN%`, `REAL#`, `IMAG#`, `CONJ&`, `CABS#`, `CARG#`, `CSQRT&`, `RND#`, `INT%`, `ASC%`, `CHR$`, `STR$`, `VAL#`, `HEX$`, `BIN$`, `UCASE$`, `LCASE$`, `LTRIM$`, `RTRIM$`, `TRIM$`, `REVERSE`
-3. Postfix unary operators: `!` (factorial), `DEG`, `RAD`
-4. Absolute value / norm / array length `| |`
-5. Unary `+` and `-`
-6. Exponentiation `^` or `**`
-7. Multiplication `*`, Division `/`, and Modulo `MOD`
-8. Addition `+` and Subtraction `-` (also array concatenation)
-9. Array search operators: `FIND%`, `INDEXOF%`, `INCLUDES%`
-10. String/Array operators: `INSTR%`, `JOIN$`, `REPLACE$`
-11. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
-12. `NOT`
-13. `AND`, `NAND`
-14. `OR`, `NOR`
-15. `XOR`, `XNOR`
-16. `IMP` (lowest precedence)
+1. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
+2. Parentheses `()`
+3. **Prefix operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
+4. **Postfix operators**: `!` (factorial), `DEG`, `RAD`
+5. Absolute value / norm / array length / string length `| |`
+6. Unary `+` and `-`
+7. Exponentiation `^` or `**` (right-associative)
+8. Multiplication `*`, Division `/`, and Modulo `MOD`
+9. Addition `+` and Subtraction `-` (also array concatenation)
+10. Array search operators: `FIND`, `INDEXOF`, `INCLUDES`
+11. String/Array operators: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
+12. Comparison operators (`=`, `<>`, `<`, `>`, `<=`, `>=`)
+13. `NOT` (unary logical)
+14. **Logical AND**: `AND`, `NAND`
+15. **Logical OR**: `OR`, `NOR`
+16. **Logical XOR**: `XOR`, `XNOR`
+17. **Logical IMP**: `IMP` (lowest precedence)
 
 When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.
 
 ### Random Number Generation
 
-EduBASIC provides the `RND` function to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
+EduBASIC provides the `RND#` operator to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
 
-**Random Number Function:**
-- `RND` - Returns a random real number in the range [0, 1)
+**Random Number Operator:**
+- `RND#` - Returns a random real number in the range [0, 1)
 
 **Random Number Generator Seed:**
 
@@ -694,7 +1069,7 @@ The `RANDOMIZE` command initializes the random number generator with a seed valu
 RANDOMIZE
 ```
 
-Seeds the generator with the current system timer value (`TIMER%`). This produces different random sequences each time the program runs.
+Seeds the generator with the current Unix timestamp (`NOW%`). This produces different random sequences each time the program runs.
 
 ```
 RANDOMIZE seedValue%
@@ -702,23 +1077,30 @@ RANDOMIZE seedValue%
 
 Seeds the generator with a specific integer value. Using the same seed value produces the same sequence of random numbers, which is useful for testing and reproducible results.
 
-**System Timer Function:**
-- `TIMER%` - Returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.
+
+**Mathematical Constants:**
+- `PI#` - Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793)
+- `E#` - Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045)
 
 **Examples:**
 
 ```
 RANDOMIZE
-LET randomNumber# = RND
+LET randomNumber# = RND#
 
 RANDOMIZE 12345
-LET dice% = INT% (RND# * 6) + 1
+LET dice% = INT (RND# * 6) + 1
 
-LET randomInRange# = RND * 100
+LET randomInRange# = RND# * 100
 
 ' Seed with current time
-RANDOMIZE TIMER%
-LET currentTime% = TIMER%
+RANDOMIZE NOW%
+LET currentTime% = NOW%
+
+' Mathematical constants
+LET circumference# = 2 * PI# * radius#
+LET area# = PI# * radius# * radius#
+LET exponential# = E# ^ power#
 ```
 
 ## Control Flow
@@ -1168,7 +1550,7 @@ LOOP UNTIL num% = 0
 PRINT "Press ESC to exit..."
 DO
     LET key$ = INKEY$
-    IF key$ = CHR$ 27 THEN EXIT DO
+    IF key$ = CHR 27 THEN EXIT DO
 LOOP
 ```
 
@@ -1202,6 +1584,46 @@ DO
     LET sum# += value#
 LOOP
 ```
+
+### CONTINUE Statement
+
+The `CONTINUE` statement skips the rest of the current loop iteration and continues with the next iteration.
+
+**Syntax:**
+```
+CONTINUE FOR
+CONTINUE WHILE
+CONTINUE DO
+```
+
+**Examples:**
+
+```
+FOR i% = 1 TO 10
+    IF i% MOD 2 = 0 THEN CONTINUE FOR    ' Skip even numbers
+    PRINT i%    ' Only prints odd numbers: 1, 3, 5, 7, 9
+NEXT i%
+```
+
+```
+LET count% = 0
+WHILE count% < 10
+    LET count% += 1
+    IF count% = 5 THEN CONTINUE WHILE    ' Skip printing 5
+    PRINT count%
+WEND
+```
+
+```
+DO
+    INPUT "Enter number (0 to quit): ", num%
+    IF num% = 0 THEN EXIT DO
+    IF num% < 0 THEN CONTINUE DO    ' Skip negative numbers
+    PRINT "Positive number: "; num%
+LOOP
+```
+
+**Note:** `CONTINUE` is different from `EXIT`. `CONTINUE` skips to the next iteration of the loop, while `EXIT` exits the loop entirely.
 
 ### SUB Procedures
 
@@ -1274,17 +1696,19 @@ PRINT "y ="; y%        ' Prints: y = 999 (changed, passed by reference)
 
 #### Local Variables
 
-Variables created with `LET` inside a `SUB` are **module-level** (global). To create variables that are local to the subroutine, use the `LOCAL` keyword:
+Variables created with the `LET` statement inside a `SUB` are **module-level** (global). To create variables that are local to the current stack frame, use the `LOCAL` statement:
 
 ```
 LOCAL variableName = value
 ```
 
-Local variables:
-- Are only accessible within the current `SUB`
-- Are destroyed when the `SUB` exits
-- Do not conflict with module-level variables of the same name
-- Must still include type sigils
+The `LOCAL` statement creates variables scoped to the current stack frame:
+- Inside a `SUB`: variables are local to that procedure's stack frame
+- Outside any `SUB`: variables are local to the bottom-level stack frame
+- Local variables are only accessible within their stack frame
+- Local variables are destroyed when their stack frame is popped (when the `SUB` exits)
+- Local variables do not conflict with module-level variables of the same name
+- Local variables must still include type sigils
 
 **Examples:**
 
@@ -1362,6 +1786,260 @@ END IF
 
 **Note:** `END` is different from `RETURN`, which returns from a subroutine. `END` terminates the entire program.
 
+### SLEEP Statement
+
+The `SLEEP` statement pauses program execution for a specified number of milliseconds.
+
+**Syntax:**
+```
+SLEEP milliseconds%
+```
+
+**Examples:**
+
+```
+PRINT "Starting in 3 seconds..."
+SLEEP 1000    ' Wait 1 second
+PRINT "2..."
+SLEEP 1000    ' Wait 1 second
+PRINT "1..."
+SLEEP 1000    ' Wait 1 second
+PRINT "Go!"
+```
+
+```
+' Simple animation loop
+FOR i% = 1 TO 10
+    PRINT "Frame "; i%
+    SLEEP 100    ' Wait 100ms between frames
+NEXT i%
+```
+
+```
+' Wait for user to read message
+PRINT "Press any key to continue..."
+SLEEP 2000    ' Give user 2 seconds to read
+```
+
+**Rules:**
+- `milliseconds%` must be a non-negative integer
+- The program pauses for the specified duration
+- Other operations (like keyboard input) may still be processed during the sleep period, depending on the implementation
+
+### Error Handling
+
+EduBASIC provides structured error handling through `TRY...CATCH...FINALLY` blocks. Errors in EduBASIC are represented as strings, making error messages easy to create, compare, and display.
+
+#### TRY...CATCH...FINALLY Statement
+
+The `TRY...CATCH...FINALLY` statement provides structured exception handling. Errors are represented as strings.
+
+**Syntax:**
+```
+TRY
+    statements
+CATCH errorVariable$
+    statements
+FINALLY
+    statements
+END TRY
+```
+
+**Rules:**
+- The `TRY` block contains code that might raise an error
+- The `CATCH` block executes if an error occurs in the `TRY` block
+- The `CATCH` block receives the error message as a string in `errorVariable$`
+- The `FINALLY` block always executes, whether an error occurred or not
+- `FINALLY` is optional—you can use `TRY...CATCH...END TRY` without `FINALLY`
+- `CATCH` is also optional—you can use `TRY...FINALLY...END TRY` to ensure cleanup without handling errors
+- Errors are strings, so you can compare them, display them, or process them as needed
+
+**Examples:**
+
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+    READFILE "data.txt" INTO content$
+    CLOSE file%
+CATCH error$
+    PRINT "Error occurred: "; error$
+FINALLY
+    IF EXISTS "data.txt" THEN
+        CLOSE file%
+    END IF
+END TRY
+```
+
+```
+TRY
+    LET result# = 10 / divisor%
+    PRINT "Result: "; result#
+CATCH error$
+    IF error$ = "Division by zero" THEN
+        PRINT "Cannot divide by zero"
+    ELSE
+        PRINT "Error: "; error$
+    END IF
+END TRY
+```
+
+```
+' Try without catch (only finally for cleanup)
+TRY
+    OPEN "temp.txt" FOR WRITE AS file%
+    WRITE "data" TO file%
+FINALLY
+    CLOSE file%
+END TRY
+```
+
+```
+' Try without finally (only catch for error handling)
+TRY
+    LET value% = VAL userInput$
+    PRINT "Parsed value: "; value%
+CATCH error$
+    PRINT "Invalid input: "; error$
+END TRY
+```
+
+**Error Propagation:**
+- If an error occurs in a `TRY` block and is not caught, or if `THROW` is called in a `CATCH` block, the error propagates to the enclosing `TRY` block (if any)
+- If no enclosing `TRY` block exists, the program terminates with the error message
+
+#### THROW Statement
+
+The `THROW` statement raises (throws) an error. Errors are represented as strings.
+
+**Syntax:**
+```
+THROW errorMessage$
+```
+
+**Examples:**
+
+```
+IF divisor% = 0 THEN
+    THROW "Division by zero"
+END IF
+```
+
+```
+IF NOT EXISTS filename$ THEN
+    THROW "File not found: " + filename$
+END IF
+```
+
+```
+SUB ValidateInput (value%)
+    IF value% < 0 THEN
+        THROW "Value must be non-negative"
+    END IF
+    IF value% > 100 THEN
+        THROW "Value must not exceed 100"
+    END IF
+END SUB
+
+TRY
+    ValidateInput userValue%
+CATCH error$
+    PRINT "Validation failed: "; error$
+END TRY
+```
+
+**Rules:**
+- `THROW` immediately transfers control to the nearest `CATCH` block
+- If no `CATCH` block exists, the program terminates with the error message
+- Error messages are strings, so you can construct them dynamically
+- `THROW` can be called from anywhere, including inside `SUB` procedures
+
+**Nested Error Handling:**
+
+```
+TRY
+    TRY
+        OPEN "config.txt" FOR READ AS configFile%
+        READFILE "config.txt" INTO config$
+    CATCH error$
+        IF error$ = "File not found" THEN
+            ' Try default config
+            READFILE "default.txt" INTO config$
+        ELSE
+            THROW error$    ' Re-throw if not a "file not found" error
+        END IF
+    END TRY
+CATCH error$
+    PRINT "Failed to load configuration: "; error$
+    END
+END TRY
+```
+
+### Date and Time Functions
+
+EduBASIC provides simple date and time operators for educational purposes. These operators return formatted strings or integer timestamps that are easy to display and work with.
+
+**`DATE$` - Current date as string:**
+```
+LET today$ = DATE$
+PRINT "Today is: "; today$    ' Prints: "Today is: 2025-01-15" (YYYY-MM-DD format)
+```
+
+Returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format). This format is unambiguous and easy to parse.
+
+**`TIME$` - Current time as string:**
+```
+LET now$ = TIME$
+PRINT "Current time: "; now$    ' Prints: "Current time: 14:30:45" (HH:MM:SS format)
+```
+
+Returns the current time as a string in `HH:MM:SS` format (24-hour format).
+
+**`NOW%` - Current timestamp:**
+```
+LET timestamp% = NOW%
+PRINT "Timestamp: "; timestamp%    ' Prints: "Timestamp: 1736968245" (Unix timestamp)
+```
+
+Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.
+
+**Examples:**
+
+```
+' Display current date and time
+PRINT "Date: "; DATE$
+PRINT "Time: "; TIME$
+
+' Calculate elapsed time
+LET startTime% = NOW%
+SLEEP 2000    ' Wait 2 seconds
+LET endTime% = NOW%
+LET elapsed% = endTime% - startTime%
+PRINT "Elapsed: "; elapsed%; " seconds"
+```
+
+```
+' Log with timestamp
+SUB LogMessage (msg$)
+    PRINT DATE$; " "; TIME$; " - "; msg$
+END SUB
+
+LogMessage "Program started"
+```
+
+```
+' Check if it's a specific date
+IF DATE$ = "2025-12-25" THEN
+    PRINT "Merry Christmas!"
+END IF
+```
+
+**Design Notes:**
+- `DATE$` and `TIME$` return strings for simplicity and ease of display
+- `NOW%` returns an integer timestamp for calculations
+- All functions use UTC time to avoid timezone complexity in educational contexts
+- The string formats (YYYY-MM-DD and HH:MM:SS) are standard and unambiguous
+- No date parsing or manipulation functions are provided initially—keep it simple for educational use
+
 ### Summary: Structured vs. Unstructured Flow Control
 
 EduBASIC provides both structured and unstructured control flow:
@@ -1373,6 +2051,7 @@ EduBASIC provides both structured and unstructured control flow:
 - `WHILE` and `UNTIL` loops
 - `DO` loops
 - `SUB` procedures with parameters
+- `TRY...CATCH...FINALLY` error handling
 
 **Unstructured (Use Sparingly):**
 - `GOTO`
@@ -1497,7 +2176,6 @@ DIM scores%[5]
 PRINT "Enter 5 scores (comma-separated): ";
 INPUT scores%[]
 PRINT "Scores: "; scores%[]
-```
 
 ' Using LOCATE for formatted input
 LOCATE 10, 1
@@ -1604,13 +2282,20 @@ LINE FROM (0, 0) TO (100, 100) WITH &HFF0000FF    ' Red line (overrides global)
 
 ### SET Statement
 
-The `SET` statement configures system-wide settings for the text display system.
+The `SET` statement configures system-wide settings.
 
 **Syntax:**
 ```
 SET LINE SPACING ON
 SET LINE SPACING OFF
+SET TEXT WRAP ON
+SET TEXT WRAP OFF
+SET AUDIO ON
+SET AUDIO OFF
+SET VOLUME volume#
 ```
+
+#### Line Spacing
 
 **Text Grid Dimensions:**
 
@@ -1626,6 +2311,34 @@ EduBASIC uses IBM Plex Mono font, where each character is rendered at exactly 8�
   - Height: 480 pixels ÷ (16 pixels per character + 4 pixels spacing) = 24 rows
   - Each line of text has 4 additional pixels of spacing after it, making text more readable but reducing the number of available rows
 
+#### Text Wrapping
+
+The text wrap setting controls whether long lines of text automatically wrap to the next line when they exceed the width of the text display.
+
+- **With text wrap OFF (default):** Long lines are truncated at the right edge of the display (80 characters)
+- **With text wrap ON:** Long lines automatically wrap to the next line, breaking at word boundaries when possible
+
+**Note:** Text wrapping only affects lines that exceed the display width. Short lines are unaffected.
+
+#### Audio
+
+The audio setting controls whether audio output is enabled or disabled.
+
+- **With audio ON (default):** All audio output is enabled. `PLAY`, `VOLUME`, and `TEMPO` statements work normally.
+- **With audio OFF:** All audio output is disabled. `PLAY` statements are ignored, and no sound is produced.
+
+**Note:** When audio is OFF, `PLAY` statements execute without error but produce no sound. The `NOTES` operator still returns valid values for voices that have been configured, but no actual audio playback occurs.
+
+#### Volume
+
+The `SET VOLUME` command sets the global audio volume as a real number between 0.0 and 1.0 (inclusive). The value is automatically clamped to the range [0, 1].
+
+- **Volume 0.0:** Silent (no audio output)
+- **Volume 1.0:** Maximum volume (100%)
+- **Values outside [0, 1]:** Automatically clamped to the nearest valid value
+
+**Note:** `SET VOLUME` is an alternative to the `VOLUME` statement. `VOLUME` uses integer values 0-127, while `SET VOLUME` uses real values 0.0-1.0. Both commands control the same global volume setting.
+
 **Examples:**
 ```
 SET LINE SPACING OFF    ' Use 80×30 character grid (default)
@@ -1635,17 +2348,35 @@ PRINT "Bottom row"
 SET LINE SPACING ON     ' Use 80×24 character grid
 LOCATE 24, 1
 PRINT "Bottom row with spacing"
+
+SET TEXT WRAP OFF       ' Truncate long lines (default)
+PRINT "This is a very long line that will be truncated at 80 characters..."
+
+SET TEXT WRAP ON        ' Wrap long lines automatically
+PRINT "This is a very long line that will automatically wrap to the next line when it exceeds 80 characters..."
+
+SET AUDIO ON            ' Enable audio output (default)
+PLAY 0, "CDEFGAB C"
+
+SET AUDIO OFF           ' Disable audio output
+PLAY 0, "CDEFGAB C"     ' No sound produced, but no error
+
+SET VOLUME 1.0          ' Maximum volume
+SET VOLUME 0.5          ' Half volume
+SET VOLUME 0.0          ' Silent
+SET VOLUME 1.5          ' Clamped to 1.0 (maximum)
+SET VOLUME -0.5         ' Clamped to 0.0 (silent)
 ```
 
-**Note:** The line spacing setting affects the entire text display and persists until changed. When line spacing is enabled, the additional 4 pixels of vertical spacing are added after each character row, creating more readable text at the cost of fewer available rows.
+**Note:** All settings persist until changed. The line spacing setting affects the entire text display. Text wrapping only affects lines that exceed the display width. Audio settings affect all audio output globally. Volume values are automatically clamped to [0, 1].
 
 ### Keyboard Input
 
-EduBASIC provides non-blocking keyboard input through the `INKEY$` and `INKEYSCAN$` functions, which allow programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
+EduBASIC provides non-blocking keyboard input through the `INKEY$` operator, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
 
-#### INKEY$ Function
+#### INKEY$ Operator
 
-The `INKEY$` function returns the currently pressed key as a string.
+The `INKEY$` operator returns the currently pressed key as a string.
 
 **Key Detection:**
 - `INKEY$` returns the currently pressed key as a string
@@ -1699,39 +2430,13 @@ DO
 LOOP
 
 ' Menu navigation
-LET key$ = INKEY$
+LET key$ = INKEY
 IF key$ = "F1" THEN GOSUB ShowHelp
 IF key$ = "F2" THEN GOSUB SaveGame
 IF key$ = "ENTER" THEN GOSUB SelectOption
 ```
 
-#### INKEYSCAN$ Function
-
-The `INKEYSCAN$` function returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, where `nnn` is the decimal scan code.
-
-**Return Values:**
-- **Empty string (`""`):** No key is currently pressed
-- **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
-
-**Use Cases:**
-- Use `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout
-- Use `INKEYSCAN$` when you need the raw scan code for advanced key handling
-- Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout
-
-**Examples:**
-```
-LET scanCode$ = INKEYSCAN$
-IF scanCode$ <> "" THEN
-    IF scanCode$[1 TO 3] = "SC:" THEN
-        LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL# codeStr$
-        PRINT "Scan code: "; code%
-        IF code% = 27 THEN PRINT "ESC key pressed"
-    END IF
-END IF
-```
-
-**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY$` or `INKEYSCAN$`.
+**Note:** For blocking input that waits for the user to press Enter, use the `INPUT` statement instead of `INKEY$`.
 
 ### String Operations
 
@@ -1755,44 +2460,46 @@ LET fullName$ = firstName$ + " " + lastName$
 PRINT fullName$    ' Prints: John Doe
 
 LET greeting$ = "Hello, " + name$ + "!"
-LET message$ = "Value: " + STR$ number%
+LET message$ = "Value: " + STR number%
 ```
 
-#### String Functions
+#### String Operators
 
-EduBASIC provides string functions to extract and manipulate substrings:
+EduBASIC provides string operators to extract and manipulate substrings:
 
-**`LEFT$` - Extract left portion of string:**
+**`LEFT` - Extract left portion of string:**
 ```
 LET text$ = "Hello, world!"
-LET firstWord$ = LEFT$ text$ 5    ' "Hello"
-LET firstChar$ = LEFT$ text$ 1    ' "H"
+LET firstWord$ = text$ LEFT 5    ' "Hello"
+LET firstChar$ = text$ LEFT 1    ' "H"
 ```
 
 Returns the leftmost `n` characters of the string. If `n` is greater than the string length, returns the entire string.
 
-**`RIGHT$` - Extract right portion of string:**
+**`RIGHT` - Extract right portion of string:**
 ```
 LET text$ = "Hello, world!"
-LET lastWord$ = RIGHT$ text$ 6    ' "world!"
-LET lastChar$ = RIGHT$ text$ 1    ' "!"
+LET lastWord$ = text$ RIGHT 6    ' "world!"
+LET lastChar$ = text$ RIGHT 1    ' "!"
 ```
 
 Returns the rightmost `n` characters of the string. If `n` is greater than the string length, returns the entire string.
 
-**`MID$` - Extract substring from middle:**
+#### String Slicing
+
+**`MID` - Extract substring from middle:**
 ```
 LET text$ = "Hello, world!"
-LET world$ = MID$ text$ 8 5    ' "world" (5 characters starting at position 8)
-LET middle$ = MID$ text$ 3 4    ' "llo," (4 characters starting at position 3)
+LET world$ = text$ MID 8 TO 12    ' "world" (positions 8 to 12)
+LET middle$ = text$ MID 3 TO 6    ' "llo," (positions 3 to 6)
 ```
 
-Returns a substring starting at position `start` with length `length`. If `start` is beyond the string length, returns an empty string. If `length` extends beyond the string, returns characters up to the end of the string.
+Returns a substring from position `start%` to position `end%` (inclusive). If `start%` is beyond the string length, returns an empty string. If `end%` extends beyond the string, returns characters up to the end of the string.
 
 **Single character access:**
 ```
 LET text$ = "Hello"
-LET char$ = MID$ text$ 1 1    ' "H" (single character at position 1)
+LET char$ = text$ MID 1 TO 1    ' "H" (single character at position 1)
 ```
 
 #### String Length
@@ -1821,95 +2528,115 @@ IF text1$ <> text2$ THEN PRINT "Different"
 IF word$ < "middle" THEN PRINT "Comes before 'middle'"
 ```
 
-#### String Functions
+#### STARTSWITH and ENDSWITH Operators
 
-**`STR$` - Convert number to string:**
+**`STARTSWITH` - Check if string starts with prefix:**
+```
+LET filename$ = "document.txt"
+IF filename$ STARTSWITH "doc" THEN PRINT "Starts with 'doc'"
+IF filename$ STARTSWITH ".txt" THEN PRINT "Starts with '.txt'"    ' FALSE%
+```
+
+Returns TRUE% (-1) if the string starts with the specified prefix, FALSE% (0) otherwise. Case-sensitive.
+
+**`ENDSWITH` - Check if string ends with suffix:**
+```
+LET filename$ = "document.txt"
+IF filename$ ENDSWITH ".txt" THEN PRINT "Ends with '.txt'"
+IF filename$ ENDSWITH "doc" THEN PRINT "Ends with 'doc'"    ' FALSE
+```
+
+Returns TRUE (-1) if the string ends with the specified suffix, FALSE (0) otherwise. Case-sensitive.
+
+#### String Operators
+
+**`STR` - Convert number to string:**
 ```
 LET num% = 42
-LET numStr$ = STR$ num%    ' "42"
-LET piStr$ = STR$ 3.14159  ' "3.14159"
-LET complexStr$ = STR$ (3+4i)    ' "3+4i"
+LET numStr$ = STR num%    ' "42"
+LET piStr$ = STR 3.14159  ' "3.14159"
+LET complexStr$ = STR (3+4i)    ' "3+4i"
 ```
 
 Converts any numeric type (integer, real, or complex) to its decimal string representation. For complex numbers, the format is `"real+imaginaryi"` or `"real-imaginaryi"`.
 
-**`VAL#` - Convert string to number:**
+**`VAL` - Convert string to number:**
 ```
 LET text$ = "123"
-LET number% = VAL# text$    ' 123
+LET number% = VAL text$    ' 123
 LET decimal$ = "3.14"
-LET value# = VAL# decimal$  ' 3.14
-LET hexValue% = VAL# "&HFF"    ' 255 (hexadecimal)
-LET binValue% = VAL# "&B1010"  ' 10 (binary)
-LET complexValue& = VAL# "3+4i"    ' 3+4i (complex number)
+LET value# = VAL decimal$  ' 3.14
+LET hexValue% = VAL "&HFF"    ' 255 (hexadecimal)
+LET binValue% = VAL "&B1010"  ' 10 (binary)
+LET complexValue& = VAL "3+4i"    ' 3+4i (complex number)
 ```
 
 Converts a string to a number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. The result type depends on the string content. Hexadecimal and binary strings are parsed as integers.
 
-**`HEX$` - Convert number to hexadecimal string:**
+**`HEX` - Convert number to hexadecimal string:**
 ```
-LET hexStr$ = HEX$ 255    ' "FF"
-LET hexStr$ = HEX$ 10     ' "A"
-LET hexStr$ = HEX$ -1     ' "FFFFFFFF" (32-bit two's complement)
+LET hexStr$ = HEX 255    ' "FF"
+LET hexStr$ = HEX 10     ' "A"
+LET hexStr$ = HEX -1     ' "FFFFFFFF" (32-bit two's complement)
 ```
 
 Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation.
 
-**`BIN$` - Convert number to binary string:**
+**`BIN` - Convert number to binary string:**
 ```
-LET binStr$ = BIN$ 10     ' "1010"
-LET binStr$ = BIN$ 255    ' "11111111"
-LET binStr$ = BIN$ -1     ' "11111111111111111111111111111111" (32-bit two's complement)
+LET binStr$ = BIN 10     ' "1010"
+LET binStr$ = BIN 255    ' "11111111"
+LET binStr$ = BIN -1     ' "11111111111111111111111111111111" (32-bit two's complement)
 ```
 
 Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation.
 
-**`CHR$` - Convert ASCII code to character:**
+**`CHR` - Convert ASCII code to character:**
 ```
-LET char$ = CHR$ 65        ' "A"
-LET newline$ = CHR$ 10     ' Newline character
-```
-
-**`ASC%` - Convert character to ASCII code:**
-```
-LET code% = ASC% "A"        ' 65
-LET code% = ASC% "a"        ' 97
+LET char$ = CHR 65        ' "A"
+LET newline$ = CHR 10     ' Newline character
 ```
 
-**`UCASE$` - Convert to uppercase:**
+**`ASC` - Convert character to ASCII code:**
 ```
-LET upper$ = UCASE$ "hello"    ' "HELLO"
-```
-
-**`LCASE$` - Convert to lowercase:**
-```
-LET lower$ = LCASE$ "WORLD"    ' "world"
+LET code% = ASC "A"        ' 65
+LET code% = ASC "a"        ' 97
 ```
 
-**`LTRIM$` - Remove leading spaces:**
+**`UCASE` - Convert to uppercase:**
 ```
-LET trimmed$ = LTRIM$ "  text"    ' "text"
-```
-
-**`RTRIM$` - Remove trailing spaces:**
-```
-LET trimmed$ = RTRIM$ "text  "    ' "text"
+LET upper$ = UCASE "hello"    ' "HELLO"
 ```
 
-**`TRIM$` - Remove leading and trailing spaces:**
+**`LCASE` - Convert to lowercase:**
 ```
-LET trimmed$ = TRIM$ "  text  "   ' "text"
-```
-
-**`INSTR%` - Find substring position:**
-```
-LET pos% = "Hello world" INSTR% "world"    ' 7
-LET pos% = "Hello world" INSTR% "o" FROM 5    ' 5 (start search at position 5)
+LET lower$ = LCASE "WORLD"    ' "world"
 ```
 
-**`REPLACE$` - Replace substring:**
+**`LTRIM` - Remove leading spaces:**
 ```
-LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
+LET trimmed$ = LTRIM "  text"    ' "text"
+```
+
+**`RTRIM` - Remove trailing spaces:**
+```
+LET trimmed$ = RTRIM "text  "    ' "text"
+```
+
+**`TRIM` - Remove leading and trailing spaces:**
+```
+LET trimmed$ = TRIM "  text  "   ' "text"
+```
+
+**`INSTR` - Find substring position:**
+```
+LET pos% = "Hello world" INSTR "world"    ' 7
+LET pos% = "Hello world" INSTR "o" FROM 5    ' 5 (start search at position 5)
+```
+
+**`REPLACE` - Replace substring:**
+```
+LET new$ = "Hello world" REPLACE "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
 
@@ -2111,9 +2838,9 @@ SEEK 0 IN #file%      ' Return to beginning
 CLOSE file%
 ```
 
-#### EOF Function
+#### EOF Operator
 
-The `EOF` function checks if the file pointer is at the end of the file.
+The `EOF` operator is a unary operator that checks if the file pointer is at the end of the file.
 
 **Syntax:**
 ```
@@ -2134,9 +2861,9 @@ WEND
 CLOSE file%
 ```
 
-#### LOC Function
+#### LOC Operator
 
-The `LOC` function returns the current byte position in the file.
+The `LOC` operator is a unary operator that returns the current byte position in the file.
 
 **Syntax:**
 ```
@@ -2191,7 +2918,7 @@ WRITEFILE contentVariable$ TO "filename"
 
 **Examples:**
 ```
-LET report$ = "Sales Report" + CHR$ 10 + "Total: $1000"
+LET report$ = "Sales Report" + CHR 10 + "Total: $1000"
 WRITEFILE "report.txt" FROM report$
 
 WRITEFILE output$ TO "results.txt"
@@ -2210,7 +2937,7 @@ LISTDIR "path" INTO filesArray$[]
 - Returns an array of filenames (strings)
 - Array is 1-based
 - Includes files and subdirectories
-- Use `DIM` to declare the array first, or it will be created automatically
+- The array is created automatically if it doesn't exist
 
 **Examples:**
 ```
@@ -2543,6 +3270,49 @@ CIRCLE AT (100, 100) RADIUS 30 WITH &H00FF00FF FILLED    ' Filled green circle
 CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 ```
 
+### ARC Statement
+
+The `ARC` statement draws an arc (a portion of a circle) between two angles.
+
+**Syntax:**
+```
+ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2#
+ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2# WITH color%
+```
+
+**Rules:**
+- Center point is at (x%, y%)
+- Radius is a real number (can be fractional)
+- Angles are specified in radians
+- `angle1#` is the starting angle, `angle2#` is the ending angle
+- The arc is drawn counterclockwise from `angle1#` to `angle2#`
+- Uses global foreground color (set with `COLOR`) by default
+- `WITH color%` overrides the global color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
+- Coordinates are in graphics pixels (0-based, bottom-left origin)
+- Angles use standard mathematical convention: 0 radians points right (positive x-axis), increasing counterclockwise
+
+**Examples:**
+
+```
+COLOR &HFFFF00FF    ' Set global color to yellow
+ARC AT (320, 240) RADIUS 50 FROM 0 TO 3.14159    ' Yellow semicircle (0 to π)
+```
+
+```
+' Draw a quarter circle arc
+ARC AT (100, 100) RADIUS 30 FROM 0 TO 1.5708 WITH &H00FF00FF    ' Green arc (0 to π/2)
+```
+
+```
+' Draw arc using degrees converted to radians
+LET startAngle# = 45 * 3.14159 / 180    ' 45 degrees in radians
+LET endAngle# = 135 * 3.14159 / 180     ' 135 degrees in radians
+ARC AT (200, 200) RADIUS 40 FROM startAngle# TO endAngle#
+```
+
+**Note:** To draw a full circle, use `CIRCLE` instead. `ARC` is for partial circles only.
+
 ### TRIANGLE Statement
 
 The `TRIANGLE` statement draws a triangle outline or filled triangle.
@@ -2660,6 +3430,51 @@ PUT sprite%[] AT (200, 150)
 PUT player%[] AT (x%, y%)
 ```
 
+### TURTLE Statement
+
+The `TURTLE` statement provides Logo-style turtle graphics using a simple command string. Turtles draw on the same 640×480 canvas as other graphics primitives.
+
+**Syntax:**
+```
+TURTLE turtleNumber%, commandString$
+```
+
+**Rules:**
+- `turtleNumber%` identifies which turtle (0, 1, 2, etc.)
+- Turtles start at center (320, 240), facing up (north)
+- Turtles use the current foreground color set by `COLOR`
+- Pen is down by default (drawing enabled)
+
+**Turtle Commands:**
+
+| Command | Description |
+|---------|-------------|
+| `FD n` | Move forward `n` pixels |
+| `BK n` | Move backward `n` pixels |
+| `RT n` | Turn right `n` degrees |
+| `LT n` | Turn left `n` degrees |
+| `PU` | Pen up (stop drawing) |
+| `PD` | Pen down (resume drawing) |
+| `HOME` | Return to center, facing up |
+
+**Examples:**
+```
+' Draw a square
+TURTLE 0, "FD 100 RT 90 FD 100 RT 90 FD 100 RT 90 FD 100"
+
+' Draw a triangle
+TURTLE 0, "FD 100 RT 120 FD 100 RT 120 FD 100"
+
+' Draw without lines (move only)
+TURTLE 0, "PU FD 50 PD FD 100"
+
+' Multiple turtles
+COLOR &HFF0000FF    ' Red
+TURTLE 0, "FD 100"
+COLOR &H00FF00FF    ' Green
+TURTLE 1, "RT 90 FD 100"
+```
+
 ### Graphics Examples
 
 **Example: Drawing a Simple Scene:**
@@ -2706,6 +3521,31 @@ LOOP
 ## Audio
 
 EduBASIC provides audio capabilities using both Music Macro Language (MML) for note control and GRIT (Generative Random Iteration Tones) for timbre (sound character). All voices use both systems together, with ADSR envelopes controlling amplitude over time.
+
+### GRIT Overview
+
+**GRIT** (Generative Random Iteration Tones) is a noise synthesis system that generates procedural audio through LFSR-based (Linear Feedback Shift Register) bitstream manipulation. GRIT is inspired by and extends the classic Atari POKEY chip's noise synthesis capabilities.
+
+**How GRIT Works:**
+- GRIT uses **LFSRs** (Linear Feedback Shift Registers) to generate bitstreams that create different timbres
+- Each voice has **3 LFSR slots** (A, B, C) that can be enabled, combined, and configured independently
+- **8 primary LFSR types** are available, ranging from simple square waves (1-bit) to complex noise (31-bit)
+- LFSRs can be **combined** using logical operations (XOR, AND, OR, etc.) to create complex textures
+- **Decimation** controls the stepping rate, creating pitched tones from repeating patterns
+- **Clock coupling** allows one LFSR to control the timing of another, creating rhythmic patterns
+- The entire configuration is encoded in a single **32-bit NoiseCode** value
+
+**What GRIT Creates:**
+- **Pure tones**: Square waves, pulse waves, and fundamental tones
+- **Musical instruments**: Bass, leads, pads, and melodic sounds
+- **Percussion**: Drums, snares, hi-hats, and impact sounds
+- **Sound effects**: Engines, weapons, ambience, and classic game sounds (Pitfall!, Defender, etc.)
+
+**Key Features:**
+- **128 presets** (0-127) provide ready-to-use timbres organized by category
+- **Custom NoiseCodes** can be created using bitwise operations for advanced sound design
+- **Deterministic**: Same NoiseCode + frequency = same output (reproducible)
+- **Real-time**: Suitable for games, interactive applications, and live audio
 
 **Note Numbers:**
 - Note numbers use MIDI standard: 0-127
@@ -2790,6 +3630,110 @@ VOICE voiceNumber% WITH noiseCode% ADSR PRESET adsrPreset%
 - **NoiseCode Configuration:**
   - `PRESET noisePreset%`: Use a preset from the 128-entry GRIT preset table (0-127)
   - `WITH noiseCode%`: Use a custom NoiseCode value (32-bit unsigned integer bitfield)
+
+**GRIT NoiseCode Presets:**
+
+The 128 GRIT presets (0-127) are organized into 8 categories, each optimized for specific sound types:
+
+| Preset Range | Category | Description | Example Use Cases |
+|--------------|----------|-------------|------------------|
+| 0-15 | Pure Tones | Square waves, pulse waves, fundamental tones | Melodies, simple leads, classic game sounds |
+| 16-31 | Bass Instruments | Deep, low-frequency sounds | Basslines, low-end instruments |
+| 32-47 | Lead Instruments | Melodic lead sounds and arpeggios | Lead melodies, solos, arpeggiated patterns |
+| 48-63 | Drums & Percussion | Kick drums, snares, hi-hats, percussion | Rhythm sections, drum patterns |
+| 64-79 | Classic Game Sounds | Pitfall!, Defender, and other classic game sounds | Retro game sound effects, nostalgic tones |
+| 80-95 | Engines & Motors | Rhythmic mechanical sounds | Engine sounds, motor effects, mechanical textures |
+| 96-111 | Weapons & Impacts | Sharp, aggressive sounds | Weapon fire, impacts, explosions, sharp effects |
+| 112-127 | Ambience & Textures | Background textures and atmospheric sounds | Ambient backgrounds, atmospheric layers, textures |
+
+**Common Preset Examples:**
+- **Preset 0**: Pure Square 50/50 - Classic square wave, good for melodies
+- **Preset 5**: Pulse Decim 2 - Pulse wave with decimation, versatile
+- **Preset 10**: 9-bit Decim 8 - Classic Pitfall! style tone
+- **Preset 48**: Kick Drum - Deep kick drum sound
+- **Preset 64**: Pitfall! - Classic Pitfall! game sound
+- **Preset 80**: Engine - Rhythmic engine sound
+- **Preset 96**: Weapon - Sharp weapon sound
+- **Preset 112**: Wind - Ambient wind texture
+
+**Note:** Each preset is a single 32-bit NoiseCode value optimized for its category. Presets can be used directly or combined with different ADSR envelopes to create variations.
+
+**Custom NoiseCode Bit Layout:**
+
+For advanced users who want to create custom NoiseCode values, the 32-bit integer is organized as follows:
+
+| Bits | Field | Range | Description |
+|------|-------|-------|-------------|
+| 31-30 | Reserved | 0 | Must be 0 |
+| 29-27 | DECIM | 0-7 | Decimation factor (actual = value + 1, so 0 = ÷1, 7 = ÷8) |
+| 26-24 | SHAPE | 0-7 | Wave shaping mode (0=none, 1-7=AM, Ring, etc.) |
+| 23-21 | COMB | 0-7 | Combination operation (0=XOR, 1=AND, 2=OR, 3=NAND, 4=NOR, 5=XNOR, etc.) |
+| 20-18 | C_POLY | 0-7 | LFSR C polynomial (0=1-bit square, 1=25/75 pulse, 2=4-bit, 3=5-bit, 4=9-bit, 5=15-bit, 6=17-bit, 7=31-bit) |
+| 17-15 | B_POLY | 0-7 | LFSR B polynomial (same as C_POLY) |
+| 14-12 | A_POLY | 0-7 | LFSR A polynomial (same as C_POLY) |
+| 11 | C_CLK_B | 0-1 | Clock coupling: LFSR C clocks LFSR B |
+| 10 | B_CLK_A | 0-1 | Clock coupling: LFSR B clocks LFSR A |
+| 9 | C_INV | 0-1 | Invert LFSR C output |
+| 8 | B_INV | 0-1 | Invert LFSR B output |
+| 7 | A_INV | 0-1 | Invert LFSR A output |
+| 6 | C_EN | 0-1 | Enable LFSR C |
+| 5 | B_EN | 0-1 | Enable LFSR B |
+| 4 | A_EN | 0-1 | Enable LFSR A |
+| 3-0 | Reserved | 0 | Must be 0 |
+
+**NoiseCode Construction Formula:**
+
+```
+NoiseCode = (DECIM << 27) | (SHAPE << 24) | (COMB << 21) | 
+            (C_POLY << 18) | (B_POLY << 15) | (A_POLY << 12) | 
+            (C_CLK_B << 11) | (B_CLK_A << 10) | 
+            (C_INV << 9) | (B_INV << 8) | (A_INV << 7) | 
+            (C_EN << 6) | (B_EN << 5) | (A_EN << 4)
+```
+
+**Example: Creating a Custom NoiseCode**
+
+```
+' Create a custom NoiseCode: 9-bit LFSR A enabled, decimation ÷8, no shaping
+LET decim% = 7        ' ÷8 (value 7 = decimation 8)
+LET shape% = 0        ' No shaping
+LET comb% = 0         ' XOR combination
+LET aPoly% = 4        ' 9-bit LFSR
+LET bPoly% = 0        ' Not used
+LET cPoly% = 0        ' Not used
+LET cClkB% = 0        ' No clock coupling
+LET bClkA% = 0        ' No clock coupling
+LET cInv% = 0         ' No inversion
+LET bInv% = 0         ' No inversion
+LET aInv% = 0         ' No inversion
+LET cEn% = 0          ' LFSR C disabled
+LET bEn% = 0          ' LFSR B disabled
+LET aEn% = 1          ' LFSR A enabled
+
+LET customNoise% = (decim% << 27) OR (shape% << 24) OR (comb% << 21) OR _
+                    (cPoly% << 18) OR (bPoly% << 15) OR (aPoly% << 12) OR _
+                    (cClkB% << 11) OR (bClkA% << 10) OR _
+                    (cInv% << 9) OR (bInv% << 8) OR (aInv% << 7) OR _
+                    (cEn% << 6) OR (bEn% << 5) OR (aEn% << 4)
+
+' This creates NoiseCode 0x38004010 (same as preset 10: 9-bit Decim 8)
+VOICE 0 WITH customNoise% ADSR PRESET 0
+```
+
+**Common Patterns:**
+
+- **Simple square wave**: Enable only LFSR A with polynomial 0 (1-bit square), no decimation
+  - `LET simpleSquare% = &H00000010` (same as preset 0)
+
+- **Pulse wave**: Enable only LFSR A with polynomial 1 (25/75 pulse), no decimation
+  - `LET pulseWave% = &H00001010` (same as preset 1)
+
+- **Pitched tone**: Use 9-bit LFSR (polynomial 4) with decimation ÷8
+  - `LET pitchedTone% = &H38004010` (same as preset 10)
+
+- **Noise texture**: Enable multiple LFSRs (A and B) with XOR combination
+  - `LET noiseTexture% = &H00004010` (17-bit LFSRs with XOR)
+
 - **ADSR Envelope Configuration:**
   - `ADSR attack# decay# sustain# release#`: Configure amplitude envelope with custom values
     - `attack#`: Time to reach full amplitude from zero (typically 0.0-2.0 seconds)
@@ -2882,7 +3826,7 @@ VOICE 3 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
 
 ### PLAY Statement
 
-The `PLAY` statement plays music or sound on a specific voice.
+The `PLAY` statement plays music or sound on a specific voice. **All `PLAY` statements play music in the background**—execution continues immediately without waiting for the music to finish.
 
 **Syntax:**
 ```
@@ -2897,6 +3841,7 @@ PLAY voiceNumber%, mmlString$
 - The voice's ADSR envelope (configured by `VOICE` ADSR) controls amplitude shaping
 - Each `PLAY` statement plays on the specified voice
 - Multiple voices can play simultaneously
+- **All `PLAY` statements execute asynchronously in the background**—the program continues immediately
 - Velocity in MML (`V` command) is relative to the global `VOLUME` setting
 
 ### MML Syntax Reference
@@ -2936,7 +3881,18 @@ Music Macro Language (MML) controls frequency (notes), timing, and velocity for 
 - `V` followed by number (0-127) sets the velocity (loudness) for subsequent notes
 - Default velocity is typically 64 (50%)
 - Velocity is relative to the global `VOLUME` setting
-- Example: `V100 C4 D4 V64 E4` plays C and D at velocity 100, then E at velocity 64
+- Velocity persists until changed by another `V` command
+- Higher velocity values produce louder notes (within the limits of the global volume)
+- Example: `V100 C4 D4 V64 E4` plays C and D at velocity 100 (louder), then E at velocity 64 (softer)
+- Example: `V127 C D E` plays all three notes at maximum velocity
+- Example: `V0 C D E` plays all three notes silently (velocity 0)
+
+**Checking Remaining Notes:**
+- Use the `NOTES` operator to check how many notes remain for a voice
+- Syntax: `NOTES voiceNumber%`
+- Returns the number of notes remaining in the voice's playback queue
+- Returns 0 when the voice has finished playing all notes
+- Useful for checking if a voice is still playing music
 
 **Examples:**
 ```
@@ -2947,6 +3903,7 @@ VOICE 1 PRESET 10 ADSR PRESET 1   ' Weapon sound timbre with percussive ADSR
 TEMPO 120
 
 ' Play melody - MML controls notes, GRIT preset 5 controls timbre, ADSR controls amplitude
+' Note: PLAY executes in background, program continues immediately
 PLAY 0, "CDEFGAB C"
 
 ' Play with velocity (V command)
@@ -2954,6 +3911,10 @@ PLAY 0, "V100 CDEF V64 GAB"
 
 ' Play with note numbers (MIDI)
 PLAY 0, "N60 N62 N64 N65 N67"
+
+' Check how many notes remain
+LET notesLeft% = NOTES 0
+IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: "; notesLeft%; " notes"
 
 ' Play on different voice - same MML, different GRIT timbre and ADSR
 PLAY 1, "N60 L4"    ' Play note 60 (middle C) for quarter note duration
@@ -2990,11 +3951,17 @@ VOICE 0 PRESET 0 ADSR PRESET 0    ' Timbre for voice 0
 VOICE 1 PRESET 5 ADSR PRESET 0    ' Different timbre for voice 1
 TEMPO 120
 
-' Melody on voice 0
+' Melody on voice 0 (plays in background)
 PLAY 0, "CDEFGAB C"
 
-' Harmony on voice 1
+' Harmony on voice 1 (plays in background, simultaneously with voice 0)
 PLAY 1, "CEG CEG"
+
+' Check remaining notes for both voices
+LET notes0% = NOTES 0
+LET notes1% = NOTES 1
+PRINT "Voice 0: "; notes0%; " notes remaining"
+PRINT "Voice 1: "; notes1%; " notes remaining"
 ```
 
 **GRIT Noise Example:**
@@ -3100,7 +4067,7 @@ PLAY 1, "N64 L2"
 
 ## Command and Function Reference
 
-This section provides an alphabetical reference of all EduBASIC commands, functions, and operators.
+This section provides an alphabetical reference of all EduBASIC commands, mathematical functions, and operators.
 
 ---
 
@@ -3169,13 +4136,13 @@ LET result# = ASINH 1.0
 
 ### ASC
 
-**Type:** Function (String)  
+**Type:** Operator (String)  
 **Syntax:** `ASC string$`  
 **Description:** Returns the ASCII code of the first character in the string.  
 **Example:**
 ```
-LET code% = ASC% "A"        ' 65
-LET code% = ASC% "a"        ' 97
+LET code% = ASC "A"        ' 65
+LET code% = ASC "a"        ' 97
 ```
 
 ---
@@ -3205,16 +4172,29 @@ LET result# = ATANH 0.5
 
 ---
 
-### BIN$
+### ARC
 
-**Type:** Function (String)  
-**Syntax:** `BIN$ integer%`  
+**Type:** Command (Graphics)  
+**Syntax:** `ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2#` or `ARC AT (x%, y%) RADIUS radius# FROM angle1# TO angle2# WITH color%`  
+**Description:** Draws an arc (a portion of a circle) between two angles. Angles are in radians, with 0 pointing right (positive x-axis), increasing counterclockwise. Uses global foreground color by default, or `WITH color%` to override. Coordinates use bottom-left origin (0,0).  
+**Example:**
+```
+ARC AT (320, 240) RADIUS 50 FROM 0 TO 3.14159    ' Semicircle (0 to π)
+ARC AT (100, 100) RADIUS 30 FROM 0 TO 1.5708 WITH &H00FF00FF    ' Green quarter circle
+```
+
+---
+
+### BIN
+
+**Type:** Operator (String)  
+**Syntax:** `BIN integer%`  
 **Description:** Converts an integer to its binary string representation. Negative numbers are represented using two's complement notation (32 bits for 32-bit integers).  
 **Example:**
 ```
-LET binStr$ = BIN$ 10     ' "1010"
-LET binStr$ = BIN$ 255    ' "11111111"
-LET binStr$ = BIN$ -1     ' "11111111111111111111111111111111"
+LET binStr$ = BIN 10     ' "1010"
+LET binStr$ = BIN 255    ' "11111111"
+LET binStr$ = BIN -1     ' "11111111111111111111111111111111"
 ```
 
 ---
@@ -3260,6 +4240,22 @@ PRINT angle#    ' Prints: 0.785... (π/4 radians)
 
 ---
 
+### CATCH
+
+**Type:** Command (Control Flow)  
+**Syntax:** `CATCH errorVariable$`  
+**Description:** Catches errors raised in a `TRY` block. The error message (a string) is assigned to `errorVariable$`. Used within `TRY...CATCH...FINALLY...END TRY` blocks.  
+**Example:**
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+CATCH error$
+    PRINT "Error: "; error$
+END TRY
+```
+
+---
+
 ### CASE
 
 **Type:** Command (Control Flow)  
@@ -3292,15 +4288,15 @@ PRINT result#    ' Prints: 3.0
 
 ---
 
-### CHR$
+### CHR
 
-**Type:** Function (String)  
-**Syntax:** `CHR$ code%`  
+**Type:** Operator (String)  
+**Syntax:** `CHR code%`  
 **Description:** Returns the character corresponding to the ASCII code.  
 **Example:**
 ```
-LET char$ = CHR$ 65        ' "A"
-LET newline$ = CHR$ 10     ' Newline character
+LET char$ = CHR 65        ' "A"
+LET newline$ = CHR 10     ' Newline character
 ```
 
 ---
@@ -3322,7 +4318,7 @@ CIRCLE AT (200, 200) RADIUS 40 FILLED    ' Filled circle (uses global color)
 
 ### CEIL
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `CEIL x#`  
 **Description:** Rounds `x` toward positive infinity (+∞). Returns the smallest integer ≥ `x`.  
 **Example:**
@@ -3343,6 +4339,21 @@ PRINT CEIL -3.7    ' Prints: -3
 LET z& = 3+4i
 LET conjugate& = CONJ z&
 PRINT conjugate&    ' Prints: 3-4i
+```
+
+---
+
+### CONTINUE
+
+**Type:** Command (Control Flow)  
+**Syntax:** `CONTINUE FOR` or `CONTINUE WHILE` or `CONTINUE DO`  
+**Description:** Skips the rest of the current loop iteration and continues with the next iteration.  
+**Example:**
+```
+FOR i% = 1 TO 10
+    IF i% MOD 2 = 0 THEN CONTINUE FOR    ' Skip even numbers
+    PRINT i%    ' Only prints odd numbers
+NEXT i%
 ```
 
 ---
@@ -3431,19 +4442,6 @@ COPY "/source/file.bin" TO "/dest/file.bin"
 
 ---
 
-### COSH
-
-**Type:** Function (Hyperbolic)  
-**Syntax:** `COSH x#`  
-**Description:** Returns the hyperbolic cosine of `x`.  
-**Example:**
-```
-LET result# = COSH 0
-PRINT result#    ' Prints: 1.0
-```
-
----
-
 ### CSQRT
 
 **Type:** Function (Complex)  
@@ -3454,6 +4452,23 @@ PRINT result#    ' Prints: 1.0
 LET z& = -1+0i
 LET root& = CSQRT z&
 PRINT root&    ' Prints: 0+1i
+```
+
+---
+
+### DATE$
+
+**Type:** Operator (Date/Time)  
+**Syntax:** `DATE$`  
+**Description:** Returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format).  
+**Example:**
+```
+LET today$ = DATE$
+PRINT "Today is: "; today$    ' Prints: "Today is: 2025-01-15"
+
+IF DATE$ = "2025-12-25" THEN
+    PRINT "Merry Christmas!"
+END IF
 ```
 
 ---
@@ -3486,14 +4501,16 @@ DELETE "/Users/name/old_data.bin"
 
 ### DIM
 
-**Type:** Command (Variable Declaration)  
+**Type:** Statement (Array Resizing)  
 **Syntax:** `DIM arrayName[size]` or `DIM arrayName[start TO end]`  
-**Description:** Declares an array or structure. Arrays are one-based by default.  
+**Description:** Resizes an array. Arrays are one-based by default. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. `DIM` is **only** used for resizing arrays—no other variables need to be declared.  
 **Example:**
 ```
-DIM numbers%[10]              ' Array with indices 1 to 10
-DIM studentNames$[0 TO 11]    ' Array with indices 0 to 11
-DIM matrix#[5, 10]            ' Two-dimensional array
+DIM numbers%[10]              ' Resize to indices 1 to 10 (creates array if it doesn't exist)
+LET numbers%[] = [1, 2, 3]
+DIM numbers%[20]              ' Resize existing array to indices 1 to 20
+DIM studentNames$[0 TO 11]    ' Resize to indices 0 to 11
+DIM matrix#[5, 10]            ' Resize to 5×10 two-dimensional array
 ```
 
 ---
@@ -3623,11 +4640,29 @@ END UNLESS
 
 ---
 
+### END TRY
+
+**Type:** Command (Control Flow)  
+**Syntax:** `END TRY`  
+**Description:** Terminates a `TRY...CATCH...FINALLY` block.  
+**Example:**
+```
+TRY
+    OPEN "file.txt" FOR READ AS file%
+CATCH error$
+    PRINT "Error: "; error$
+FINALLY
+    CLOSE file%
+END TRY
+```
+
+---
+
 ### EOF
 
-**Type:** Function (File I/O)  
+**Type:** Operator (File I/O)  
 **Syntax:** `EOF fileHandle%`  
-**Description:** Checks if the file pointer is at the end of the file. Returns integer: 0 = false, -1 = true.  
+**Description:** Unary operator that checks if the file pointer is at the end of the file. Returns integer: 0 = false, -1 = true.  
 **Example:**
 ```
 OPEN "data.txt" FOR READ AS file%
@@ -3673,7 +4708,7 @@ PRINT result#    ' Prints: 2.718... (e)
 
 ### EXPAND
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `EXPAND x#`  
 **Description:** Rounds `x` away from zero.  
 **Example:**
@@ -3684,9 +4719,60 @@ PRINT EXPAND -3.1    ' Prints: -4
 
 ---
 
+### E#
+
+**Type:** Operator (Math Constant)  
+**Syntax:** `E#`  
+**Description:** Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045).  
+**Example:**
+```
+LET eValue# = E#
+PRINT eValue#    ' Prints: 2.718281828459045
+
+LET exponential# = E# ^ 2    ' e^2
+LET naturalLog# = LOG E#     ' Should be approximately 1.0
+```
+
+---
+
+### EXISTS
+
+**Type:** Operator (File I/O)  
+**Syntax:** `EXISTS "filename"`  
+**Description:** Unary operator that checks if a file or directory exists. Returns integer: 0 = false, -1 = true.  
+**Example:**
+```
+IF EXISTS "data.txt" THEN
+    READFILE "data.txt" INTO content$
+ELSE
+    PRINT "File not found"
+END IF
+```
+
+---
+
+### FINALLY
+
+**Type:** Command (Control Flow)  
+**Syntax:** `FINALLY`  
+**Description:** Marks the cleanup section of a `TRY...CATCH...FINALLY...END TRY` block. The `FINALLY` block always executes, whether an error occurred or not. Optional—you can use `TRY...CATCH...END TRY` without `FINALLY`.  
+**Example:**
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+    READFILE "data.txt" INTO content$
+CATCH error$
+    PRINT "Error: "; error$
+FINALLY
+    CLOSE file%
+END TRY
+```
+
+---
+
 ### FLOOR
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `FLOOR x#`  
 **Description:** Rounds `x` toward negative infinity (-∞). Returns the largest integer ≤ `x`.  
 **Example:**
@@ -3697,17 +4783,17 @@ PRINT FLOOR -3.2     ' Prints: -4
 
 ---
 
-### FIND%
+### FIND
 
 **Type:** Operator (Array Search)  
-**Syntax:** `array[] FIND% value`  
+**Syntax:** `array[] FIND value`  
 **Description:** Finds the first element in an array that matches a value. Returns the element value if found, or 0 (for numeric arrays) or "" (for string arrays) if not found.  
 **Example:**
 ```
-LET found% = numbers%[] FIND% 5
+LET found% = numbers%[] FIND 5
 IF found% <> 0 THEN PRINT "Found:", found%
 
-LET found$ = names$[] FIND% "Bob"
+LET found$ = names$[] FIND "Bob"
 IF found$ <> "" THEN PRINT "Found:", found$
 ```
 
@@ -3808,17 +4894,17 @@ PRINT imagPart#    ' Prints: 4.0
 
 ---
 
-### HEX$
+### HEX
 
-**Type:** Function (String)  
-**Syntax:** `HEX$ integer%`  
+**Type:** Operator (String)  
+**Syntax:** `HEX integer%`  
 **Description:** Converts an integer to its hexadecimal string representation (uppercase, no prefix). Negative numbers are represented using two's complement notation (8 hex digits for 32-bit integers).  
 **Example:**
 ```
-LET hexStr$ = HEX$ 255    ' "FF"
-LET hexStr$ = HEX$ 10     ' "A"
-LET hexStr$ = HEX$ -1     ' "FFFFFFFF"
-LET hexStr$ = HEX$ 4095    ' "FFF"
+LET hexStr$ = HEX 255    ' "FF"
+LET hexStr$ = HEX 10     ' "A"
+LET hexStr$ = HEX -1     ' "FFFFFFFF"
+LET hexStr$ = HEX 4095    ' "FFF"
 ```
 
 ---
@@ -3837,44 +4923,40 @@ LET result% = 5 IMP 3    ' Binary implication
 
 ### INKEY$
 
-**Type:** Function (Input)  
+**Type:** Operator (Input)  
 **Syntax:** `INKEY$`  
-**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name. For scan codes, use `INKEYSCAN$` instead.  
-**Return Values for `INKEY$`:**
+**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name.  
+**Return Values:**
 - **Empty string (`""`):** No key is currently pressed
 - **Printable characters:** Returns the character as a string (e.g., `"a"`, `"A"`, `"1"`, `" "`)
 - **Special keys:** Returns special key names (see table below)
 
-**Return Values for `INKEYSCAN$`:**
-- **Empty string (`""`):** No key is currently pressed
-- **Scan code format:** Returns `"SC:nnn"` where `nnn` is the decimal scan code
-
 **Special Key Names:**
 
-| Key | Return Value | Scan Code (approx) |
-|-----|--------------|-------------------|
-| Escape | `"ESC"` | SC:27 |
-| Enter/Return | `"ENTER"` | SC:13 |
-| Backspace | `"BACKSPACE"` | SC:8 |
-| Tab | `"TAB"` | SC:9 |
-| Space | `" "` (space character) | SC:32 |
-| Arrow Up | `"ARROWUP"` | SC:38 |
-| Arrow Down | `"ARROWDOWN"` | SC:40 |
-| Arrow Left | `"ARROWLEFT"` | SC:37 |
-| Arrow Right | `"ARROWRIGHT"` | SC:39 |
-| Home | `"HOME"` | SC:36 |
-| End | `"END"` | SC:35 |
-| Page Up | `"PAGEUP"` | SC:33 |
-| Page Down | `"PAGEDOWN"` | SC:34 |
-| Insert | `"INSERT"` | SC:45 |
-| Delete | `"DELETE"` | SC:46 |
-| F1-F12 | `"F1"` through `"F12"` | SC:112-123 |
-| Shift | `"SHIFT"` | SC:16 |
-| Control | `"CTRL"` | SC:17 |
-| Alt | `"ALT"` | SC:18 |
-| Caps Lock | `"CAPSLOCK"` | SC:20 |
+| Key | Return Value |
+|-----|--------------|
+| Escape | `"ESC"` |
+| Enter/Return | `"ENTER"` |
+| Backspace | `"BACKSPACE"` |
+| Tab | `"TAB"` |
+| Space | `" "` (space character) |
+| Arrow Up | `"ARROWUP"` |
+| Arrow Down | `"ARROWDOWN"` |
+| Arrow Left | `"ARROWLEFT"` |
+| Arrow Right | `"ARROWRIGHT"` |
+| Home | `"HOME"` |
+| End | `"END"` |
+| Page Up | `"PAGEUP"` |
+| Page Down | `"PAGEDOWN"` |
+| Insert | `"INSERT"` |
+| Delete | `"DELETE"` |
+| F1-F12 | `"F1"` through `"F12"` |
+| Shift | `"SHIFT"` |
+| Control | `"CTRL"` |
+| Alt | `"ALT"` |
+| Caps Lock | `"CAPSLOCK"` |
 
-**Note:** Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values. The actual scan code values may vary by platform and keyboard layout. Special key names are case-sensitive. Use `INKEY$` for character-based input handling and `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout.
+**Note:** Special key names are case-sensitive.
 
 **Examples:**
 ```
@@ -3888,7 +4970,7 @@ DO
 LOOP
 
 ' Detect arrow keys for game movement
-LET key$ = INKEY$
+LET key$ = INKEY
 IF key$ = "ARROWUP" THEN
     LET y% += 1
 ELSEIF key$ = "ARROWDOWN" THEN
@@ -3899,42 +4981,12 @@ ELSEIF key$ = "ARROWRIGHT" THEN
     LET x% += 1
 END IF
 
-' Get scan code
-LET scanCode$ = INKEYSCAN$
-IF scanCode$ <> "" THEN
-    IF scanCode$[1 TO 3] = "SC:" THEN
-        LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL# codeStr$
-        PRINT "Scan code: "; code%
-    END IF
-END IF
-
 ' Check for function keys
-LET key$ = INKEY$
+LET key$ = INKEY
 IF key$ = "F1" THEN
     GOSUB ShowHelp
 ELSEIF key$ = "F2" THEN
     GOSUB SaveGame
-END IF
-```
-
----
-
-### INKEYSCAN$
-
-**Type:** Function (Input)  
-**Syntax:** `INKEYSCAN$`  
-**Description:** Returns the scan code of the key currently pressed as a string in the format `"SC:nnn"`, or empty string if no key is pressed. Non-blocking keyboard input. Scan codes are based on TypeScript/JavaScript `KeyboardEvent.code` and `KeyboardEvent.keyCode` values and may vary by platform and keyboard layout. Use `INKEYSCAN$` when you need to detect specific physical keys regardless of keyboard layout, or when you need the raw scan code for advanced key handling.  
-**Example:**
-```
-LET scanCode$ = INKEYSCAN$
-IF scanCode$ <> "" THEN
-    IF scanCode$[1 TO 3] = "SC:" THEN
-        LET codeStr$ = scanCode$[4 TO ...]
-        LET code% = VAL# codeStr$
-        PRINT "Scan code: "; code%
-        IF code% = 27 THEN PRINT "ESC key pressed"
-    END IF
 END IF
 ```
 
@@ -3959,71 +5011,71 @@ INPUT scores%[]
 
 ---
 
-### INSTR%
+### INSTR
 
 **Type:** Operator (String Search)  
-**Syntax:** `string$ INSTR% substring$` or `string$ INSTR% substring$ FROM start%`  
+**Syntax:** `string$ INSTR substring$` or `string$ INSTR substring$ FROM start%`  
 **Description:** Finds the position of the first occurrence of `substring$` in `string$`. With `FROM`, search begins at that position. Returns 0 if not found.  
 **Example:**
 ```
-LET pos% = "Hello world" INSTR% "world"    ' 7
-LET pos% = "Hello world" INSTR% "o" FROM 5    ' 5 (start search at position 5)
+LET pos% = "Hello world" INSTR "world"    ' 7
+LET pos% = "Hello world" INSTR "o" FROM 5    ' 5 (start search at position 5)
 ```
 
 ---
 
-### INDEXOF%
+### INDEXOF
 
 **Type:** Operator (Array Search)  
-**Syntax:** `array[] INDEXOF% value`  
+**Syntax:** `array[] INDEXOF value`  
 **Description:** Finds the index of the first occurrence of a value in an array. Returns 0 if not found.  
 **Example:**
 ```
-LET index% = numbers%[] INDEXOF% 5
+LET index% = numbers%[] INDEXOF 5
 IF index% > 0 THEN PRINT "Found at index:", index%
 
-LET index% = names$[] INDEXOF% "Bob"
+LET index% = names$[] INDEXOF "Bob"
 IF index% > 0 THEN PRINT "Found at index:", index%
 ```
 
 ---
 
-### INCLUDES%
+### INCLUDES
 
 **Type:** Operator (Array Search)  
-**Syntax:** `array[] INCLUDES% value`  
-**Description:** Checks if an array includes a value. Returns TRUE (-1) if found, FALSE (0) if not found.  
+**Syntax:** `array[] INCLUDES value`  
+**Description:** Checks if an array includes a value. Returns TRUE% (-1) if found, FALSE% (0) if not found.  
 **Example:**
 ```
-IF numbers%[] INCLUDES% 5 THEN PRINT "Found"
-IF names$[] INCLUDES% "Bob" THEN PRINT "Found"
+IF numbers%[] INCLUDES 5 THEN PRINT "Found"
+IF names$[] INCLUDES "Bob" THEN PRINT "Found"
 ```
 
 ---
 
 ### INT
 
-**Type:** Function (Math)  
+**Type:** Operator (Math)  
 **Syntax:** `INT x#`  
 **Description:** Converts a real number to an integer by truncating the decimal part (rounds toward zero).  
 **Example:**
 ```
-LET dice% = INT% (RND# * 6) + 1    ' Random integer 1-6
-PRINT INT% 3.9    ' Prints: 3
-PRINT INT% -3.9   ' Prints: -3
+LET dice% = INT (RND# * 6) + 1    ' Random integer 1-6
+PRINT INT 3.9    ' Prints: 3
+PRINT INT -3.9   ' Prints: -3
 ```
 
 ---
 
-### JOIN$
+### JOIN
 
 **Type:** Operator (Array)  
-**Syntax:** `array$[] JOIN$ separator$`  
+**Syntax:** `array$[] JOIN separator$`  
 **Description:** Joins array elements into a string with a separator.  
 **Example:**
 ```
 LET names$[] = ["Alice", "Bob", "Charlie"]
-LET joined$ = names$[] JOIN$ ", "    ' "Alice, Bob, Charlie"
+LET joined$ = names$[] JOIN ", "    ' "Alice, Bob, Charlie"
 ```
 
 ---
@@ -4044,14 +5096,14 @@ PRINT "Looping..."
 
 ---
 
-### LCASE$
+### LCASE
 
-**Type:** Function (String)  
-**Syntax:** `LCASE$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `LCASE string$`  
 **Description:** Returns a copy of the string converted to lowercase.  
 **Example:**
 ```
-LET lower$ = LCASE$ "WORLD"    ' "world"
+LET lower$ = LCASE "WORLD"    ' "world"
 ```
 
 ---
@@ -4070,16 +5122,16 @@ LINE FROM (200, 200) TO (300, 300) WITH &HFF0000FF FILLED    ' Filled rectangle
 
 ---
 
-### LEFT$
+### LEFT
 
-**Type:** Function (String)  
-**Syntax:** `LEFT$ string$ length%`  
+**Type:** Operator (String)  
+**Syntax:** `string$ LEFT length%`  
 **Description:** Returns the leftmost `length%` characters of the string. If `length%` is greater than the string length, returns the entire string.  
 **Example:**
 ```
 LET text$ = "Hello, world!"
-LET firstWord$ = LEFT$ text$ 5    ' "Hello"
-LET firstChar$ = LEFT$ text$ 1    ' "H"
+LET firstWord$ = text$ LEFT 5    ' "Hello"
+LET firstChar$ = text$ LEFT 1    ' "H"
 ```
 
 ---
@@ -4118,9 +5170,9 @@ NEXT i%
 
 ### LOC
 
-**Type:** Function (File I/O)  
+**Type:** Operator (File I/O)  
 **Syntax:** `LOC fileHandle%`  
-**Description:** Returns the current byte position in the file (0-based).  
+**Description:** Unary operator that returns the current byte position in the file (0-based).  
 **Example:**
 ```
 OPEN "data.bin" FOR READ AS file%
@@ -4148,7 +5200,7 @@ PRINT "This text appears at row 10, column 20"
 
 ### LET
 
-**Type:** Command (Variable Assignment)  
+**Type:** Statement (Variable Assignment)  
 **Syntax:** `LET variable = expression` or `LET array[] = expression`  
 **Description:** Assigns a value to a variable. Creates module-level (global) variables. Can assign to scalars or arrays. For arrays, the expression can be an array literal, another array, or an array slice.  
 **Example:**
@@ -4168,9 +5220,9 @@ LET slice%[] = numbers%[2 TO 4]
 
 ### LOCAL
 
-**Type:** Command (Variable Assignment)  
+**Type:** Statement (Variable Assignment)  
 **Syntax:** `LOCAL variable = expression` or `LOCAL array[] = expression`  
-**Description:** Creates a variable local to the current `SUB` procedure. Can create local scalars or arrays.  
+**Description:** Creates a variable local to the current stack frame. Inside a `SUB`, the variable is scoped to that procedure's stack frame and destroyed when the `SUB` exits. Outside any `SUB`, the variable is scoped to the top-level stack frame. Can create local scalars or arrays.  
 **Example:**
 ```
 SUB Calculate ()
@@ -4182,29 +5234,29 @@ END SUB
 
 ---
 
-### LTRIM$
+### LTRIM
 
-**Type:** Function (String)  
-**Syntax:** `LTRIM$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `LTRIM string$`  
 **Description:** Returns a copy of the string with leading spaces removed.  
 **Example:**
 ```
-LET trimmed$ = LTRIM$ "  text"    ' "text"
+LET trimmed$ = LTRIM "  text"    ' "text"
 ```
 
 ---
 
-### MID$
+### MID
 
-**Type:** Function (String)  
-**Syntax:** `MID$ string$ start% length%`  
-**Description:** Returns a substring starting at position `start%` with length `length%`. If `start%` is beyond the string length, returns an empty string. If `length%` extends beyond the string, returns characters up to the end of the string.  
+**Type:** Operator (String)  
+**Syntax:** `string$ MID start% TO end%`  
+**Description:** Returns a substring from position `start%` to position `end%` (inclusive). If `start%` is beyond the string length, returns an empty string. If `end%` extends beyond the string, returns characters up to the end of the string.  
 **Example:**
 ```
 LET text$ = "Hello, world!"
-LET world$ = MID$ text$ 8 5    ' "world" (5 characters starting at position 8)
-LET middle$ = MID$ text$ 3 4    ' "llo," (4 characters starting at position 3)
-LET char$ = MID$ text$ 1 1    ' "H" (single character at position 1)
+LET world$ = text$ MID 8 TO 12    ' "world" (positions 8 to 12)
+LET middle$ = text$ MID 3 TO 6    ' "llo," (positions 3 to 6)
+LET char$ = text$ MID 1 TO 1    ' "H" (single character at position 1)
 ```
 
 ---
@@ -4283,10 +5335,13 @@ MKDIR "/Users/name/data"
 
 **Type:** Operator (Arithmetic)  
 **Syntax:** `expression1 MOD expression2`  
-**Description:** Returns the remainder of integer division.  
+**Description:** Returns the remainder of division. Works with both Integer and Real operands. When both operands are integers, the result is an integer. When either operand is real, the result is real.  
 **Example:**
 ```
-LET remainder% = 17 MOD 5
+LET remainder% = 17 MOD 5      ' Integer MOD Integer → Integer (2)
+LET remainder# = 17.5 MOD 5   ' Real MOD Integer → Real (2.5)
+LET remainder# = 17 MOD 5.5    ' Integer MOD Real → Real (0.5)
+LET remainder# = 17.5 MOD 5.5 ' Real MOD Real → Real (1.0)
 PRINT remainder%    ' Prints: 2
 ```
 
@@ -4360,6 +5415,26 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 
 ---
 
+### NOW%
+
+**Type:** Operator (Date/Time)  
+**Syntax:** `NOW%`  
+**Description:** Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.  
+**Example:**
+```
+LET timestamp% = NOW%
+PRINT "Timestamp: "; timestamp%    ' Prints: "Timestamp: 1736968245"
+
+' Calculate elapsed time
+LET startTime% = NOW%
+SLEEP 2000    ' Wait 2 seconds
+LET endTime% = NOW%
+LET elapsed% = endTime% - startTime%
+PRINT "Elapsed: "; elapsed%; " seconds"
+```
+
+---
+
 ### OPEN
 
 **Type:** Command (File I/O)  
@@ -4417,14 +5492,35 @@ PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF    ' Fill bounded by blue pix
 
 **Type:** Command (Audio)  
 **Syntax:** `PLAY voiceNumber%, mmlString$`  
-**Description:** Plays music or sound on a specific voice using Music Macro Language (MML). `voiceNumber%` must be a voice created with `VOICE` statement. `mmlString$` contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the GRIT NoiseCode configured in `VOICE`, and amplitude shaping is controlled by the ADSR envelope. Multiple voices can play simultaneously. Velocity in MML (`V` command) is relative to the global `VOLUME` setting.  
+**Description:** Plays music or sound on a specific voice using Music Macro Language (MML). **All `PLAY` statements play music in the background**—execution continues immediately without waiting for the music to finish. `voiceNumber%` must be a voice created with `VOICE` statement. `mmlString$` contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the GRIT NoiseCode configured in `VOICE`, and amplitude shaping is controlled by the ADSR envelope. Multiple voices can play simultaneously. Use `NOTES` operator to check how many notes remain for a voice. Velocity in MML (`V` command) is relative to the global `VOLUME` setting.  
 **Example:**
 ```
 VOICE 0 PRESET 5 ADSR 0.01 0.1 0.7 0.2
 TEMPO 120
-PLAY 0, "CDEFGAB C"    ' Play scale
-PLAY 0, "V100 C L4 V64 D L4"    ' Play with velocity
-PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers
+PLAY 0, "CDEFGAB C"    ' Play scale (continues in background)
+PLAY 0, "V100 C L4 V64 D L4"    ' Play with velocity (continues in background)
+PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers (continues in background)
+
+' Check how many notes remain
+LET notesLeft% = NOTES 0
+IF notesLeft% > 0 THEN PRINT "Still playing: "; notesLeft%; " notes remaining"
+```
+
+---
+
+### PI#
+
+**Type:** Operator (Math Constant)  
+**Syntax:** `PI#`  
+**Description:** Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793).  
+**Example:**
+```
+LET piValue# = PI#
+PRINT piValue#    ' Prints: 3.141592653589793
+
+LET circumference# = 2 * PI# * radius#
+LET area# = PI# * radius# * radius#
+LET halfCircle# = PI# * radius#
 ```
 
 ---
@@ -4504,11 +5600,32 @@ PRINT radians#    ' Prints: 1.5708... (π/2 radians)
 
 **Type:** Command (Random)  
 **Syntax:** `RANDOMIZE` or `RANDOMIZE seed%`  
-**Description:** Seeds the random number generator. Without argument, uses `TIMER%`.  
+**Description:** Seeds the random number generator. Without argument, uses `NOW%`.  
 **Example:**
 ```
-RANDOMIZE              ' Seed with system timer
+RANDOMIZE              ' Seed with current timestamp (NOW%)
 RANDOMIZE 12345        ' Seed with specific value
+RANDOMIZE NOW%         ' Explicitly seed with current timestamp
+```
+
+---
+
+### NOTES
+
+**Type:** Operator (Audio)  
+**Syntax:** `NOTES voiceNumber%`  
+**Description:** Returns the number of notes remaining in the playback queue for the specified voice. Returns 0 when the voice has finished playing all notes. Useful for checking if a voice is still playing music.  
+**Example:**
+```
+PLAY 0, "CDEFGAB C"
+LET notesLeft% = NOTES 0
+IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: "; notesLeft%; " notes remaining"
+
+' Wait for voice to finish
+DO
+    LET notesLeft% = NOTES 0
+LOOP WHILE notesLeft% > 0
+PRINT "Voice 0 finished playing"
 ```
 
 ---
@@ -4563,14 +5680,14 @@ PRINT realPart#    ' Prints: 3.0
 
 ---
 
-### REPLACE$
+### REPLACE
 
 **Type:** Operator (String)  
-**Syntax:** `string$ REPLACE$ oldSubstring$ WITH newSubstring$`  
+**Syntax:** `string$ REPLACE oldSubstring$ WITH newSubstring$`  
 **Description:** Returns a copy of the string with all occurrences of `oldSubstring$` replaced with `newSubstring$`.  
 **Example:**
 ```
-LET new$ = "Hello world" REPLACE$ "world" WITH "EduBASIC"    ' "Hello EduBASIC"
+LET new$ = "Hello world" REPLACE "world" WITH "EduBASIC"    ' "Hello EduBASIC"
 ```
 
 ---
@@ -4609,7 +5726,7 @@ RETURN
 
 ### REVERSE
 
-**Type:** Function (Array)  
+**Type:** Operator (Array)  
 **Syntax:** `REVERSE array[]`  
 **Description:** Returns a new array with elements in reverse order.  
 **Example:**
@@ -4632,22 +5749,22 @@ RMDIR "/Users/name/old_data"
 
 ---
 
-### RND
+### RND#
 
-**Type:** Function (Random)  
-**Syntax:** `RND`  
+**Type:** Operator (Random)  
+**Syntax:** `RND#`  
 **Description:** Returns a random real number in the range [0, 1).  
 **Example:**
 ```
-LET random# = RND
-LET dice% = INT% (RND# * 6) + 1    ' Random integer 1-6
+LET random# = RND#
+LET dice% = INT (RND# * 6) + 1    ' Random integer 1-6
 ```
 
 ---
 
 ### ROUND
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `ROUND x#`  
 **Description:** Rounds `x` to the nearest integer. Ties round up.  
 **Example:**
@@ -4673,28 +5790,28 @@ OVAL AT (200, 200) WIDTH 80 HEIGHT 40 WITH &HFF00FFFF FILLED    ' Filled ellipse
 
 ---
 
-### RTRIM$
+### RTRIM
 
-**Type:** Function (String)  
-**Syntax:** `RTRIM$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `RTRIM string$`  
 **Description:** Returns a copy of the string with trailing spaces removed.  
 **Example:**
 ```
-LET trimmed$ = RTRIM$ "text  "    ' "text"
+LET trimmed$ = RTRIM "text  "    ' "text"
 ```
 
 ---
 
-### RIGHT$
+### RIGHT
 
-**Type:** Function (String)  
-**Syntax:** `RIGHT$ string$ length%`  
+**Type:** Operator (String)  
+**Syntax:** `string$ RIGHT length%`  
 **Description:** Returns the rightmost `length%` characters of the string. If `length%` is greater than the string length, returns the entire string.  
 **Example:**
 ```
 LET text$ = "Hello, world!"
-LET lastWord$ = RIGHT$ text$ 6    ' "world!"
-LET lastChar$ = RIGHT$ text$ 1    ' "!"
+LET lastWord$ = text$ RIGHT 6    ' "world!"
+LET lastChar$ = text$ RIGHT 1    ' "!"
 ```
 
 ---
@@ -4736,13 +5853,23 @@ CLOSE file%
 
 ### SET
 
-**Type:** Command (Text I/O)  
-**Syntax:** `SET LINE SPACING ON` or `SET LINE SPACING OFF`  
-**Description:** Configures system-wide settings for the text display system. `SET LINE SPACING OFF` uses 80×30 character grid (default). `SET LINE SPACING ON` uses 80×24 character grid with 4 additional pixels of spacing after each line.  
+**Type:** Command (System Settings)  
+**Syntax:** `SET LINE SPACING ON` / `SET LINE SPACING OFF` / `SET TEXT WRAP ON` / `SET TEXT WRAP OFF` / `SET AUDIO ON` / `SET AUDIO OFF` / `SET VOLUME volume#`  
+**Description:** Configures system-wide settings. **Line Spacing:** `SET LINE SPACING OFF` uses 80×30 character grid (default). `SET LINE SPACING ON` uses 80×24 character grid with 4 additional pixels of spacing after each line. **Text Wrapping:** `SET TEXT WRAP OFF` truncates long lines at 80 characters (default). `SET TEXT WRAP ON` automatically wraps long lines to the next line. **Audio:** `SET AUDIO ON` enables all audio output (default). `SET AUDIO OFF` disables all audio output (PLAY statements are ignored but produce no error). **Volume:** `SET VOLUME volume#` sets global audio volume as a real number between 0.0 and 1.0 (inclusive), automatically clamped to [0, 1]. Volume 0.0 is silent, 1.0 is maximum. This is an alternative to the `VOLUME` statement (which uses integer values 0-127).  
 **Example:**
 ```
 SET LINE SPACING OFF    ' Use 80×30 character grid (default)
 SET LINE SPACING ON     ' Use 80×24 character grid with spacing
+
+SET TEXT WRAP OFF       ' Truncate long lines (default)
+SET TEXT WRAP ON        ' Wrap long lines automatically
+
+SET AUDIO ON            ' Enable audio output (default)
+SET AUDIO OFF           ' Disable audio output
+
+SET VOLUME 1.0          ' Maximum volume
+SET VOLUME 0.5          ' Half volume
+SET VOLUME 0.0          ' Silent
 ```
 
 ---
@@ -4814,19 +5941,46 @@ PRINT result#    ' Prints: 4.0
 
 ---
 
+### STARTSWITH
 
-### STR$
+**Type:** Operator (String)  
+**Syntax:** `string$ STARTSWITH prefix$`  
+**Description:** Checks if a string starts with the specified prefix. Returns integer: 0 = false, -1 = true. Case-sensitive.  
+**Example:**
+```
+LET filename$ = "document.txt"
+IF filename$ STARTSWITH "doc" THEN PRINT "Starts with 'doc'"
+IF filename$ STARTSWITH ".txt" THEN PRINT "Starts with '.txt'"    ' FALSE%
+```
 
-**Type:** Function (String)  
-**Syntax:** `STR$ number`  
+---
+
+### STR
+
+**Type:** Operator (String)  
+**Syntax:** `STR number`  
 **Description:** Converts any numeric type (integer, real, or complex) to its decimal string representation. For complex numbers, the format is `"real+imaginaryi"` or `"real-imaginaryi"`.  
 **Example:**
 ```
 LET num% = 42
-LET numStr$ = STR$ num%    ' "42"
-LET piStr$ = STR$ 3.14159  ' "3.14159"
-LET complexStr$ = STR$ (3+4i)    ' "3+4i"
-LET complexStr$ = STR$ (3-4i)    ' "3-4i"
+LET numStr$ = STR num%    ' "42"
+LET piStr$ = STR 3.14159  ' "3.14159"
+LET complexStr$ = STR (3+4i)    ' "3+4i"
+LET complexStr$ = STR (3-4i)    ' "3-4i"
+```
+
+---
+
+### ENDSWITH
+
+**Type:** Operator (String)  
+**Syntax:** `string$ ENDSWITH suffix$`  
+**Description:** Checks if a string ends with the specified suffix. Returns integer: 0 = false, -1 = true. Case-sensitive.  
+**Example:**
+```
+LET filename$ = "document.txt"
+IF filename$ ENDSWITH ".txt" THEN PRINT "Ends with '.txt'"
+IF filename$ ENDSWITH "doc" THEN PRINT "Ends with 'doc'"    ' FALSE
 ```
 
 ---
@@ -4911,6 +6065,21 @@ PRINT result#    ' Prints: 0.0
 
 ---
 
+### TIME$
+
+**Type:** Operator (Date/Time)  
+**Syntax:** `TIME$`  
+**Description:** Returns the current time as a string in `HH:MM:SS` format (24-hour format).  
+**Example:**
+```
+LET now$ = TIME$
+PRINT "Current time: "; now$    ' Prints: "Current time: 14:30:45"
+
+PRINT DATE$; " "; TIME$; " - Program started"
+```
+
+---
+
 ### THEN
 
 **Type:** Keyword (Control Flow)  
@@ -4923,15 +6092,39 @@ IF x% > 0 THEN PRINT "Positive"
 
 ---
 
-### TIMER
+### THROW
 
-**Type:** Function (System)  
-**Syntax:** `TIMER%`  
-**Description:** Returns the current system timer value as an integer. Commonly used with `RANDOMIZE` to seed the random number generator with a time-based value.  
+**Type:** Command (Control Flow)  
+**Syntax:** `THROW errorMessage$`  
+**Description:** Throws an error. The error message is a string. Control immediately transfers to the nearest `CATCH` block, or the program terminates if no `CATCH` block exists.  
 **Example:**
 ```
-RANDOMIZE TIMER%    ' Seed random number generator with current time
-LET currentTime% = TIMER%
+IF divisor% = 0 THEN
+    THROW "Division by zero"
+END IF
+
+IF NOT EXISTS filename$ THEN
+    THROW "File not found: " + filename$
+END IF
+```
+
+---
+
+### TRY
+
+**Type:** Command (Control Flow)  
+**Syntax:** `TRY ... CATCH errorVariable$ ... FINALLY ... END TRY`  
+**Description:** Begins a structured error handling block. The `TRY` block contains code that might raise an error. Errors are represented as strings. `CATCH` and `FINALLY` are optional.  
+**Example:**
+```
+TRY
+    OPEN "data.txt" FOR READ AS file%
+    READFILE "data.txt" INTO content$
+CATCH error$
+    PRINT "Error: "; error$
+FINALLY
+    CLOSE file%
+END TRY
 ```
 
 ---
@@ -4952,14 +6145,14 @@ CASE 90 TO 100
 
 ---
 
-### TRIM$
+### TRIM
 
-**Type:** Function (String)  
-**Syntax:** `TRIM$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `TRIM string$`  
 **Description:** Returns a copy of the string with leading and trailing spaces removed.  
 **Example:**
 ```
-LET trimmed$ = TRIM$ "  text  "   ' "text"
+LET trimmed$ = TRIM "  text  "   ' "text"
 ```
 
 ---
@@ -4979,13 +6172,60 @@ TRIANGLE (50, 50) TO (150, 50) TO (100, 150) WITH &HFF0000FF FILLED    ' Filled
 
 ### TRUNC
 
-**Type:** Function (Rounding)  
+**Type:** Operator (Rounding)  
 **Syntax:** `TRUNC x#`  
 **Description:** Rounds `x` toward zero (truncates the decimal part).  
 **Example:**
 ```
 PRINT TRUNC 3.9      ' Prints: 3
 PRINT TRUNC -3.9     ' Prints: -3
+```
+
+---
+
+### TRUE%
+
+**Type:** Operator (Boolean Constant)  
+**Syntax:** `TRUE%`  
+**Description:** Returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`).  
+**Example:**
+```
+LET flag% = TRUE%
+IF condition% THEN
+    LET result% = TRUE%
+END IF
+
+LET check% = (x% > 0) AND TRUE%    ' Bitwise AND with TRUE%
+```
+
+---
+
+### FALSE%
+
+**Type:** Operator (Boolean Constant)  
+**Syntax:** `FALSE%`  
+**Description:** Returns the canonical boolean false value as an integer (0).  
+**Example:**
+```
+LET flag% = FALSE%
+IF NOT condition% THEN
+    LET result% = FALSE%
+END IF
+
+LET check% = (x% < 0) OR FALSE%    ' Bitwise OR with FALSE%
+```
+
+---
+
+### TURTLE
+
+**Type:** Command (Graphics)  
+**Syntax:** `TURTLE turtleNumber%, commandString$`  
+**Description:** Executes Logo-style turtle graphics commands. Turtles draw on the 640×480 canvas using the current foreground color. Commands: `FD n` (forward), `BK n` (back), `RT n` (right turn), `LT n` (left turn), `PU` (pen up), `PD` (pen down), `HOME` (return to center).  
+**Example:**
+```
+TURTLE 0, "FD 100 RT 90 FD 100 RT 90 FD 100 RT 90 FD 100"    ' Square
+TURTLE 1, "FD 100 RT 120 FD 100 RT 120 FD 100"              ' Triangle
 ```
 
 ---
@@ -5004,14 +6244,14 @@ TEMPO 180    ' Set to 180 BPM (fast)
 
 ---
 
-### UCASE$
+### UCASE
 
-**Type:** Function (String)  
-**Syntax:** `UCASE$ string$`  
+**Type:** Operator (String)  
+**Syntax:** `UCASE string$`  
 **Description:** Returns a copy of the string converted to uppercase.  
 **Example:**
 ```
-LET upper$ = UCASE$ "hello"    ' "HELLO"
+LET upper$ = UCASE "hello"    ' "HELLO"
 ```
 
 ---
@@ -5089,21 +6329,21 @@ UNSHIFT names$[], "Alice"
 
 ---
 
-### VAL#
+### VAL
 
-**Type:** Function (String)  
-**Syntax:** `VAL# string$`  
+**Type:** Operator (String)  
+**Syntax:** `VAL string$`  
 **Description:** Converts a string to a real number. Supports decimal, hexadecimal (with `&H` prefix), binary (with `&B` prefix), and complex number formats. Hexadecimal and binary strings are parsed as integers (then converted to real). Complex numbers use the format `"real+imaginaryi"` or `"real-imaginaryi"`. When assigned to integer or complex variables, type coercion automatically converts the result.  
 **Example:**
 ```
 LET text$ = "123"
-LET number% = VAL# text$    ' 123 (coerced to integer)
+LET number% = VAL text$    ' 123 (coerced to integer)
 LET decimal$ = "3.14"
-LET value# = VAL# decimal$  ' 3.14
-LET hexValue% = VAL# "&HFF"    ' 255 (hexadecimal, coerced to integer)
-LET binValue% = VAL# "&B1010"  ' 10 (binary, coerced to integer)
-LET complexValue& = VAL# "3+4i"    ' 3+4i (complex number, coerced to complex)
-LET complexValue& = VAL# "3-4i"    ' 3-4i (complex number, coerced to complex)
+LET value# = VAL decimal$  ' 3.14
+LET hexValue% = VAL "&HFF"    ' 255 (hexadecimal, coerced to integer)
+LET binValue% = VAL "&B1010"  ' 10 (binary, coerced to integer)
+LET complexValue& = VAL "3+4i"    ' 3+4i (complex number, coerced to complex)
+LET complexValue& = VAL "3-4i"    ' 3-4i (complex number, coerced to complex)
 ```
 
 ---
@@ -5205,7 +6445,7 @@ CLOSE file%
 **Description:** Writes an entire string to a file.  
 **Example:**
 ```
-LET report$ = "Sales Report" + CHR$ 10 + "Total: $1000"
+LET report$ = "Sales Report" + CHR 10 + "Total: $1000"
 WRITEFILE "report.txt" FROM report$
 WRITEFILE output$ TO "results.txt"
 ```
@@ -5233,4 +6473,273 @@ LET result% = 12 XNOR 10
 ```
 LET result% = 12 XOR 10    ' Binary: 1100 XOR 1010 = 0110 (6)
 ```
+
+---
+
+## Appendix: Complete Operator Reference
+
+This appendix provides a comprehensive listing of all operators in EduBASIC, organized by category.
+
+### Arithmetic Operators
+
+| Operator    | Description              | Example                     | Returns |
+|-------------|--------------------------|-----------------------------|---------|
+| `+`         | Addition                 | `5 + 3`                     | Integer or Real |
+| `-`         | Subtraction              | `10 - 4`                    | Integer or Real |
+| `*`         | Multiplication           | `6 * 7`                     | Integer or Real |
+| `/`         | Division                 | `15 / 4`                    | Real |
+| `MOD`       | Modulo (remainder)       | `17 MOD 5`                  | Integer |
+| `^`         | Exponentiation           | `2 ^ 8`                     | Real |
+| `**`        | Exponentiation (alt)     | `2 ** 8`                    | Real |
+| `!`         | Factorial                | `5!`                        | Integer |
+| `+`         | Unary plus               | `+x#`                       | Same as operand |
+| `-`         | Unary minus (negation)   | `-x#`                       | Same as operand |
+
+**Note:** Exponentiation (`^`, `**`) is right-associative. All other operators are left-associative.
+
+### Assignment Operators
+
+| Operator | Description                   | Example           | Equivalent To      |
+|----------|-------------------------------|-------------------|--------------------|
+| `=`      | Assignment                    | `LET x% = 5`      | N/A                |
+| `+=`     | Addition assignment           | `LET x% += 5`     | `LET x% = x% + 5`  |
+| `-=`     | Subtraction assignment        | `LET x% -= 3`     | `LET x% = x% - 3`  |
+| `*=`     | Multiplication assignment     | `LET x% *= 2`     | `LET x% = x% * 2`  |
+| `/=`     | Division assignment           | `LET x% /= 4`     | `LET x% = x% / 4`  |
+| `^=`     | Exponentiation assignment     | `LET x% ^= 2`     | `LET x% = x% ^ 2`  |
+
+**Note:** The `LET` keyword is required for all assignments.
+
+### Comparison Operators
+
+| Operator | Description               | Example         | Returns            |
+|----------|---------------------------|-----------------|--------------------|
+| `=`      | Equal to                  | `x% = y%`       | Integer (0 or -1)  |
+| `<>`     | Not equal to              | `x% <> y%`      | Integer (0 or -1)  |
+| `<`      | Less than                 | `x% < y%`       | Integer (0 or -1)  |
+| `>`      | Greater than              | `x% > y%`       | Integer (0 or -1)  |
+| `<=`     | Less than or equal to     | `x% <= y%`      | Integer (0 or -1)  |
+| `>=`     | Greater than or equal to  | `x% >= y%`      | Integer (0 or -1)  |
+
+**Note:** Comparison operators return `-1` for true, `0` for false. They work with all data types including strings (lexicographic comparison) and arrays (element-wise comparison).
+
+### Logical (Bitwise) Operators
+
+| Operator | Description                    | Example          | Returns |
+|----------|--------------------------------|------------------|---------|
+| `AND`    | Bitwise AND                    | `x% AND y%`      | Integer |
+| `OR`     | Bitwise OR                     | `x% OR y%`       | Integer |
+| `NOT`    | Bitwise NOT (complement)       | `NOT x%`         | Integer |
+| `XOR`    | Bitwise XOR (exclusive OR)     | `x% XOR y%`      | Integer |
+| `NAND`   | Bitwise NAND (NOT AND)         | `x% NAND y%`     | Integer |
+| `NOR`    | Bitwise NOR (NOT OR)           | `x% NOR y%`      | Integer |
+| `XNOR`   | Bitwise XNOR (exclusive NOR)   | `x% XNOR y%`     | Integer |
+| `IMP`    | Bitwise implication            | `x% IMP y%`      | Integer |
+
+**Note:** All logical operators are bitwise. Boolean constants: `FALSE%` = `0`, `TRUE%` = `-1`.
+
+### String Operators
+
+| Operator    | Description                      | Example                                  | Returns |
+|-------------|----------------------------------|------------------------------------------|---------|
+| `+`         | String concatenation             | `"Hello" + " " + "World"`                | String  |
+| `LEFT`      | Extract left portion             | `text$ LEFT 5`                           | String  |
+| `RIGHT`     | Extract right portion            | `text$ RIGHT 6`                          | String  |
+| `MID`       | Extract substring                | `text$ MID 8 TO 12`                      | String  |
+| `INSTR`     | Find substring position          | `"Hello world" INSTR "world"`            | Integer |
+| `INSTR FROM`| Find substring from position     | `"Hello world" INSTR "o" FROM 5`         | Integer |
+| `REPLACE WITH`| Replace substring              | `"Hello" REPLACE "ll" WITH "y"`          | String  |
+| `JOIN`      | Join array elements              | `names$[] JOIN ", "`                     | String  |
+| `STARTSWITH`| Check if starts with prefix      | `filename$ STARTSWITH "doc"`             | Integer (0 or -1) |
+| `ENDSWITH`  | Check if ends with suffix        | `filename$ ENDSWITH ".txt"`              | Integer (0 or -1) |
+| `\| \|`     | String length                    | `\| text$ \|`                            | Integer |
+
+### Array Operators
+
+| Operator    | Description                      | Example                                  | Returns |
+|-------------|----------------------------------|------------------------------------------|---------|
+| `+`         | Array concatenation              | `arr1%[] + arr2%[]`                      | Array   |
+| `FIND`      | Find element in array            | `numbers%[] FIND 5`                      | Element value or 0 |
+| `INDEXOF`   | Find index of element            | `numbers%[] INDEXOF 5`                   | Integer (index or 0) |
+| `INCLUDES`  | Check if array includes element  | `numbers%[] INCLUDES 5`                  | Integer (0 or -1) |
+| `REVERSE`   | Reverse array elements           | `REVERSE numbers%[]`                     | Array   |
+| `JOIN`      | Join array elements into string  | `names$[] JOIN ", "`                     | String  |
+| `\| \|`     | Array length                     | `\| numbers%[] \|`                       | Integer |
+
+### Mathematical Operators
+
+#### Trigonometric Operators
+
+| Operator  | Description                  | Example           | Operand Types | Returns |
+|-----------|------------------------------|-------------------|---------------|---------|
+| `SIN`     | Sine (radians)               | `SIN angle#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `COS`     | Cosine (radians)             | `COS angle#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `TAN`     | Tangent (radians)            | `TAN angle#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ASIN`    | Arcsine (returns radians)    | `ASIN ratio#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ACOS`    | Arccosine (returns radians)  | `ACOS ratio#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ATAN`    | Arctangent (returns radians) | `ATAN slope#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+
+#### Hyperbolic Operators
+
+| Operator  | Description                     | Example             | Operand Types | Returns |
+|-----------|---------------------------------|---------------------|---------------|---------|
+| `SINH`    | Hyperbolic sine                 | `SINH value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `COSH`    | Hyperbolic cosine               | `COSH value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `TANH`    | Hyperbolic tangent              | `TANH value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ASINH`   | Inverse hyperbolic sine         | `ASINH value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ACOSH`   | Inverse hyperbolic cosine       | `ACOSH value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `ATANH`   | Inverse hyperbolic tangent      | `ATANH value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+
+#### Exponential and Logarithmic Operators
+
+| Operator  | Description                | Example            | Operand Types | Returns |
+|-----------|----------------------------|--------------------|---------------|---------|
+| `EXP`     | e raised to power          | `EXP power#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `LOG`     | Natural logarithm (base e) | `LOG value#`       | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `LOG10`   | Common logarithm (base 10) | `LOG10 value#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `LOG2`    | Binary logarithm (base 2)  | `LOG2 value#`      | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+
+#### Root Operators
+
+| Operator  | Description    | Example            | Operand Types | Returns |
+|-----------|----------------|--------------------|---------------|---------|
+| `SQRT`    | Square root    | `SQRT number#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+| `CBRT`    | Cube root      | `CBRT number#`     | Integer, Real, Complex | Real (Integer/Real), Complex (Complex) |
+
+#### Rounding and Truncation Operators
+
+| Operator  | Description                           | Example            | Operand Types | Returns |
+|-----------|---------------------------------------|--------------------|---------------|---------|
+| `ROUND`   | Round to nearest integer (ties up)    | `ROUND 3.5`        | Integer, Real | Real    |
+| `FLOOR`   | Round toward negative infinity        | `FLOOR 3.7`        | Integer, Real | Real    |
+| `CEIL`    | Round toward positive infinity        | `CEIL 3.2`         | Integer, Real | Real    |
+| `TRUNC`   | Round toward zero                     | `TRUNC 3.9`        | Integer, Real | Real    |
+| `EXPAND`  | Round away from zero                  | `EXPAND 3.1`       | Integer, Real | Real    |
+| `INT`     | Integer conversion (floor for pos, ceil for neg) | `INT 3.7` | Integer, Real | Integer |
+
+**Note:** Rounding and truncation operators are not applicable to complex numbers.
+
+#### Other Mathematical Operators
+
+| Operator  | Description                    | Example            | Operand Types | Returns |
+|-----------|--------------------------------|--------------------|---------------|---------|
+| `SGN`     | Sign of number (-1, 0, or 1)   | `SGN value#`       | Integer, Real | Integer |
+| `\| \|`   | Absolute value / norm          | `\| -5 \|` or `\| 3+4i \|` | Integer, Real, Complex | Real |
+
+**Note:** The `SGN` operator is not applicable to complex numbers. Use `CABS` for complex number magnitude.
+
+### Complex Number Operators
+
+| Operator  | Description                   | Example           | Returns |
+|-----------|-------------------------------|-------------------|---------|
+| `REAL`    | Real part of complex number   | `REAL z&`         | Real    |
+| `IMAG`    | Imaginary part of complex     | `IMAG z&`         | Real    |
+| `CONJ`    | Complex conjugate             | `CONJ z&`         | Complex |
+| `CABS`    | Absolute value (magnitude)    | `CABS z&`         | Real    |
+| `CARG`    | Argument (phase angle) in radians | `CARG z&`     | Real    |
+| `CSQRT`   | Complex square root           | `CSQRT z&`        | Complex |
+
+### Type Conversion Operators
+
+| Operator  | Description                    | Example              | Returns |
+|-----------|--------------------------------|----------------------|---------|
+| `INT`     | Convert to integer             | `INT 3.7`            | Integer |
+| `STR`     | Convert to string              | `STR 42`             | String  |
+| `VAL`     | Convert string to number       | `VAL "123"`          | Integer, Real, or Complex |
+| `HEX`     | Convert to hexadecimal string  | `HEX 255`            | String  |
+| `BIN`     | Convert to binary string       | `BIN 10`             | String  |
+| `CHR`     | Convert ASCII code to character| `CHR 65`             | String  |
+| `ASC`     | Convert character to ASCII code| `ASC "A"`            | Integer |
+
+### String Manipulation Operators
+
+| Operator  | Description                    | Example              | Returns |
+|-----------|--------------------------------|----------------------|---------|
+| `UCASE`   | Convert to uppercase           | `UCASE "hello"`      | String  |
+| `LCASE`   | Convert to lowercase           | `LCASE "WORLD"`      | String  |
+| `LTRIM`   | Remove leading spaces          | `LTRIM "  text"`     | String  |
+| `RTRIM`   | Remove trailing spaces         | `RTRIM "text  "`     | String  |
+| `TRIM`    | Remove leading/trailing spaces | `TRIM "  text  "`    | String  |
+| `REVERSE` | Reverse string                 | `REVERSE "abc"`      | String  |
+
+### Unit Conversion Operators
+
+| Operator | Description                  | Example                       | Returns |
+|----------|------------------------------|-------------------------------|---------|
+| `DEG`    | Convert radians to degrees   | `(3.14159 / 2) DEG`           | Real    |
+| `RAD`    | Convert degrees to radians   | `90 RAD`                      | Real    |
+
+### File I/O Operators
+
+| Operator  | Description                    | Example              | Returns |
+|-----------|--------------------------------|----------------------|---------|
+| `EOF`     | Check if at end of file        | `EOF fileHandle%`    | Integer (0 or -1) |
+| `LOC`     | Get current byte position      | `LOC fileHandle%`    | Integer |
+| `EXISTS`  | Check if file/directory exists | `EXISTS "data.txt"`  | Integer (0 or -1) |
+
+### Constants
+
+These operators take no arguments and return a value. They use type sigils to indicate their return type.
+
+| Operator  | Description                          | Example      | Returns |
+|-----------|--------------------------------------|--------------|---------|
+| `RND#`    | Random real number in [0, 1)         | `RND#`       | Real    |
+| `PI#`     | Mathematical constant π              | `PI#`        | Real    |
+| `E#`      | Mathematical constant e              | `E#`         | Real    |
+| `TRUE%`   | Boolean constant (value: -1)         | `TRUE%`      | Integer |
+| `FALSE%`  | Boolean constant (value: 0)          | `FALSE%`     | Integer |
+| `INKEY$`  | Currently pressed key (non-blocking) | `INKEY$`     | String  |
+| `DATE$`   | Current date (YYYY-MM-DD format)     | `DATE$`      | String  |
+| `TIME$`   | Current time (HH:MM:SS format)       | `TIME$`      | String  |
+| `NOW%`    | Current Unix timestamp               | `NOW%`       | Integer |
+
+### Audio Operators
+
+| Operator  | Description                           | Example      | Returns |
+|-----------|---------------------------------------|--------------|---------|
+| `NOTES`   | Number of notes remaining in voice    | `NOTES 0`    | Integer |
+
+### Special Operators
+
+| Operator     | Description                        | Example                    | Returns |
+|--------------|------------------------------------|----------------------------|---------|
+| `( )`        | Grouping (override precedence)     | `(2 + 3) * 4`              | Varies  |
+| `[ ]`        | Array subscript / structure member | `arr%[5]` or `obj[member$]`| Varies  |
+| `[1 TO 5]`   | Array slicing                      | `arr%[1 TO 5]`             | Array   |
+| `[...]`      | Array slice to end                 | `arr%[5 TO ...]`           | Array   |
+| `[ ]`        | Empty array literal                | `[ ]`                      | Array   |
+| `[1, 2, 3]`  | Array literal                      | `[1, 2, 3]`                | Array   |
+| `{ }`        | Empty structure literal            | `{ }`                      | Structure |
+| `{ a$: "x" }`| Structure literal                  | `{ name$: "Bob", age%: 30 }` | Structure |
+
+### Operator Precedence Summary
+
+1. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
+2. **Parentheses** `( )`
+3. **Mathematical operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`
+4. **Complex operators**: `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`
+5. **Type conversion operators**: `INT`, `STR`, `VAL`, `HEX`, `BIN`
+6. **String manipulation operators**: `ASC`, `CHR`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`
+7. **File I/O operators**: `EOF`, `LOC`, `NOTES`
+8. **Postfix operators**: `!` (factorial), `DEG`, `RAD`
+9. **Absolute value / norm / length**: `| |`
+10. **Unary**: `+` and `-`
+11. **Exponentiation**: `^` or `**` (right-associative)
+12. **Multiplicative**: `*`, `/`, `MOD`
+13. **Additive**: `+`, `-`
+14. **Array search**: `FIND`, `INDEXOF`, `INCLUDES`
+15. **String/Array operators**: `INSTR`, `JOIN`, `REPLACE`, `LEFT`, `RIGHT`, `MID`
+16. **Comparison**: `=`, `<>`, `<`, `>`, `<=`, `>=`
+17. **Logical NOT**: `NOT`
+18. **Logical AND**: `AND`, `NAND`
+19. **Logical OR**: `OR`, `NOR`
+20. **Logical XOR**: `XOR`, `XNOR`
+21. **Logical IMP**: `IMP` (lowest precedence)
+
+**Notes:**
+- When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative
+- Constants take zero arguments and can appear anywhere in an expression
+- All constants use type sigils in their identifiers to indicate return types
+
+---
 

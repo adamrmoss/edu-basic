@@ -1,0 +1,12 @@
+<div class="code-editor-container">
+    <div class="line-numbers">
+        <div *ngFor="let lineNum of getLineNumbers()" class="line-number">{{ lineNum }}</div>
+    </div>
+    <textarea 
+        class="code-textarea"
+        spellcheck="false"
+        (input)="onTextAreaInput($event)"
+        (scroll)="onTextAreaScroll($event)"
+    ></textarea>
+</div>
+

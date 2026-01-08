@@ -1,0 +1,15 @@
+<div class="console-container">
+    <div class="console-output">
+        <div *ngFor="let entry of consoleHistory" class="console-line" [class.error]="entry.type === 'error'">{{ entry.text }}</div>
+    </div>
+    <div class="console-input-line">
+        <span class="console-prompt">&gt;</span>
+        <input 
+            class="console-input" 
+            type="text" 
+            [(ngModel)]="currentInput"
+            (keydown)="onKeyDown($event)"
+            autofocus
+        />
+    </div>
+</div>

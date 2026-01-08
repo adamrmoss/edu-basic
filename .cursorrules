@@ -54,7 +54,17 @@ When solving problems, follow this workflow:
 - Add line breaks between logical groups of code for readability
 - Keep each logical operation visually separate
 
+## TypeScript/JavaScript Code Style
+- Prefer switch statements over else-if chains when checking the same variable
+- Use braces { } for all control structures, even single-line blocks
+
 ## Architecture
 - Divide solutions by layers into projects
 - Subdivide projects semantically in domain space
 - Organize by domain concepts, NOT by technical layers
+
+## EduBASIC Language Terminology
+- NEVER use the term "function" for computational operations (e.g., SIN, COS, PRINT)
+- In EduBASIC, "function" is ONLY used for set-theoretic mathematical functions
+- Use "operator", "statement", "command", or "keyword" for computational operations
+- Examples: "SIN operator", "PRINT statement", "IF statement" (NOT "SIN function", "PRINT function")
