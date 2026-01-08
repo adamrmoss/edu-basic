@@ -50,7 +50,7 @@ describe('LFSR Polynomial', () =>
 
             expect(config.bits).toBe(4);
             expect(config.period).toBe(15);
-            expect(config.taps).toEqual([3, 4]);
+            expect(config.taps).toEqual([3, 0]);
             expect(config.description).toContain('POKEY');
         });
 
@@ -60,7 +60,7 @@ describe('LFSR Polynomial', () =>
 
             expect(config.bits).toBe(5);
             expect(config.period).toBe(31);
-            expect(config.taps).toEqual([2, 5]);
+            expect(config.taps).toEqual([2, 0]);
         });
 
         it('should have correct config for 9-bit LFSR', () =>
@@ -69,7 +69,7 @@ describe('LFSR Polynomial', () =>
 
             expect(config.bits).toBe(9);
             expect(config.period).toBe(511);
-            expect(config.taps).toEqual([4, 9]);
+            expect(config.taps).toEqual([4, 0]);
         });
 
         it('should have correct config for 15-bit LFSR', () =>
@@ -78,7 +78,7 @@ describe('LFSR Polynomial', () =>
 
             expect(config.bits).toBe(15);
             expect(config.period).toBe(32767);
-            expect(config.taps).toEqual([14, 15]);
+            expect(config.taps).toEqual([1, 0]);
         });
 
         it('should have correct config for 17-bit LFSR', () =>
@@ -87,7 +87,7 @@ describe('LFSR Polynomial', () =>
 
             expect(config.bits).toBe(17);
             expect(config.period).toBe(131071);
-            expect(config.taps).toEqual([12, 17]);
+            expect(config.taps).toEqual([3, 0]);
         });
 
         it('should have correct config for 31-bit LFSR', () =>
@@ -96,7 +96,7 @@ describe('LFSR Polynomial', () =>
 
             expect(config.bits).toBe(31);
             expect(config.period).toBe(2147483647);
-            expect(config.taps).toEqual([28, 31]);
+            expect(config.taps).toEqual([3, 0]);
         });
 
         it('should have maximal period for all true LFSRs (2^n - 1)', () =>

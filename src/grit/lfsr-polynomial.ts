@@ -81,6 +81,25 @@ export interface LfsrConfig
     /**
      * Tap positions for the feedback polynomial (XOR taps)
      * Empty for fixed-pattern types (SquareWave, PulseWave25_75)
+     * 
+     * IMPORTANT - Tap Convention:
+     * --------------------------
+     * Taps are 0-INDEXED BIT POSITIONS that get XORed together.
+     * 
+     * For primitive polynomial x^n + x^a + 1:
+     *   - n = register size (bits field)
+     *   - taps = [a, 0]
+     *   - The "1" constant term → tap at bit 0 (the output bit)
+     *   - The x^a term → tap at bit a (NOT a-1!)
+     * 
+     * Example: x^5 + x^2 + 1 (5-bit, period 31)
+     *   - taps = [2, 0]
+     *   - feedback = bit[2] XOR bit[0]
+     *   - new_state = (state >> 1) | (feedback << 4)
+     * 
+     * The step operation is:
+     *   feedback = XOR of all bits at tap positions
+     *   state = (state >>> 1) | (feedback << (bits - 1))
      */
     taps: number[];
 
@@ -92,6 +111,23 @@ export interface LfsrConfig
 
 /**
  * Configuration metadata for each LFSR polynomial type
+ * 
+ * POLYNOMIAL TO TAPS MAPPING:
+ * ---------------------------
+ * For polynomial x^n + x^a + 1, taps = [a, 0]
+ * 
+ *   Polynomial        | Bits | Period        | Taps
+ *   ------------------|------|---------------|--------
+ *   x^4 + x^3 + 1     |  4   | 15            | [3, 0]
+ *   x^5 + x^2 + 1     |  5   | 31            | [2, 0]
+ *   x^9 + x^4 + 1     |  9   | 511           | [4, 0]
+ *   x^15 + x + 1      | 15   | 32,767        | [1, 0]
+ *   x^17 + x^3 + 1    | 17   | 131,071       | [3, 0]
+ *   x^31 + x^3 + 1    | 31   | 2,147,483,647 | [3, 0]
+ * 
+ * All polynomials above are primitive (maximal-length sequences).
+ * Multiple primitive polynomials exist for each size; these are chosen
+ * for simplicity and compatibility with classic hardware (POKEY, TIA).
  */
 export const LFSR_CONFIGS: Record<LfsrPolynomial, LfsrConfig> =
 {
@@ -113,42 +149,42 @@ export const LFSR_CONFIGS: Record<LfsrPolynomial, LfsrConfig> =
     {
         bits: 4,
         period: 15,
-        taps: [3, 4],
+        taps: [3, 0],
         description: '4-bit Maximal LFSR (POKEY-style)',
     },
     [LfsrPolynomial.Lfsr5Bit]:
     {
         bits: 5,
         period: 31,
-        taps: [2, 5],
+        taps: [2, 0],
         description: '5-bit Maximal LFSR (POKEY-style)',
     },
     [LfsrPolynomial.Lfsr9Bit]:
     {
         bits: 9,
         period: 511,
-        taps: [4, 9],
+        taps: [4, 0],
         description: '9-bit Maximal LFSR (POKEY/TIA-style)',
     },
     [LfsrPolynomial.Lfsr15Bit]:
     {
         bits: 15,
         period: 32767,
-        taps: [14, 15],
+        taps: [1, 0],
         description: '15-bit Maximal LFSR',
     },
     [LfsrPolynomial.Lfsr17Bit]:
     {
         bits: 17,
         period: 131071,
-        taps: [12, 17],
+        taps: [3, 0],
         description: '17-bit Maximal LFSR (POKEY-style)',
     },
     [LfsrPolynomial.Lfsr31Bit]:
     {
         bits: 31,
         period: 2147483647,
-        taps: [28, 31],
+        taps: [3, 0],
         description: '31-bit Maximal LFSR',
     },
 };

@@ -66,3 +66,16 @@ export {
     searchPresets,
 } from './presets';
 export type { PresetInfo } from './presets';
+
+// Synthesis core
+export {
+    stepLfsr,
+    getLfsrOutputBit,
+    generateLfsrSequence,
+    updateEnvelope,
+    createEnvelopeState,
+    applyShapeModulation,
+    getAmFactor,
+    getRingFactor,
+} from './synthesis';
+export type { EnvelopeState } from './synthesis';
