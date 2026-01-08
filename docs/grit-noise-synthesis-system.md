@@ -484,6 +484,14 @@ Amplitude control over time (applied after pulse wave conversion):
 
 The envelope multiplies the pulse wave output, enabling percussive sounds, sustained tones, and smooth fade-outs.
 
+**Default Envelope Presets:**
+| Preset | Attack | Decay | Sustain | Release | Use Case |
+|--------|--------|-------|---------|---------|----------|
+| Percussive | 0.001s | 0.1s | 0.0 | 0.1s | Drums, hits, short impacts |
+| Sustained | 0.01s | 0.1s | 0.7 | 0.2s | Melodic instruments, leads |
+| Pad | 0.5s | 0.2s | 0.8 | 1.0s | Ambient textures, backgrounds |
+| Pluck | 0.005s | 0.15s | 0.3 | 0.15s | Plucky sounds, staccato, game SFX |
+
 ### 8. Effects (Reverb/Delay)
 Post-processing effects applied to the final output:
 - **Reverb**: Spatial depth and room simulation

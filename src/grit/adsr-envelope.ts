@@ -77,6 +77,17 @@ export const DEFAULT_ADSR_PAD: AdsrEnvelope =
 };
 
 /**
+ * Default ADSR envelope for plucky, staccato sounds
+ */
+export const DEFAULT_ADSR_PLUCK: AdsrEnvelope =
+{
+    attack: 0.005,
+    decay: 0.15,
+    sustain: 0.3,
+    release: 0.15,
+};
+
+/**
  * Creates a copy of an ADSR envelope
  */
 export function cloneAdsr(adsr: AdsrEnvelope): AdsrEnvelope

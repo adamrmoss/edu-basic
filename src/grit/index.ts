@@ -25,6 +25,7 @@ export {
     DEFAULT_ADSR_PERCUSSIVE,
     DEFAULT_ADSR_SUSTAINED,
     DEFAULT_ADSR_PAD,
+    DEFAULT_ADSR_PLUCK,
     cloneAdsr,
     validateAdsr,
 } from './adsr-envelope';
