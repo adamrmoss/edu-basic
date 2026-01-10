@@ -27,6 +27,7 @@ interface ControlStructureFrame
 export class RuntimeExecution
 {
     private controlStack: ControlStructureFrame[] = [];
+    private tabSwitchCallback: ((tabId: string) => void) | null = null;
 
     public constructor(
         private readonly program: Program,
@@ -35,6 +36,19 @@ export class RuntimeExecution
         private readonly audio: Audio
     )
     {
+    }
+
+    public setTabSwitchCallback(callback: ((tabId: string) => void) | null): void
+    {
+        this.tabSwitchCallback = callback;
+    }
+
+    public requestTabSwitch(tabId: string): void
+    {
+        if (this.tabSwitchCallback)
+        {
+            this.tabSwitchCallback(tabId);
+        }
     }
 
     public executeStep(): ExecutionResult

@@ -2,9 +2,12 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Program } from '../../lang/program';
+import { ExecutionContext } from '../../lang/execution-context';
+import { RuntimeExecution } from '../../lang/runtime-execution';
 import { ConsoleService } from '../console/console.service';
 import { GraphicsService } from './graphics.service';
 import { AudioService } from './audio.service';
+import { TabSwitchService } from '../tab-switch.service';
 
 export enum InterpreterState
 {
@@ -32,6 +35,10 @@ export class InterpreterService
     private readonly parseResultSubject = new BehaviorSubject<ParseResult | null>(null);
     private readonly isRunningSubject = new BehaviorSubject<boolean>(false);
 
+    private executionContext: ExecutionContext;
+    private sharedProgram: Program;
+    private runtimeExecution: RuntimeExecution | null = null;
+
     public readonly program$: Observable<Program | null> = this.programSubject.asObservable();
     public readonly state$: Observable<InterpreterState> = this.stateSubject.asObservable();
     public readonly parseResult$: Observable<ParseResult | null> = this.parseResultSubject.asObservable();
@@ -40,9 +47,12 @@ export class InterpreterService
     constructor(
         private readonly consoleService: ConsoleService,
         private readonly graphicsService: GraphicsService,
-        private readonly audioService: AudioService
+        private readonly audioService: AudioService,
+        private readonly tabSwitchService: TabSwitchService
     )
     {
+        this.executionContext = new ExecutionContext();
+        this.sharedProgram = new Program();
     }
 
     public get program(): Program | null
@@ -161,6 +171,34 @@ export class InterpreterService
         this.stateSubject.next(InterpreterState.Idle);
         this.parseResultSubject.next(null);
         this.isRunningSubject.next(false);
+    }
+
+    public getExecutionContext(): ExecutionContext
+    {
+        return this.executionContext;
+    }
+
+    public getSharedProgram(): Program
+    {
+        return this.sharedProgram;
+    }
+
+    public getRuntimeExecution(): RuntimeExecution
+    {
+        if (!this.runtimeExecution)
+        {
+            this.runtimeExecution = new RuntimeExecution(
+                this.sharedProgram,
+                this.executionContext,
+                this.graphicsService.getGraphics(),
+                this.audioService.getAudio()
+            );
+            this.runtimeExecution.setTabSwitchCallback((tabId: string) => {
+                this.tabSwitchService.requestTabSwitch(tabId);
+            });
+        }
+
+        return this.runtimeExecution;
     }
 }
 
