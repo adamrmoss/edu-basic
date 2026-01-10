@@ -30,6 +30,33 @@ export class VoiceStatement extends Statement
         const voiceValue = this.voiceNumber.evaluate(context);
         const voice = voiceValue.type === 'integer' || voiceValue.type === 'real' ? Math.floor(voiceValue.value as number) : 0;
         
+        let preset: number | null = null;
+        let noiseCode: number | null = null;
+
+        if (this.preset)
+        {
+            const presetValue = this.preset.evaluate(context);
+            preset = presetValue.type === 'integer' || presetValue.type === 'real' ? Math.floor(presetValue.value as number) : null;
+        }
+
+        if (this.noiseCode)
+        {
+            const noiseCodeValue = this.noiseCode.evaluate(context);
+            noiseCode = noiseCodeValue.type === 'integer' || noiseCodeValue.type === 'real' ? Math.floor(noiseCodeValue.value as number) : null;
+        }
+
+        let adsrCustom: number[] | null = null;
+
+        if (this.adsrCustom)
+        {
+            adsrCustom = this.adsrCustom.map(expr =>
+            {
+                const value = expr.evaluate(context);
+                return value.type === 'integer' || value.type === 'real' ? (value.value as number) : 0;
+            });
+        }
+
+        audio.configureVoice(voice, preset, noiseCode, this.adsrPreset, adsrCustom);
         audio.setVoice(voice);
         
         return { result: ExecutionResult.Continue };

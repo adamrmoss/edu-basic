@@ -1,0 +1,18 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist/worklet",
+        "types": [],
+        "lib": ["ES2022"],
+        "moduleResolution": "bundler",
+        "isolatedModules": true
+    },
+    "include": [
+        "src/grit/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "src/**/*.spec.ts"
+    ],
+    "angularCompilerOptions": null
+}

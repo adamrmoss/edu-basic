@@ -5,6 +5,10 @@
 /.angular/
 .angular/
 
+# Generated worklet bundle
+/public/grit-worklet.js
+/public/grit-worklet.js.map
+
 # TypeScript cache
 *.tsbuildinfo
 
