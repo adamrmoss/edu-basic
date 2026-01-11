@@ -437,7 +437,7 @@ export class Graphics
     private drawChar(char: string, row: number, column: number): void
     {
         const x = column * this.charWidth;
-        const y = row * this.charHeight;
+        const y = this.height - (row + 1) * this.charHeight;
 
         const bg = this.backgroundColor;
         

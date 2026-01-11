@@ -4,7 +4,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Program } from '../../lang/program';
 import { ExecutionContext } from '../../lang/execution-context';
 import { RuntimeExecution } from '../../lang/runtime-execution';
-import { ConsoleService } from '../console/console.service';
 import { GraphicsService } from './graphics.service';
 import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
@@ -45,7 +44,6 @@ export class InterpreterService
     public readonly isRunning$: Observable<boolean> = this.isRunningSubject.asObservable();
 
     constructor(
-        private readonly consoleService: ConsoleService,
         private readonly graphicsService: GraphicsService,
         private readonly audioService: AudioService,
         private readonly tabSwitchService: TabSwitchService
@@ -113,7 +111,6 @@ export class InterpreterService
 
             this.parseResultSubject.next(result);
             this.stateSubject.next(InterpreterState.Error);
-            this.consoleService.printError(result.errors.join('\n'));
 
             return result;
         }
@@ -123,13 +120,11 @@ export class InterpreterService
     {
         if (this.state !== InterpreterState.Idle)
         {
-            this.consoleService.printError('Cannot run: interpreter is not in idle state');
             return;
         }
 
         if (!this.program)
         {
-            this.consoleService.printError('Cannot run: no program loaded');
             return;
         }
 
