@@ -53,6 +53,9 @@ export class CircleStatement extends Statement
             graphics.drawCircle(cx, cy, radius, this.filled);
         }
         
+        graphics.flush();
+        runtime.requestTabSwitch('output');
+        
         return { result: ExecutionResult.Continue };
     }
 

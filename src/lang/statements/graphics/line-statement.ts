@@ -55,6 +55,9 @@ export class LineStatement extends Statement
             graphics.drawLine(x1, y1, x2, y2);
         }
         
+        graphics.flush();
+        runtime.requestTabSwitch('output');
+        
         return { result: ExecutionResult.Continue };
     }
 

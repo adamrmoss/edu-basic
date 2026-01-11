@@ -1583,7 +1583,7 @@ export class ParserService
     private isStatementKeyword(keyword: string): boolean
     {
         const upperKeyword = keyword.toUpperCase();
-        return ['THEN', 'TO', 'STEP', 'FROM', 'WITH', 'AS', 'IN', 'FOR', 'READ', 'APPEND', 'OVERWRITE'].includes(upperKeyword);
+        return ['THEN', 'TO', 'STEP', 'FROM', 'WITH', 'AS', 'IN', 'FOR', 'READ', 'APPEND', 'OVERWRITE', 'AT', 'RADIUS', 'RADII', 'FILLED'].includes(upperKeyword);
     }
 
     // Token manipulation helpers

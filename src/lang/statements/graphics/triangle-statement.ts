@@ -62,6 +62,9 @@ export class TriangleStatement extends Statement
             graphics.drawTriangle(x1, y1, x2, y2, x3, y3, this.filled);
         }
         
+        graphics.flush();
+        runtime.requestTabSwitch('output');
+        
         return { result: ExecutionResult.Continue };
     }
 

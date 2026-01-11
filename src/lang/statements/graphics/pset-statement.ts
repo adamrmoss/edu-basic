@@ -49,6 +49,9 @@ export class PsetStatement extends Statement
             graphics.drawPixel(x, y);
         }
         
+        graphics.flush();
+        runtime.requestTabSwitch('output');
+        
         return { result: ExecutionResult.Continue };
     }
 

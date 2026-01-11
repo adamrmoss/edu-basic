@@ -61,6 +61,9 @@ export class OvalStatement extends Statement
             graphics.drawOval(x, y, width, height, this.filled);
         }
         
+        graphics.flush();
+        runtime.requestTabSwitch('output');
+        
         return { result: ExecutionResult.Continue };
     }
 

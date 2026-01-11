@@ -58,6 +58,9 @@ export class ArcStatement extends Statement
             graphics.drawArc(cx, cy, radius, startAngle, endAngle);
         }
         
+        graphics.flush();
+        runtime.requestTabSwitch('output');
+        
         return { result: ExecutionResult.Continue };
     }
 

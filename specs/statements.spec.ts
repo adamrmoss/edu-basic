@@ -1,9 +1,11 @@
 import { ExecutionContext } from '../src/lang/execution-context';
 import { Program } from '../src/lang/program';
+import { RuntimeExecution } from '../src/lang/runtime-execution';
 import { ExecutionResult } from '../src/lang/statements/statement';
 import { EduBasicType } from '../src/lang/edu-basic-value';
 
 import { ClsStatement } from '../src/lang/statements/io/cls-statement';
+import { ColorStatement } from '../src/lang/statements/io/color-statement';
 import { LocateStatement } from '../src/lang/statements/io/locate-statement';
 import { PsetStatement } from '../src/lang/statements/graphics/pset-statement';
 import { LineStatement } from '../src/lang/statements/graphics/line-statement';
@@ -31,6 +33,8 @@ class MockGraphics extends Graphics
 {
     public clearCalled: boolean = false;
     public cursorPosition: { row: number; column: number } | null = null;
+    public foregroundColor: Color | null = null;
+    public backgroundColor: Color | null = null;
     public pixels: Array<{ x: number; y: number; color?: Color }> = [];
     public lines: Array<{ x1: number; y1: number; x2: number; y2: number; color?: Color }> = [];
     public rectangles: Array<{ x: number; y: number; width: number; height: number; filled: boolean; color?: Color }> = [];
@@ -38,6 +42,18 @@ class MockGraphics extends Graphics
     public circles: Array<{ x: number; y: number; radius: number; filled: boolean; color?: Color }> = [];
     public triangles: Array<{ x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; filled: boolean; color?: Color }> = [];
     public arcs: Array<{ x: number; y: number; radius: number; startAngle: number; endAngle: number; color?: Color }> = [];
+    
+    public override setForegroundColor(color: Color): void
+    {
+        super.setForegroundColor(color);
+        this.foregroundColor = color;
+    }
+    
+    public override setBackgroundColor(color: Color): void
+    {
+        super.setBackgroundColor(color);
+        this.backgroundColor = color;
+    }
     
     public override setCursorPosition(row: number, column: number): void
     {
@@ -124,13 +140,15 @@ describe('Statement Implementations', () =>
     let graphics: MockGraphics;
     let audio: MockAudio;
     let program: Program;
+    let runtime: RuntimeExecution;
     
     beforeEach(() =>
     {
         context = new ExecutionContext();
         graphics = new MockGraphics();
         audio = new MockAudio();
-        program = new Program(graphics, audio);
+        program = new Program();
+        runtime = new RuntimeExecution(program, context, graphics, audio);
     });
     
     describe('CLS Statement', () =>
@@ -138,7 +156,7 @@ describe('Statement Implementations', () =>
         it('should clear the screen', () =>
         {
             const stmt = new ClsStatement();
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.clearCalled).toBe(true);
@@ -151,6 +169,89 @@ describe('Statement Implementations', () =>
         });
     });
     
+    describe('COLOR Statement', () =>
+    {
+        it('should set foreground color only', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF })
+            );
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.backgroundColor).toBeNull();
+        });
+        
+        it('should set both foreground and background colors', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFFFFFFFF }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0x000000FF })
+            );
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.foregroundColor).toEqual({ r: 255, g: 255, b: 255, a: 255 });
+            expect(graphics.backgroundColor).toEqual({ r: 0, g: 0, b: 0, a: 255 });
+        });
+        
+        it('should extract RGBA components correctly from hex integer', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0x12345678 })
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.foregroundColor).toEqual({ r: 0x12, g: 0x34, b: 0x56, a: 0x78 });
+        });
+        
+        it('should throw error for non-integer foreground', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "red" })
+            );
+            
+            expect(() => {
+                stmt.execute(context, graphics, audio, program, runtime);
+            }).toThrow('COLOR foreground must be an integer');
+        });
+        
+        it('should throw error for non-integer background', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 3.14 })
+            );
+            
+            expect(() => {
+                stmt.execute(context, graphics, audio, program, runtime);
+            }).toThrow('COLOR background must be an integer');
+        });
+        
+        it('should have correct toString representation with foreground only', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF })
+            );
+            
+            expect(stmt.toString()).toBe('COLOR 4278190335');
+        });
+        
+        it('should have correct toString representation with both colors', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0x00FF00FF })
+            );
+            
+            expect(stmt.toString()).toBe('COLOR 4278190335, 16711935');
+        });
+    });
+    
     describe('LOCATE Statement', () =>
     {
         it('should set cursor position with integer expressions', () =>
@@ -160,7 +261,7 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.Integer, value: 20 })
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.cursorPosition).toEqual({ row: 10, column: 20 });
@@ -173,7 +274,7 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.Real, value: 12.3 })
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.cursorPosition).toEqual({ row: 5, column: 12 });
         });

@@ -492,7 +492,8 @@ export class Tokenizer
             'RND', 'PI', 'E', 'TRUE', 'FALSE', 'INKEY', 'DATE', 'TIME', 'NOW',
             'DEG', 'RAD', 'EXPAND', 'NOTES', 'TURTLE', 'ARC', 'READFILE', 'WRITEFILE',
             'LISTDIR', 'MKDIR', 'RMDIR', 'COPY', 'MOVE', 'DELETE', 'SET', 'STARTSWITH', 'ENDSWITH',
-            'PUSH', 'POP', 'SHIFT', 'UNSHIFT', 'FROM', 'WITH', 'AS', 'FOR', 'BYREF', 'APPEND', 'OVERWRITE'
+            'PUSH', 'POP', 'SHIFT', 'UNSHIFT', 'FROM', 'WITH', 'AS', 'FOR', 'BYREF', 'APPEND', 'OVERWRITE',
+            'AT', 'RADIUS', 'RADII', 'FILLED'
         ]);
 
         return keywords.has(word);

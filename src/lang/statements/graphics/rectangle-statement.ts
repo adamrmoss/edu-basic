@@ -61,6 +61,9 @@ export class RectangleStatement extends Statement
             graphics.drawRectangle(x, y, width, height, this.filled);
         }
         
+        graphics.flush();
+        runtime.requestTabSwitch('output');
+        
         return { result: ExecutionResult.Continue };
     }
 

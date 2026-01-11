@@ -21,6 +21,7 @@ export class ClsStatement extends Statement
     ): ExecutionStatus
     {
         graphics.clear();
+        runtime.requestTabSwitch('output');
         return { result: ExecutionResult.Continue };
     }
 
