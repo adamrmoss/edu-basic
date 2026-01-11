@@ -40,9 +40,9 @@ export class NextStatement extends Statement
                 const newValue = (currentValue.value as number) + stepValue;
                 const endValue = forFrame.loopEndValue;
 
-                const shouldContinue = stepValue > 0
+                const shouldContinue = endValue !== undefined && (stepValue > 0
                     ? newValue <= endValue
-                    : newValue >= endValue;
+                    : newValue >= endValue);
 
                 if (shouldContinue)
                 {

@@ -21,12 +21,23 @@ export class Graphics
     private backgroundColor: Color = { r: 0, g: 0, b: 0, a: 255 };
     private cursorRow: number = 0;
     private cursorColumn: number = 0;
+    private flushCallback: (() => void) | null = null;
 
     public setContext(context: CanvasRenderingContext2D): void
     {
         this.context = context;
         this.buffer = context.createImageData(this.width, this.height);
         this.clear();
+    }
+
+    public setFlushCallback(callback: (() => void) | null): void
+    {
+        this.flushCallback = callback;
+    }
+
+    public getBuffer(): ImageData | null
+    {
+        return this.buffer;
     }
 
     public setForegroundColor(color: Color): void
@@ -416,12 +427,17 @@ export class Graphics
         {
             this.context.putImageData(this.buffer, 0, 0);
         }
+
+        if (this.flushCallback)
+        {
+            this.flushCallback();
+        }
     }
 
     private drawChar(char: string, row: number, column: number): void
     {
         const x = column * this.charWidth;
-        const y = row * this.charHeight;
+        const y = this.height - (row + 1) * this.charHeight;
 
         const bg = this.backgroundColor;
         

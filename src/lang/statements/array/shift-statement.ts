@@ -4,6 +4,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class ShiftStatement extends Statement
 {
@@ -25,7 +26,7 @@ export class ShiftStatement extends Statement
     {
         const array = context.getVariable(this.arrayVariable);
         
-        if (array.type !== 'array')
+        if (array.type !== EduBasicType.Array)
         {
             throw new Error(`SHIFT: ${this.arrayVariable} is not an array`);
         }

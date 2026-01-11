@@ -44,6 +44,7 @@ export class PrintStatement extends Statement
         }
 
         graphics.flush();
+        runtime.requestTabSwitch('output');
 
         return { result: ExecutionResult.Continue };
     }

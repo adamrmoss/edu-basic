@@ -25,5 +25,12 @@ export class GraphicsService
     public setContext(context: CanvasRenderingContext2D): void
     {
         this.graphics.setContext(context);
+        this.graphics.setFlushCallback(() => {
+            const buffer = this.graphics.getBuffer();
+            if (buffer)
+            {
+                this.bufferSubject.next(buffer);
+            }
+        });
     }
 }
