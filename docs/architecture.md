@@ -7,28 +7,28 @@ EduBASIC is a browser-based BASIC interpreter built with Angular 19. The system 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Angular UI Layer                     │
-│  (Components: Console, Code Editor, Output, Files)       │
+│  (Components: Console, Code Editor, Output, Files)      │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
 │                  Service Layer                          │
-│  (InterpreterService, ParserService, GraphicsService,  │
-│   AudioService, ConsoleService, TabSwitchService)      │
+│  (InterpreterService, ParserService, GraphicsService,   │
+│   AudioService, ConsoleService, TabSwitchService)       │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
-│                Language Core Layer                       │
+│                Language Core Layer                      │
 │  (Program, ExecutionContext, RuntimeExecution)          │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
-│            Expression & Statement Layer                  │
-│  (Expressions: arithmetic, logical, etc.)                │
+│            Expression & Statement Layer                 │
+│  (Expressions: arithmetic, logical, etc.)               │
 │  (Statements: PRINT, IF, FOR, etc.)                     │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
-│              Runtime Systems Layer                       │
+│              Runtime Systems Layer                      │
 │  (Graphics, Audio, Grit Synthesis)                      │
 └─────────────────────────────────────────────────────────┘
 ```

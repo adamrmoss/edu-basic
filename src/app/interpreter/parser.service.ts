@@ -1520,11 +1520,15 @@ export class ParserService
             // Stop at statement separators when at depth 0 (not inside any delimiters)
             if (parenDepth === 0 && bracketDepth === 0 && braceDepth === 0)
             {
-                if (token.type === TokenType.Comma || 
-                    token.type === TokenType.Semicolon ||
-                    token.type === TokenType.RightParen ||
-                    token.type === TokenType.RightBracket ||
-                    token.type === TokenType.RightBrace ||
+                const stopTokens = [
+                    TokenType.Comma,
+                    TokenType.Semicolon,
+                    TokenType.RightParen,
+                    TokenType.RightBracket,
+                    TokenType.RightBrace
+                ];
+                
+                if (stopTokens.includes(token.type) || 
                     (token.type === TokenType.Keyword && this.isStatementKeyword(token.value)))
                 {
                     break;
@@ -1583,7 +1587,11 @@ export class ParserService
     private isStatementKeyword(keyword: string): boolean
     {
         const upperKeyword = keyword.toUpperCase();
-        return ['THEN', 'TO', 'STEP', 'FROM', 'WITH', 'AS', 'IN', 'FOR', 'READ', 'APPEND', 'OVERWRITE', 'AT', 'RADIUS', 'RADII', 'FILLED'].includes(upperKeyword);
+        const statementKeywords = [
+            'APPEND', 'AS', 'AT', 'FILLED', 'FOR', 'FROM', 'IN', 'OVERWRITE', 
+            'RADII', 'RADIUS', 'READ', 'STEP', 'THEN', 'TO', 'WITH'
+        ];
+        return statementKeywords.includes(upperKeyword);
     }
 
     // Token manipulation helpers

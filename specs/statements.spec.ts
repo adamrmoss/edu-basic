@@ -300,7 +300,7 @@ describe('Statement Implementations', () =>
                 null
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.pixels).toHaveLength(1);
@@ -315,7 +315,7 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF00FFAA })
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.pixels).toHaveLength(1);
             expect(graphics.pixels[0].x).toBe(50);
@@ -332,7 +332,7 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.Integer, value: colorValue })
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             const expectedR = (colorValue >> 24) & 0xFF;
             const expectedG = (colorValue >> 16) & 0xFF;
@@ -371,7 +371,7 @@ describe('Statement Implementations', () =>
                 null
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.lines).toHaveLength(1);
@@ -394,7 +394,7 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.Integer, value: 0x00FF00FF })
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.lines[0].color).toEqual({ r: 0, g: 255, b: 0, a: 255 });
         });
@@ -413,7 +413,7 @@ describe('Statement Implementations', () =>
                 false
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.rectangles).toHaveLength(1);
@@ -435,7 +435,7 @@ describe('Statement Implementations', () =>
                 true
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.rectangles[0].filled).toBe(true);
             expect(graphics.rectangles[0].color).toEqual({ r: 255, g: 0, b: 0, a: 255 });
@@ -452,7 +452,7 @@ describe('Statement Implementations', () =>
                 false
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.rectangles[0].x).toBe(50);
             expect(graphics.rectangles[0].y).toBe(50);
@@ -474,7 +474,7 @@ describe('Statement Implementations', () =>
                 false
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.ovals).toHaveLength(1);
@@ -496,7 +496,7 @@ describe('Statement Implementations', () =>
                 true
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.ovals[0].filled).toBe(true);
             expect(graphics.ovals[0].color).toEqual({ r: 0, g: 0, b: 255, a: 255 });
@@ -515,7 +515,7 @@ describe('Statement Implementations', () =>
                 false
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.circles).toHaveLength(1);
@@ -537,7 +537,7 @@ describe('Statement Implementations', () =>
                 true
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.circles[0].filled).toBe(true);
             expect(graphics.circles[0].color).toEqual({ r: 255, g: 255, b: 0, a: 255 });
@@ -559,7 +559,7 @@ describe('Statement Implementations', () =>
                 false
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.triangles).toHaveLength(1);
@@ -587,7 +587,7 @@ describe('Statement Implementations', () =>
                 true
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.triangles[0].filled).toBe(true);
             expect(graphics.triangles[0].color).toEqual({ r: 255, g: 0, b: 255, a: 255 });
@@ -607,7 +607,7 @@ describe('Statement Implementations', () =>
                 null
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             expect(graphics.arcs).toHaveLength(1);
@@ -631,7 +631,7 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.Integer, value: 0xFFFFFFFF })
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.arcs[0].color).toEqual({ r: 255, g: 255, b: 255, a: 255 });
         });

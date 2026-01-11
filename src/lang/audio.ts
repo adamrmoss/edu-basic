@@ -45,9 +45,17 @@ export class Audio
 
     private async initializeAudio(): Promise<void>
     {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        
+        if (!AudioContextClass)
+        {
+            this.workletReady = false;
+            return;
+        }
+
         try
         {
-            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            this.audioContext = new AudioContextClass();
 
             await this.audioContext.audioWorklet.addModule('/grit-worklet.js');
 
@@ -66,9 +74,8 @@ export class Audio
                 this.nextNoteTime.set(i, 0);
             }
         }
-        catch (error)
+        catch
         {
-            console.error('Failed to initialize audio:', error);
             this.workletReady = false;
         }
     }
