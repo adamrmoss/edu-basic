@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class DimStatement extends Statement
 {
@@ -29,7 +30,7 @@ export class DimStatement extends Statement
         for (const dim of this.dimensions)
         {
             const sizeValue = dim.evaluate(context);
-            const size = Math.floor(sizeValue.type === 'integer' || sizeValue.type === 'real' ? sizeValue.value as number : 0);
+            const size = Math.floor(sizeValue.type === EduBasicType.Integer || sizeValue.type === EduBasicType.Real ? sizeValue.value as number : 0);
             
             if (size < 0)
             {
@@ -40,7 +41,7 @@ export class DimStatement extends Statement
         }
         
         const array = this.createMultiDimensionalArray(sizes);
-        context.setVariable(this.arrayName, { type: 'array', value: array });
+        context.setVariable(this.arrayName, { type: EduBasicType.Array, value: array, elementType: EduBasicType.Integer });
         
         return { result: ExecutionResult.Continue };
     }
@@ -54,7 +55,7 @@ export class DimStatement extends Statement
         
         if (sizes.length === 1)
         {
-            return new Array(sizes[0]).fill({ type: 'integer', value: 0 });
+            return new Array(sizes[0]).fill({ type: EduBasicType.Integer, value: 0 });
         }
         
         const result: any[] = [];

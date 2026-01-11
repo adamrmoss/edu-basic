@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class VoiceStatement extends Statement
 {
@@ -28,7 +29,7 @@ export class VoiceStatement extends Statement
     ): ExecutionStatus
     {
         const voiceValue = this.voiceNumber.evaluate(context);
-        const voice = voiceValue.type === 'integer' || voiceValue.type === 'real' ? Math.floor(voiceValue.value as number) : 0;
+        const voice = voiceValue.type === EduBasicType.Integer || voiceValue.type === EduBasicType.Real ? Math.floor(voiceValue.value as number) : 0;
         
         let preset: number | null = null;
         let noiseCode: number | null = null;
@@ -36,13 +37,13 @@ export class VoiceStatement extends Statement
         if (this.preset)
         {
             const presetValue = this.preset.evaluate(context);
-            preset = presetValue.type === 'integer' || presetValue.type === 'real' ? Math.floor(presetValue.value as number) : null;
+            preset = presetValue.type === EduBasicType.Integer || presetValue.type === EduBasicType.Real ? Math.floor(presetValue.value as number) : null;
         }
 
         if (this.noiseCode)
         {
             const noiseCodeValue = this.noiseCode.evaluate(context);
-            noiseCode = noiseCodeValue.type === 'integer' || noiseCodeValue.type === 'real' ? Math.floor(noiseCodeValue.value as number) : null;
+            noiseCode = noiseCodeValue.type === EduBasicType.Integer || noiseCodeValue.type === EduBasicType.Real ? Math.floor(noiseCodeValue.value as number) : null;
         }
 
         let adsrCustom: number[] | null = null;
@@ -52,7 +53,7 @@ export class VoiceStatement extends Statement
             adsrCustom = this.adsrCustom.map(expr =>
             {
                 const value = expr.evaluate(context);
-                return value.type === 'integer' || value.type === 'real' ? (value.value as number) : 0;
+                return value.type === EduBasicType.Integer || value.type === EduBasicType.Real ? (value.value as number) : 0;
             });
         }
 

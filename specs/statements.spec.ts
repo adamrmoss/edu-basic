@@ -1,6 +1,7 @@
 import { ExecutionContext } from '../src/lang/execution-context';
 import { Program } from '../src/lang/program';
 import { ExecutionResult } from '../src/lang/statements/statement';
+import { EduBasicType } from '../src/lang/edu-basic-value';
 
 import { ClsStatement } from '../src/lang/statements/io/cls-statement';
 import { LocateStatement } from '../src/lang/statements/io/locate-statement';
@@ -155,8 +156,8 @@ describe('Statement Implementations', () =>
         it('should set cursor position with integer expressions', () =>
         {
             const stmt = new LocateStatement(
-                new LiteralExpression({ type: 'integer', value: 10 }),
-                new LiteralExpression({ type: 'integer', value: 20 })
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 20 })
             );
             
             const result = stmt.execute(context, graphics, audio);
@@ -168,8 +169,8 @@ describe('Statement Implementations', () =>
         it('should floor real number coordinates', () =>
         {
             const stmt = new LocateStatement(
-                new LiteralExpression({ type: 'real', value: 5.7 }),
-                new LiteralExpression({ type: 'real', value: 12.3 })
+                new LiteralExpression({ type: EduBasicType.Real, value: 5.7 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 12.3 })
             );
             
             const result = stmt.execute(context, graphics, audio);
@@ -180,8 +181,8 @@ describe('Statement Implementations', () =>
         it('should have correct toString representation', () =>
         {
             const stmt = new LocateStatement(
-                new LiteralExpression({ type: 'integer', value: 5 }),
-                new LiteralExpression({ type: 'integer', value: 10 })
+                new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 })
             );
             
             expect(stmt.toString()).toBe('LOCATE 5, 10');
@@ -193,8 +194,8 @@ describe('Statement Implementations', () =>
         it('should draw pixel without color (uses default)', () =>
         {
             const stmt = new PsetStatement(
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
                 null
             );
             
@@ -208,9 +209,9 @@ describe('Statement Implementations', () =>
         it('should draw pixel with explicit color', () =>
         {
             const stmt = new PsetStatement(
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 75 }),
-                new LiteralExpression({ type: 'integer', value: 0xFF00FFAA })
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 75 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF00FFAA })
             );
             
             const result = stmt.execute(context, graphics, audio);
@@ -225,9 +226,9 @@ describe('Statement Implementations', () =>
         {
             const colorValue = 0x12345678;
             const stmt = new PsetStatement(
-                new LiteralExpression({ type: 'integer', value: 0 }),
-                new LiteralExpression({ type: 'integer', value: 0 }),
-                new LiteralExpression({ type: 'integer', value: colorValue })
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: colorValue })
             );
             
             stmt.execute(context, graphics, audio);
@@ -248,9 +249,9 @@ describe('Statement Implementations', () =>
         it('should have correct toString representation', () =>
         {
             const stmt = new PsetStatement(
-                new LiteralExpression({ type: 'integer', value: 10 }),
-                new LiteralExpression({ type: 'integer', value: 20 }),
-                new LiteralExpression({ type: 'integer', value: 0xFF0000FF })
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 20 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF })
             );
             
             expect(stmt.toString()).toBe('PSET (10, 20) WITH 4278190335');
@@ -262,10 +263,10 @@ describe('Statement Implementations', () =>
         it('should draw line without color', () =>
         {
             const stmt = new LineStatement(
-                new LiteralExpression({ type: 'integer', value: 10 }),
-                new LiteralExpression({ type: 'integer', value: 20 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 20 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
                 null
             );
             
@@ -285,11 +286,11 @@ describe('Statement Implementations', () =>
         it('should draw line with explicit color', () =>
         {
             const stmt = new LineStatement(
-                new LiteralExpression({ type: 'integer', value: 0 }),
-                new LiteralExpression({ type: 'integer', value: 0 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 0x00FF00FF })
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0x00FF00FF })
             );
             
             const result = stmt.execute(context, graphics, audio);
@@ -303,10 +304,10 @@ describe('Statement Implementations', () =>
         it('should draw outline rectangle', () =>
         {
             const stmt = new RectangleStatement(
-                new LiteralExpression({ type: 'integer', value: 10 }),
-                new LiteralExpression({ type: 'integer', value: 20 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 80 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 20 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 80 }),
                 null,
                 false
             );
@@ -325,11 +326,11 @@ describe('Statement Implementations', () =>
         it('should draw filled rectangle with color', () =>
         {
             const stmt = new RectangleStatement(
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 200 }),
-                new LiteralExpression({ type: 'integer', value: 200 }),
-                new LiteralExpression({ type: 'integer', value: 0xFF0000FF }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF }),
                 true
             );
             
@@ -342,10 +343,10 @@ describe('Statement Implementations', () =>
         it('should handle rectangles with reversed coordinates', () =>
         {
             const stmt = new RectangleStatement(
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
                 null,
                 false
             );
@@ -364,10 +365,10 @@ describe('Statement Implementations', () =>
         it('should draw oval', () =>
         {
             const stmt = new OvalStatement(
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 30 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 30 }),
                 null,
                 false
             );
@@ -386,11 +387,11 @@ describe('Statement Implementations', () =>
         it('should draw filled oval with color', () =>
         {
             const stmt = new OvalStatement(
-                new LiteralExpression({ type: 'integer', value: 200 }),
-                new LiteralExpression({ type: 'integer', value: 150 }),
-                new LiteralExpression({ type: 'integer', value: 40 }),
-                new LiteralExpression({ type: 'integer', value: 60 }),
-                new LiteralExpression({ type: 'integer', value: 0x0000FFFF }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 150 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 40 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 60 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0x0000FFFF }),
                 true
             );
             
@@ -406,9 +407,9 @@ describe('Statement Implementations', () =>
         it('should draw circle outline', () =>
         {
             const stmt = new CircleStatement(
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
                 null,
                 false
             );
@@ -428,10 +429,10 @@ describe('Statement Implementations', () =>
         it('should draw filled circle with color', () =>
         {
             const stmt = new CircleStatement(
-                new LiteralExpression({ type: 'integer', value: 200 }),
-                new LiteralExpression({ type: 'integer', value: 200 }),
-                new LiteralExpression({ type: 'integer', value: 75 }),
-                new LiteralExpression({ type: 'integer', value: 0xFFFF00FF }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 75 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFFFF00FF }),
                 true
             );
             
@@ -447,12 +448,12 @@ describe('Statement Implementations', () =>
         it('should draw triangle outline', () =>
         {
             const stmt = new TriangleStatement(
-                new LiteralExpression({ type: 'integer', value: 10 }),
-                new LiteralExpression({ type: 'integer', value: 10 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 90 }),
-                new LiteralExpression({ type: 'integer', value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 90 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
                 null,
                 false
             );
@@ -475,13 +476,13 @@ describe('Statement Implementations', () =>
         it('should draw filled triangle with color', () =>
         {
             const stmt = new TriangleStatement(
-                new LiteralExpression({ type: 'integer', value: 0 }),
-                new LiteralExpression({ type: 'integer', value: 0 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 0 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 0xFF00FFFF }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF00FFFF }),
                 true
             );
             
@@ -497,11 +498,11 @@ describe('Statement Implementations', () =>
         it('should draw arc', () =>
         {
             const stmt = new ArcStatement(
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 100 }),
-                new LiteralExpression({ type: 'integer', value: 50 }),
-                new LiteralExpression({ type: 'real', value: 0 }),
-                new LiteralExpression({ type: 'real', value: 3.14159 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 3.14159 }),
                 null
             );
             
@@ -521,12 +522,12 @@ describe('Statement Implementations', () =>
         it('should draw arc with color', () =>
         {
             const stmt = new ArcStatement(
-                new LiteralExpression({ type: 'integer', value: 200 }),
-                new LiteralExpression({ type: 'integer', value: 200 }),
-                new LiteralExpression({ type: 'integer', value: 30 }),
-                new LiteralExpression({ type: 'real', value: 1.57 }),
-                new LiteralExpression({ type: 'real', value: 4.71 }),
-                new LiteralExpression({ type: 'integer', value: 0xFFFFFFFF })
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 30 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 1.57 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 4.71 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFFFFFFFF })
             );
             
             stmt.execute(context, graphics, audio);
@@ -541,32 +542,32 @@ describe('Statement Implementations', () =>
         {
             it('should add element to end of array', () =>
             {
-                context.setVariable('arr%[]', { type: 'array', value: [
-                    { type: 'integer', value: 1 },
-                    { type: 'integer', value: 2 }
-                ]});
+                context.setVariable('arr%[]', { type: EduBasicType.Array, value: [
+                    { type: EduBasicType.Integer, value: 1 },
+                    { type: EduBasicType.Integer, value: 2 }
+                ], elementType: EduBasicType.Integer });
                 
                 const stmt = new PushStatement(
                     'arr%[]',
-                    new LiteralExpression({ type: 'integer', value: 3 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 3 })
                 );
                 
                 const result = stmt.execute(context, graphics, audio);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
-                expect(arr.type).toBe('array');
+                expect(arr.type).toBe(EduBasicType.Array);
                 expect((arr.value as any[]).length).toBe(3);
-                expect((arr.value as any[])[2]).toEqual({ type: 'integer', value: 3 });
+                expect((arr.value as any[])[2]).toEqual({ type: EduBasicType.Integer, value: 3 });
             });
             
             it('should throw error if variable is not an array', () =>
             {
-                context.setVariable('x%', { type: 'integer', value: 5 });
+                context.setVariable('x%', { type: EduBasicType.Integer, value: 5 });
                 
                 const stmt = new PushStatement(
                     'x%',
-                    new LiteralExpression({ type: 'integer', value: 10 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 10 })
                 );
                 
                 expect(() => stmt.execute(context, graphics, audio)).toThrow('PUSH: x% is not an array');
@@ -577,11 +578,11 @@ describe('Statement Implementations', () =>
         {
             it('should remove element from end of array', () =>
             {
-                context.setVariable('arr%[]', { type: 'array', value: [
-                    { type: 'integer', value: 1 },
-                    { type: 'integer', value: 2 },
-                    { type: 'integer', value: 3 }
-                ]});
+                context.setVariable('arr%[]', { type: EduBasicType.Array, value: [
+                    { type: EduBasicType.Integer, value: 1 },
+                    { type: EduBasicType.Integer, value: 2 },
+                    { type: EduBasicType.Integer, value: 3 }
+                ], elementType: EduBasicType.Integer });
                 
                 const stmt = new PopStatement('arr%[]', 'result%');
                 const result = stmt.execute(context, graphics, audio);
@@ -591,14 +592,14 @@ describe('Statement Implementations', () =>
                 expect((arr.value as any[]).length).toBe(2);
                 
                 const resultVar = context.getVariable('result%');
-                expect(resultVar).toEqual({ type: 'integer', value: 3 });
+                expect(resultVar).toEqual({ type: EduBasicType.Integer, value: 3 });
             });
             
             it('should pop without storing if no target variable', () =>
             {
-                context.setVariable('arr%[]', { type: 'array', value: [
-                    { type: 'integer', value: 1 }
-                ]});
+                context.setVariable('arr%[]', { type: EduBasicType.Array, value: [
+                    { type: EduBasicType.Integer, value: 1 }
+                ], elementType: EduBasicType.Integer });
                 
                 const stmt = new PopStatement('arr%[]', null);
                 stmt.execute(context, graphics, audio);
@@ -609,7 +610,7 @@ describe('Statement Implementations', () =>
             
             it('should throw error if array is empty', () =>
             {
-                context.setVariable('arr%[]', { type: 'array', value: [] });
+                context.setVariable('arr%[]', { type: EduBasicType.Array, value: [], elementType: EduBasicType.Integer });
                 
                 const stmt = new PopStatement('arr%[]', null);
                 
@@ -618,7 +619,7 @@ describe('Statement Implementations', () =>
             
             it('should throw error if variable is not an array', () =>
             {
-                context.setVariable('x%', { type: 'integer', value: 5 });
+                context.setVariable('x%', { type: EduBasicType.Integer, value: 5 });
                 
                 const stmt = new PopStatement('x%', null);
                 
@@ -630,11 +631,11 @@ describe('Statement Implementations', () =>
         {
             it('should remove element from beginning of array', () =>
             {
-                context.setVariable('arr$[]', { type: 'array', value: [
-                    { type: 'string', value: 'first' },
-                    { type: 'string', value: 'second' },
-                    { type: 'string', value: 'third' }
-                ]});
+                context.setVariable('arr$[]', { type: EduBasicType.Array, value: [
+                    { type: EduBasicType.String, value: 'first' },
+                    { type: EduBasicType.String, value: 'second' },
+                    { type: EduBasicType.String, value: 'third' }
+                ], elementType: EduBasicType.String });
                 
                 const stmt = new ShiftStatement('arr$[]', 'result$');
                 const result = stmt.execute(context, graphics, audio);
@@ -642,15 +643,15 @@ describe('Statement Implementations', () =>
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr$[]');
                 expect((arr.value as any[]).length).toBe(2);
-                expect((arr.value as any[])[0]).toEqual({ type: 'string', value: 'second' });
+                expect((arr.value as any[])[0]).toEqual({ type: EduBasicType.String, value: 'second' });
                 
                 const resultVar = context.getVariable('result$');
-                expect(resultVar).toEqual({ type: 'string', value: 'first' });
+                expect(resultVar).toEqual({ type: EduBasicType.String, value: 'first' });
             });
             
             it('should throw error if array is empty', () =>
             {
-                context.setVariable('arr%[]', { type: 'array', value: [] });
+                context.setVariable('arr%[]', { type: EduBasicType.Array, value: [], elementType: EduBasicType.Integer });
                 
                 const stmt = new ShiftStatement('arr%[]', null);
                 
@@ -662,14 +663,14 @@ describe('Statement Implementations', () =>
         {
             it('should add element to beginning of array', () =>
             {
-                context.setVariable('arr%[]', { type: 'array', value: [
-                    { type: 'integer', value: 2 },
-                    { type: 'integer', value: 3 }
-                ]});
+                context.setVariable('arr%[]', { type: EduBasicType.Array, value: [
+                    { type: EduBasicType.Integer, value: 2 },
+                    { type: EduBasicType.Integer, value: 3 }
+                ], elementType: EduBasicType.Integer });
                 
                 const stmt = new UnshiftStatement(
                     'arr%[]',
-                    new LiteralExpression({ type: 'integer', value: 1 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
                 );
                 
                 const result = stmt.execute(context, graphics, audio);
@@ -677,16 +678,16 @@ describe('Statement Implementations', () =>
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
                 expect((arr.value as any[]).length).toBe(3);
-                expect((arr.value as any[])[0]).toEqual({ type: 'integer', value: 1 });
+                expect((arr.value as any[])[0]).toEqual({ type: EduBasicType.Integer, value: 1 });
             });
             
             it('should throw error if variable is not an array', () =>
             {
-                context.setVariable('x%', { type: 'integer', value: 5 });
+                context.setVariable('x%', { type: EduBasicType.Integer, value: 5 });
                 
                 const stmt = new UnshiftStatement(
                     'x%',
-                    new LiteralExpression({ type: 'integer', value: 10 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 10 })
                 );
                 
                 expect(() => stmt.execute(context, graphics, audio)).toThrow('UNSHIFT: x% is not an array');
@@ -700,14 +701,14 @@ describe('Statement Implementations', () =>
         {
             const stmt = new DimStatement(
                 'arr%[]',
-                [new LiteralExpression({ type: 'integer', value: 5 })]
+                [new LiteralExpression({ type: EduBasicType.Integer, value: 5 })]
             );
             
             const result = stmt.execute(context, graphics, audio);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             const arr = context.getVariable('arr%[]');
-            expect(arr.type).toBe('array');
+            expect(arr.type).toBe(EduBasicType.Array);
             expect((arr.value as any[]).length).toBe(5);
         });
         
@@ -716,8 +717,8 @@ describe('Statement Implementations', () =>
             const stmt = new DimStatement(
                 'matrix%[]',
                 [
-                    new LiteralExpression({ type: 'integer', value: 3 }),
-                    new LiteralExpression({ type: 'integer', value: 4 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 4 })
                 ]
             );
             
@@ -733,9 +734,9 @@ describe('Statement Implementations', () =>
             const stmt = new DimStatement(
                 'cube%[]',
                 [
-                    new LiteralExpression({ type: 'integer', value: 2 }),
-                    new LiteralExpression({ type: 'integer', value: 3 }),
-                    new LiteralExpression({ type: 'integer', value: 4 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 4 })
                 ]
             );
             
@@ -751,7 +752,7 @@ describe('Statement Implementations', () =>
         {
             const stmt = new DimStatement(
                 'arr%[]',
-                [new LiteralExpression({ type: 'integer', value: -5 })]
+                [new LiteralExpression({ type: EduBasicType.Integer, value: -5 })]
             );
             
             expect(() => stmt.execute(context, graphics, audio)).toThrow('DIM: Array dimension cannot be negative');
@@ -761,7 +762,7 @@ describe('Statement Implementations', () =>
         {
             const stmt = new DimStatement(
                 'arr%[]',
-                [new LiteralExpression({ type: 'real', value: 5.9 })]
+                [new LiteralExpression({ type: EduBasicType.Real, value: 5.9 })]
             );
             
             stmt.execute(context, graphics, audio);
@@ -806,7 +807,7 @@ describe('Statement Implementations', () =>
             it('should set tempo', () =>
             {
                 const stmt = new TempoStatement(
-                    new LiteralExpression({ type: 'integer', value: 120 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 120 })
                 );
                 
                 const result = stmt.execute(context, graphics, audio);
@@ -818,7 +819,7 @@ describe('Statement Implementations', () =>
             it('should handle real number tempo', () =>
             {
                 const stmt = new TempoStatement(
-                    new LiteralExpression({ type: 'real', value: 95.5 })
+                    new LiteralExpression({ type: EduBasicType.Real, value: 95.5 })
                 );
                 
                 stmt.execute(context, graphics, audio);
@@ -832,7 +833,7 @@ describe('Statement Implementations', () =>
             it('should set volume', () =>
             {
                 const stmt = new VolumeStatement(
-                    new LiteralExpression({ type: 'integer', value: 75 })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 75 })
                 );
                 
                 const result = stmt.execute(context, graphics, audio);
@@ -844,7 +845,7 @@ describe('Statement Implementations', () =>
             it('should handle real number volume', () =>
             {
                 const stmt = new VolumeStatement(
-                    new LiteralExpression({ type: 'real', value: 50.5 })
+                    new LiteralExpression({ type: EduBasicType.Real, value: 50.5 })
                 );
                 
                 stmt.execute(context, graphics, audio);
@@ -858,7 +859,7 @@ describe('Statement Implementations', () =>
             it('should set voice', () =>
             {
                 const stmt = new VoiceStatement(
-                    new LiteralExpression({ type: 'integer', value: 2 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
                     null,
                     null,
                     null,
@@ -874,7 +875,7 @@ describe('Statement Implementations', () =>
             it('should floor real number voice index', () =>
             {
                 const stmt = new VoiceStatement(
-                    new LiteralExpression({ type: 'real', value: 3.7 }),
+                    new LiteralExpression({ type: EduBasicType.Real, value: 3.7 }),
                     null,
                     null,
                     null,
@@ -892,8 +893,8 @@ describe('Statement Implementations', () =>
             it('should play MML sequence', () =>
             {
                 const stmt = new PlayStatement(
-                    new LiteralExpression({ type: 'integer', value: 0 }),
-                    new LiteralExpression({ type: 'string', value: 'CDEFGAB' })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                    new LiteralExpression({ type: EduBasicType.String, value: 'CDEFGAB' })
                 );
                 
                 const result = stmt.execute(context, graphics, audio);
@@ -906,8 +907,8 @@ describe('Statement Implementations', () =>
             it('should handle complex MML sequences', () =>
             {
                 const stmt = new PlayStatement(
-                    new LiteralExpression({ type: 'integer', value: 1 }),
-                    new LiteralExpression({ type: 'string', value: 'O4 L4 C D E F G A B O5 C' })
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                    new LiteralExpression({ type: EduBasicType.String, value: 'O4 L4 C D E F G A B O5 C' })
                 );
                 
                 stmt.execute(context, graphics, audio);

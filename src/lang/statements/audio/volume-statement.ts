@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class VolumeStatement extends Statement
 {
@@ -24,7 +25,7 @@ export class VolumeStatement extends Statement
     ): ExecutionStatus
     {
         const volumeValue = this.level.evaluate(context);
-        const volume = volumeValue.type === 'integer' || volumeValue.type === 'real' ? volumeValue.value as number : 100;
+        const volume = volumeValue.type === EduBasicType.Integer || volumeValue.type === EduBasicType.Real ? volumeValue.value as number : 100;
         
         audio.setVolume(volume);
         

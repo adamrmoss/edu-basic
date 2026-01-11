@@ -329,7 +329,7 @@ export class Audio
             {
                 time += note.duration * beatDuration;
             }
-            else if (note.type === 'note')
+            else if (note.type === 'note' && note.midiNote !== undefined)
             {
                 const frequency = this.midiNoteToFrequency(note.midiNote);
                 const duration = note.duration * beatDuration;

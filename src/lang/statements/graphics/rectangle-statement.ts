@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class RectangleStatement extends Statement
 {
@@ -33,10 +34,10 @@ export class RectangleStatement extends Statement
         const x2Val = this.x2.evaluate(context);
         const y2Val = this.y2.evaluate(context);
         
-        const x1 = Math.floor(x1Val.type === 'integer' || x1Val.type === 'real' ? x1Val.value as number : 0);
-        const y1 = Math.floor(y1Val.type === 'integer' || y1Val.type === 'real' ? y1Val.value as number : 0);
-        const x2 = Math.floor(x2Val.type === 'integer' || x2Val.type === 'real' ? x2Val.value as number : 0);
-        const y2 = Math.floor(y2Val.type === 'integer' || y2Val.type === 'real' ? y2Val.value as number : 0);
+        const x1 = Math.floor(x1Val.type === EduBasicType.Integer || x1Val.type === EduBasicType.Real ? x1Val.value as number : 0);
+        const y1 = Math.floor(y1Val.type === EduBasicType.Integer || y1Val.type === EduBasicType.Real ? y1Val.value as number : 0);
+        const x2 = Math.floor(x2Val.type === EduBasicType.Integer || x2Val.type === EduBasicType.Real ? x2Val.value as number : 0);
+        const y2 = Math.floor(y2Val.type === EduBasicType.Integer || y2Val.type === EduBasicType.Real ? y2Val.value as number : 0);
         
         const x = Math.min(x1, x2);
         const y = Math.min(y1, y2);
@@ -46,7 +47,7 @@ export class RectangleStatement extends Statement
         if (this.color)
         {
             const colorValue = this.color.evaluate(context);
-            const rgba = colorValue.type === 'integer' ? colorValue.value as number : 0xFFFFFFFF;
+            const rgba = colorValue.type === EduBasicType.Integer ? colorValue.value as number : 0xFFFFFFFF;
             
             const r = (rgba >> 24) & 0xFF;
             const g = (rgba >> 16) & 0xFF;
