@@ -37,16 +37,14 @@ EduBASIC is an Angular-based web application that provides a BASIC programming e
 - [EduBASIC Language Reference](docs/edu-basic-language.md) - Complete language specification and reference
 
 **System Architecture Documentation:**
-- [Architecture Overview](docs/architecture/architecture-overview.md) - High-level system architecture and design principles
-- [Application Components](docs/architecture/application-components.md) - All Angular UI components and their functionality
-- [Services](docs/architecture/services.md) - Angular services and their responsibilities
-- [Language Core](docs/architecture/language-core.md) - Core language types, execution model, and runtime structures
-- [Expressions System](docs/architecture/expressions-system.md) - Expression parsing, evaluation, and operator precedence
-- [Statements System](docs/architecture/statements-system.md) - All statement types and their execution
-- [Runtime Execution](docs/architecture/runtime-execution.md) - Runtime execution engine and control flow management
-- [Graphics System](docs/architecture/graphics-system.md) - Graphics rendering system and operations
-- [Audio System](docs/architecture/audio-system.md) - Audio synthesis system using Grit engine
-- [Parser and Tokenizer](docs/architecture/parser-tokenizer.md) - Parsing and tokenization system
+- [Architecture Overview](docs/architecture.md) - High-level system architecture and design principles
+- [Application Components](src/app/README.md) - All Angular UI components and their functionality
+- [Interpreter Services](src/app/interpreter/README.md) - Interpreter, parser, tokenizer, and expression parser services
+- [Console Service](src/app/console/README.md) - Console command execution and history management
+- [Language Core](src/lang/README.md) - Core language types, execution model, runtime execution, graphics, and audio
+- [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
+- [Statements System](src/lang/statements/README.md) - All statement types and their execution
+- [Grit Synthesis System](src/grit/README.md) - Audio synthesis engine and components
 
 ## Tech Stack
 

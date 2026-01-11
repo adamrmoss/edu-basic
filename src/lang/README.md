@@ -171,6 +171,121 @@ Base class for all runtime objects (expressions and statements).
 - `Expression` extends `RuntimeNode`
 - `Statement` extends `RuntimeNode`
 
+## Runtime Execution
+
+### RuntimeExecution
+
+**Location**: `src/lang/runtime-execution.ts`
+
+Manages step-by-step program execution with control flow handling.
+
+**Key Responsibilities**:
+- Step-by-step statement execution
+- Control structure management (IF, WHILE, FOR, DO)
+- Control stack management
+- Tab switching coordination
+- Program counter management
+
+**Control Structure Frames**:
+```typescript
+interface ControlStructureFrame {
+    type: 'if' | 'while' | 'do' | 'for';
+    startLine: number;
+    endLine: number;
+    nestedStatements?: Statement[];
+    nestedIndex?: number;
+    loopVariable?: string;
+    loopStartValue?: number;
+    loopEndValue?: number;
+    loopStepValue?: number;
+    condition?: any;
+}
+```
+
+**Key Methods**:
+- `executeStep(): ExecutionResult` - Execute one step
+- `pushControlFrame(frame)` - Push control frame
+- `popControlFrame()` - Pop control frame
+- `getCurrentControlFrame()` - Get current frame
+- `findControlFrame(type)` - Find frame by type
+- `setTabSwitchCallback(callback)` - Set tab switch callback
+- `requestTabSwitch(tabId)` - Request tab switch
+
+**Execution Flow**:
+```
+executeStep()
+    ↓
+Check for active control frame
+    ↓
+If frame exists:
+    Execute next nested statement
+    Increment nestedIndex
+    Check if frame complete
+    ↓
+Else:
+    Get statement at program counter
+    Execute statement
+    Handle result
+    Increment program counter
+```
+
+## Graphics System
+
+### Graphics
+
+**Location**: `src/lang/graphics.ts`
+
+Manages all graphics operations including text output and pixel graphics.
+
+**Display Specifications**:
+- Resolution: 640×480 pixels
+- Text Grid: 80 columns × 30 rows
+- Character Size: 8×16 pixels
+- Coordinate System: Bottom-left origin (0,0)
+- Color Format: 32-bit RGBA (8 bits per channel)
+
+**Key Methods**:
+- `setContext(context: CanvasRenderingContext2D)` - Set canvas context
+- `setForegroundColor(color: Color)` - Set text/graphics color
+- `setBackgroundColor(color: Color)` - Set background color
+- `printText(text: string)` - Print text
+- `printChar(char: string)` - Print character
+- `newLine()` - Move to next line
+- `setCursorPosition(row, column)` - Set cursor position
+- `drawPixel(x, y, color?)` - Draw pixel
+- `drawLine(x1, y1, x2, y2, color?)` - Draw line
+- `drawRectangle(x, y, width, height, filled, color?)` - Draw rectangle
+- `drawCircle(x, y, radius, filled, color?)` - Draw circle
+- `drawOval(x, y, width, height, filled, color?)` - Draw oval
+- `drawTriangle(x1, y1, x2, y2, x3, y3, filled, color?)` - Draw triangle
+- `drawArc(x, y, radius, startAngle, endAngle, color?)` - Draw arc
+- `clear()` - Clear screen
+- `flush()` - Render buffer to canvas
+
+**Buffer Management**:
+- Uses `ImageData` buffer (640×480×4 bytes)
+- Buffer updated in memory
+- `flush()` writes to canvas and triggers callback
+
+## Audio System
+
+### Audio
+
+**Location**: `src/lang/audio.ts`
+
+Manages audio synthesis using Web Audio API and the Grit synthesis system.
+
+**Key Methods**:
+- `setTempo(bpm: number)` - Set tempo in BPM
+- `setVolume(volume: number)` - Set master volume (0-100)
+- `setVoice(voiceIndex: number, preset: string)` - Set voice preset
+- `playNote(frequency: number, duration: number, velocity: number, voice?: number)` - Play note
+
+**Integration**:
+- Uses Grit synthesis system (see `src/grit/README.md`)
+- AudioWorklet for real-time processing
+- Multiple voices for polyphony
+
 ## Execution Model
 
 ### Statement Execution

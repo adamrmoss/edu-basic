@@ -1,6 +1,6 @@
-# Angular Services
+# Interpreter Services
 
-This document describes all Angular services in the EduBASIC application and their responsibilities.
+This document describes all Angular services in the interpreter layer.
 
 ## Service Architecture
 
@@ -205,82 +205,6 @@ Canvas rendering
 
 **Key Methods**:
 - `getAudio()`: Returns Audio instance
-
-**Dependencies**: None (root service)
-
-## UI Services
-
-### ConsoleService
-
-**Location**: `src/app/console/console.service.ts`
-
-**Purpose**: Manages console input/output and command execution.
-
-**Key Responsibilities**:
-- Executes console commands
-- Maintains command history
-- Displays input/output/error messages
-- Coordinates with parser and interpreter
-
-**Key Properties**:
-- `displayHistory$: Observable<ConsoleEntry[]>` - Console display entries
-- `inputHistory$: Observable<string[]>` - Command history
-- `historyIndex$: Observable<number>` - Current history position
-
-**Key Methods**:
-- `executeCommand(command: string)`: Parses and executes command
-- `printOutput(message: string)`: Adds output to display
-- `printError(message: string)`: Adds error to display
-- `navigateHistoryUp()`: Previous command in history
-- `navigateHistoryDown()`: Next command in history
-
-**Command Execution Flow**:
-```
-executeCommand(command)
-    ↓
-ParserService.parseLine()
-    ↓
-Get shared context from InterpreterService
-    ↓
-Statement.execute()
-    ↓
-Results displayed
-```
-
-**Dependencies**:
-- `ParserService` - Command parsing
-- `InterpreterService` - Execution context
-- `GraphicsService` - Graphics instance
-- `AudioService` - Audio instance
-
-**ConsoleEntry Interface**:
-```typescript
-interface ConsoleEntry {
-    type: 'input' | 'output' | 'error';
-    text: string;
-    timestamp: Date;
-}
-```
-
-### TabSwitchService
-
-**Location**: `src/app/tab-switch.service.ts`
-
-**Purpose**: Coordinates tab switching between components.
-
-**Key Responsibilities**:
-- Emits tab switch requests
-- Allows statements to trigger tab switches
-- Decouples statement execution from UI
-
-**Key Properties**:
-- `switchTab$: Observable<string>` - Tab switch requests
-
-**Key Methods**:
-- `requestTabSwitch(tabId: string)`: Request tab switch
-
-**Usage Pattern**:
-Statements call `runtime.requestTabSwitch('output')` which triggers this service, which AppComponent subscribes to.
 
 **Dependencies**: None (root service)
 
