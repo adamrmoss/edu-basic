@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { WindowComponent, TabsComponent, TabComponent } from 'ng-luna';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
@@ -28,6 +28,9 @@ export class AppComponent implements OnInit, OnDestroy
     @ViewChild('tabsComponent', { static: false })
     public tabsComponent!: TabsComponent;
 
+    @ViewChildren(TabComponent)
+    public tabs!: QueryList<TabComponent>;
+
     public title = 'EduBASIC';
 
     private readonly destroy$ = new Subject<void>();
@@ -53,18 +56,16 @@ export class AppComponent implements OnInit, OnDestroy
 
     private switchToTab(tabId: string): void
     {
-        if (this.tabsComponent)
+        if (this.tabsComponent && this.tabs)
         {
-            const tabs = (this.tabsComponent as any)._tabs;
+            const tabArray = this.tabs.toArray();
+            const tabIndex = tabArray.findIndex((tab: any) => tab.id === tabId);
 
-            if (tabs && Array.isArray(tabs._results))
+            if (tabIndex >= 0)
             {
-                const tabIndex = tabs._results.findIndex((tab: any) => tab.id === tabId);
-
-                if (tabIndex >= 0)
-                {
-                    (this.tabsComponent as any).selectTab?.(tabIndex);
-                }
+                const tabsComponentAny = this.tabsComponent as any;
+                tabsComponentAny.activeTabId = tabId;
+                tabsComponentAny.updateActiveTab();
             }
         }
     }
