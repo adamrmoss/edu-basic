@@ -1,0 +1,324 @@
+# Language Core
+
+This document describes the core language types, execution model, and runtime structures.
+
+## Value System
+
+### EduBasicType
+
+**Location**: `src/lang/edu-basic-value.ts`
+
+Enumeration of all value types in EduBASIC:
+
+```typescript
+enum EduBasicType {
+    Integer = 'INTEGER',    // Integer numbers (suffix: %)
+    Real = 'REAL',          // Floating-point numbers (suffix: #)
+    Complex = 'COMPLEX',    // Complex numbers (suffix: &)
+    String = 'STRING',      // Text strings (suffix: $)
+    Structure = 'STRUCTURE', // Key-value structures (no suffix)
+    Array = 'ARRAY'         // Arrays of values (suffix: [])
+}
+```
+
+### EduBasicValue
+
+**Location**: `src/lang/edu-basic-value.ts`
+
+Discriminated union type representing all possible values:
+
+```typescript
+type EduBasicValue = 
+    | { type: EduBasicType.Integer; value: number }
+    | { type: EduBasicType.Real; value: number }
+    | { type: EduBasicType.Complex; value: ComplexValue }
+    | { type: EduBasicType.String; value: string }
+    | { type: EduBasicType.Structure; value: Map<string, EduBasicValue> }
+    | { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType };
+```
+
+**Type Discrimination**:
+- All values have a `type` field for type checking
+- Type guards can check `value.type === EduBasicType.Integer`, etc.
+- Arrays include `elementType` to track array element types
+
+**ComplexValue Interface**:
+```typescript
+interface ComplexValue {
+    real: number;
+    imaginary: number;
+}
+```
+
+**Type Suffixes**:
+- `%` - Integer (e.g., `x%`)
+- `#` - Real (e.g., `y#`)
+- `&` - Complex (e.g., `z&`)
+- `$` - String (e.g., `name$`)
+- `[]` - Array (e.g., `arr%[]`)
+
+## Execution Context
+
+### ExecutionContext
+
+**Location**: `src/lang/execution-context.ts`
+
+Manages variable storage and program execution state.
+
+**Key Responsibilities**:
+- Global and local variable storage
+- Variable name canonicalization (case-insensitive)
+- Call stack management for subroutines
+- Program counter tracking
+
+**Key Properties**:
+- `globalVariables: Map<string, EduBasicValue>` - Global variables
+- `canonicalGlobalNames: Map<string, string>` - Original case of variable names
+- `stackFrames: StackFrame[]` - Call stack for subroutines
+- `programCounter: number` - Current execution line
+
+**Key Methods**:
+- `getVariable(name: string): EduBasicValue` - Get variable (creates default if missing)
+- `setVariable(name: string, value: EduBasicValue, isLocal?: boolean)` - Set variable
+- `hasVariable(name: string): boolean` - Check if variable exists
+- `getCanonicalName(name: string): string` - Get original case of variable name
+- `pushStackFrame(returnAddress: number)` - Push subroutine call frame
+- `popStackFrame(): number | undefined` - Pop frame and return address
+- `getProgramCounter()`, `setProgramCounter()`, `incrementProgramCounter()` - PC management
+
+**Variable Lookup**:
+1. Check local variables in current stack frame
+2. Check global variables
+3. Return default value based on type suffix if not found
+
+**Default Values**:
+- Integer (`%`): `0`
+- Real (`#`): `0.0`
+- Complex (`&`): `{ real: 0, imaginary: 0 }`
+- String (`$`): `''`
+- Array (`[]`): `[]` with appropriate element type
+- Structure: `new Map()`
+
+**StackFrame Interface**:
+```typescript
+interface StackFrame {
+    localVariables: Map<string, EduBasicValue>;
+    canonicalLocalNames: Map<string, string>;
+    returnAddress: number;
+}
+```
+
+**Name Canonicalization**:
+- Variable names are case-insensitive for lookup
+- Original case is preserved for display
+- `getCanonicalName()` returns the original case
+
+## Program Structure
+
+### Program
+
+**Location**: `src/lang/program.ts`
+
+Represents a BASIC program as a collection of statements.
+
+**Key Responsibilities**:
+- Statement storage and retrieval
+- Label mapping for GOTO/GOSUB
+- Line insertion/deletion/replacement
+- Label index maintenance
+
+**Key Properties**:
+- `statements: Statement[]` - Array of statements
+- `labelMap: Map<string, number>` - Label name to line index mapping
+
+**Key Methods**:
+- `getStatement(lineIndex: number): Statement | undefined` - Get statement at line
+- `getStatements(): readonly Statement[]` - Get all statements
+- `getLineCount(): number` - Get number of lines
+- `insertLine(lineIndex: number, statement: Statement)` - Insert statement
+- `deleteLine(lineIndex: number)` - Delete statement
+- `replaceLine(lineIndex: number, statement: Statement)` - Replace statement
+- `appendLine(statement: Statement)` - Append statement
+- `getLabelIndex(labelName: string): number | undefined` - Get line index for label
+- `hasLabel(labelName: string): boolean` - Check if label exists
+- `clear()` - Clear all statements
+- `rebuildLabelMap()` - Rebuild label mapping
+
+**Label Management**:
+- Labels are automatically tracked when `LabelStatement` is added
+- Label map is updated when lines are inserted/deleted
+- Labels are case-insensitive (stored uppercase)
+
+**Line Indexing**:
+- Lines are 0-indexed internally
+- Line numbers in source code are separate from indices
+- Indices are used for program counter
+
+## Runtime Node
+
+### RuntimeNode
+
+**Location**: `src/lang/runtime-node.ts`
+
+Base class for all runtime objects (expressions and statements).
+
+**Purpose**: Provides common interface for string representation.
+
+**Key Methods**:
+- `toString(): string` - Abstract method for string representation
+
+**Inheritance**:
+- `Expression` extends `RuntimeNode`
+- `Statement` extends `RuntimeNode`
+
+## Execution Model
+
+### Statement Execution
+
+Statements receive execution context and return execution status:
+
+```typescript
+execute(
+    context: ExecutionContext,
+    graphics: Graphics,
+    audio: Audio,
+    program: Program,
+    runtime: RuntimeExecution
+): ExecutionStatus
+```
+
+**ExecutionStatus Interface**:
+```typescript
+interface ExecutionStatus {
+    result: ExecutionResult;
+    gotoTarget?: number;  // For GOTO statements
+}
+```
+
+**ExecutionResult Enum**:
+- `Continue` - Continue to next statement
+- `End` - End program execution
+- `Goto` - Jump to line (gotoTarget specified)
+- `Return` - Return from subroutine
+
+### Expression Evaluation
+
+Expressions evaluate to values:
+
+```typescript
+evaluate(context: ExecutionContext): EduBasicValue
+```
+
+**Evaluation Flow**:
+1. Expression receives execution context
+2. Accesses variables via context
+3. Performs operations
+4. Returns `EduBasicValue`
+
+### Shared Execution Context
+
+**Key Design Decision**: A single `ExecutionContext` instance is shared across all console commands.
+
+**Benefits**:
+- Variables persist between commands
+- Interactive programming possible
+- State accumulates naturally
+
+**Implementation**:
+- `InterpreterService` maintains single instance
+- `ConsoleService` uses shared context for all commands
+- Variables set in one command available in next
+
+**Example**:
+```
+> LET x% = 10
+> PRINT x%
+10
+> LET x% = x% + 5
+> PRINT x%
+15
+```
+
+## Type System
+
+### Type Coercion
+
+EduBASIC performs automatic type coercion:
+
+**Numeric Coercion**:
+- Integer → Real: Automatic
+- Real → Integer: Truncation
+- Numeric → Complex: Real part set, imaginary = 0
+
+**String Coercion**:
+- Any value → String: `toString()` conversion
+- String → Numeric: Parse if possible, else error
+
+**Array Coercion**:
+- Arrays maintain element type
+- Type errors on mismatched element types
+
+### Type Checking
+
+**Runtime Type Checking**:
+- Type errors detected during execution
+- Operations validate operand types
+- Array operations check element types
+
+**Type Inference**:
+- Variable types inferred from suffix
+- Array element types tracked
+- Structure types are dynamic
+
+## Memory Management
+
+### Variable Storage
+
+**Global Variables**:
+- Stored in `ExecutionContext.globalVariables`
+- Persist for program lifetime
+- Accessible from anywhere
+
+**Local Variables**:
+- Stored in stack frame `localVariables`
+- Scoped to subroutine
+- Automatically cleaned on return
+
+**Default Values**:
+- Variables created on first access
+- Default value based on type suffix
+- No explicit declaration required (but DIM recommended for arrays)
+
+### Garbage Collection
+
+- JavaScript handles memory management
+- No explicit memory management needed
+- Variables cleaned when out of scope
+
+## Error Handling
+
+### Runtime Errors
+
+**Type Errors**:
+- Invalid type operations
+- Array index out of bounds
+- Division by zero
+
+**Undefined Behavior**:
+- Accessing undefined variables returns defaults
+- Array access beyond bounds returns default
+- Invalid operations may throw exceptions
+
+### Error Propagation
+
+- Errors caught in `ConsoleService.executeCommand()`
+- Displayed to user via console
+- Don't crash application
+
+## Future Enhancements
+
+Potential additions:
+- **Type annotations**: Explicit type declarations
+- **Constants**: Immutable named values
+- **Namespaces**: Variable scoping beyond subroutines
+- **Modules**: Code organization and imports
