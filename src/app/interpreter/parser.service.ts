@@ -1508,21 +1508,53 @@ export class ParserService
         // Collect remaining tokens for expression parser
         const exprTokens: Token[] = [];
         const startPos = this.current;
+        let parenDepth = 0;
+        let bracketDepth = 0;
+        let braceDepth = 0;
         
         // Scan to end of expression (until EOF, comma, semicolon, keyword, etc.)
         while (!this.isAtEnd() && this.peek().type !== TokenType.EOF)
         {
             const token = this.peek();
             
-            // Stop at statement separators, closing delimiters, or keywords that end expressions
-            if (token.type === TokenType.Comma || 
-                token.type === TokenType.Semicolon ||
-                token.type === TokenType.RightParen ||
-                token.type === TokenType.RightBracket ||
-                token.type === TokenType.RightBrace ||
-                (token.type === TokenType.Keyword && this.isStatementKeyword(token.value)))
+            // Stop at statement separators when at depth 0 (not inside any delimiters)
+            if (parenDepth === 0 && bracketDepth === 0 && braceDepth === 0)
             {
-                break;
+                if (token.type === TokenType.Comma || 
+                    token.type === TokenType.Semicolon ||
+                    token.type === TokenType.RightParen ||
+                    token.type === TokenType.RightBracket ||
+                    token.type === TokenType.RightBrace ||
+                    (token.type === TokenType.Keyword && this.isStatementKeyword(token.value)))
+                {
+                    break;
+                }
+            }
+            
+            // Track delimiter depth
+            if (token.type === TokenType.LeftParen)
+            {
+                parenDepth++;
+            }
+            else if (token.type === TokenType.RightParen)
+            {
+                parenDepth--;
+            }
+            else if (token.type === TokenType.LeftBracket)
+            {
+                bracketDepth++;
+            }
+            else if (token.type === TokenType.RightBracket)
+            {
+                bracketDepth--;
+            }
+            else if (token.type === TokenType.LeftBrace)
+            {
+                braceDepth++;
+            }
+            else if (token.type === TokenType.RightBrace)
+            {
+                braceDepth--;
             }
             
             exprTokens.push(token);

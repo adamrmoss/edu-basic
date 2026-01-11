@@ -240,6 +240,51 @@ describe('ParserService', () =>
             expect(stmt.newline).toBe(false);
         });
 
+        it('should parse PRINT with parenthesized expression', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT (1 + 2)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(1);
+            expect(stmt.newline).toBe(true);
+        });
+
+        it('should parse PRINT with nested parentheses', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT ((1 + 2) * 3)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(1);
+        });
+
+        it('should parse PRINT with multiple parenthesized expressions', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT (1 + 2), (3 * 4), (5 - 6)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(3);
+        });
+
+        it('should parse PRINT with complex expression containing parentheses', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT (a% + b%) * (c% - d%)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(1);
+        });
+
         it('should parse COLOR statement', () =>
         {
             const result = parser.parseLine(1, 'COLOR &HFF0000FF');
