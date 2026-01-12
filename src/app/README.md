@@ -36,7 +36,7 @@ All components are **standalone** (no NgModules) and follow Angular 19 best prac
   <luna-tabs>
     <luna-tab id="console">...</luna-tab>
     <luna-tab id="code">...</luna-tab>
-    <luna-tab id="files">...</luna-tab>
+    <luna-tab id="disk">...</luna-tab>
     <luna-tab id="output">...</luna-tab>
   </luna-tabs>
 </luna-window>
@@ -94,15 +94,25 @@ Results displayed in console/output
 - Line numbers display
 - Textarea for code input
 - Synchronized scrolling between line numbers and editor
+- Integration with DiskService for program persistence
 
 **Key Properties**:
 - `lines: string[]` - Array of code lines
 - `currentLine: number` - Currently focused line
 
 **Key Methods**:
+- `ngOnInit()`: Subscribes to DiskService.programCode$ to load program
 - `getLineNumbers()`: Returns array of line numbers for display
-- `onTextAreaInput(event)`: Updates lines array when text changes
+- `onTextAreaInput(event)`: Updates lines and saves to DiskService
 - `onTextAreaScroll(event)`: Synchronizes line number scroll with editor scroll
+
+**Dependencies**:
+- `DiskService` - For loading and saving program code
+
+**Integration**:
+- Subscribes to `programCode$` observable to load program when disk changes
+- Updates DiskService when code is edited
+- Program code is automatically saved with disk
 
 **UI Structure**:
 - Left: Line numbers column
@@ -146,50 +156,67 @@ context.putImageData(buffer, 0, 0)
 Canvas displays updated graphics
 ```
 
-## Files Component
+## Disk Component
 
-### FilesComponent
+### DiskComponent
 
-**Location**: `src/app/files/files.component.ts`
+**Location**: `src/app/disk/disk.component.ts`
 
-**Purpose**: File browser and editor for managing BASIC source files.
+**Purpose**: Project and data file management system. Manages complete projects (disks) containing BASIC program code and data files.
 
 **Key Features**:
-- File tree navigation
-- File selection and editing
-- Text and hex view modes
-- Line numbers in text mode
-- Synchronized scrolling
+- Disk name editing
+- New/Load/Save disk operations (ZIP format)
+- Data file browser and editor
+- Text and hex view modes for files
+- File creation and deletion
+- UTF-8 text encoding
 
 **Key Properties**:
-- `fileTree: FileNode[]` - File system tree structure
+- `diskName: string` - Current disk name
+- `fileList: FileNode[]` - List of data files on disk
 - `selectedFile: FileNode | null` - Currently selected file
-- `editorLines: string[]` - Lines of selected file
+- `fileContent: string` - Content of selected file
 - `viewMode: 'text' | 'hex'` - Current view mode
 
 **Key Methods**:
-- `selectFile(file: FileNode)`: Selects a file for editing
-- `getLineNumbers()`: Returns line numbers for display
-- `onTextAreaInput(event)`: Updates file content when edited
-- `onTextAreaScroll(event)`: Synchronizes line number scroll
+- `onNewDisk()`: Creates a new empty disk
+- `onLoadDisk()`: Loads a disk from ZIP file
+- `onSaveDisk()`: Saves disk as ZIP file
+- `onDiskNameChange()`: Updates disk name
+- `onNewFile()`: Creates a new data file
+- `onDeleteFile()`: Deletes selected file
+- `selectFile(file)`: Loads file for editing
 - `toggleViewMode()`: Switches between text and hex views
-- `getHexContent()`: Converts file content to hex dump format
+- `getHexContent()`: Converts file to hex dump format
+
+**Dependencies**:
+- `DiskService` - Disk and file management
+- `FileSystemService` (via DiskService) - Virtual file system
 
 **FileNode Interface**:
 ```typescript
 interface FileNode {
     name: string;
-    type: 'file' | 'directory';
-    children?: FileNode[];
-    content?: string;
+    path: string;
+    type: 'file';
 }
 ```
 
 **UI Structure**:
-- Left: File tree pane with folder/file icons
-- Right: Editor pane with:
-  - Toolbar (file name, view mode toggle)
+- Left sidebar:
+  - Disk controls (name, New/Load/Save buttons)
+  - Data file list with + button
+- Right pane:
+  - File editor toolbar (name, Text/Hex toggle, Delete)
   - Text editor (with line numbers) or hex viewer
+
+**Integration**:
+- Data files are accessible from BASIC programs via file I/O statements
+- Program code is stored separately (not shown in file list)
+- All files are persisted in ZIP format when disk is saved
+
+See `src/app/disk/README.md` for detailed documentation.
 
 ## Component Communication
 
@@ -201,6 +228,8 @@ Components communicate through Angular services:
 2. **GraphicsService**: Graphics buffer updates
 3. **TabSwitchService**: Tab navigation requests
 4. **InterpreterService**: Program execution state
+5. **DiskService**: Disk and project management
+6. **FileSystemService**: Virtual file system for BASIC file I/O
 
 ### Reactive Data Flow
 

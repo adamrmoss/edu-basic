@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export enum FileMode
 {
@@ -32,7 +33,36 @@ export class OpenStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('OPEN statement not yet implemented');
+        const filenameValue = this.filename.evaluate(context, graphics, audio);
+        
+        if (filenameValue.type !== EduBasicType.String)
+        {
+            throw new Error('OPEN: filename must be a string');
+        }
+
+        const filename = filenameValue.value as string;
+
+        let modeStr: 'read' | 'write' | 'append';
+        
+        switch (this.mode)
+        {
+            case FileMode.Read:
+                modeStr = 'read';
+                break;
+            case FileMode.Append:
+                modeStr = 'append';
+                break;
+            case FileMode.Overwrite:
+                modeStr = 'write';
+                break;
+        }
+
+        const fileSystem = runtime.getFileSystem();
+        const handleId = fileSystem.openFile(filename, modeStr);
+
+        context.setVariable(this.handleVariable, { type: EduBasicType.Integer, value: handleId });
+
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

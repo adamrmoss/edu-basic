@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { ConsoleComponent } from './console/console.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
-import { FilesComponent } from './files/files.component';
+import { DiskComponent } from './disk/disk.component';
 import { OutputComponent } from './output/output.component';
 import { TabSwitchService } from './tab-switch.service';
 
@@ -17,7 +17,7 @@ import { TabSwitchService } from './tab-switch.service';
         TabComponent,
         ConsoleComponent,
         CodeEditorComponent,
-        FilesComponent,
+        DiskComponent,
         OutputComponent
     ],
     templateUrl: './app.component.html',

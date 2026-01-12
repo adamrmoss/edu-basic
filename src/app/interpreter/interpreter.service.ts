@@ -7,6 +7,7 @@ import { RuntimeExecution } from '../../lang/runtime-execution';
 import { GraphicsService } from './graphics.service';
 import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
+import { FileSystemService } from '../filesystem.service';
 
 export enum InterpreterState
 {
@@ -46,7 +47,8 @@ export class InterpreterService
     constructor(
         private readonly graphicsService: GraphicsService,
         private readonly audioService: AudioService,
-        private readonly tabSwitchService: TabSwitchService
+        private readonly tabSwitchService: TabSwitchService,
+        private readonly fileSystemService: FileSystemService
     )
     {
         this.executionContext = new ExecutionContext();
@@ -186,7 +188,8 @@ export class InterpreterService
                 this.sharedProgram,
                 this.executionContext,
                 this.graphicsService.getGraphics(),
-                this.audioService.getAudio()
+                this.audioService.getAudio(),
+                this.fileSystemService
             );
             this.runtimeExecution.setTabSwitchCallback((tabId: string) => {
                 this.tabSwitchService.requestTabSwitch(tabId);

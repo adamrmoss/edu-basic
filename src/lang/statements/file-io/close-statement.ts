@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class CloseStatement extends Statement
 {
@@ -23,7 +24,19 @@ export class CloseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('CLOSE statement not yet implemented');
+        const handleValue = this.fileHandle.evaluate(context, graphics, audio);
+        
+        if (handleValue.type !== EduBasicType.Integer)
+        {
+            throw new Error('CLOSE: file handle must be an integer');
+        }
+
+        const handleId = handleValue.value as number;
+        const fileSystem = runtime.getFileSystem();
+        
+        fileSystem.closeFile(handleId);
+
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string
