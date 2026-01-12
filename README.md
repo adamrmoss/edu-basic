@@ -142,8 +142,19 @@ npm run watch
 
 ### Testing
 
+Run all tests:
 ```bash
 npm test
+```
+
+Run tests with verbose output:
+```bash
+npm run test:verbose
+```
+
+Run tests in watch mode (auto-rerun on file changes):
+```bash
+npm run test:watch
 ```
 
 ## Component Architecture

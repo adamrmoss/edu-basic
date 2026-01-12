@@ -76,7 +76,8 @@ export class DiskService
         {
             for (const [path, data] of files.entries())
             {
-                filesFolder.file(path, data);
+                const buffer = new Uint8Array(data).buffer;
+                filesFolder.file(path, buffer);
             }
         }
 
@@ -126,16 +127,19 @@ export class DiskService
         
         if (filesFolder)
         {
-            const fileEntries = Object.entries(filesFolder.files);
+            const fileEntries: Array<[string, any]> = [];
+            filesFolder.forEach((relativePath, zipEntry) => {
+                if (!zipEntry.dir)
+                {
+                    fileEntries.push([relativePath, zipEntry]);
+                }
+            });
             
             for (const [relativePath, zipEntry] of fileEntries)
             {
-                if (!zipEntry.dir)
-                {
-                    const path = relativePath.replace(/^files\//, '');
-                    const data = await zipEntry.async('uint8array');
-                    this.fileSystemService.writeFile(path, data);
-                }
+                const path = relativePath.replace(/^files\//, '');
+                const data = await zipEntry.async('uint8array');
+                this.fileSystemService.writeFile(path, data);
             }
         }
 
