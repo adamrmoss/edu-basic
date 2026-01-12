@@ -53,6 +53,10 @@
                                 "input": "public"
                             },
                             {
+                                "glob": ".htaccess",
+                                "input": "public"
+                            },
+                            {
                                 "glob": "**/*",
                                 "input": "node_modules/ng-luna/assets/fonts",
                                 "output": "/assets/fonts"
