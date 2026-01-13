@@ -1,12 +1,21 @@
 <div class="code-editor-container">
-    <div class="line-numbers">
-        <div *ngFor="let lineNum of getLineNumbers()" class="line-number">{{ lineNum }}</div>
+    <div class="editor-toolbar">
+        <button class="run-button" (click)="onRun()">Run</button>
     </div>
-    <textarea 
-        class="code-textarea"
-        spellcheck="false"
-        (input)="onTextAreaInput($event)"
-        (scroll)="onTextAreaScroll($event)"
-    ></textarea>
+    <div class="editor-content">
+        <div #lineNumbersDiv class="line-numbers">
+            <div *ngFor="let lineNum of lineNumbers" class="line-number">
+                <span *ngIf="lineNum > 0">{{ lineNum }}</span>
+            </div>
+        </div>
+        <textarea 
+            #codeTextarea
+            class="code-textarea"
+            spellcheck="false"
+            [value]="code"
+            (input)="onTextAreaInput($event)"
+            (scroll)="onTextAreaScroll($event)"
+        ></textarea>
+    </div>
 </div>
 

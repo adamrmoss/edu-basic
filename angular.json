@@ -72,7 +72,7 @@
                             "budgets": [
                                 {
                                     "type": "initial",
-                                    "maximumWarning": "500kB",
+                                    "maximumWarning": "600kB",
                                     "maximumError": "1MB"
                                 },
                                 {
@@ -80,6 +80,9 @@
                                     "maximumWarning": "4kB",
                                     "maximumError": "8kB"
                                 }
+                            ],
+                            "allowedCommonJsDependencies": [
+                                "jszip"
                             ],
                             "outputHashing": "all"
                         },

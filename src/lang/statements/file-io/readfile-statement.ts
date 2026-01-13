@@ -25,7 +25,7 @@ export class ReadfileStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const filenameValue = this.filename.evaluate(context, graphics, audio);
+        const filenameValue = this.filename.evaluate(context);
         
         if (filenameValue.type !== EduBasicType.String)
         {

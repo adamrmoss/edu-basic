@@ -213,11 +213,11 @@
 
     &.delete
     {
-        background-color: $red;
+        background-color: $blue-steel-dark;
 
         &:hover
         {
-            background-color: $red-dark;
+            background-color: $blue-steel;
         }
     }
 }

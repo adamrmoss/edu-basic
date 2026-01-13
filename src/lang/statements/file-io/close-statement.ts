@@ -24,7 +24,7 @@ export class CloseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const handleValue = this.fileHandle.evaluate(context, graphics, audio);
+        const handleValue = this.fileHandle.evaluate(context);
         
         if (handleValue.type !== EduBasicType.Integer)
         {

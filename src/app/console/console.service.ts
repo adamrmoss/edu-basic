@@ -100,6 +100,7 @@ export class ConsoleService
         }
         catch (error)
         {
+            console.error('Error executing command:', error);
             this.printError(error instanceof Error ? error.message : String(error));
         }
     }

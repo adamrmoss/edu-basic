@@ -182,6 +182,8 @@ export class ParserService
         }
         catch (error)
         {
+            console.error(`Parse error on line ${lineNumber}:`, error);
+            
             const errorMessage = error instanceof Error ? error.message : String(error);
             const statement = new UnparsableStatement(sourceText, errorMessage);
             statement.indentLevel = this.currentIndentLevel;

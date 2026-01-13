@@ -79,6 +79,7 @@ export class InterpreterService
     {
         this.programSubject.next(program);
         this.parseResultSubject.next(null);
+        this.sharedProgram = program; // Update shared program (though we're reusing the same instance now)
     }
 
     public createProgram(): Program
@@ -105,6 +106,8 @@ export class InterpreterService
         }
         catch (error)
         {
+            console.error('Error parsing source code:', error);
+            
             const result: ParseResult = {
                 success: false,
                 errors: [error instanceof Error ? error.message : String(error)],

@@ -98,7 +98,7 @@ export class DiskComponent implements OnInit, OnDestroy
                 }
                 catch (error)
                 {
-                    alert(`Error loading disk: ${error}`);
+                    console.error('Error loading disk:', error);
                 }
             }
         };
@@ -114,7 +114,7 @@ export class DiskComponent implements OnInit, OnDestroy
         }
         catch (error)
         {
-            alert(`Error saving disk: ${error}`);
+            console.error('Error saving disk:', error);
         }
     }
 

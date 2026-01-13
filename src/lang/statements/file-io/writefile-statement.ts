@@ -25,8 +25,8 @@ export class WritefileStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const contentValue = this.content.evaluate(context, graphics, audio);
-        const filenameValue = this.filename.evaluate(context, graphics, audio);
+        const contentValue = this.content.evaluate(context);
+        const filenameValue = this.filename.evaluate(context);
         
         if (filenameValue.type !== EduBasicType.String)
         {
