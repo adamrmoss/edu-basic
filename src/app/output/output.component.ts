@@ -11,7 +11,7 @@ import { GraphicsService } from '../interpreter/graphics.service';
 })
 export class OutputComponent implements AfterViewInit, OnDestroy
 {
-    @ViewChild('canvas', { static: false }) 
+    @ViewChild('canvas', { static: false })
     public canvasRef!: ElementRef<HTMLCanvasElement>;
     
     public isRunning: boolean = false;

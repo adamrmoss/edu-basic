@@ -15,8 +15,11 @@ import { ExecutionResult } from '../../lang/statements/statement';
 })
 export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
 {
-    @ViewChild('codeTextarea', { static: false }) codeTextareaRef!: ElementRef<HTMLTextAreaElement>;
-    @ViewChild('lineNumbersDiv', { static: false }) lineNumbersRef!: ElementRef<HTMLDivElement>;
+    @ViewChild('codeTextarea', { static: false })
+    public codeTextareaRef!: ElementRef<HTMLTextAreaElement>;
+
+    @ViewChild('lineNumbersDiv', { static: false })
+    public lineNumbersRef!: ElementRef<HTMLDivElement>;
 
     public code: string = '';
     public lineNumbers: number[] = [];

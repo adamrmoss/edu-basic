@@ -100,6 +100,8 @@ When solving problems, follow this workflow:
 ## TypeScript/JavaScript Code Style
 - Prefer switch statements over else-if chains when checking the same variable
 - Use braces { } for all control structures, even single-line blocks
+- ALL decorators must be on their own line (never on the same line as the property/method they decorate)
+- ALL class properties and methods must have explicit access modifiers (public, private, or protected)
 
 ## Architecture
 - Divide solutions by layers into projects
