@@ -3,11 +3,48 @@
 .code-editor-container
 {
     display: flex;
+    flex-direction: column;
     height: 100%;
     background-color: $navy;
     color: $white;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
+}
+
+.editor-toolbar
+{
+    display: flex;
+    padding: 8px;
+    background-color: $navy-darkest;
+    border-bottom: 1px solid $blue-steel-dark;
+}
+
+.run-button
+{
+    padding: 4px 12px;
+    background-color: $blue-steel;
+    color: $white;
+    border: 1px solid $blue-steel-dark;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+
+    &:hover
+    {
+        background-color: $blue-steel-light;
+    }
+
+    &:active
+    {
+        background-color: $blue-steel-dark;
+    }
+}
+
+.editor-content
+{
+    display: flex;
+    flex: 1;
+    overflow: hidden;
 }
 
 .line-numbers
@@ -21,12 +58,14 @@
     user-select: none;
     overflow: hidden;
     border-right: 1px solid $blue-steel-dark;
+    min-width: 60px;
 }
 
 .line-number
 {
     line-height: 20px;
     min-height: 20px;
+    width: 100%;
 }
 
 .code-textarea
@@ -41,8 +80,9 @@
     padding: 8px;
     resize: none;
     line-height: 20px;
-    white-space: pre;
-    overflow-wrap: normal;
-    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 

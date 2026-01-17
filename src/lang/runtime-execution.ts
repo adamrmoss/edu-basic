@@ -9,6 +9,7 @@ import { DoLoopStatement } from './statements/control-flow/do-loop-statement';
 import { ForStatement } from './statements/control-flow/for-statement';
 import { GotoStatement } from './statements/control-flow/goto-statement';
 import { EduBasicType } from './edu-basic-value';
+import { FileSystemService } from '../app/filesystem.service';
 
 interface ControlStructureFrame
 {
@@ -27,14 +28,34 @@ interface ControlStructureFrame
 export class RuntimeExecution
 {
     private controlStack: ControlStructureFrame[] = [];
+    private tabSwitchCallback: ((tabId: string) => void) | null = null;
 
     public constructor(
         private readonly program: Program,
         private readonly context: ExecutionContext,
         private readonly graphics: Graphics,
-        private readonly audio: Audio
+        private readonly audio: Audio,
+        private readonly fileSystem: FileSystemService
     )
     {
+    }
+
+    public getFileSystem(): FileSystemService
+    {
+        return this.fileSystem;
+    }
+
+    public setTabSwitchCallback(callback: ((tabId: string) => void) | null): void
+    {
+        this.tabSwitchCallback = callback;
+    }
+
+    public requestTabSwitch(tabId: string): void
+    {
+        if (this.tabSwitchCallback)
+        {
+            this.tabSwitchCallback(tabId);
+        }
     }
 
     public executeStep(): ExecutionResult

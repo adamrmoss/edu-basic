@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class TempoStatement extends Statement
 {
@@ -24,7 +25,7 @@ export class TempoStatement extends Statement
     ): ExecutionStatus
     {
         const bpmValue = this.bpm.evaluate(context);
-        const bpm = bpmValue.type === 'integer' || bpmValue.type === 'real' ? bpmValue.value as number : 120;
+        const bpm = bpmValue.type === EduBasicType.Integer || bpmValue.type === EduBasicType.Real ? bpmValue.value as number : 120;
         
         audio.setTempo(bpm);
         

@@ -41,6 +41,49 @@ When solving problems, follow this workflow:
 
 ---
 
+# Documentation
+
+## Documentation Location
+
+**Documentation is co-located with code** - README.md files are placed in the same directories as the code they describe.
+
+## Documentation Structure
+
+- **`docs/architecture.md`** - High-level system architecture overview
+- **`src/app/README.md`** - Application components (Console, Code Editor, Output, Files)
+- **`src/app/interpreter/README.md`** - Interpreter services (ParserService, TokenizerService, ExpressionParserService, GraphicsService, AudioService, InterpreterService)
+- **`src/app/console/README.md`** - ConsoleService documentation
+- **`src/lang/README.md`** - Language core (value system, ExecutionContext, Program, RuntimeExecution, Graphics, Audio)
+- **`src/lang/expressions/README.md`** - Expression system (all expression types, parsing, evaluation)
+- **`src/lang/statements/README.md`** - Statement system (all statement types, execution)
+- **`src/grit/README.md`** - Grit audio synthesis system
+
+## Documentation Usage
+
+**BEFORE making changes or answering questions:**
+1. **Check for README.md** in the directory you're working in
+2. **Read relevant documentation** to understand the system architecture
+3. **Consult documentation** when:
+   - Understanding how a component/service works
+   - Adding new features
+   - Modifying existing functionality
+   - Debugging issues
+   - Explaining system behavior
+
+**When working in a directory:**
+- Always check if a `README.md` exists in that directory
+- Read the README to understand the code structure and design decisions
+- Use documentation to understand dependencies and integration points
+
+**Documentation covers:**
+- Class/component purposes and responsibilities
+- Key methods and properties
+- Data flow and integration points
+- Design decisions and patterns
+- Examples and usage patterns
+
+---
+
 # Technology-Specific Rules
 
 ## Angular
@@ -57,6 +100,8 @@ When solving problems, follow this workflow:
 ## TypeScript/JavaScript Code Style
 - Prefer switch statements over else-if chains when checking the same variable
 - Use braces { } for all control structures, even single-line blocks
+- ALL decorators must be on their own line (never on the same line as the property/method they decorate)
+- ALL class properties and methods must have explicit access modifiers (public, private, or protected)
 
 ## Architecture
 - Divide solutions by layers into projects

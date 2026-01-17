@@ -1,0 +1,83 @@
+<div class="disk-container">
+    <div class="disk-sidebar">
+        <div class="disk-controls">
+            <div class="disk-name-section">
+                <label for="diskName">Disk Name:</label>
+                <input 
+                    type="text" 
+                    id="diskName"
+                    class="disk-name-input"
+                    [(ngModel)]="diskName"
+                    (change)="onDiskNameChange()"
+                />
+            </div>
+            
+            <div class="disk-buttons">
+                <button class="disk-button" (click)="onNewDisk()">New</button>
+                <button class="disk-button" (click)="onLoadDisk()">Load</button>
+                <button class="disk-button" (click)="onSaveDisk()">Save</button>
+            </div>
+        </div>
+        
+        <div class="file-tree-header">
+            <span>Data Files</span>
+            <button class="new-file-button" (click)="onNewFile()" title="New File">+</button>
+        </div>
+        
+        <div class="file-tree">
+            <div 
+                *ngFor="let file of fileList"
+                class="file-tree-item"
+                [class.selected]="selectedFile === file"
+                (click)="selectFile(file)"
+            >
+                <luna-icon 
+                    class="icon" 
+                    size="16" 
+                    [svg]="fileIcon"
+                ></luna-icon>
+                <span class="name">{{ file.name }}</span>
+            </div>
+            
+            <div class="no-files" *ngIf="fileList.length === 0">
+                No data files
+            </div>
+        </div>
+    </div>
+    
+    <div class="file-editor-pane">
+        <div class="editor-toolbar" *ngIf="selectedFile">
+            <span class="current-file-name">{{ selectedFile.name }}</span>
+            <div class="toolbar-buttons">
+                <button class="toolbar-button" (click)="toggleViewMode()">
+                    {{ viewMode === 'text' ? 'Hex' : 'Text' }}
+                </button>
+                <button class="toolbar-button delete" (click)="onDeleteFile()">Delete</button>
+            </div>
+        </div>
+        
+        <div class="file-editor" *ngIf="selectedFile">
+            <div *ngIf="viewMode === 'text'" class="text-editor">
+                <div class="file-line-numbers">
+                    <div *ngFor="let lineNum of getLineNumbers()" class="line-number">{{ lineNum }}</div>
+                </div>
+                <textarea 
+                    class="file-textarea"
+                    spellcheck="false"
+                    [value]="fileContent"
+                    (input)="onTextAreaInput($event)"
+                    (scroll)="onTextAreaScroll($event)"
+                ></textarea>
+            </div>
+            
+            <div *ngIf="viewMode === 'hex'" class="hex-editor">
+                <pre class="hex-content">{{ getHexContent() }}</pre>
+            </div>
+        </div>
+        
+        <div class="no-file-selected" *ngIf="!selectedFile">
+            <p>No file selected</p>
+            <p class="hint">Data files are accessible from BASIC programs using file I/O statements</p>
+        </div>
+    </div>
+</div>

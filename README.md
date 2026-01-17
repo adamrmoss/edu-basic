@@ -31,8 +31,20 @@ Education-focused BASIC dialect that runs in web browser.
 EduBASIC is an Angular-based web application that provides a BASIC programming environment designed for educational purposes. The application runs entirely in the browser, making it accessible and easy to use for learning programming fundamentals.
 
 **Documentation:**
+
+**Language Documentation:**
 - [EduBASIC Tutorial](docs/edu-basic-tutorial.md) - Introduction to language and development environment, with examples
 - [EduBASIC Language Reference](docs/edu-basic-language.md) - Complete language specification and reference
+
+**System Architecture Documentation:**
+- [Architecture Overview](docs/architecture.md) - High-level system architecture and design principles
+- [Application Components](src/app/README.md) - All Angular UI components and their functionality
+- [Interpreter Services](src/app/interpreter/README.md) - Interpreter, parser, tokenizer, and expression parser services
+- [Console Service](src/app/console/README.md) - Console command execution and history management
+- [Language Core](src/lang/README.md) - Core language types, execution model, runtime execution, graphics, and audio
+- [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
+- [Statements System](src/lang/statements/README.md) - All statement types and their execution
+- [Grit Synthesis System](src/grit/README.md) - Audio synthesis engine and components
 
 ## Tech Stack
 
@@ -130,8 +142,19 @@ npm run watch
 
 ### Testing
 
+Run all tests:
 ```bash
 npm test
+```
+
+Run tests with verbose output:
+```bash
+npm run test:verbose
+```
+
+Run tests in watch mode (auto-rerun on file changes):
+```bash
+npm run test:watch
 ```
 
 ## Component Architecture

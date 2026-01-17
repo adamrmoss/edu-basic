@@ -5,7 +5,9 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { getColorValue, isColorName } from '../../colors';
+import { resolveColorValue, intToRgba } from '../graphics/color-utils';
 
 export class ColorStatement extends Statement
 {
@@ -26,25 +28,15 @@ export class ColorStatement extends Statement
     ): ExecutionStatus
     {
         const foreground = this.foregroundExpr.evaluate(context);
-        
-        if (foreground.type !== EduBasicType.Integer)
-        {
-            throw new Error('COLOR foreground must be an integer');
-        }
-
-        const foregroundColor = this.intToRgba(foreground.value as number);
+        const foregroundRgba = resolveColorValue(foreground);
+        const foregroundColor = intToRgba(foregroundRgba);
         graphics.setForegroundColor(foregroundColor);
 
         if (this.backgroundExpr)
         {
             const background = this.backgroundExpr.evaluate(context);
-            
-            if (background.type !== EduBasicType.Integer)
-            {
-                throw new Error('COLOR background must be an integer');
-            }
-
-            const backgroundColor = this.intToRgba(background.value as number);
+            const backgroundRgba = resolveColorValue(background);
+            const backgroundColor = intToRgba(backgroundRgba);
             graphics.setBackgroundColor(backgroundColor);
         }
 
@@ -61,14 +53,5 @@ export class ColorStatement extends Statement
         return `COLOR ${this.foregroundExpr.toString()}`;
     }
 
-    private intToRgba(color: number): { r: number; g: number; b: number; a: number }
-    {
-        return {
-            r: (color >> 24) & 0xFF,
-            g: (color >> 16) & 0xFF,
-            b: (color >> 8) & 0xFF,
-            a: color & 0xFF
-        };
-    }
 }
 

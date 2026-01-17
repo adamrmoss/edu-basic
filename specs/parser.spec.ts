@@ -240,6 +240,51 @@ describe('ParserService', () =>
             expect(stmt.newline).toBe(false);
         });
 
+        it('should parse PRINT with parenthesized expression', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT (1 + 2)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(1);
+            expect(stmt.newline).toBe(true);
+        });
+
+        it('should parse PRINT with nested parentheses', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT ((1 + 2) * 3)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(1);
+        });
+
+        it('should parse PRINT with multiple parenthesized expressions', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT (1 + 2), (3 * 4), (5 - 6)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(3);
+        });
+
+        it('should parse PRINT with complex expression containing parentheses', () =>
+        {
+            const result = parser.parseLine(1, 'PRINT (a% + b%) * (c% - d%)');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PrintStatement);
+            
+            const stmt = result.statement as PrintStatement;
+            expect(stmt.expressions.length).toBe(1);
+        });
+
         it('should parse COLOR statement', () =>
         {
             const result = parser.parseLine(1, 'COLOR &HFF0000FF');
@@ -251,6 +296,46 @@ describe('ParserService', () =>
         it('should parse COLOR with foreground and background', () =>
         {
             const result = parser.parseLine(1, 'COLOR &HFF0000FF, &H000000FF');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with color name string', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR "green"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with color names for both foreground and background', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR "blue", "white"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with color name for background only', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR , "black"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with mixed integer and color name', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR &HFF0000FF, "blue"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with color name and integer', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR "red", &H000000FF');
             
             expect(result.hasError).toBe(false);
             expect(result.statement).toBeInstanceOf(ColorStatement);
@@ -275,6 +360,16 @@ describe('ParserService', () =>
             expect(result.statement).toBeInstanceOf(PsetStatement);
             
             const stmt = result.statement as PsetStatement;
+        });
+        
+        it('should parse PSET with color name string', () =>
+        {
+            const result = parser.parseLine(1, 'PSET (100, 200) WITH "red"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(PsetStatement);
+            
+            const stmt = result.statement as PsetStatement;
             expect(stmt.color).not.toBeNull();
         });
 
@@ -289,6 +384,28 @@ describe('ParserService', () =>
         it('should parse LINE with color', () =>
         {
             const result = parser.parseLine(1, 'LINE FROM (0, 0) TO (100, 100) WITH &HFF0000FF');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(LineStatement);
+            
+            const stmt = result.statement as LineStatement;
+            expect(stmt.color).not.toBeNull();
+        });
+        
+        it('should parse LINE with color name string', () =>
+        {
+            const result = parser.parseLine(1, 'LINE FROM (0, 0) TO (100, 100) WITH "cornflowerblue"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(LineStatement);
+            
+            const stmt = result.statement as LineStatement;
+            expect(stmt.color).not.toBeNull();
+        });
+        
+        it('should parse LINE with color name string', () =>
+        {
+            const result = parser.parseLine(1, 'LINE FROM (0, 0) TO (100, 100) WITH "cornflowerblue"');
             
             expect(result.hasError).toBe(false);
             expect(result.statement).toBeInstanceOf(LineStatement);

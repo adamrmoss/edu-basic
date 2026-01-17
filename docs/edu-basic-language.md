@@ -2228,10 +2228,13 @@ COLOR , backgroundColor%
 ```
 
 **Color Format:**
-- Colors are specified as 32-bit RGBA integers
-- Format: `&HRRGGBBAA` (hexadecimal) - always use this format in examples
+- Colors can be specified as:
+  - **32-bit RGBA integers**: Format `&HRRGGBBAA` (hexadecimal) - always use this format in examples
+  - **Color names**: Standard CSS color names as strings (case-insensitive)
 - Each component (R, G, B, A) ranges from 0-255
 - Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
+- Color names use full opacity (alpha = 255) by default
+- String expressions are automatically recognized as color names when they match a valid CSS color name
 
 **Text Usage:**
 - Sets the global foreground color for subsequent `PRINT` statements
@@ -2259,7 +2262,7 @@ LET transparent% = &HFFFFFF00 ' White (fully transparent)
 
 **Examples:**
 ```
-' Text usage
+' Text usage with hex colors
 COLOR &HFF0000FF        ' Set global foreground to red
 PRINT "This is red text"
 
@@ -2269,13 +2272,23 @@ PRINT "Invisible text on black"
 COLOR , &H000000FF      ' Set only background to black (foreground unchanged)
 PRINT "Text with black background"
 
+' Text usage with color names
+COLOR "red"             ' Set global foreground to red using color name
+COLOR "blue", "white"   ' Blue text on white background
+
 ' Graphics usage - using global color
 COLOR &HFF0000FF    ' Set global foreground to red
+PSET (100, 100)     ' Red pixel (uses global color)
+
+COLOR "red"         ' Set global foreground to red using color name
 PSET (100, 100)     ' Red pixel (uses global color)
 
 ' Graphics usage - overriding global color
 COLOR &H00FF00FF    ' Set global foreground to green
 LINE FROM (0, 0) TO (100, 100) WITH &HFF0000FF    ' Red line (overrides global)
+
+LINE FROM (0, 0) TO (100, 100) WITH "red"    ' Red line using color name
+LINE FROM (0, 0) TO (100, 100) WITH "cornflowerblue"    ' Cornflower blue line
 ```
 
 **Note:** The `COLOR` statement sets global colors that persist until changed. The default text color is white on a transparent background. Graphics statements use the global foreground color by default, but can override it with `WITH color%`.
@@ -6743,3 +6756,165 @@ These operators take no arguments and return a value. They use type sigils to in
 
 ---
 
+## Appendix: CSS Color Names
+
+EduBASIC supports all standard CSS color names as preset colors. Color names are case-insensitive and can be used anywhere a 32-bit RGBA color value is accepted, including the `COLOR` statement and all graphics statements with `WITH color%` syntax.
+
+**Usage:**
+- `COLOR "red"` - Use color name directly (string expressions are automatically recognized as color names)
+- `PSET (100, 100) WITH "blue"` - Use color name in graphics statements
+- Color names resolve to their standard CSS color values in `&HRRGGBBAA` format with full opacity (alpha = 255)
+
+**Aliases:**
+- `gray` and `grey` are both supported (same color)
+- `aqua` and `cyan` are both supported (same color)
+- `fuchsia` and `magenta` are both supported (same color)
+- `darkgray`/`darkgrey`, `dimgray`/`dimgrey`, `lightgray`/`lightgrey`, `lightslategray`/`lightslategrey`, `slategray`/`slategrey`, and `darkslategray`/`darkslategrey` are all supported
+
+The following table lists all 147 standard CSS color names in alphabetical order:
+
+| Color Name | Value (`&HRRGGBBAA`) | Swatch |
+|------------|---------------------|--------|
+| aliceblue | &HF0F8FFFF | ![aliceblue](https://via.placeholder.com/20/F0F8FF/000000?text=+) |
+| antiquewhite | &HFAEBD7FF | ![antiquewhite](https://via.placeholder.com/20/FAEBD7/000000?text=+) |
+| aqua | &H00FFFFFF | ![aqua](https://via.placeholder.com/20/00FFFF/000000?text=+) |
+| aquamarine | &H7FFFD4FF | ![aquamarine](https://via.placeholder.com/20/7FFFD4/000000?text=+) |
+| azure | &HF0FFFFFF | ![azure](https://via.placeholder.com/20/F0FFFF/000000?text=+) |
+| beige | &HF5F5DCFF | ![beige](https://via.placeholder.com/20/F5F5DC/000000?text=+) |
+| bisque | &HFFE4C4FF | ![bisque](https://via.placeholder.com/20/FFE4C4/000000?text=+) |
+| black | &H000000FF | ![black](https://via.placeholder.com/20/000000/FFFFFF?text=+) |
+| blanchedalmond | &HFFEBCDFF | ![blanchedalmond](https://via.placeholder.com/20/FFEBCD/000000?text=+) |
+| blue | &H0000FFFF | ![blue](https://via.placeholder.com/20/0000FF/FFFFFF?text=+) |
+| blueviolet | &H8A2BE2FF | ![blueviolet](https://via.placeholder.com/20/8A2BE2/FFFFFF?text=+) |
+| brown | &HA52A2AFF | ![brown](https://via.placeholder.com/20/A52A2A/FFFFFF?text=+) |
+| burlywood | &HDEB887FF | ![burlywood](https://via.placeholder.com/20/DEB887/000000?text=+) |
+| cadetblue | &H5F9EA0FF | ![cadetblue](https://via.placeholder.com/20/5F9EA0/FFFFFF?text=+) |
+| chartreuse | &H7FFF00FF | ![chartreuse](https://via.placeholder.com/20/7FFF00/000000?text=+) |
+| chocolate | &HD2691EFF | ![chocolate](https://via.placeholder.com/20/D2691E/FFFFFF?text=+) |
+| coral | &HFF7F50FF | ![coral](https://via.placeholder.com/20/FF7F50/000000?text=+) |
+| cornflowerblue | &H6495EDFF | ![cornflowerblue](https://via.placeholder.com/20/6495ED/000000?text=+) |
+| cornsilk | &HFFF8DCFF | ![cornsilk](https://via.placeholder.com/20/FFF8DC/000000?text=+) |
+| crimson | &HDC143CFF | ![crimson](https://via.placeholder.com/20/DC143C/FFFFFF?text=+) |
+| cyan | &H00FFFFFF | ![cyan](https://via.placeholder.com/20/00FFFF/000000?text=+) |
+| darkblue | &H00008BFF | ![darkblue](https://via.placeholder.com/20/00008B/FFFFFF?text=+) |
+| darkcyan | &H008B8BFF | ![darkcyan](https://via.placeholder.com/20/008B8B/FFFFFF?text=+) |
+| darkgoldenrod | &HB8860BFF | ![darkgoldenrod](https://via.placeholder.com/20/B8860B/FFFFFF?text=+) |
+| darkgray | &HA9A9A9FF | ![darkgray](https://via.placeholder.com/20/A9A9A9/000000?text=+) |
+| darkgreen | &H006400FF | ![darkgreen](https://via.placeholder.com/20/006400/FFFFFF?text=+) |
+| darkkhaki | &HBDB76BFF | ![darkkhaki](https://via.placeholder.com/20/BDB76B/000000?text=+) |
+| darkmagenta | &H8B008BFF | ![darkmagenta](https://via.placeholder.com/20/8B008B/FFFFFF?text=+) |
+| darkolivegreen | &H556B2FFF | ![darkolivegreen](https://via.placeholder.com/20/556B2F/FFFFFF?text=+) |
+| darkorange | &HFF8C00FF | ![darkorange](https://via.placeholder.com/20/FF8C00/000000?text=+) |
+| darkorchid | &H9932CCFF | ![darkorchid](https://via.placeholder.com/20/9932CC/FFFFFF?text=+) |
+| darkred | &H8B0000FF | ![darkred](https://via.placeholder.com/20/8B0000/FFFFFF?text=+) |
+| darksalmon | &HE9967AFF | ![darksalmon](https://via.placeholder.com/20/E9967A/000000?text=+) |
+| darkseagreen | &H8FBC8FFF | ![darkseagreen](https://via.placeholder.com/20/8FBC8F/000000?text=+) |
+| darkslateblue | &H483D8BFF | ![darkslateblue](https://via.placeholder.com/20/483D8B/FFFFFF?text=+) |
+| darkslategray | &H2F4F4FFF | ![darkslategray](https://via.placeholder.com/20/2F4F4F/FFFFFF?text=+) |
+| darkturquoise | &H00CED1FF | ![darkturquoise](https://via.placeholder.com/20/00CED1/000000?text=+) |
+| darkviolet | &H9400D3FF | ![darkviolet](https://via.placeholder.com/20/9400D3/FFFFFF?text=+) |
+| deeppink | &HFF1493FF | ![deeppink](https://via.placeholder.com/20/FF1493/FFFFFF?text=+) |
+| deepskyblue | &H00BFFFFF | ![deepskyblue](https://via.placeholder.com/20/00BFFF/000000?text=+) |
+| dimgray | &H696969FF | ![dimgray](https://via.placeholder.com/20/696969/FFFFFF?text=+) |
+| dodgerblue | &H1E90FFFF | ![dodgerblue](https://via.placeholder.com/20/1E90FF/000000?text=+) |
+| firebrick | &HB22222FF | ![firebrick](https://via.placeholder.com/20/B22222/FFFFFF?text=+) |
+| floralwhite | &HFFFAF0FF | ![floralwhite](https://via.placeholder.com/20/FFFAF0/000000?text=+) |
+| forestgreen | &H228B22FF | ![forestgreen](https://via.placeholder.com/20/228B22/FFFFFF?text=+) |
+| fuchsia | &HFF00FFFF | ![fuchsia](https://via.placeholder.com/20/FF00FF/000000?text=+) |
+| gainsboro | &HDCDCDCFF | ![gainsboro](https://via.placeholder.com/20/DCDCDC/000000?text=+) |
+| ghostwhite | &HF8F8FFFF | ![ghostwhite](https://via.placeholder.com/20/F8F8FF/000000?text=+) |
+| gold | &HFFD700FF | ![gold](https://via.placeholder.com/20/FFD700/000000?text=+) |
+| goldenrod | &HDAA520FF | ![goldenrod](https://via.placeholder.com/20/DAA520/000000?text=+) |
+| gray | &H808080FF | ![gray](https://via.placeholder.com/20/808080/FFFFFF?text=+) |
+| green | &H008000FF | ![green](https://via.placeholder.com/20/008000/FFFFFF?text=+) |
+| greenyellow | &HADFF2FFF | ![greenyellow](https://via.placeholder.com/20/ADFF2F/000000?text=+) |
+| honeydew | &HF0FFF0FF | ![honeydew](https://via.placeholder.com/20/F0FFF0/000000?text=+) |
+| hotpink | &HFF69B4FF | ![hotpink](https://via.placeholder.com/20/FF69B4/000000?text=+) |
+| indianred | &HCD5C5CFF | ![indianred](https://via.placeholder.com/20/CD5C5C/000000?text=+) |
+| indigo | &H4B0082FF | ![indigo](https://via.placeholder.com/20/4B0082/FFFFFF?text=+) |
+| ivory | &HFFFFF0FF | ![ivory](https://via.placeholder.com/20/FFFFF0/000000?text=+) |
+| khaki | &HF0E68CFF | ![khaki](https://via.placeholder.com/20/F0E68C/000000?text=+) |
+| lavender | &HE6E6FAFF | ![lavender](https://via.placeholder.com/20/E6E6FA/000000?text=+) |
+| lavenderblush | &HFFF0F5FF | ![lavenderblush](https://via.placeholder.com/20/FFF0F5/000000?text=+) |
+| lawngreen | &H7CFC00FF | ![lawngreen](https://via.placeholder.com/20/7CFC00/000000?text=+) |
+| lemonchiffon | &HFFFACDFF | ![lemonchiffon](https://via.placeholder.com/20/FFFACD/000000?text=+) |
+| lightblue | &HADD8E6FF | ![lightblue](https://via.placeholder.com/20/ADD8E6/000000?text=+) |
+| lightcoral | &HF08080FF | ![lightcoral](https://via.placeholder.com/20/F08080/000000?text=+) |
+| lightcyan | &HE0FFFFFF | ![lightcyan](https://via.placeholder.com/20/E0FFFF/000000?text=+) |
+| lightgoldenrodyellow | &HFAFAD2FF | ![lightgoldenrodyellow](https://via.placeholder.com/20/FAFAD2/000000?text=+) |
+| lightgray | &HD3D3D3FF | ![lightgray](https://via.placeholder.com/20/D3D3D3/000000?text=+) |
+| lightgreen | &H90EE90FF | ![lightgreen](https://via.placeholder.com/20/90EE90/000000?text=+) |
+| lightpink | &HFFB6C1FF | ![lightpink](https://via.placeholder.com/20/FFB6C1/000000?text=+) |
+| lightsalmon | &HFFA07AFF | ![lightsalmon](https://via.placeholder.com/20/FFA07A/000000?text=+) |
+| lightseagreen | &H20B2AAFF | ![lightseagreen](https://via.placeholder.com/20/20B2AA/FFFFFF?text=+) |
+| lightskyblue | &H87CEFAFF | ![lightskyblue](https://via.placeholder.com/20/87CEFA/000000?text=+) |
+| lightslategray | &H778899FF | ![lightslategray](https://via.placeholder.com/20/778899/FFFFFF?text=+) |
+| lightsteelblue | &HB0C4DEFF | ![lightsteelblue](https://via.placeholder.com/20/B0C4DE/000000?text=+) |
+| lightyellow | &HFFFFE0FF | ![lightyellow](https://via.placeholder.com/20/FFFFE0/000000?text=+) |
+| lime | &H00FF00FF | ![lime](https://via.placeholder.com/20/00FF00/000000?text=+) |
+| limegreen | &H32CD32FF | ![limegreen](https://via.placeholder.com/20/32CD32/000000?text=+) |
+| linen | &HFAF0E6FF | ![linen](https://via.placeholder.com/20/FAF0E6/000000?text=+) |
+| magenta | &HFF00FFFF | ![magenta](https://via.placeholder.com/20/FF00FF/000000?text=+) |
+| maroon | &H800000FF | ![maroon](https://via.placeholder.com/20/800000/FFFFFF?text=+) |
+| mediumaquamarine | &H66CDAAFF | ![mediumaquamarine](https://via.placeholder.com/20/66CDAA/000000?text=+) |
+| mediumblue | &H0000CDFF | ![mediumblue](https://via.placeholder.com/20/0000CD/FFFFFF?text=+) |
+| mediumorchid | &HBA55D3FF | ![mediumorchid](https://via.placeholder.com/20/BA55D3/000000?text=+) |
+| mediumpurple | &H9370DBFF | ![mediumpurple](https://via.placeholder.com/20/9370DB/000000?text=+) |
+| mediumseagreen | &H3CB371FF | ![mediumseagreen](https://via.placeholder.com/20/3CB371/FFFFFF?text=+) |
+| mediumslateblue | &H7B68EEFF | ![mediumslateblue](https://via.placeholder.com/20/7B68EE/000000?text=+) |
+| mediumspringgreen | &H00FA9AFF | ![mediumspringgreen](https://via.placeholder.com/20/00FA9A/000000?text=+) |
+| mediumturquoise | &H48D1CCFF | ![mediumturquoise](https://via.placeholder.com/20/48D1CC/000000?text=+) |
+| mediumvioletred | &HC71585FF | ![mediumvioletred](https://via.placeholder.com/20/C71585/FFFFFF?text=+) |
+| midnightblue | &H191970FF | ![midnightblue](https://via.placeholder.com/20/191970/FFFFFF?text=+) |
+| mintcream | &HF5FFFAFF | ![mintcream](https://via.placeholder.com/20/F5FFFA/000000?text=+) |
+| mistyrose | &HFFE4E1FF | ![mistyrose](https://via.placeholder.com/20/FFE4E1/000000?text=+) |
+| moccasin | &HFFE4B5FF | ![moccasin](https://via.placeholder.com/20/FFE4B5/000000?text=+) |
+| navajowhite | &HFFDEADFF | ![navajowhite](https://via.placeholder.com/20/FFDEAD/000000?text=+) |
+| navy | &H000080FF | ![navy](https://via.placeholder.com/20/000080/FFFFFF?text=+) |
+| oldlace | &HFDF5E6FF | ![oldlace](https://via.placeholder.com/20/FDF5E6/000000?text=+) |
+| olive | &H808000FF | ![olive](https://via.placeholder.com/20/808000/FFFFFF?text=+) |
+| olivedrab | &H6B8E23FF | ![olivedrab](https://via.placeholder.com/20/6B8E23/FFFFFF?text=+) |
+| orange | &HFFA500FF | ![orange](https://via.placeholder.com/20/FFA500/000000?text=+) |
+| orangered | &HFF4500FF | ![orangered](https://via.placeholder.com/20/FF4500/FFFFFF?text=+) |
+| orchid | &HDA70D6FF | ![orchid](https://via.placeholder.com/20/DA70D6/000000?text=+) |
+| palegoldenrod | &HEEE8AAFF | ![palegoldenrod](https://via.placeholder.com/20/EEE8AA/000000?text=+) |
+| palegreen | &H98FB98FF | ![palegreen](https://via.placeholder.com/20/98FB98/000000?text=+) |
+| paleturquoise | &HAFEEEEFF | ![paleturquoise](https://via.placeholder.com/20/AFEEEE/000000?text=+) |
+| palevioletred | &HDB7093FF | ![palevioletred](https://via.placeholder.com/20/DB7093/000000?text=+) |
+| papayawhip | &HFFEFD5FF | ![papayawhip](https://via.placeholder.com/20/FFEFD5/000000?text=+) |
+| peachpuff | &HFFDAB9FF | ![peachpuff](https://via.placeholder.com/20/FFDAB9/000000?text=+) |
+| peru | &HCD853FFF | ![peru](https://via.placeholder.com/20/CD853F/000000?text=+) |
+| pink | &HFFC0CBFF | ![pink](https://via.placeholder.com/20/FFC0CB/000000?text=+) |
+| plum | &HDDA0DDFF | ![plum](https://via.placeholder.com/20/DDA0DD/000000?text=+) |
+| powderblue | &HB0E0E6FF | ![powderblue](https://via.placeholder.com/20/B0E0E6/000000?text=+) |
+| purple | &H800080FF | ![purple](https://via.placeholder.com/20/800080/FFFFFF?text=+) |
+| rebeccapurple | &H663399FF | ![rebeccapurple](https://via.placeholder.com/20/663399/FFFFFF?text=+) |
+| red | &HFF0000FF | ![red](https://via.placeholder.com/20/FF0000/FFFFFF?text=+) |
+| rosybrown | &HBC8F8FFF | ![rosybrown](https://via.placeholder.com/20/BC8F8F/000000?text=+) |
+| royalblue | &H4169E1FF | ![royalblue](https://via.placeholder.com/20/4169E1/FFFFFF?text=+) |
+| saddlebrown | &H8B4513FF | ![saddlebrown](https://via.placeholder.com/20/8B4513/FFFFFF?text=+) |
+| salmon | &HFA8072FF | ![salmon](https://via.placeholder.com/20/FA8072/000000?text=+) |
+| sandybrown | &HF4A460FF | ![sandybrown](https://via.placeholder.com/20/F4A460/000000?text=+) |
+| seagreen | &H2E8B57FF | ![seagreen](https://via.placeholder.com/20/2E8B57/FFFFFF?text=+) |
+| seashell | &HFFF5EEFF | ![seashell](https://via.placeholder.com/20/FFF5EE/000000?text=+) |
+| sienna | &HA0522DFF | ![sienna](https://via.placeholder.com/20/A0522D/FFFFFF?text=+) |
+| silver | &HC0C0C0FF | ![silver](https://via.placeholder.com/20/C0C0C0/000000?text=+) |
+| skyblue | &H87CEEBFF | ![skyblue](https://via.placeholder.com/20/87CEEB/000000?text=+) |
+| slateblue | &H6A5ACDFF | ![slateblue](https://via.placeholder.com/20/6A5ACD/FFFFFF?text=+) |
+| slategray | &H708090FF | ![slategray](https://via.placeholder.com/20/708090/FFFFFF?text=+) |
+| snow | &HFFFAFAFF | ![snow](https://via.placeholder.com/20/FFFAFA/000000?text=+) |
+| springgreen | &H00FF7FFF | ![springgreen](https://via.placeholder.com/20/00FF7F/000000?text=+) |
+| steelblue | &H4682B4FF | ![steelblue](https://via.placeholder.com/20/4682B4/FFFFFF?text=+) |
+| tan | &HD2B48CFF | ![tan](https://via.placeholder.com/20/D2B48C/000000?text=+) |
+| teal | &H008080FF | ![teal](https://via.placeholder.com/20/008080/FFFFFF?text=+) |
+| thistle | &HD8BFD8FF | ![thistle](https://via.placeholder.com/20/D8BFD8/000000?text=+) |
+| tomato | &HFF6347FF | ![tomato](https://via.placeholder.com/20/FF6347/000000?text=+) |
+| turquoise | &H40E0D0FF | ![turquoise](https://via.placeholder.com/20/40E0D0/000000?text=+) |
+| violet | &HEE82EEFF | ![violet](https://via.placeholder.com/20/EE82EE/000000?text=+) |
+| wheat | &HF5DEB3FF | ![wheat](https://via.placeholder.com/20/F5DEB3/000000?text=+) |
+| white | &HFFFFFFFF | ![white](https://via.placeholder.com/20/FFFFFF/000000?text=+) |
+| whitesmoke | &HF5F5F5FF | ![whitesmoke](https://via.placeholder.com/20/F5F5F5/000000?text=+) |
+| yellow | &HFFFF00FF | ![yellow](https://via.placeholder.com/20/FFFF00/000000?text=+) |
+| yellowgreen | &H9ACD32FF | ![yellowgreen](https://via.placeholder.com/20/9ACD32/000000?text=+) |
+
+**Note:** The swatches in the table above are visual representations. In actual usage, color names are case-insensitive, so `"Red"`, `"red"`, and `"RED"` all refer to the same color.

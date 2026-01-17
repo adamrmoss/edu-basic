@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class WritefileStatement extends Statement
 {
@@ -24,7 +25,29 @@ export class WritefileStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('WRITEFILE statement not yet implemented');
+        const contentValue = this.content.evaluate(context);
+        const filenameValue = this.filename.evaluate(context);
+        
+        if (filenameValue.type !== EduBasicType.String)
+        {
+            throw new Error('WRITEFILE: filename must be a string');
+        }
+
+        if (contentValue.type !== EduBasicType.String)
+        {
+            throw new Error('WRITEFILE: content must be a string');
+        }
+
+        const filename = filenameValue.value as string;
+        const content = contentValue.value as string;
+
+        const encoder = new TextEncoder();
+        const data = encoder.encode(content);
+
+        const fileSystem = runtime.getFileSystem();
+        fileSystem.writeFile(filename, data);
+
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

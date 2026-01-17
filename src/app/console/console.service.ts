@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { ParserService } from '../interpreter/parser.service';
+import { InterpreterService } from '../interpreter/interpreter.service';
+import { GraphicsService } from '../interpreter/graphics.service';
+import { AudioService } from '../interpreter/audio.service';
+import { Statement } from '../../lang/statements/statement';
 
 export interface ConsoleEntry
 {
@@ -22,6 +27,15 @@ export class ConsoleService
     public readonly inputHistory$: Observable<string[]> = this.inputHistorySubject.asObservable();
     public readonly historyIndex$: Observable<number> = this.historyIndexSubject.asObservable();
     public readonly currentInput$: Observable<string> = this.currentInputSubject.asObservable();
+
+    constructor(
+        private readonly parserService: ParserService,
+        private readonly interpreterService: InterpreterService,
+        private readonly graphicsService: GraphicsService,
+        private readonly audioService: AudioService
+    )
+    {
+    }
 
     public get displayHistory(): ConsoleEntry[]
     {
@@ -50,17 +64,44 @@ export class ConsoleService
 
     public executeCommand(command: string): void
     {
-        if (command.trim())
+        if (!command.trim())
         {
-            this.addToInputHistory(command);
-            
-            this.addToDisplay({
-                type: 'input',
-                text: `> ${command}`,
-                timestamp: new Date()
-            });
-            
-            this.historyIndexSubject.next(-1);
+            return;
+        }
+
+        this.addToInputHistory(command);
+        
+        this.addToDisplay({
+            type: 'input',
+            text: `> ${command}`,
+            timestamp: new Date()
+        });
+        
+        this.historyIndexSubject.next(-1);
+
+        try
+        {
+            const parsedLine = this.parserService.parseLine(0, command);
+
+            if (parsedLine.hasError)
+            {
+                this.printError(parsedLine.errorMessage || 'Parse error');
+                return;
+            }
+
+            const statement = parsedLine.statement;
+            const context = this.interpreterService.getExecutionContext();
+            const program = this.interpreterService.getSharedProgram();
+            const runtime = this.interpreterService.getRuntimeExecution();
+            const graphics = this.graphicsService.getGraphics();
+            const audio = this.audioService.getAudio();
+
+            statement.execute(context, graphics, audio, program, runtime);
+        }
+        catch (error)
+        {
+            console.error('Error executing command:', error);
+            this.printError(error instanceof Error ? error.message : String(error));
         }
     }
 
