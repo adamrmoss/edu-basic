@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { resolveColorValue, intToRgba } from './color-utils';
 
 export class PaintStatement extends Statement
 {

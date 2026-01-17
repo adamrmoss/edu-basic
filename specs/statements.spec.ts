@@ -209,18 +209,135 @@ describe('Statement Implementations', () =>
             expect(graphics.foregroundColor).toEqual({ r: 0x12, g: 0x34, b: 0x56, a: 0x78 });
         });
         
-        it('should throw error for non-integer foreground', () =>
+        it('should accept color name strings for foreground', () =>
         {
             const stmt = new ColorStatement(
                 new LiteralExpression({ type: EduBasicType.String, value: "red" })
             );
             
-            expect(() => {
-                stmt.execute(context, graphics, audio, program, runtime);
-            }).toThrow('COLOR foreground must be an integer');
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
-        it('should throw error for non-integer background', () =>
+        it('should accept color name strings for background', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF }),
+                new LiteralExpression({ type: EduBasicType.String, value: "blue" })
+            );
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.backgroundColor).toEqual({ r: 0, g: 0, b: 255, a: 255 });
+        });
+        
+        it('should accept color names case-insensitively (uppercase)', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "RED" })
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+        });
+        
+        it('should accept color names case-insensitively (mixed case)', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "ReD" })
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+        });
+        
+        it('should accept color names case-insensitively (lowercase)', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "red" })
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+        });
+        
+        it('should handle various CSS color names', () =>
+        {
+            const testCases = [
+                { name: "aliceblue", expected: { r: 240, g: 248, b: 255, a: 255 } },
+                { name: "cornflowerblue", expected: { r: 100, g: 149, b: 237, a: 255 } },
+                { name: "darkgreen", expected: { r: 0, g: 100, b: 0, a: 255 } },
+                { name: "gold", expected: { r: 255, g: 215, b: 0, a: 255 } },
+                { name: "rebeccapurple", expected: { r: 102, g: 51, b: 153, a: 255 } },
+            ];
+            
+            for (const testCase of testCases)
+            {
+                const stmt = new ColorStatement(
+                    new LiteralExpression({ type: EduBasicType.String, value: testCase.name })
+                );
+                
+                stmt.execute(context, graphics, audio, program, runtime);
+                
+                expect(graphics.foregroundColor).toEqual(testCase.expected);
+            }
+        });
+        
+        it('should handle color name aliases (gray/grey)', () =>
+        {
+            const grayStmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "gray" })
+            );
+            grayStmt.execute(context, graphics, audio, program, runtime);
+            const grayColor = graphics.foregroundColor;
+            
+            const greyStmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "grey" })
+            );
+            greyStmt.execute(context, graphics, audio, program, runtime);
+            const greyColor = graphics.foregroundColor;
+            
+            expect(grayColor).toEqual(greyColor);
+            expect(grayColor).toEqual({ r: 128, g: 128, b: 128, a: 255 });
+        });
+        
+        it('should handle color name aliases (aqua/cyan)', () =>
+        {
+            const aquaStmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "aqua" })
+            );
+            aquaStmt.execute(context, graphics, audio, program, runtime);
+            const aquaColor = graphics.foregroundColor;
+            
+            const cyanStmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "cyan" })
+            );
+            cyanStmt.execute(context, graphics, audio, program, runtime);
+            const cyanColor = graphics.foregroundColor;
+            
+            expect(aquaColor).toEqual(cyanColor);
+            expect(aquaColor).toEqual({ r: 0, g: 255, b: 255, a: 255 });
+        });
+        
+        it('should throw error for unknown color name', () =>
+        {
+            const stmt = new ColorStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: "notacolor" })
+            );
+            
+            expect(() => {
+                stmt.execute(context, graphics, audio, program, runtime);
+            }).toThrow('Unknown color name: notacolor');
+        });
+        
+        it('should throw error for non-integer and non-string background', () =>
         {
             const stmt = new ColorStatement(
                 new LiteralExpression({ type: EduBasicType.Integer, value: 0xFF0000FF }),
@@ -229,7 +346,7 @@ describe('Statement Implementations', () =>
             
             expect(() => {
                 stmt.execute(context, graphics, audio, program, runtime);
-            }).toThrow('COLOR background must be an integer');
+            }).toThrow('Color must be an integer or a color name');
         });
         
         it('should have correct toString representation with foreground only', () =>
@@ -357,6 +474,42 @@ describe('Statement Implementations', () =>
             
             expect(stmt.toString()).toBe('PSET (10, 20) WITH 4278190335');
         });
+        
+        it('should accept color name strings with WITH clause', () =>
+        {
+            const stmt = new PsetStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 75 }),
+                new LiteralExpression({ type: EduBasicType.String, value: "blue" })
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.pixels[0].color).toEqual({ r: 0, g: 0, b: 255, a: 255 });
+        });
+        
+        it('should accept color names case-insensitively in graphics statements', () =>
+        {
+            const testCases = [
+                { name: "RED", expected: { r: 255, g: 0, b: 0, a: 255 } },
+                { name: "Green", expected: { r: 0, g: 128, b: 0, a: 255 } },
+                { name: "blue", expected: { r: 0, g: 0, b: 255, a: 255 } },
+            ];
+            
+            for (const testCase of testCases)
+            {
+                const stmt = new PsetStatement(
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                    new LiteralExpression({ type: EduBasicType.String, value: testCase.name })
+                );
+                
+                graphics.pixels = [];
+                stmt.execute(context, graphics, audio, program, runtime);
+                
+                expect(graphics.pixels[0].color).toEqual(testCase.expected);
+            }
+        });
     });
     
     describe('LINE Statement', () =>
@@ -397,6 +550,21 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.lines[0].color).toEqual({ r: 0, g: 255, b: 0, a: 255 });
+        });
+        
+        it('should accept color name strings with WITH clause', () =>
+        {
+            const stmt = new LineStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.String, value: "cornflowerblue" })
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.lines[0].color).toEqual({ r: 100, g: 149, b: 237, a: 255 });
         });
     });
     
@@ -459,6 +627,22 @@ describe('Statement Implementations', () =>
             expect(graphics.rectangles[0].width).toBe(50);
             expect(graphics.rectangles[0].height).toBe(50);
         });
+        
+        it('should accept color name strings with WITH clause', () =>
+        {
+            const stmt = new RectangleStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 20 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 80 }),
+                new LiteralExpression({ type: EduBasicType.String, value: "gold" }),
+                true
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.rectangles[0].color).toEqual({ r: 255, g: 215, b: 0, a: 255 });
+        });
     });
     
     describe('OVAL Statement', () =>
@@ -501,6 +685,22 @@ describe('Statement Implementations', () =>
             expect(graphics.ovals[0].filled).toBe(true);
             expect(graphics.ovals[0].color).toEqual({ r: 0, g: 0, b: 255, a: 255 });
         });
+        
+        it('should accept color name strings with WITH clause', () =>
+        {
+            const stmt = new OvalStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 30 }),
+                new LiteralExpression({ type: EduBasicType.String, value: "darkgreen" }),
+                true
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.ovals[0].color).toEqual({ r: 0, g: 100, b: 0, a: 255 });
+        });
     });
     
     describe('CIRCLE Statement', () =>
@@ -541,6 +741,21 @@ describe('Statement Implementations', () =>
             
             expect(graphics.circles[0].filled).toBe(true);
             expect(graphics.circles[0].color).toEqual({ r: 255, g: 255, b: 0, a: 255 });
+        });
+        
+        it('should accept color name strings with WITH clause', () =>
+        {
+            const stmt = new CircleStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.String, value: "rebeccapurple" }),
+                true
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.circles[0].color).toEqual({ r: 102, g: 51, b: 153, a: 255 });
         });
     });
     
@@ -592,6 +807,24 @@ describe('Statement Implementations', () =>
             expect(graphics.triangles[0].filled).toBe(true);
             expect(graphics.triangles[0].color).toEqual({ r: 255, g: 0, b: 255, a: 255 });
         });
+        
+        it('should accept color name strings with WITH clause', () =>
+        {
+            const stmt = new TriangleStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 50 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 100 }),
+                new LiteralExpression({ type: EduBasicType.String, value: "hotpink" }),
+                true
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.triangles[0].color).toEqual({ r: 255, g: 105, b: 180, a: 255 });
+        });
     });
     
     describe('ARC Statement', () =>
@@ -634,6 +867,22 @@ describe('Statement Implementations', () =>
             stmt.execute(context, graphics, audio, program, runtime);
             
             expect(graphics.arcs[0].color).toEqual({ r: 255, g: 255, b: 255, a: 255 });
+        });
+        
+        it('should accept color name strings with WITH clause', () =>
+        {
+            const stmt = new ArcStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 200 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 30 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 1.57 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 4.71 }),
+                new LiteralExpression({ type: EduBasicType.String, value: "limegreen" })
+            );
+            
+            stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(graphics.arcs[0].color).toEqual({ r: 50, g: 205, b: 50, a: 255 });
         });
     });
     

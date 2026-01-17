@@ -6,6 +6,7 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
+import { resolveColorValue, intToRgba } from './color-utils';
 
 export class OvalStatement extends Statement
 {
@@ -47,14 +48,10 @@ export class OvalStatement extends Statement
         if (this.color)
         {
             const colorValue = this.color.evaluate(context);
-            const rgba = colorValue.type === EduBasicType.Integer ? colorValue.value as number : 0xFFFFFFFF;
+            const rgba = resolveColorValue(colorValue);
+            const color = intToRgba(rgba);
             
-            const r = (rgba >> 24) & 0xFF;
-            const g = (rgba >> 16) & 0xFF;
-            const b = (rgba >> 8) & 0xFF;
-            const a = rgba & 0xFF;
-            
-            graphics.drawOval(x, y, width, height, this.filled, { r, g, b, a });
+            graphics.drawOval(x, y, width, height, this.filled, color);
         }
         else
         {
