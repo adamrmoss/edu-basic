@@ -7,15 +7,15 @@
             <div *ngFor="let lineNum of lineNumbers" class="line-number">
                 <span *ngIf="lineNum > 0">{{ lineNum }}</span>
             </div>
-        </div>
-        <textarea 
+    </div>
+    <textarea 
             #codeTextarea
-            class="code-textarea"
-            spellcheck="false"
+        class="code-textarea"
+        spellcheck="false"
             [value]="code"
-            (input)="onTextAreaInput($event)"
-            (scroll)="onTextAreaScroll($event)"
-        ></textarea>
+        (input)="onTextAreaInput($event)"
+        (scroll)="onTextAreaScroll($event)"
+    ></textarea>
     </div>
 </div>
 

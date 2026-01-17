@@ -5,7 +5,7 @@ The Disk component provides a complete project management system for EduBASIC ap
 ## Overview
 
 The disk system allows students to:
-- Create, load, and save complete projects as ZIP files
+- Create, load, and save complete projects as `.disk` files
 - Manage data files separately from the program code
 - Edit data files in text or hex mode (UTF-8 encoding)
 - Access data files from BASIC programs using file I/O statements
@@ -19,14 +19,14 @@ The disk system allows students to:
 **Purpose**: Manages the current disk state including disk name, program code, and the virtual file system.
 
 **Key Features**:
-- ZIP serialization/deserialization using JSZip
+- Disk file serialization/deserialization using JSZip (ZIP format with `.disk` extension)
 - Observable streams for disk name, program code, and file changes
 - Integration with FileSystemService for virtual file management
 
 **Key Methods**:
 - `newDisk(name)`: Creates a new empty disk
-- `loadDisk(file)`: Loads a disk from a ZIP file
-- `saveDisk()`: Saves the current disk as a ZIP file
+- `loadDisk(file)`: Loads a disk from a `.disk` file
+- `saveDisk()`: Saves the current disk as a `.disk` file
 - `setDiskName(name)`: Changes the disk name
 - `setProgramCode(code)`: Updates the program code
 - `getFile(path)`, `saveFile(path, data)`, `deleteFile(path)`: File management
@@ -72,10 +72,10 @@ The disk system allows students to:
 
 ## Disk File Format
 
-Disks are saved as ZIP files with the following structure:
+Disks are saved as `.disk` files (ZIP archives) with the following structure:
 
 ```
-project-name.zip
+project-name.disk
 ├── program.bas          # BASIC program code
 ├── disk.json           # Metadata (disk name, timestamps)
 └── files/              # Virtual file system
@@ -135,10 +135,10 @@ This ensures that the program code is always synchronized with the current disk 
 ## User Workflow
 
 1. **New Project**: Click "New" button, enter disk name
-2. **Load Project**: Click "Load" button, select ZIP file
+2. **Load Project**: Click "Load" button, select `.disk` file
 3. **Edit Program**: Use Code tab to edit BASIC program
 4. **Manage Files**: Use Disk tab to create/edit/delete data files
-5. **Save Project**: Click "Save" button to download ZIP file
+5. **Save Project**: Click "Save" button to download `.disk` file
 
 ## Technical Notes
 

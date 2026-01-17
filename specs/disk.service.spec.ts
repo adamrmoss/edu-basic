@@ -269,7 +269,7 @@ describe('DiskService', () => {
             const createElement = document.createElement as jest.Mock;
             const mockLink = createElement.mock.results[0].value;
 
-            expect(mockLink.download).toBe('DownloadTest.zip');
+            expect(mockLink.download).toBe('DownloadTest.disk');
         });
     });
 
@@ -298,7 +298,7 @@ describe('DiskService', () => {
             }
 
             const blob = await zip.generateAsync({ type: 'blob' });
-            return new File([blob], `${diskName}.zip`, { type: 'application/zip' });
+            return new File([blob], `${diskName}.disk`, { type: 'application/zip' });
         }
 
         it('should load disk from ZIP', async () => {
@@ -347,7 +347,7 @@ describe('DiskService', () => {
             zip.file('program.bas', 'TEST');
 
             const blob = await zip.generateAsync({ type: 'blob' });
-            const file = new File([blob], 'FromFilename.zip', { type: 'application/zip' });
+            const file = new File([blob], 'FromFilename.disk', { type: 'application/zip' });
 
             await service.loadDisk(file);
 
@@ -359,7 +359,7 @@ describe('DiskService', () => {
             zip.file('disk.json', JSON.stringify({ name: 'NoProgram', created: '', modified: '' }));
 
             const blob = await zip.generateAsync({ type: 'blob' });
-            const file = new File([blob], 'test.zip', { type: 'application/zip' });
+            const file = new File([blob], 'test.disk', { type: 'application/zip' });
 
             await service.loadDisk(file);
 

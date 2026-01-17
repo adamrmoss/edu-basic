@@ -85,7 +85,7 @@ export class DiskService
 
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `${this.diskNameSubject.value}.zip`;
+        link.download = `${this.diskNameSubject.value}.disk`;
         link.click();
 
         URL.revokeObjectURL(link.href);
@@ -105,7 +105,7 @@ export class DiskService
         }
         else
         {
-            const fileName = file.name.replace(/\.zip$/i, '');
+            const fileName = file.name.replace(/\.disk$/i, '');
             this.diskNameSubject.next(fileName);
         }
 

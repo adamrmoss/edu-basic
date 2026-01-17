@@ -218,7 +218,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
                 if (j === 0)
                 {
                     lineNumbers.push(i + 1);
-                }
+        }
                 else
                 {
                     lineNumbers.push(-1);

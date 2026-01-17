@@ -81,7 +81,7 @@ export class DiskComponent implements OnInit, OnDestroy
     {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = '.zip';
+        input.accept = '.disk';
         
         input.onchange = async (event: Event) => {
             const target = event.target as HTMLInputElement;

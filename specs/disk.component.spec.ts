@@ -119,17 +119,17 @@ describe('DiskComponent', () => {
             expect(diskService.saveDisk).toHaveBeenCalled();
         });
 
-        it('should show alert on save error', async () => {
+        it('should log error on save error', async () => {
             diskService.saveDisk.mockReturnValue(Promise.reject(new Error('Save failed')));
-            jest.spyOn(window, 'alert').mockImplementation(() => {});
+            jest.spyOn(console, 'error').mockImplementation(() => {});
 
             await component.onSaveDisk();
 
-            expect(window.alert).toHaveBeenCalledWith('Error saving disk: Error: Save failed');
+            expect(console.error).toHaveBeenCalledWith('Error saving disk:', expect.any(Error));
         });
 
         it('should load disk from file input', async () => {
-            const mockFile = new File(['content'], 'test.zip', { type: 'application/zip' });
+            const mockFile = new File(['content'], 'test.disk', { type: 'application/zip' });
             diskService.loadDisk.mockReturnValue(Promise.resolve());
 
             const input = document.createElement('input');
@@ -140,10 +140,10 @@ describe('DiskComponent', () => {
             expect(document.createElement).toHaveBeenCalledWith('input');
         });
 
-        it('should show alert on load error', async () => {
-            const mockFile = new File(['content'], 'test.zip', { type: 'application/zip' });
+        it('should log error on load error', async () => {
+            const mockFile = new File(['content'], 'test.disk', { type: 'application/zip' });
             diskService.loadDisk.mockReturnValue(Promise.reject(new Error('Load failed')));
-            jest.spyOn(window, 'alert').mockImplementation(() => {});
+            jest.spyOn(console, 'error').mockImplementation(() => {});
             
             const input = document.createElement('input');
             input.type = 'file';
@@ -161,7 +161,7 @@ describe('DiskComponent', () => {
             }
 
             expect(diskService.loadDisk).toHaveBeenCalledWith(mockFile);
-            expect(window.alert).toHaveBeenCalledWith('Error loading disk: Error: Load failed');
+            expect(console.error).toHaveBeenCalledWith('Error loading disk:', expect.any(Error));
             jest.restoreAllMocks();
         });
     });
