@@ -804,39 +804,16 @@ export class ParserService
         // Check for comma (background only)
         if (this.match(TokenType.Comma))
         {
-            // Background only
-            if (this.matchKeyword('PRESET'))
-            {
-                background = this.parseExpression();
-            }
-            else
-            {
-                background = this.parseExpression();
-            }
+            background = this.parseExpression();
         }
         else
         {
-            // Check for PRESET keyword for foreground
-            if (this.matchKeyword('PRESET'))
-            {
-                foreground = this.parseExpression();
-            }
-            else
-            {
-                foreground = this.parseExpression();
-            }
+            foreground = this.parseExpression();
             
             // Check for optional background
             if (this.match(TokenType.Comma))
             {
-                if (this.matchKeyword('PRESET'))
-                {
-                    background = this.parseExpression();
-                }
-                else
-                {
-                    background = this.parseExpression();
-                }
+                background = this.parseExpression();
             }
         }
         

@@ -301,33 +301,25 @@ describe('ParserService', () =>
             expect(result.statement).toBeInstanceOf(ColorStatement);
         });
         
-        it('should parse COLOR with PRESET keyword and color name', () =>
-        {
-            const result = parser.parseLine(1, 'COLOR PRESET "red"');
-            
-            expect(result.hasError).toBe(false);
-            expect(result.statement).toBeInstanceOf(ColorStatement);
-        });
-        
-        it('should parse COLOR with PRESET keyword for both foreground and background', () =>
-        {
-            const result = parser.parseLine(1, 'COLOR PRESET "blue", PRESET "white"');
-            
-            expect(result.hasError).toBe(false);
-            expect(result.statement).toBeInstanceOf(ColorStatement);
-        });
-        
-        it('should parse COLOR with PRESET keyword for background only', () =>
-        {
-            const result = parser.parseLine(1, 'COLOR , PRESET "black"');
-            
-            expect(result.hasError).toBe(false);
-            expect(result.statement).toBeInstanceOf(ColorStatement);
-        });
-        
-        it('should parse COLOR with color name without PRESET keyword', () =>
+        it('should parse COLOR with color name string', () =>
         {
             const result = parser.parseLine(1, 'COLOR "green"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with color names for both foreground and background', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR "blue", "white"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with color name for background only', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR , "black"');
             
             expect(result.hasError).toBe(false);
             expect(result.statement).toBeInstanceOf(ColorStatement);
@@ -336,6 +328,14 @@ describe('ParserService', () =>
         it('should parse COLOR with mixed integer and color name', () =>
         {
             const result = parser.parseLine(1, 'COLOR &HFF0000FF, "blue"');
+            
+            expect(result.hasError).toBe(false);
+            expect(result.statement).toBeInstanceOf(ColorStatement);
+        });
+        
+        it('should parse COLOR with color name and integer', () =>
+        {
+            const result = parser.parseLine(1, 'COLOR "red", &H000000FF');
             
             expect(result.hasError).toBe(false);
             expect(result.statement).toBeInstanceOf(ColorStatement);

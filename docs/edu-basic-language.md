@@ -2225,18 +2225,16 @@ The `COLOR` statement sets the global foreground and/or background color for bot
 COLOR foregroundColor%
 COLOR foregroundColor%, backgroundColor%
 COLOR , backgroundColor%
-COLOR PRESET colorName$
-COLOR PRESET colorName$, PRESET backgroundColorName$
 ```
 
 **Color Format:**
 - Colors can be specified as:
   - **32-bit RGBA integers**: Format `&HRRGGBBAA` (hexadecimal) - always use this format in examples
-  - **Color names**: Standard CSS color names (case-insensitive)
+  - **Color names**: Standard CSS color names as strings (case-insensitive)
 - Each component (R, G, B, A) ranges from 0-255
 - Alpha channel controls transparency (0 = fully transparent, 255 = fully opaque)
 - Color names use full opacity (alpha = 255) by default
-- The `PRESET` keyword is optional but can be used for consistency with `VOICE` statement syntax
+- String expressions are automatically recognized as color names when they match a valid CSS color name
 
 **Text Usage:**
 - Sets the global foreground color for subsequent `PRINT` statements
@@ -2276,9 +2274,7 @@ PRINT "Text with black background"
 
 ' Text usage with color names
 COLOR "red"             ' Set global foreground to red using color name
-COLOR PRESET "red"      ' Same as above, with explicit PRESET keyword
 COLOR "blue", "white"   ' Blue text on white background
-COLOR PRESET "blue", PRESET "white"  ' Same as above
 
 ' Graphics usage - using global color
 COLOR &HFF0000FF    ' Set global foreground to red
@@ -6765,7 +6761,7 @@ These operators take no arguments and return a value. They use type sigils to in
 EduBASIC supports all standard CSS color names as preset colors. Color names are case-insensitive and can be used anywhere a 32-bit RGBA color value is accepted, including the `COLOR` statement and all graphics statements with `WITH color%` syntax.
 
 **Usage:**
-- `COLOR "red"` or `COLOR PRESET "red"` - Use color name directly
+- `COLOR "red"` - Use color name directly (string expressions are automatically recognized as color names)
 - `PSET (100, 100) WITH "blue"` - Use color name in graphics statements
 - Color names resolve to their standard CSS color values in `&HRRGGBBAA` format with full opacity (alpha = 255)
 
