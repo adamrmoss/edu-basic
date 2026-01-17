@@ -216,7 +216,15 @@ interface FileNode {
 - Program code is stored separately (not shown in file list)
 - All files are persisted in ZIP format when disk is saved
 
-See `src/app/disk/README.md` for detailed documentation.
+See [Disk Component](disk/README.md) for detailed documentation.
+
+## Related Documentation
+
+For detailed documentation on specific components and services:
+
+- **[Console Service](console/README.md)** - Console command execution and history management
+- **[Disk Component](disk/README.md)** - Project and file management system
+- **[Interpreter Services](interpreter/README.md)** - Interpreter, parser, tokenizer, and expression parser services
 
 ## Component Communication
 

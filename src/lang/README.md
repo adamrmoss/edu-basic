@@ -430,6 +430,13 @@ EduBASIC performs automatic type coercion:
 - Displayed to user via console
 - Don't crash application
 
+## Related Documentation
+
+For detailed documentation on specific language subsystems:
+
+- **[Expressions System](expressions/README.md)** - Expression parsing, evaluation, and operator precedence
+- **[Statements System](statements/README.md)** - All statement types and their execution
+
 ## Future Enhancements
 
 Potential additions:

@@ -9,6 +9,7 @@
   - [Type Sigils](#type-sigils)
   - [Variable Names](#variable-names)
   - [Variable Declaration](#variable-declaration)
+  - [Default Values](#default-values)
   - [Literals](#literals)
   - [Type Coercion](#type-coercion)
   - [Structures](#structures)
@@ -37,6 +38,7 @@
   - [Error Handling](#error-handling)
     - [TRY...CATCH...FINALLY Statement](#trycatchfinally-statement)
     - [THROW Statement](#throw-statement)
+  - [Date and Time Functions](#date-and-time-functions)
   - [Summary: Structured vs. Unstructured Flow Control](#summary-structured-vs-unstructured-flow-control)
 - [Text I/O](#text-io)
   - [PRINT Statement](#print-statement)
@@ -91,6 +93,7 @@
   - [TURTLE Statement](#turtle-statement)
   - [Graphics Examples](#graphics-examples)
 - [Audio](#audio)
+  - [GRIT Overview](#grit-overview)
   - [TEMPO Statement](#tempo-statement)
   - [VOLUME Statement](#volume-statement)
   - [VOICE Statement](#voice-statement)
@@ -99,7 +102,7 @@
   - [MML Syntax Reference](#mml-syntax-reference)
   - [MML Examples](#mml-examples)
   - [Audio Examples](#audio-examples)
-- [Command and Function Reference](#command-and-function-reference)
+- [Statement and Operator Reference](#statement-and-operator-reference)
   - (Alphabetical listing of 100+ commands, functions, and operators)
 - [Appendix: Complete Operator Reference](#appendix-complete-operator-reference)
   - [Arithmetic Operators](#arithmetic-operators)
@@ -124,6 +127,7 @@
   - [Audio Operators](#audio-operators)
   - [Special Operators](#special-operators)
   - [Operator Precedence Summary](#operator-precedence-summary)
+- [Appendix: CSS Color Names](#appendix-css-color-names)
 
 ---
 
@@ -180,6 +184,77 @@ LET player = { name$: "Bob", score%: 100 }      ' Structure (no sigil)
 Variables in EduBASIC are **implicitly declared**—you simply assign a value with the `LET` or `LOCAL` statements to create a variable. **No variables need to be declared ahead of time**, whether they are scalars, structures, or arrays.
 
 The `DIM` statement is used **only** for resizing arrays (changing the size of an array). Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet. All other variables are created automatically when first assigned with `LET` or `LOCAL`.
+
+### LET Statement
+
+The `LET` statement assigns a value to a variable, creating module-level (global) variables.
+
+**Syntax:**
+```
+LET variable = expression
+LET array[] = expression
+```
+
+**Rules:**
+- Creates module-level (global) variables that persist throughout the program
+- Can assign to scalars, structures, or arrays
+- For arrays, the expression can be an array literal, another array, or an array slice
+- The `LET` keyword is optional in some contexts but recommended for clarity
+- Variables are created automatically on first assignment—no declaration needed
+- Type is determined by the variable's sigil (or lack of sigil for structures)
+
+**Examples:**
+```
+LET count% = 10
+LET name$ = "Alice"
+LET result# = 3.14159
+LET complex& = 3+4i
+
+' Array assignments
+LET numbers%[] = [1, 2, 3, 4, 5]
+LET copy%[] = numbers%[]
+LET slice%[] = numbers%[2 TO 4]
+
+' Structure assignment
+LET player = { name$: "Bob", score%: 100 }
+```
+
+### SWAP Statement
+
+The `SWAP` statement exchanges the values of two variables of the same type.
+
+**Syntax:**
+```
+SWAP variable1 WITH variable2
+SWAP array1[] WITH array2[]
+```
+
+**Rules:**
+- Exchanges the values of two variables
+- Both operands must be of the same type (both integers, both reals, both strings, both arrays, etc.)
+- Can swap scalars or arrays
+- Arrays must be of the same element type
+- The operation is atomic (both values are swapped simultaneously)
+
+**Examples:**
+```
+LET x% = 5
+LET y% = 10
+SWAP x% WITH y%
+PRINT x%, y%    ' Prints: 10    5
+
+LET arr1%[] = [1, 2, 3]
+LET arr2%[] = [4, 5, 6]
+SWAP arr1%[] WITH arr2%[]
+PRINT arr1%[]    ' Prints: 4, 5, 6
+PRINT arr2%[]    ' Prints: 1, 2, 3
+
+' Swap strings
+LET a$ = "Hello"
+LET b$ = "World"
+SWAP a$ WITH b$
+PRINT a$, b$    ' Prints: World Hello
+```
 
 ### Default Values
 
@@ -624,7 +699,23 @@ LET names$[] = ["Alice", "Bob", "Charlie"]
 
 #### Array Resizing
 
-The `DIM` keyword is used **only** for resizing arrays. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet.
+The `DIM` statement is used **only** for resizing arrays. Undeclared arrays are presumed to have size 0, so you can use `DIM` to resize them even if they haven't been assigned yet.
+
+**Syntax:**
+```
+DIM arrayName[size]
+DIM arrayName[start TO end]
+DIM arrayName[size1, size2, ...]
+DIM arrayName[start1 TO end1, start2 TO end2, ...]
+```
+
+**Rules:**
+- Arrays are one-based by default (index 1 is the first element)
+- `DIM` resizes an array to the specified size or range
+- If the array doesn't exist, `DIM` creates it
+- If the array already exists, `DIM` resizes it (existing elements may be preserved or cleared depending on the new size)
+- For multi-dimensional arrays, specify dimensions separated by commas
+- Custom ranges use `start TO end` syntax
 
 **Resize to a new size:**
 ```
@@ -1063,19 +1154,26 @@ EduBASIC provides the `RND#` operator to generate random numbers and the `RANDOM
 
 **Random Number Generator Seed:**
 
-The `RANDOMIZE` command initializes the random number generator with a seed value:
+The `RANDOMIZE` statement initializes the random number generator with a seed value.
 
+**Syntax:**
 ```
 RANDOMIZE
-```
-
-Seeds the generator with the current Unix timestamp (`NOW%`). This produces different random sequences each time the program runs.
-
-```
 RANDOMIZE seedValue%
 ```
 
-Seeds the generator with a specific integer value. Using the same seed value produces the same sequence of random numbers, which is useful for testing and reproducible results.
+**Rules:**
+- Without an argument, seeds the generator with the current Unix timestamp (`NOW%`)
+- With an argument, seeds the generator with the specified integer value
+- Using the same seed value produces the same sequence of random numbers
+- Different seeds produce different random sequences
+
+**Examples:**
+```
+RANDOMIZE    ' Seed with current timestamp (different each run)
+RANDOMIZE 12345    ' Seed with specific value (reproducible)
+RANDOMIZE NOW%    ' Explicitly seed with current timestamp
+```
 
 
 **Mathematical Constants:**
@@ -1639,17 +1737,36 @@ END SUB
 **Note:** Parameters are passed **by value** by default. Prefix individual parameters with `BYREF` to pass by reference. Parentheses are not permitted in `SUB` declarations.
 
 **Calling a `SUB`:**
+
+The `CALL` statement invokes a subroutine procedure with arguments.
+
+**Syntax:**
 ```
-CALL procedureName argument1, argument2, ...
+CALL procedureName arg1, arg2, ...
+procedureName arg1, arg2, ...
 ```
 
-or simply:
+**Rules:**
+- The `CALL` keyword is optional—you can call a subroutine by name directly
+- Parentheses are not permitted in `CALL` statements or direct subroutine calls
+- Arguments are passed by position (first argument to first parameter, etc.)
+- Arguments must match the parameter types (type sigils must match)
+- Arguments are passed by value by default, unless the parameter is marked with `BYREF`
 
+**Examples:**
 ```
-procedureName argument1, argument2, ...
-```
+CALL DrawBox 10, 5, "*"
+DrawBox 20, 3, "#"    ' Same as CALL DrawBox 20, 3, "#"
 
-**Note:** Parentheses are not permitted in `CALL` statements or direct subroutine calls.
+SUB DrawBox width%, height%, char$
+    FOR row% = 1 TO height%
+        FOR col% = 1 TO width%
+            PRINT char$;
+        NEXT col%
+        PRINT
+    NEXT row%
+END SUB
+```
 
 **Rules:**
 - Parameters must include type sigils
@@ -1696,19 +1813,56 @@ PRINT "y ="; y%        ' Prints: y = 999 (changed, passed by reference)
 
 #### Local Variables
 
-Variables created with the `LET` statement inside a `SUB` are **module-level** (global). To create variables that are local to the current stack frame, use the `LOCAL` statement:
+Variables created with the `LET` statement inside a `SUB` are **module-level** (global). To create variables that are local to the current stack frame, use the `LOCAL` statement.
 
+**Syntax:**
 ```
-LOCAL variableName = value
+LOCAL variable = expression
+LOCAL array[] = expression
 ```
 
-The `LOCAL` statement creates variables scoped to the current stack frame:
+**Rules:**
+- Creates variables scoped to the current stack frame
 - Inside a `SUB`: variables are local to that procedure's stack frame
 - Outside any `SUB`: variables are local to the bottom-level stack frame
 - Local variables are only accessible within their stack frame
 - Local variables are destroyed when their stack frame is popped (when the `SUB` exits)
 - Local variables do not conflict with module-level variables of the same name
 - Local variables must still include type sigils
+- Can create local scalars or arrays
+- Local arrays are destroyed when the stack frame is popped
+
+**Examples:**
+```
+SUB DrawBox width%, height%, char$
+    LOCAL row%
+    LOCAL col%
+    
+    FOR row% = 1 TO height%
+        FOR col% = 1 TO width%
+            PRINT char$;
+        NEXT col%
+        PRINT
+    NEXT row%
+END SUB
+
+SUB CalculateStats values#[], count%, BYREF average#, BYREF maximum#
+    LOCAL sum# = 0
+    LOCAL i%
+    LOCAL buffer%[] = [0, 0, 0]    ' Local array
+    
+    LET maximum# = values#[1]
+    
+    FOR i% = 1 TO count%
+        LET sum# += values#[i%]
+        IF values#[i%] > maximum# THEN
+            LET maximum# = values#[i%]
+        END IF
+    NEXT i%
+    
+    LET average# = sum# / count%
+END SUB
+```
 
 **Examples:**
 
@@ -3129,6 +3283,34 @@ EduBASIC provides a comprehensive graphics system for drawing shapes, sprites, a
 
 **Note:** The text display system overlays the graphics display, allowing you to combine text and graphics in the same program.
 
+### CLS Statement
+
+The `CLS` statement clears the graphics screen.
+
+**Syntax:**
+```
+CLS
+CLS WITH backgroundColor%
+```
+
+**Rules:**
+- Clears the entire graphics display (640×480 pixels)
+- Without a color, clears to black (`&H000000FF`)
+- With `WITH backgroundColor%`, clears to the specified background color
+- Color is a 32-bit RGBA integer in `&HRRGGBBAA` format
+- Does not affect the text display overlay
+- Automatically switches to the output tab
+
+**Examples:**
+```
+CLS    ' Clear to black
+
+CLS WITH &H000033FF    ' Clear to dark blue
+
+' Clear to a custom color
+LET bgColor% = &HFF6600FF    ' Orange background
+CLS WITH bgColor%
+```
 
 ### PSET Statement
 
@@ -4078,9 +4260,9 @@ PLAY 0, "N60 L4"
 PLAY 1, "N64 L2"
 ```
 
-## Command and Function Reference
+## Statement and Operator Reference
 
-This section provides an alphabetical reference of all EduBASIC commands, mathematical functions, and operators.
+This section provides an alphabetical reference of all EduBASIC statements, mathematical functions, and operators.
 
 ---
 
