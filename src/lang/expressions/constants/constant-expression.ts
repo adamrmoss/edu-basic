@@ -13,6 +13,9 @@ export enum Constant
     False = 'FALSE%',
 }
 
+import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
+import { ExecutionContext } from '../../execution-context';
+
 export class ConstantExpression extends Expression
 {
     public constructor(
@@ -20,6 +23,16 @@ export class ConstantExpression extends Expression
     )
     {
         super();
+    }
+
+    public evaluate(context: ExecutionContext): EduBasicValue
+    {
+        throw new Error('ConstantExpression.evaluate() not yet implemented');
+    }
+
+    public toString(): string
+    {
+        return this.constant;
     }
 }
 

@@ -396,5 +396,10 @@ export class MathematicalOperatorExpression extends Expression
             imaginary: magnitude * Math.sin(argument)
         };
     }
+
+    public toString(): string
+    {
+        return `${this.operator}(${this.argument.toString()})`;
+    }
 }
 

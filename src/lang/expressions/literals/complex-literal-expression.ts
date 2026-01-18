@@ -19,5 +19,11 @@ export class ComplexLiteralExpression extends Expression
             value: { real: this.real, imaginary: this.imaginary }
         };
     }
+
+    public toString(): string
+    {
+        const sign = this.imaginary >= 0 ? '+' : '';
+        return `(${this.real}${sign}${this.imaginary}i)`;
+    }
 }
 

@@ -29,13 +29,14 @@ import { LiteralExpression } from '../src/lang/expressions/literals/literal-expr
 import { PrintStatement } from '../src/lang/statements/io/print-statement';
 import { Graphics, Color } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
+import { FileSystemService } from '../src/app/filesystem.service';
 
 class MockGraphics extends Graphics
 {
     public clearCalled: boolean = false;
     public cursorPosition: { row: number; column: number } | null = null;
-    public foregroundColor: Color | null = null;
-    public backgroundColor: Color | null = null;
+    public trackedForegroundColor: Color | null = null;
+    public trackedBackgroundColor: Color | null = null;
     public pixels: Array<{ x: number; y: number; color?: Color }> = [];
     public lines: Array<{ x1: number; y1: number; x2: number; y2: number; color?: Color }> = [];
     public rectangles: Array<{ x: number; y: number; width: number; height: number; filled: boolean; color?: Color }> = [];
@@ -49,13 +50,13 @@ class MockGraphics extends Graphics
     public override setForegroundColor(color: Color): void
     {
         super.setForegroundColor(color);
-        this.foregroundColor = color;
+        this.trackedForegroundColor = color;
     }
     
     public override setBackgroundColor(color: Color): void
     {
         super.setBackgroundColor(color);
-        this.backgroundColor = color;
+        this.trackedBackgroundColor = color;
     }
     
     public override setCursorPosition(row: number, column: number): void
@@ -124,21 +125,21 @@ class MockGraphics extends Graphics
 
 class MockAudio extends Audio
 {
-    public tempo: number | null = null;
-    public volume: number | null = null;
+    public trackedTempo: number | null = null;
+    public trackedVolume: number | null = null;
     public voice: number | null = null;
     public sequences: string[] = [];
     
     public override setTempo(bpm: number): void
     {
         super.setTempo(bpm);
-        this.tempo = bpm;
+        this.trackedTempo = bpm;
     }
     
     public override setVolume(volume: number): void
     {
         super.setVolume(volume);
-        this.volume = volume;
+        this.trackedVolume = volume;
     }
     
     public override setVoice(voiceIndex: number): void
@@ -168,7 +169,8 @@ describe('Statement Implementations', () =>
         graphics = new MockGraphics();
         audio = new MockAudio();
         program = new Program();
-        runtime = new RuntimeExecution(program, context, graphics, audio);
+        const fileSystem = new FileSystemService();
+        runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
     });
     
     describe('CLS Statement', () =>
@@ -200,8 +202,8 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
-            expect(graphics.backgroundColor).toBeNull();
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedBackgroundColor).toBeNull();
         });
         
         it('should set both foreground and background colors', () =>
@@ -214,8 +216,8 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 255, b: 255, a: 255 });
-            expect(graphics.backgroundColor).toEqual({ r: 0, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 255, b: 255, a: 255 });
+            expect(graphics.trackedBackgroundColor).toEqual({ r: 0, g: 0, b: 0, a: 255 });
         });
         
         it('should extract RGBA components correctly from hex integer', () =>
@@ -226,7 +228,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 0x12, g: 0x34, b: 0x56, a: 0x78 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 0x12, g: 0x34, b: 0x56, a: 0x78 });
         });
         
         it('should accept color name strings for foreground', () =>
@@ -238,7 +240,7 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should accept color name strings for background', () =>
@@ -251,8 +253,8 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
-            expect(graphics.backgroundColor).toEqual({ r: 0, g: 0, b: 255, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedBackgroundColor).toEqual({ r: 0, g: 0, b: 255, a: 255 });
         });
         
         it('should accept color names case-insensitively (uppercase)', () =>
@@ -263,7 +265,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should accept color names case-insensitively (mixed case)', () =>
@@ -274,7 +276,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should accept color names case-insensitively (lowercase)', () =>
@@ -285,7 +287,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should handle various CSS color names', () =>
@@ -306,7 +308,7 @@ describe('Statement Implementations', () =>
                 
                 stmt.execute(context, graphics, audio, program, runtime);
                 
-                expect(graphics.foregroundColor).toEqual(testCase.expected);
+                expect(graphics.trackedForegroundColor).toEqual(testCase.expected);
             }
         });
         
@@ -316,13 +318,13 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.String, value: "gray" })
             );
             grayStmt.execute(context, graphics, audio, program, runtime);
-            const grayColor = graphics.foregroundColor;
+            const grayColor = graphics.trackedForegroundColor;
             
             const greyStmt = new ColorStatement(
                 new LiteralExpression({ type: EduBasicType.String, value: "grey" })
             );
             greyStmt.execute(context, graphics, audio, program, runtime);
-            const greyColor = graphics.foregroundColor;
+            const greyColor = graphics.trackedForegroundColor;
             
             expect(grayColor).toEqual(greyColor);
             expect(grayColor).toEqual({ r: 128, g: 128, b: 128, a: 255 });
@@ -334,13 +336,13 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.String, value: "aqua" })
             );
             aquaStmt.execute(context, graphics, audio, program, runtime);
-            const aquaColor = graphics.foregroundColor;
+            const aquaColor = graphics.trackedForegroundColor;
             
             const cyanStmt = new ColorStatement(
                 new LiteralExpression({ type: EduBasicType.String, value: "cyan" })
             );
             cyanStmt.execute(context, graphics, audio, program, runtime);
-            const cyanColor = graphics.foregroundColor;
+            const cyanColor = graphics.trackedForegroundColor;
             
             expect(aquaColor).toEqual(cyanColor);
             expect(aquaColor).toEqual({ r: 0, g: 255, b: 255, a: 255 });
@@ -922,7 +924,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 3 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
@@ -940,7 +942,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 10 })
                 );
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('PUSH: x% is not an array');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('PUSH: x% is not an array');
             });
         });
         
@@ -955,7 +957,7 @@ describe('Statement Implementations', () =>
                 ], elementType: EduBasicType.Integer });
                 
                 const stmt = new PopStatement('arr%[]', 'result%');
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
@@ -972,7 +974,7 @@ describe('Statement Implementations', () =>
                 ], elementType: EduBasicType.Integer });
                 
                 const stmt = new PopStatement('arr%[]', null);
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
                 const arr = context.getVariable('arr%[]');
                 expect((arr.value as any[]).length).toBe(0);
@@ -984,7 +986,7 @@ describe('Statement Implementations', () =>
                 
                 const stmt = new PopStatement('arr%[]', null);
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('POP: arr%[] is empty');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('POP: arr%[] is empty');
             });
             
             it('should throw error if variable is not an array', () =>
@@ -993,7 +995,7 @@ describe('Statement Implementations', () =>
                 
                 const stmt = new PopStatement('x%', null);
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('POP: x% is not an array');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('POP: x% is not an array');
             });
         });
         
@@ -1008,7 +1010,7 @@ describe('Statement Implementations', () =>
                 ], elementType: EduBasicType.String });
                 
                 const stmt = new ShiftStatement('arr$[]', 'result$');
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr$[]');
@@ -1025,7 +1027,7 @@ describe('Statement Implementations', () =>
                 
                 const stmt = new ShiftStatement('arr%[]', null);
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('SHIFT: arr%[] is empty');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('SHIFT: arr%[] is empty');
             });
         });
         
@@ -1043,7 +1045,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
@@ -1060,7 +1062,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 10 })
                 );
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('UNSHIFT: x% is not an array');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('UNSHIFT: x% is not an array');
             });
         });
     });
@@ -1092,7 +1094,7 @@ describe('Statement Implementations', () =>
                 ]
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('matrix%[]');
             expect((arr.value as any[]).length).toBe(3);
@@ -1110,7 +1112,7 @@ describe('Statement Implementations', () =>
                 ]
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('cube%[]');
             expect((arr.value as any[]).length).toBe(2);
@@ -1125,7 +1127,7 @@ describe('Statement Implementations', () =>
                 [new LiteralExpression({ type: EduBasicType.Integer, value: -5 })]
             );
             
-            expect(() => stmt.execute(context, graphics, audio)).toThrow('DIM: Array dimension cannot be negative');
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('DIM: Array dimension cannot be negative');
         });
         
         it('should floor real number dimensions', () =>
@@ -1135,7 +1137,7 @@ describe('Statement Implementations', () =>
                 [new LiteralExpression({ type: EduBasicType.Real, value: 5.9 })]
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('arr%[]');
             expect((arr.value as any[]).length).toBe(5);
@@ -1180,10 +1182,10 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 120 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
-                expect(audio.tempo).toBe(120);
+                expect(audio.trackedTempo).toBe(120);
             });
             
             it('should handle real number tempo', () =>
@@ -1192,9 +1194,9 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Real, value: 95.5 })
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
-                expect(audio.tempo).toBe(95.5);
+                expect(audio.trackedTempo).toBe(95.5);
             });
         });
         
@@ -1206,10 +1208,10 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 75 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
-                expect(audio.volume).toBe(75);
+                expect(audio.trackedVolume).toBe(75);
             });
             
             it('should handle real number volume', () =>
@@ -1218,9 +1220,9 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Real, value: 50.5 })
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
-                expect(audio.volume).toBe(50.5);
+                expect(audio.trackedVolume).toBe(50.5);
             });
         });
         
@@ -1236,7 +1238,7 @@ describe('Statement Implementations', () =>
                     null
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 expect(audio.voice).toBe(2);
@@ -1252,7 +1254,7 @@ describe('Statement Implementations', () =>
                     null
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(audio.voice).toBe(3);
             });
@@ -1267,7 +1269,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.String, value: 'CDEFGAB' })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 expect(audio.sequences).toHaveLength(1);
@@ -1281,7 +1283,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.String, value: 'O4 L4 C D E F G A B O5 C' })
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(audio.sequences[0]).toBe('O4 L4 C D E F G A B O5 C');
             });

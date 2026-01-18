@@ -58,8 +58,11 @@ describe('Literal and Special Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(3);
-            expect(result.value.imaginary).toBe(4);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(3);
+                expect(result.value.imaginary).toBe(4);
+            }
         });
 
         it('should format integer toString correctly', () =>
@@ -113,8 +116,11 @@ describe('Literal and Special Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(3);
-            expect(result.value.imaginary).toBe(4);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(3);
+                expect(result.value.imaginary).toBe(4);
+            }
         });
 
         it('should handle negative imaginary part', () =>
@@ -123,8 +129,11 @@ describe('Literal and Special Expressions', () =>
 
             const result = expr.evaluate(context);
 
-            expect(result.value.real).toBe(5);
-            expect(result.value.imaginary).toBe(-2);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(5);
+                expect(result.value.imaginary).toBe(-2);
+            }
         });
 
         it('should handle zero parts', () =>
@@ -133,8 +142,11 @@ describe('Literal and Special Expressions', () =>
 
             const result = expr.evaluate(context);
 
-            expect(result.value.real).toBe(0);
-            expect(result.value.imaginary).toBe(0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(0);
+                expect(result.value.imaginary).toBe(0);
+            }
         });
     });
 
@@ -147,8 +159,11 @@ describe('Literal and Special Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Array);
-            expect(result.value).toEqual([]);
-            expect(result.elementType).toBe(EduBasicType.Integer);
+            if (result.type === EduBasicType.Array)
+            {
+                expect(result.value).toEqual([]);
+                expect(result.elementType).toBe(EduBasicType.Integer);
+            }
         });
 
         it('should create array from literals', () =>
@@ -163,11 +178,14 @@ describe('Literal and Special Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Array);
-            expect(result.value).toHaveLength(3);
-            expect(result.value[0].value).toBe(1);
-            expect(result.value[1].value).toBe(2);
-            expect(result.value[2].value).toBe(3);
-            expect(result.elementType).toBe(EduBasicType.Integer);
+            if (result.type === EduBasicType.Array)
+            {
+                expect(result.value).toHaveLength(3);
+                expect(result.value[0].value).toBe(1);
+                expect(result.value[1].value).toBe(2);
+                expect(result.value[2].value).toBe(3);
+                expect(result.elementType).toBe(EduBasicType.Integer);
+            }
         });
 
         it('should evaluate expressions in array', () =>
@@ -182,8 +200,11 @@ describe('Literal and Special Expressions', () =>
 
             const result = expr.evaluate(context);
 
-            expect(result.value[0].value).toBe(5);
-            expect(result.value[1].value).toBe(10);
+            if (result.type === EduBasicType.Array)
+            {
+                expect(result.value[0].value).toBe(5);
+                expect(result.value[1].value).toBe(10);
+            }
         });
 
         it('should format toString for empty array', () =>
@@ -215,7 +236,10 @@ describe('Literal and Special Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Structure);
-            expect(result.value.size).toBe(0);
+            if (result.type === EduBasicType.Structure)
+            {
+                expect(result.value.size).toBe(0);
+            }
         });
 
         it('should create structure with members', () =>
@@ -229,9 +253,12 @@ describe('Literal and Special Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Structure);
-            expect(result.value.size).toBe(2);
-            expect(result.value.get('name$')?.value).toBe('Alice');
-            expect(result.value.get('age%')?.value).toBe(25);
+            if (result.type === EduBasicType.Structure)
+            {
+                expect(result.value.size).toBe(2);
+                expect(result.value.get('name$')?.value).toBe('Alice');
+                expect(result.value.get('age%')?.value).toBe(25);
+            }
         });
 
         it('should evaluate expressions in structure members', () =>
@@ -246,8 +273,11 @@ describe('Literal and Special Expressions', () =>
 
             const result = expr.evaluate(context);
 
-            expect(result.value.get('literal%')?.value).toBe(50);
-            expect(result.value.get('variable%')?.value).toBe(100);
+            if (result.type === EduBasicType.Structure)
+            {
+                expect(result.value.get('literal%')?.value).toBe(50);
+                expect(result.value.get('variable%')?.value).toBe(100);
+            }
         });
 
         it('should format toString for empty structure', () =>
@@ -322,8 +352,11 @@ describe('Literal and Special Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(0);
-            expect(result.value.imaginary).toBe(0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(0);
+                expect(result.value.imaginary).toBe(0);
+            }
         });
 
         it('should format toString correctly', () =>

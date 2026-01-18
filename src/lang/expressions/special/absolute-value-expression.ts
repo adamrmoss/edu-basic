@@ -15,5 +15,10 @@ export class AbsoluteValueExpression extends Expression
     {
         throw new Error('AbsoluteValueExpression.evaluate() not yet implemented');
     }
+
+    public toString(): string
+    {
+        return `ABS(${this.operand.toString()})`;
+    }
 }
 

@@ -25,5 +25,10 @@ export class TypeConversionOperatorExpression extends Expression
     {
         throw new Error('TypeConversionOperatorExpression.evaluate() not yet implemented');
     }
+
+    public toString(): string
+    {
+        return `${this.operator}(${this.argument.toString()})`;
+    }
 }
 

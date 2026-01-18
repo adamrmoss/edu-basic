@@ -264,8 +264,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(-3);
-            expect(result.value.imaginary).toBe(-4);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(-3);
+                expect(result.value.imaginary).toBe(-4);
+            }
         });
     });
 
@@ -280,8 +283,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(4);
-            expect(result.value.imaginary).toBe(6);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(4);
+                expect(result.value.imaginary).toBe(6);
+            }
         });
 
         it('should subtract complex numbers', () =>
@@ -293,8 +299,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(3);
-            expect(result.value.imaginary).toBe(3);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(3);
+                expect(result.value.imaginary).toBe(3);
+            }
         });
 
         it('should multiply complex numbers', () =>
@@ -306,8 +315,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(-5);
-            expect(result.value.imaginary).toBe(10);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(-5);
+                expect(result.value.imaginary).toBe(10);
+            }
         });
 
         it('should divide complex numbers', () =>
@@ -319,8 +331,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.5);
-            expect(result.value.imaginary).toBeCloseTo(0.5);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.5);
+                expect(result.value.imaginary).toBeCloseTo(0.5);
+            }
         });
 
         it('should add integer and complex number', () =>
@@ -332,8 +347,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(8);
-            expect(result.value.imaginary).toBe(4);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(8);
+                expect(result.value.imaginary).toBe(4);
+            }
         });
 
         it('should add real and complex number', () =>
@@ -345,8 +363,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(4.0);
-            expect(result.value.imaginary).toBe(3);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(4.0);
+                expect(result.value.imaginary).toBe(3);
+            }
         });
 
         it('should compute complex power', () =>
@@ -358,8 +379,11 @@ describe('Arithmetic Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(-1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(-1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should throw error on complex modulo', () =>

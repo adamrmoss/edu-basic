@@ -26,5 +26,10 @@ export class ComplexOperatorExpression extends Expression
     {
         throw new Error('ComplexOperatorExpression.evaluate() not yet implemented');
     }
+
+    public toString(): string
+    {
+        return `${this.operator}(${this.argument.toString()})`;
+    }
 }
 

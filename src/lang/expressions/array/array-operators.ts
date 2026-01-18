@@ -24,6 +24,11 @@ export class ArrayOperatorExpression extends Expression
     {
         throw new Error('ArrayOperatorExpression.evaluate() not yet implemented');
     }
+
+    public toString(): string
+    {
+        return `${this.operator}(${this.arrayExpr.toString()}, ${this.searchValue.toString()})`;
+    }
 }
 
 export class JoinExpression extends Expression
@@ -39,6 +44,11 @@ export class JoinExpression extends Expression
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         throw new Error('JoinExpression.evaluate() not yet implemented');
+    }
+
+    public toString(): string
+    {
+        return `JOIN(${this.arrayExpr.toString()}, ${this.delimiter.toString()})`;
     }
 }
 

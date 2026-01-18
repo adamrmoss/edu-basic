@@ -47,8 +47,6 @@ export function valueToString(value: EduBasicValue): string
             return value.value.map(v => valueToString(v)).join(',');
         case EduBasicType.Structure:
             return '[Structure]';
-        default:
-            return String(value.value ?? '');
     }
 }
 
@@ -77,7 +75,5 @@ export function valueToExpressionString(value: EduBasicValue): string
             return '[' + value.value.map(v => valueToExpressionString(v)).join(', ') + ']';
         case EduBasicType.Structure:
             return '[Structure]';
-        default:
-            return String(value.value ?? '');
     }
 }

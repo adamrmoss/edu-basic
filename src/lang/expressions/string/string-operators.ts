@@ -27,6 +27,11 @@ export class StringOperatorExpression extends Expression
     {
         throw new Error('StringOperatorExpression.evaluate() not yet implemented');
     }
+
+    public toString(): string
+    {
+        return `${this.operator}(${this.stringExpr.toString()}, ${this.argument.toString()})`;
+    }
 }
 
 export class MidExpression extends Expression
@@ -43,6 +48,11 @@ export class MidExpression extends Expression
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         throw new Error('MidExpression.evaluate() not yet implemented');
+    }
+
+    public toString(): string
+    {
+        return `MID(${this.stringExpr.toString()}, ${this.startPos.toString()}, ${this.endPos.toString()})`;
     }
 }
 

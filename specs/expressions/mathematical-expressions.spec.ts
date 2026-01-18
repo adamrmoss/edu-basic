@@ -80,8 +80,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute COS of complex number', () =>
@@ -92,8 +95,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute TAN of complex number', () =>
@@ -104,8 +110,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute EXP of complex number', () =>
@@ -116,8 +125,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute EXP of i*pi (Euler identity)', () =>
@@ -128,8 +140,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(-1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(-1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute LOG of complex number', () =>
@@ -140,8 +155,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute LOG10 of complex number', () =>
@@ -152,8 +170,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute LOG2 of complex number', () =>
@@ -164,8 +185,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute SQRT of complex number', () =>
@@ -176,8 +200,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(2.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(2.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute SQRT of -1 (imaginary unit)', () =>
@@ -188,8 +215,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(1.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(1.0);
+            }
         });
 
         it('should compute CBRT of complex number', () =>
@@ -200,8 +230,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(2.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(2.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute SINH of complex number', () =>
@@ -212,8 +245,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute COSH of complex number', () =>
@@ -224,8 +260,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute TANH of complex number', () =>
@@ -236,8 +275,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute ASIN of complex number', () =>
@@ -248,8 +290,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute ACOS of complex number', () =>
@@ -260,8 +305,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute ATAN of complex number', () =>
@@ -272,8 +320,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute ASINH of complex number', () =>
@@ -284,8 +335,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute ACOSH of complex number', () =>
@@ -296,8 +350,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should compute ATANH of complex number', () =>
@@ -308,8 +365,11 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(0.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(0.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
     });
 

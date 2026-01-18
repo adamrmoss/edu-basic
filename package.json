@@ -14,7 +14,8 @@
         "watch": "npm run build:worklet && ng build --watch --configuration development",
         "test": "jest",
         "test:verbose": "jest --verbose",
-        "test:watch": "jest --watch"
+        "test:watch": "jest --watch",
+        "typecheck": "tsc --noEmit"
     },
     "private": true,
     "dependencies": {

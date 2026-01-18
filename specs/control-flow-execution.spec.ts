@@ -3,6 +3,7 @@ import { Program } from '../src/lang/program';
 import { ExecutionContext } from '../src/lang/execution-context';
 import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
+import { FileSystemService } from '../src/app/filesystem.service';
 import { IfStatement } from '../src/lang/statements/control-flow/if-statement';
 import { WhileStatement } from '../src/lang/statements/control-flow/while-statement';
 import { DoLoopStatement, DoLoopVariant } from '../src/lang/statements/control-flow/do-loop-statement';
@@ -20,6 +21,7 @@ describe('Control Flow Execution', () =>
     let context: ExecutionContext;
     let graphics: Graphics;
     let audio: Audio;
+    let fileSystem: FileSystemService;
     let runtime: RuntimeExecution;
 
     beforeEach(() =>
@@ -28,7 +30,8 @@ describe('Control Flow Execution', () =>
         context = new ExecutionContext();
         graphics = new Graphics();
         audio = new Audio();
-        runtime = new RuntimeExecution(program, context, graphics, audio);
+        fileSystem = new FileSystemService();
+        runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
         context.setProgramCounter(0);
     });
 

@@ -28,5 +28,10 @@ export class StringManipulationOperatorExpression extends Expression
     {
         throw new Error('StringManipulationOperatorExpression.evaluate() not yet implemented');
     }
+
+    public toString(): string
+    {
+        return `${this.operator}(${this.argument.toString()})`;
+    }
 }
 
