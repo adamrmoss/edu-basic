@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import JSZip from 'jszip';
-import { FileSystemService } from './filesystem.service';
+import { FileSystemService } from '../files/filesystem.service';
 
 export interface DiskMetadata
 {

@@ -9,7 +9,7 @@ import { DoLoopStatement } from './statements/control-flow/do-loop-statement';
 import { ForStatement } from './statements/control-flow/for-statement';
 import { GotoStatement } from './statements/control-flow/goto-statement';
 import { EduBasicType } from './edu-basic-value';
-import { FileSystemService } from '../app/filesystem.service';
+import { FileSystemService } from '../app/files/filesystem.service';
 
 interface ControlStructureFrame
 {

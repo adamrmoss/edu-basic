@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { DiskService } from '../disk.service';
+import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
 import { ParserService } from '../interpreter/parser.service';
 import { Program } from '../../lang/program';
@@ -41,7 +41,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
     {
         this.diskService.programCode$
             .pipe(takeUntil(this.destroy$))
-            .subscribe(code => {
+            .subscribe((code: string) => {
                 this.code = code;
                 this.updateLineNumbers();
             });

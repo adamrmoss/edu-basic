@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { DiskService } from '../src/app/disk.service';
-import { FileSystemService } from '../src/app/filesystem.service';
+import { DiskService } from '../src/app/disk/disk.service';
+import { FileSystemService } from '../src/app/files/filesystem.service';
 import JSZip from 'jszip';
 
 describe('DiskService', () => {
@@ -48,7 +48,7 @@ describe('DiskService', () => {
         it('should update disk name reactively', () => {
             const names: string[] = [];
 
-            service.diskName$.subscribe(name => {
+            service.diskName$.subscribe((name: string) => {
                 names.push(name);
             });
 
@@ -72,7 +72,7 @@ describe('DiskService', () => {
         it('should update program code reactively', () => {
             const codes: string[] = [];
 
-            service.programCode$.subscribe(code => {
+            service.programCode$.subscribe((code: string) => {
                 codes.push(code);
             });
 

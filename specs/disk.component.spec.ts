@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { DiskComponent } from '../src/app/disk/disk.component';
-import { DiskService } from '../src/app/disk.service';
+import { DiskService } from '../src/app/disk/disk.service';
 import { BehaviorSubject } from 'rxjs';
 
 describe('DiskComponent', () => {

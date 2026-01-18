@@ -3,7 +3,7 @@ import { Program } from '../src/lang/program';
 import { ExecutionContext } from '../src/lang/execution-context';
 import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/filesystem.service';
+import { FileSystemService } from '../src/app/files/filesystem.service';
 import { IfStatement } from '../src/lang/statements/control-flow/if-statement';
 import { WhileStatement } from '../src/lang/statements/control-flow/while-statement';
 import { DoLoopStatement, DoLoopVariant } from '../src/lang/statements/control-flow/do-loop-statement';

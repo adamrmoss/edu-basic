@@ -29,7 +29,7 @@ import { LiteralExpression } from '../src/lang/expressions/literals/literal-expr
 import { PrintStatement } from '../src/lang/statements/io/print-statement';
 import { Graphics, Color } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/filesystem.service';
+import { FileSystemService } from '../src/app/files/filesystem.service';
 
 class MockGraphics extends Graphics
 {

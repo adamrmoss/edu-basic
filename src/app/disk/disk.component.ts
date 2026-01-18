@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconComponent, Folder, File } from 'ng-luna';
 import { Subject, takeUntil } from 'rxjs';
-import { DiskService } from '../disk.service';
+import { DiskService } from './disk.service';
 
 interface FileNode
 {
@@ -40,7 +40,7 @@ export class DiskComponent implements OnInit, OnDestroy
     {
         this.diskService.diskName$
             .pipe(takeUntil(this.destroy$))
-            .subscribe(name => {
+            .subscribe((name: string) => {
                 this.diskName = name;
             });
 
@@ -229,7 +229,7 @@ export class DiskComponent implements OnInit, OnDestroy
     private refreshFileList(): void
     {
         const paths = this.diskService.getFileList();
-        this.fileList = paths.map(path => ({
+        this.fileList = paths.map((path: string) => ({
             name: path,
             path: path,
             type: 'file' as const

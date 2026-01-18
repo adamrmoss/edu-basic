@@ -5,7 +5,7 @@ import { ExecutionResult } from '../src/lang/statements/statement';
 import { EduBasicType } from '../src/lang/edu-basic-value';
 import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/filesystem.service';
+import { FileSystemService } from '../src/app/files/filesystem.service';
 
 import { OpenStatement, FileMode } from '../src/lang/statements/file-io/open-statement';
 import { CloseStatement } from '../src/lang/statements/file-io/close-statement';
