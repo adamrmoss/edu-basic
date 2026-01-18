@@ -1076,7 +1076,7 @@ describe('Statement Implementations', () =>
                 [new LiteralExpression({ type: EduBasicType.Integer, value: 5 })]
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             const arr = context.getVariable('arr%[]');
@@ -1149,7 +1149,7 @@ describe('Statement Implementations', () =>
         it('should seed random number generator with explicit seed', () =>
         {
             const stmt = new RandomizeStatement(12345);
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
         });
@@ -1157,7 +1157,7 @@ describe('Statement Implementations', () =>
         it('should seed with current time when no seed provided', () =>
         {
             const stmt = new RandomizeStatement(null);
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
         });
