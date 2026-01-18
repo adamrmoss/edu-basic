@@ -32,4 +32,3 @@ export class CopyStatement extends Statement
         return `COPY ${this.source.toString()} TO ${this.destination.toString()}`;
     }
 }
-

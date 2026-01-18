@@ -35,4 +35,3 @@ export class ConstantExpression extends Expression
         return this.constant;
     }
 }
-

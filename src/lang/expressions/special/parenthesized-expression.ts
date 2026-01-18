@@ -21,4 +21,3 @@ export class ParenthesizedExpression extends Expression
         return `(${this.innerExpression.toString()})`;
     }
 }
-

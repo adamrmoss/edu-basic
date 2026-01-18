@@ -82,4 +82,3 @@ export class TriangleStatement extends Statement
         return result;
     }
 }
-

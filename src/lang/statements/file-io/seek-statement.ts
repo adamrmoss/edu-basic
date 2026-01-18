@@ -32,4 +32,3 @@ export class SeekStatement extends Statement
         return `SEEK ${this.position.toString()} IN #${this.fileHandle.toString()}`;
     }
 }
-

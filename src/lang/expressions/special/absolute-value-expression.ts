@@ -21,4 +21,3 @@ export class AbsoluteValueExpression extends Expression
         return `ABS(${this.operand.toString()})`;
     }
 }
-

@@ -34,4 +34,3 @@ export class StringManipulationOperatorExpression extends Expression
         return `${this.operator}(${this.argument.toString()})`;
     }
 }
-

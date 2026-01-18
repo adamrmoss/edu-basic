@@ -73,4 +73,3 @@ export class ArcStatement extends Statement
         return result;
     }
 }
-

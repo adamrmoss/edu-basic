@@ -22,4 +22,3 @@ export class ArrayAccessExpression extends Expression
         return `${this.arrayExpr.toString()}[${this.index.toString()}]`;
     }
 }
-

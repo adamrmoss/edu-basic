@@ -54,4 +54,3 @@ export class ColorStatement extends Statement
     }
 
 }
-

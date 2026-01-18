@@ -229,4 +229,3 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
         this.lineNumbers = lineNumbers;
     }
 }
-

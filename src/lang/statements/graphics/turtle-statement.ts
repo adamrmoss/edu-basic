@@ -31,4 +31,3 @@ export class TurtleStatement extends Statement
         return `TURTLE ${this.commands.toString()}`;
     }
 }
-

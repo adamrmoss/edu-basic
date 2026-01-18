@@ -76,4 +76,3 @@ export class ContinueStatement extends Statement
         }
     }
 }
-

@@ -31,4 +31,3 @@ export class MkdirStatement extends Statement
         return `MKDIR ${this.path.toString()}`;
     }
 }
-

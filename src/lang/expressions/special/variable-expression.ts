@@ -21,4 +21,3 @@ export class VariableExpression extends Expression
         return this.name;
     }
 }
-

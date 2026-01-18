@@ -61,4 +61,3 @@ export class UnaryOperatorExpression extends Expression
         return `${this.operator}${this.operand.toString()}`;
     }
 }
-

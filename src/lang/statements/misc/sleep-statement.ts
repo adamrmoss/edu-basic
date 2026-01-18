@@ -31,4 +31,3 @@ export class SleepStatement extends Statement
         return `SLEEP ${this.milliseconds.toString()}`;
     }
 }
-

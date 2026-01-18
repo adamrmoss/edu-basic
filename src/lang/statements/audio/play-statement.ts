@@ -41,4 +41,3 @@ export class PlayStatement extends Statement
         return `PLAY ${this.voiceNumber.toString()}, ${this.mml.toString()}`;
     }
 }
-

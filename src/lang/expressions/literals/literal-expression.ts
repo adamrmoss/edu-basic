@@ -21,4 +21,3 @@ export class LiteralExpression extends Expression
         return valueToExpressionString(this.value);
     }
 }
-

@@ -58,4 +58,3 @@ export class PopStatement extends Statement
         return `POP ${this.arrayVariable}`;
     }
 }
-

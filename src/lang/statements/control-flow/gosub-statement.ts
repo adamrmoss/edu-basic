@@ -40,4 +40,3 @@ export class GosubStatement extends Statement
         return `GOSUB ${this.labelName}`;
     }
 }
-

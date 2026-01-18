@@ -32,4 +32,3 @@ export class WriteFileStatement extends Statement
         return `WRITE ${this.expression.toString()} TO ${this.fileHandle.toString()}`;
     }
 }
-

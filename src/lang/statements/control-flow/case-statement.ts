@@ -33,4 +33,3 @@ export class CaseStatement extends Statement
         return 'CASE';
     }
 }
-

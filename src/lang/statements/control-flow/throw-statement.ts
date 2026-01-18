@@ -33,4 +33,3 @@ export class ThrowStatement extends Statement
         return `THROW ${this.message.toString()}`;
     }
 }
-

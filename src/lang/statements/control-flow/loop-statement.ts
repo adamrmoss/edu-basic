@@ -86,4 +86,3 @@ export class LoopStatement extends Statement
         return 'LOOP';
     }
 }
-

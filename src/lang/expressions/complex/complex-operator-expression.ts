@@ -32,4 +32,3 @@ export class ComplexOperatorExpression extends Expression
         return `${this.operator}(${this.argument.toString()})`;
     }
 }
-

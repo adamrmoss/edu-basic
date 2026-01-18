@@ -41,4 +41,3 @@ export class LocateStatement extends Statement
         return `LOCATE ${this.row.toString()}, ${this.column.toString()}`;
     }
 }
-

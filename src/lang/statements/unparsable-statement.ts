@@ -31,4 +31,3 @@ export class UnparsableStatement extends Statement
         return this.sourceText;
     }
 }
-

@@ -183,4 +183,3 @@ export class IfStatement extends Statement
         return result;
     }
 }
-

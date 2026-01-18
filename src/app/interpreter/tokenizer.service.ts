@@ -592,4 +592,3 @@ export class Tokenizer
         };
     }
 }
-

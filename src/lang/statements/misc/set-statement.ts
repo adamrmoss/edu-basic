@@ -57,4 +57,3 @@ export class SetStatement extends Statement
         }
     }
 }
-

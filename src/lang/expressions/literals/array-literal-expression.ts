@@ -36,4 +36,3 @@ export class ArrayLiteralExpression extends Expression
         return `[${elementStrings.join(', ')}]`;
     }
 }
-

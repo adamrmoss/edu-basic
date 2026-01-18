@@ -43,4 +43,3 @@ export class PushStatement extends Statement
         return `PUSH ${this.arrayVariable}, ${this.value.toString()}`;
     }
 }
-

@@ -81,4 +81,3 @@ export class OvalStatement extends Statement
         return result;
     }
 }
-

@@ -65,4 +65,3 @@ export class WendStatement extends Statement
         return 'WEND';
     }
 }
-

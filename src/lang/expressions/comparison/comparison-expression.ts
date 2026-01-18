@@ -104,4 +104,3 @@ export class ComparisonExpression extends Expression
         return `(${this.left.toString()} ${this.operator} ${this.right.toString()})`;
     }
 }
-

@@ -32,4 +32,3 @@ export class MoveStatement extends Statement
         return `MOVE ${this.source.toString()} TO ${this.destination.toString()}`;
     }
 }
-

@@ -43,4 +43,3 @@ export class UnshiftStatement extends Statement
         return `UNSHIFT ${this.arrayVariable}, ${this.value.toString()}`;
     }
 }
-

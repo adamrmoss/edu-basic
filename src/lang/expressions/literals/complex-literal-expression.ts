@@ -26,4 +26,3 @@ export class ComplexLiteralExpression extends Expression
         return `(${this.real}${sign}${this.imaginary}i)`;
     }
 }
-

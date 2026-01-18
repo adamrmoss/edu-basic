@@ -51,4 +51,3 @@ export class JoinExpression extends Expression
         return `JOIN(${this.arrayExpr.toString()}, ${this.delimiter.toString()})`;
     }
 }
-

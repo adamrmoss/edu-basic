@@ -49,4 +49,3 @@ export class OutputComponent implements AfterViewInit, OnDestroy
         }
     }
 }
-

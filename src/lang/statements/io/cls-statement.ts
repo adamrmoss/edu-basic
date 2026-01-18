@@ -30,4 +30,3 @@ export class ClsStatement extends Statement
         return 'CLS';
     }
 }
-

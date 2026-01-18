@@ -31,4 +31,3 @@ export class TypeConversionOperatorExpression extends Expression
         return `${this.operator}(${this.argument.toString()})`;
     }
 }
-

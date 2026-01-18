@@ -33,4 +33,3 @@ export class PutStatement extends Statement
         return `PUT ${this.arrayVariable} AT (${this.x.toString()}, ${this.y.toString()})`;
     }
 }
-

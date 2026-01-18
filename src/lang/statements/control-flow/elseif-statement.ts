@@ -33,4 +33,3 @@ export class ElseIfStatement extends Statement
         return 'ELSEIF';
     }
 }
-

@@ -31,4 +31,3 @@ export class DeleteStatement extends Statement
         return `DELETE ${this.filename.toString()}`;
     }
 }
-

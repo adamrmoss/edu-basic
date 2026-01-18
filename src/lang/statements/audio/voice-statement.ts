@@ -89,4 +89,3 @@ export class VoiceStatement extends Statement
         return result;
     }
 }
-

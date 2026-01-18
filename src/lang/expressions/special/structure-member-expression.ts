@@ -22,4 +22,3 @@ export class StructureMemberExpression extends Expression
         return `${this.structureExpr.toString()}[${this.memberName}]`;
     }
 }
-

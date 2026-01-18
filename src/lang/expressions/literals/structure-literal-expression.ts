@@ -42,4 +42,3 @@ export class StructureLiteralExpression extends Expression
         return `{ ${memberStrings.join(', ')} }`;
     }
 }
-

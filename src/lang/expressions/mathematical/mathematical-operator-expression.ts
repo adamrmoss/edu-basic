@@ -402,4 +402,3 @@ export class MathematicalOperatorExpression extends Expression
         return `${this.operator}(${this.argument.toString()})`;
     }
 }
-

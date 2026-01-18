@@ -55,4 +55,3 @@ export class MidExpression extends Expression
         return `MID(${this.stringExpr.toString()}, ${this.startPos.toString()}, ${this.endPos.toString()})`;
     }
 }
-

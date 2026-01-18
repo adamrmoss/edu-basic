@@ -107,4 +107,3 @@ export class WhileStatement extends Statement
         return result;
     }
 }
-
