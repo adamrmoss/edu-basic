@@ -61,7 +61,7 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public onDiskNameChange(): void
     {
-        this.diskService.setDiskName(this.diskName);
+        this.diskService.diskName = this.diskName;
     }
 
     public onNewDisk(): void

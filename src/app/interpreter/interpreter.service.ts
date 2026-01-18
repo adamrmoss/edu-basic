@@ -75,11 +75,14 @@ export class InterpreterService
         return this.parseResultSubject.value;
     }
 
-    public setProgram(program: Program): void
+    public set program(program: Program | null)
     {
         this.programSubject.next(program);
         this.parseResultSubject.next(null);
-        this.sharedProgram = program; // Update shared program (though we're reusing the same instance now)
+        if (program)
+        {
+            this.sharedProgram = program; // Update shared program (though we're reusing the same instance now)
+        }
     }
 
     public createProgram(): Program
@@ -202,4 +205,3 @@ export class InterpreterService
         return this.runtimeExecution;
     }
 }
-

@@ -227,5 +227,3 @@ export class DoLoopStatement extends Statement
         return result;
     }
 }
-
-

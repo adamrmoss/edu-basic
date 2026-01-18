@@ -132,6 +132,11 @@ export class ParserService
         return this.currentIndentLevelSubject.value;
     }
 
+    public set currentIndentLevel(level: number)
+    {
+        this.currentIndentLevelSubject.next(Math.max(0, level));
+    }
+
     public parseLine(lineNumber: number, sourceText: string): ParsedLine
     {
         try
@@ -167,7 +172,7 @@ export class ParserService
             const indentAdjustment = statement.getIndentAdjustment();
             if (indentAdjustment !== 0)
             {
-                this.setIndentLevel(this.currentIndentLevel + indentAdjustment);
+                this.currentIndentLevel = this.currentIndentLevel + indentAdjustment;
             }
             
             const parsed: ParsedLine = {
@@ -1667,19 +1672,14 @@ export class ParserService
         this.currentIndentLevelSubject.next(0);
     }
 
-    public setIndentLevel(level: number): void
-    {
-        this.currentIndentLevelSubject.next(Math.max(0, level));
-    }
-
     public increaseIndent(): void
     {
-        this.currentIndentLevelSubject.next(this.currentIndentLevel + 1);
+        this.currentIndentLevel = this.currentIndentLevel + 1;
     }
 
     public decreaseIndent(): void
     {
-        this.currentIndentLevelSubject.next(Math.max(0, this.currentIndentLevel - 1));
+        this.currentIndentLevel = Math.max(0, this.currentIndentLevel - 1);
     }
 
     public getParsedLine(lineNumber: number): ParsedLine | undefined

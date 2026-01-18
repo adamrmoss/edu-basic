@@ -573,7 +573,7 @@ describe('ParserService', () =>
 
         it('should set indent level', () =>
         {
-            parser.setIndentLevel(2);
+            parser.currentIndentLevel = 2;
             
             expect(parser.currentIndentLevel).toBe(2);
         });
@@ -587,7 +587,7 @@ describe('ParserService', () =>
 
         it('should decrease indent level', () =>
         {
-            parser.setIndentLevel(3);
+            parser.currentIndentLevel = 3;
             parser.decreaseIndent();
             
             expect(parser.currentIndentLevel).toBe(2);

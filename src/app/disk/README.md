@@ -27,8 +27,8 @@ The disk system allows students to:
 - `newDisk(name)`: Creates a new empty disk
 - `loadDisk(file)`: Loads a disk from a `.disk` file
 - `saveDisk()`: Saves the current disk as a `.disk` file
-- `setDiskName(name)`: Changes the disk name
-- `setProgramCode(code)`: Updates the program code
+- `diskName` (getter/setter): Gets or sets the disk name
+- `programCode` (getter/setter): Gets or sets the program code
 - `getFile(path)`, `saveFile(path, data)`, `deleteFile(path)`: File management
 
 ### FileSystemService

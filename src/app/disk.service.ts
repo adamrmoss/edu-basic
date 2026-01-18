@@ -32,17 +32,17 @@ export class DiskService
         return this.diskNameSubject.value;
     }
 
+    public set diskName(name: string)
+    {
+        this.diskNameSubject.next(name);
+    }
+
     public get programCode(): string
     {
         return this.programCodeSubject.value;
     }
 
-    public setDiskName(name: string): void
-    {
-        this.diskNameSubject.next(name);
-    }
-
-    public setProgramCode(code: string): void
+    public set programCode(code: string)
     {
         this.programCodeSubject.next(code);
     }

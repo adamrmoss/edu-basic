@@ -102,6 +102,13 @@ When solving problems, follow this workflow:
 - Use braces { } for all control structures, even single-line blocks
 - ALL decorators must be on their own line (never on the same line as the property/method they decorate)
 - ALL class properties and methods must have explicit access modifiers (public, private, or protected)
+- **Property Syntax**: Use property getters and setters instead of getter/setter methods for better readability
+  - Related properties should be adjacent: getter immediately followed by its setter
+  - Example: `public get value(): T { ... }` followed by `public set value(v: T) { ... }`
+  - This applies to services, components, and all TypeScript classes
+- **File Endings**: Files must end with exactly one newline character after the last content line
+  - The last line of content should be followed by a single newline, then EOF
+  - Do NOT include two blank lines at the end of files
 
 ## Architecture
 - Divide solutions by layers into projects

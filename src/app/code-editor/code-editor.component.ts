@@ -74,7 +74,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
     {
         const textarea = event.target as HTMLTextAreaElement;
         this.code = textarea.value;
-        this.diskService.setProgramCode(this.code);
+        this.diskService.programCode = this.code;
         this.updateLineNumbers();
     }
 
@@ -136,7 +136,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
             }
 
             program.rebuildLabelMap();
-            this.interpreterService.setProgram(program);
+            this.interpreterService.program = program;
             
             const context = this.interpreterService.getExecutionContext();
             context.setProgramCounter(0);

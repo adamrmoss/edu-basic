@@ -19,7 +19,8 @@ describe('DiskComponent', () => {
         const diskServiceMock = {
             diskName$: diskNameSubject.asObservable(),
             filesChanged$: filesChangedSubject.asObservable(),
-            setDiskName: jest.fn(),
+            diskName: 'TestDisk',
+            programCode: '',
             newDisk: jest.fn(),
             loadDisk: jest.fn(),
             saveDisk: jest.fn(),
@@ -90,7 +91,7 @@ describe('DiskComponent', () => {
             component.diskName = 'NewName';
             component.onDiskNameChange();
 
-            expect(diskService.setDiskName).toHaveBeenCalledWith('NewName');
+            expect(diskService.diskName).toBe('NewName');
         });
 
         it('should create new disk with prompt', () => {

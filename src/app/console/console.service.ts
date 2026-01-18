@@ -57,7 +57,7 @@ export class ConsoleService
         return this.currentInputSubject.value;
     }
 
-    public setCurrentInput(input: string): void
+    public set currentInput(input: string)
     {
         this.currentInputSubject.next(input);
     }
