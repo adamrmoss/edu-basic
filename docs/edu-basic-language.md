@@ -241,7 +241,7 @@ SWAP array1[] WITH array2[]
 LET x% = 5
 LET y% = 10
 SWAP x% WITH y%
-PRINT x%, y%    ' Prints: 10    5
+PRINT "x: ", x%, " y: ", y%    ' Prints: x: 10 y: 5
 
 LET arr1%[] = [1, 2, 3]
 LET arr2%[] = [4, 5, 6]
@@ -253,7 +253,7 @@ PRINT arr2%[]    ' Prints: 1, 2, 3
 LET a$ = "Hello"
 LET b$ = "World"
 SWAP a$ WITH b$
-PRINT a$, b$    ' Prints: World Hello
+PRINT a$, " ", b$    ' Prints: World Hello
 ```
 
 ### Default Values
@@ -624,7 +624,7 @@ LET point = { x%: 100, y%: 200 }
 LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
 
 ' Access structure members
-PRINT person[firstName$]; " "; person[lastName$]
+PRINT person[firstName$], " ", person[lastName$]
 LET person[age%] += 1
 
 ' Structures can contain any data type
@@ -646,7 +646,7 @@ LET person = { name: { first$: "John", last$: "Doe" }, address: { street$: "123 
 LET game = { player: { name$: "Hero", stats: { hp%: 100, mp%: 50 }, items$[]: ["sword", "shield"] }, enemies%[]: [10, 15, 20] }
 
 ' Access nested structure members
-PRINT person[name][first$]; " "; person[name][last$]
+PRINT person[name][first$], " ", person[name][last$]
 PRINT person[address][street$]
 
 ' Access array members within structures
@@ -942,12 +942,12 @@ SWAP array1[] WITH array2[]
 LET x% = 5
 LET y% = 10
 SWAP x% WITH y%
-PRINT x%, y%        ' Prints: 10    5
+PRINT "x: ", x%, " y: ", y%        ' Prints: x: 10 y: 5
 
 LET firstName$ = "John"
 LET lastName$ = "Doe"
 SWAP firstName$ WITH lastName$
-PRINT firstName$, lastName$    ' Prints: Doe    John
+PRINT firstName$, " ", lastName$    ' Prints: Doe John
 
 LET arr1%[] = [1, 2, 3]
 LET arr2%[] = [4, 5, 6]
@@ -1543,7 +1543,7 @@ WEND
 LET input$ = ""
 WHILE input$ <> "quit"
     INPUT "Enter command: ", input$
-    PRINT "You entered: "; input$
+    PRINT "You entered: ", input$
 WEND
 ```
 
@@ -1579,7 +1579,7 @@ UEND
 LET input$ = ""
 UNTIL input$ = "quit"
     INPUT "Enter command (or 'quit'): ", input$
-    PRINT "You entered: "; input$
+    PRINT "You entered: ", input$
 UEND
 ```
 
@@ -1640,7 +1640,7 @@ LOOP
 ```
 DO
     INPUT "Enter a number (0 to quit): ", num%
-    PRINT "You entered: "; num%
+    PRINT "You entered: ", num%
 LOOP UNTIL num% = 0
 ```
 
@@ -1669,7 +1669,7 @@ EXIT SUB
 ```
 FOR i% = 1 TO 100
     IF numbers%[i%] = target% THEN
-        PRINT "Found at position: "; i%
+        PRINT "Found at position: ", i%
         EXIT FOR
     END IF
 NEXT i%
@@ -1717,7 +1717,7 @@ DO
     INPUT "Enter number (0 to quit): ", num%
     IF num% = 0 THEN EXIT DO
     IF num% < 0 THEN CONTINUE DO    ' Skip negative numbers
-    PRINT "Positive number: "; num%
+    PRINT "Positive number: ", num%
 LOOP
 ```
 
@@ -1807,8 +1807,8 @@ END SUB
 LET x% = 100
 LET y% = 100
 CALL TestParameters x%, y%
-PRINT "x ="; x%        ' Prints: x = 100 (unchanged, passed by value)
-PRINT "y ="; y%        ' Prints: y = 999 (changed, passed by reference)
+PRINT "x =", x%        ' Prints: x = 100 (unchanged, passed by value)
+PRINT "y =", y%        ' Prints: y = 999 (changed, passed by reference)
 ```
 
 #### Local Variables
@@ -1905,7 +1905,7 @@ DIM scores#[10]
 LET avg# = 0
 LET max# = 0
 CALL CalculateStats scores#, 10, avg#, max#
-PRINT "Average:"; avg#; "Maximum:"; max#
+PRINT "Average:", avg#, "Maximum:", max#
 ```
 
 ```
@@ -1964,7 +1964,7 @@ PRINT "Go!"
 ```
 ' Simple animation loop
 FOR i% = 1 TO 10
-    PRINT "Frame "; i%
+    PRINT "Frame ", i%
     SLEEP 100    ' Wait 100ms between frames
 NEXT i%
 ```
@@ -2016,7 +2016,7 @@ TRY
     READFILE "data.txt" INTO content$
     CLOSE file%
 CATCH error$
-    PRINT "Error occurred: "; error$
+    PRINT "Error occurred: ", error$
 FINALLY
     IF EXISTS "data.txt" THEN
         CLOSE file%
@@ -2027,12 +2027,12 @@ END TRY
 ```
 TRY
     LET result# = 10 / divisor%
-    PRINT "Result: "; result#
+    PRINT "Result: ", result#
 CATCH error$
     IF error$ = "Division by zero" THEN
         PRINT "Cannot divide by zero"
     ELSE
-        PRINT "Error: "; error$
+        PRINT "Error: ", error$
     END IF
 END TRY
 ```
@@ -2051,9 +2051,9 @@ END TRY
 ' Try without finally (only catch for error handling)
 TRY
     LET value% = VAL userInput$
-    PRINT "Parsed value: "; value%
+    PRINT "Parsed value: ", value%
 CATCH error$
-    PRINT "Invalid input: "; error$
+    PRINT "Invalid input: ", error$
 END TRY
 ```
 
@@ -2097,7 +2097,7 @@ END SUB
 TRY
     ValidateInput userValue%
 CATCH error$
-    PRINT "Validation failed: "; error$
+    PRINT "Validation failed: ", error$
 END TRY
 ```
 
@@ -2123,7 +2123,7 @@ TRY
         END IF
     END TRY
 CATCH error$
-    PRINT "Failed to load configuration: "; error$
+    PRINT "Failed to load configuration: ", error$
     END
 END TRY
 ```
@@ -2135,7 +2135,7 @@ EduBASIC provides simple date and time operators for educational purposes. These
 **`DATE$` - Current date as string:**
 ```
 LET today$ = DATE$
-PRINT "Today is: "; today$    ' Prints: "Today is: 2025-01-15" (YYYY-MM-DD format)
+PRINT "Today is: ", today$    ' Prints: "Today is: 2025-01-15" (YYYY-MM-DD format)
 ```
 
 Returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format). This format is unambiguous and easy to parse.
@@ -2143,7 +2143,7 @@ Returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date forma
 **`TIME$` - Current time as string:**
 ```
 LET now$ = TIME$
-PRINT "Current time: "; now$    ' Prints: "Current time: 14:30:45" (HH:MM:SS format)
+PRINT "Current time: ", now$    ' Prints: "Current time: 14:30:45" (HH:MM:SS format)
 ```
 
 Returns the current time as a string in `HH:MM:SS` format (24-hour format).
@@ -2151,7 +2151,7 @@ Returns the current time as a string in `HH:MM:SS` format (24-hour format).
 **`NOW%` - Current timestamp:**
 ```
 LET timestamp% = NOW%
-PRINT "Timestamp: "; timestamp%    ' Prints: "Timestamp: 1736968245" (Unix timestamp)
+PRINT "Timestamp: ", timestamp%    ' Prints: "Timestamp: 1736968245" (Unix timestamp)
 ```
 
 Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.
@@ -2160,21 +2160,21 @@ Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC)
 
 ```
 ' Display current date and time
-PRINT "Date: "; DATE$
-PRINT "Time: "; TIME$
+PRINT "Date: ", DATE$
+PRINT "Time: ", TIME$
 
 ' Calculate elapsed time
 LET startTime% = NOW%
 SLEEP 2000    ' Wait 2 seconds
 LET endTime% = NOW%
 LET elapsed% = endTime% - startTime%
-PRINT "Elapsed: "; elapsed%; " seconds"
+PRINT "Elapsed: ", elapsed%, " seconds"
 ```
 
 ```
 ' Log with timestamp
 SUB LogMessage (msg$)
-    PRINT DATE$; " "; TIME$; " - "; msg$
+    PRINT DATE$, " ", TIME$, " - ", msg$
 END SUB
 
 LogMessage "Program started"
@@ -2228,47 +2228,100 @@ The `PRINT` statement outputs text and values to the text display. It can print 
 **Syntax:**
 ```
 PRINT expression1, expression2, ...
-PRINT expression1; expression2; ...
+PRINT expression1, expression2, ...;
 PRINT array[]
+PRINT array[];
 PRINT
 ```
 
+**Mixed Type Arguments:**
+The `PRINT` statement accepts expressions of any type (Integer, Real, Complex, String, Array) separated by commas. Each expression is automatically converted to its string representation and concatenated with no spacing between items.
+
 **Output Formatting:**
-- **Comma (`,`):** Separates items with tab spacing
-- **Semicolon (`;`):** Separates items with no spacing (concatenated)
-- **No separator:** Ends the line (same as semicolon followed by newline)
-- **Ending with semicolon:** Suppresses the newline, so the next `PRINT` continues on the same line
+- **Comma (`,`):** Separates items with no spacing (concatenated)
+- **Semicolon (`;`) at end:** Suppresses the newline, so the next `PRINT` continues on the same line
+- **No separator at end:** Ends the line (adds a newline)
 - **Empty `PRINT`:** Outputs a blank line (newline only)
 - **Array:** When printing an array, all elements are printed, separated by commas
+
+**Type Conversion:**
+All value types are automatically converted to strings when printed:
+- **Integer:** Decimal representation (e.g., `42` → `"42"`)
+- **Real:** Decimal representation (e.g., `3.14` → `"3.14"`)
+- **Complex:** Format `"real+imaginaryi"` or `"real-imaginaryi"` (e.g., `3+4i` → `"3+4i"`)
+- **String:** Printed as-is
+- **Array:** All elements printed, separated by commas
 
 **Controlling Newlines:**
 - To avoid a newline at the end of output, end the `PRINT` statement with a semicolon
 - To output a blank line, use an empty `PRINT` statement (no arguments)
 
 **Examples:**
+
+**Basic Printing:**
 ```
 PRINT "Hello, world!"
-PRINT "Name: "; name$; " Age: "; age%
-PRINT "X:", x%, "Y:", y%
+PRINT "Name: ", name$, " Age: ", age%
+PRINT "X: ", x%, " Y: ", y%
+```
 
-' Print arrays
+**Mixed Types:**
+```
+LET count% = 10
+LET price# = 19.99
+LET name$ = "Widget"
+LET z& = 3+4i
+
+PRINT "Item: ", name$, " Count: ", count%, " Price: ", price#, " Complex: ", z&
+' Prints: Item: Widget Count: 10 Price: 19.99 Complex: 3+4i
+```
+
+**Print Arrays:**
+```
 PRINT numbers%[]    ' Prints all elements: 1, 2, 3, 4, 5
-PRINT "Scores: "; scores%[]    ' Prints: Scores: 85, 90, 78, 92
+PRINT "Scores: ", scores%[]    ' Prints: Scores: 85, 90, 78, 92
+```
 
-' Suppress newline to continue on same line
+**Suppress Newline:**
+```
 PRINT "Enter your name: ";
 INPUT name$
+```
 
-' Print blank lines for spacing
+**Print Blank Lines:**
+```
 PRINT
 PRINT "Line 1"
 PRINT
 PRINT "Line 3"
-
-' Multiple items on same line
-PRINT "Count: "; count%; "  ";
-PRINT "Total: "; total#
 ```
+
+**Multiple Items on Same Line:**
+```
+PRINT "Count: ", count%, "  ";
+PRINT "Total: ", total#
+```
+
+**String Concatenation Alternative:**
+You can also use string concatenation with the `+` operator to build strings before printing. This is useful when you need more control over spacing or formatting:
+
+```
+' Using PRINT with commas (no spacing)
+PRINT "Name: ", name$, "Age: ", age%
+' Prints: Name: AliceAge: 25
+
+' Using string concatenation (with spacing)
+PRINT "Name: " + name$ + " Age: " + STR age%
+' Prints: Name: Alice Age: 25
+
+' Complex formatting with concatenation
+LET message$ = "Result: " + STR result# + " (" + STR count% + " items)"
+PRINT message$
+```
+
+**When to Use Each Approach:**
+- **Use commas in PRINT:** When you want automatic type conversion and no spacing between items
+- **Use string concatenation:** When you need explicit spacing, complex formatting, or want to build the string separately
 
 **Special Characters:**
 - `\n` - Newline
@@ -2301,35 +2354,35 @@ INPUT array[]
 ' Reading an integer
 PRINT "Enter your age: ";
 INPUT age%
-PRINT "You are "; age%; " years old"
+PRINT "You are ", age%, " years old"
 
 ' Reading a real number
 PRINT "Enter temperature: ";
 INPUT temperature#
-PRINT "Temperature is "; temperature#
+PRINT "Temperature is ", temperature#
 
 ' Reading a string
 PRINT "Enter your name: ";
 INPUT name$
-PRINT "Hello, "; name$; "!"
+PRINT "Hello, ", name$, "!"
 
 ' Reading a complex number
 PRINT "Enter complex number (e.g., 3+4i): ";
 INPUT z&
-PRINT "You entered: "; z&
+PRINT "You entered: ", z&
 
 ' Reading multiple values
 PRINT "Enter X coordinate: ";
 INPUT x%
 PRINT "Enter Y coordinate: ";
 INPUT y%
-PRINT "Position: ("; x%; ", "; y%; ")"
+PRINT "Position: (", x%, ", ", y%, ")"
 
 ' Reading into an array
 DIM scores%[5]
 PRINT "Enter 5 scores (comma-separated): ";
 INPUT scores%[]
-PRINT "Scores: "; scores%[]
+PRINT "Scores: ", scores%[]
 
 ' Using LOCATE for formatted input
 LOCATE 10, 1
@@ -2611,7 +2664,7 @@ EduBASIC provides several operations for working with string data.
 
 #### String Concatenation
 
-Strings can be concatenated using the `+` operator or by using semicolons in `PRINT` statements.
+Strings can be concatenated using the `+` operator or by using commas in `PRINT` statements.
 
 **Syntax:**
 ```
@@ -4109,7 +4162,7 @@ PLAY 0, "N60 N62 N64 N65 N67"
 
 ' Check how many notes remain
 LET notesLeft% = NOTES 0
-IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: "; notesLeft%; " notes"
+IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: ", notesLeft%, " notes"
 
 ' Play on different voice - same MML, different GRIT timbre and ADSR
 PLAY 1, "N60 L4"    ' Play note 60 (middle C) for quarter note duration
@@ -4155,8 +4208,8 @@ PLAY 1, "CEG CEG"
 ' Check remaining notes for both voices
 LET notes0% = NOTES 0
 LET notes1% = NOTES 1
-PRINT "Voice 0: "; notes0%; " notes remaining"
-PRINT "Voice 1: "; notes1%; " notes remaining"
+PRINT "Voice 0: ", notes0%, " notes remaining"
+PRINT "Voice 1: ", notes1%, " notes remaining"
 ```
 
 **GRIT Noise Example:**
@@ -4445,7 +4498,7 @@ PRINT angle#    ' Prints: 0.785... (π/4 radians)
 TRY
     OPEN "data.txt" FOR READ AS file%
 CATCH error$
-    PRINT "Error: "; error$
+    PRINT "Error: ", error$
 END TRY
 ```
 
@@ -4659,7 +4712,7 @@ PRINT root&    ' Prints: 0+1i
 **Example:**
 ```
 LET today$ = DATE$
-PRINT "Today is: "; today$    ' Prints: "Today is: 2025-01-15"
+PRINT "Today is: ", today$    ' Prints: "Today is: 2025-01-15"
 
 IF DATE$ = "2025-12-25" THEN
     PRINT "Merry Christmas!"
@@ -4845,7 +4898,7 @@ END UNLESS
 TRY
     OPEN "file.txt" FOR READ AS file%
 CATCH error$
-    PRINT "Error: "; error$
+    PRINT "Error: ", error$
 FINALLY
     CLOSE file%
 END TRY
@@ -4957,7 +5010,7 @@ TRY
     OPEN "data.txt" FOR READ AS file%
     READFILE "data.txt" INTO content$
 CATCH error$
-    PRINT "Error: "; error$
+    PRINT "Error: ", error$
 FINALLY
     CLOSE file%
 END TRY
@@ -4986,10 +5039,10 @@ PRINT FLOOR -3.2     ' Prints: -4
 **Example:**
 ```
 LET found% = numbers%[] FIND 5
-IF found% <> 0 THEN PRINT "Found:", found%
+IF found% <> 0 THEN PRINT "Found: ", found%
 
 LET found$ = names$[] FIND "Bob"
-IF found$ <> "" THEN PRINT "Found:", found$
+IF found$ <> "" THEN PRINT "Found: ", found$
 ```
 
 ---
@@ -5159,7 +5212,7 @@ LET result% = 5 IMP 3    ' Binary implication
 DO
     LET key$ = INKEY$
     IF key$ <> "" THEN
-        PRINT "Key pressed: "; key$
+        PRINT "Key pressed: ", key$
         IF key$ = "ESC" THEN EXIT DO
     END IF
 LOOP
@@ -5227,10 +5280,10 @@ LET pos% = "Hello world" INSTR "o" FROM 5    ' 5 (start search at position 5)
 **Example:**
 ```
 LET index% = numbers%[] INDEXOF 5
-IF index% > 0 THEN PRINT "Found at index:", index%
+IF index% > 0 THEN PRINT "Found at index: ", index%
 
 LET index% = names$[] INDEXOF "Bob"
-IF index% > 0 THEN PRINT "Found at index:", index%
+IF index% > 0 THEN PRINT "Found at index: ", index%
 ```
 
 ---
@@ -5618,14 +5671,14 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 **Example:**
 ```
 LET timestamp% = NOW%
-PRINT "Timestamp: "; timestamp%    ' Prints: "Timestamp: 1736968245"
+PRINT "Timestamp: ", timestamp%    ' Prints: "Timestamp: 1736968245"
 
 ' Calculate elapsed time
 LET startTime% = NOW%
 SLEEP 2000    ' Wait 2 seconds
 LET endTime% = NOW%
 LET elapsed% = endTime% - startTime%
-PRINT "Elapsed: "; elapsed%; " seconds"
+PRINT "Elapsed: ", elapsed%, " seconds"
 ```
 
 ---
@@ -5698,7 +5751,7 @@ PLAY 0, "N60 N64 N67 L2"    ' Play chord using MIDI note numbers (continues in b
 
 ' Check how many notes remain
 LET notesLeft% = NOTES 0
-IF notesLeft% > 0 THEN PRINT "Still playing: "; notesLeft%; " notes remaining"
+IF notesLeft% > 0 THEN PRINT "Still playing: ", notesLeft%, " notes remaining"
 ```
 
 ---
@@ -5723,16 +5776,25 @@ LET halfCircle# = PI# * radius#
 ### PRINT
 
 **Type:** Command (Text I/O)  
-**Syntax:** `PRINT expression1, expression2, ...` or `PRINT expression1; expression2; ...` or `PRINT array[]` or `PRINT`  
-**Description:** Outputs text and values to the text display. Comma (`,`) separates items with tab spacing. Semicolon (`;`) separates items with no spacing (concatenated). Ending with semicolon suppresses the newline. Empty `PRINT` outputs a blank line. When printing an array, all elements are printed, separated by commas.  
+**Syntax:** `PRINT expression1, expression2, ...` or `PRINT expression1, expression2, ...;` or `PRINT array[]` or `PRINT array[];` or `PRINT`  
+**Description:** Outputs text and values to the text display. The `PRINT` statement accepts expressions of any type (Integer, Real, Complex, String, Array) separated by commas. Each expression is automatically converted to its string representation and concatenated with no spacing between items. Comma (`,`) separates items with no spacing (concatenated). Semicolon (`;`) at the end suppresses the newline. Empty `PRINT` outputs a blank line. When printing an array, all elements are printed, separated by commas.  
 **Example:**
 ```
 PRINT "Hello, world!"
-PRINT "Name: "; name$; " Age: "; age%
-PRINT "X:", x%, "Y:", y%
+PRINT "Name: ", name$, " Age: ", age%
+PRINT "X: ", x%, " Y: ", y%
+
+' Mixed types
+PRINT "Item: ", name$, " Count: ", count%, " Price: ", price#, " Complex: ", z&
+' Prints: Item: Widget Count: 10 Price: 19.99 Complex: 3+4i
+
 PRINT numbers%[]    ' Prints all array elements
-PRINT "Scores: "; scores%[]    ' Prints: Scores: 85, 90, 78
+PRINT "Scores: ", scores%[]    ' Prints: Scores: 85, 90, 78
+PRINT "Enter name: ";    ' No newline, continues on same line
 PRINT    ' Blank line
+
+' String concatenation alternative
+PRINT "Name: " + name$ + " Age: " + STR age%    ' With explicit spacing
 ```
 
 ---
@@ -5814,7 +5876,7 @@ RANDOMIZE NOW%         ' Explicitly seed with current timestamp
 ```
 PLAY 0, "CDEFGAB C"
 LET notesLeft% = NOTES 0
-IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: "; notesLeft%; " notes remaining"
+IF notesLeft% > 0 THEN PRINT "Voice 0 still playing: ", notesLeft%, " notes remaining"
 
 ' Wait for voice to finish
 DO
@@ -6223,7 +6285,7 @@ END SUB
 LET x% = 5
 LET y% = 10
 SWAP x% WITH y%
-PRINT x%, y%    ' Prints: 10    5
+PRINT "x: ", x%, " y: ", y%    ' Prints: x: 10 y: 5
 
 LET arr1%[] = [1, 2, 3]
 LET arr2%[] = [4, 5, 6]
@@ -6268,9 +6330,9 @@ PRINT result#    ' Prints: 0.0
 **Example:**
 ```
 LET now$ = TIME$
-PRINT "Current time: "; now$    ' Prints: "Current time: 14:30:45"
+PRINT "Current time: ", now$    ' Prints: "Current time: 14:30:45"
 
-PRINT DATE$; " "; TIME$; " - Program started"
+PRINT DATE$, " ", TIME$, " - Program started"
 ```
 
 ---
@@ -6316,7 +6378,7 @@ TRY
     OPEN "data.txt" FOR READ AS file%
     READFILE "data.txt" INTO content$
 CATCH error$
-    PRINT "Error: "; error$
+    PRINT "Error: ", error$
 FINALLY
     CLOSE file%
 END TRY
@@ -6490,7 +6552,7 @@ UEND
 LET input$ = ""
 UNTIL input$ = "quit"
     INPUT "Enter command (or 'quit'): ", input$
-    PRINT "You entered: "; input$
+    PRINT "You entered: ", input$
 UEND
 ```
 
@@ -6957,146 +7019,146 @@ The following table lists all 147 standard CSS color names in alphabetical order
 
 | Color Name | Value (`&HRRGGBBAA`) | Swatch |
 |------------|---------------------|--------|
-| aliceblue | &HF0F8FFFF | ![aliceblue](https://via.placeholder.com/20/F0F8FF/000000?text=+) |
-| antiquewhite | &HFAEBD7FF | ![antiquewhite](https://via.placeholder.com/20/FAEBD7/000000?text=+) |
-| aqua | &H00FFFFFF | ![aqua](https://via.placeholder.com/20/00FFFF/000000?text=+) |
-| aquamarine | &H7FFFD4FF | ![aquamarine](https://via.placeholder.com/20/7FFFD4/000000?text=+) |
-| azure | &HF0FFFFFF | ![azure](https://via.placeholder.com/20/F0FFFF/000000?text=+) |
-| beige | &HF5F5DCFF | ![beige](https://via.placeholder.com/20/F5F5DC/000000?text=+) |
-| bisque | &HFFE4C4FF | ![bisque](https://via.placeholder.com/20/FFE4C4/000000?text=+) |
-| black | &H000000FF | ![black](https://via.placeholder.com/20/000000/FFFFFF?text=+) |
-| blanchedalmond | &HFFEBCDFF | ![blanchedalmond](https://via.placeholder.com/20/FFEBCD/000000?text=+) |
-| blue | &H0000FFFF | ![blue](https://via.placeholder.com/20/0000FF/FFFFFF?text=+) |
-| blueviolet | &H8A2BE2FF | ![blueviolet](https://via.placeholder.com/20/8A2BE2/FFFFFF?text=+) |
-| brown | &HA52A2AFF | ![brown](https://via.placeholder.com/20/A52A2A/FFFFFF?text=+) |
-| burlywood | &HDEB887FF | ![burlywood](https://via.placeholder.com/20/DEB887/000000?text=+) |
-| cadetblue | &H5F9EA0FF | ![cadetblue](https://via.placeholder.com/20/5F9EA0/FFFFFF?text=+) |
-| chartreuse | &H7FFF00FF | ![chartreuse](https://via.placeholder.com/20/7FFF00/000000?text=+) |
-| chocolate | &HD2691EFF | ![chocolate](https://via.placeholder.com/20/D2691E/FFFFFF?text=+) |
-| coral | &HFF7F50FF | ![coral](https://via.placeholder.com/20/FF7F50/000000?text=+) |
-| cornflowerblue | &H6495EDFF | ![cornflowerblue](https://via.placeholder.com/20/6495ED/000000?text=+) |
-| cornsilk | &HFFF8DCFF | ![cornsilk](https://via.placeholder.com/20/FFF8DC/000000?text=+) |
-| crimson | &HDC143CFF | ![crimson](https://via.placeholder.com/20/DC143C/FFFFFF?text=+) |
-| cyan | &H00FFFFFF | ![cyan](https://via.placeholder.com/20/00FFFF/000000?text=+) |
-| darkblue | &H00008BFF | ![darkblue](https://via.placeholder.com/20/00008B/FFFFFF?text=+) |
-| darkcyan | &H008B8BFF | ![darkcyan](https://via.placeholder.com/20/008B8B/FFFFFF?text=+) |
-| darkgoldenrod | &HB8860BFF | ![darkgoldenrod](https://via.placeholder.com/20/B8860B/FFFFFF?text=+) |
-| darkgray | &HA9A9A9FF | ![darkgray](https://via.placeholder.com/20/A9A9A9/000000?text=+) |
-| darkgreen | &H006400FF | ![darkgreen](https://via.placeholder.com/20/006400/FFFFFF?text=+) |
-| darkkhaki | &HBDB76BFF | ![darkkhaki](https://via.placeholder.com/20/BDB76B/000000?text=+) |
-| darkmagenta | &H8B008BFF | ![darkmagenta](https://via.placeholder.com/20/8B008B/FFFFFF?text=+) |
-| darkolivegreen | &H556B2FFF | ![darkolivegreen](https://via.placeholder.com/20/556B2F/FFFFFF?text=+) |
-| darkorange | &HFF8C00FF | ![darkorange](https://via.placeholder.com/20/FF8C00/000000?text=+) |
-| darkorchid | &H9932CCFF | ![darkorchid](https://via.placeholder.com/20/9932CC/FFFFFF?text=+) |
-| darkred | &H8B0000FF | ![darkred](https://via.placeholder.com/20/8B0000/FFFFFF?text=+) |
-| darksalmon | &HE9967AFF | ![darksalmon](https://via.placeholder.com/20/E9967A/000000?text=+) |
-| darkseagreen | &H8FBC8FFF | ![darkseagreen](https://via.placeholder.com/20/8FBC8F/000000?text=+) |
-| darkslateblue | &H483D8BFF | ![darkslateblue](https://via.placeholder.com/20/483D8B/FFFFFF?text=+) |
-| darkslategray | &H2F4F4FFF | ![darkslategray](https://via.placeholder.com/20/2F4F4F/FFFFFF?text=+) |
-| darkturquoise | &H00CED1FF | ![darkturquoise](https://via.placeholder.com/20/00CED1/000000?text=+) |
-| darkviolet | &H9400D3FF | ![darkviolet](https://via.placeholder.com/20/9400D3/FFFFFF?text=+) |
-| deeppink | &HFF1493FF | ![deeppink](https://via.placeholder.com/20/FF1493/FFFFFF?text=+) |
-| deepskyblue | &H00BFFFFF | ![deepskyblue](https://via.placeholder.com/20/00BFFF/000000?text=+) |
-| dimgray | &H696969FF | ![dimgray](https://via.placeholder.com/20/696969/FFFFFF?text=+) |
-| dodgerblue | &H1E90FFFF | ![dodgerblue](https://via.placeholder.com/20/1E90FF/000000?text=+) |
-| firebrick | &HB22222FF | ![firebrick](https://via.placeholder.com/20/B22222/FFFFFF?text=+) |
-| floralwhite | &HFFFAF0FF | ![floralwhite](https://via.placeholder.com/20/FFFAF0/000000?text=+) |
-| forestgreen | &H228B22FF | ![forestgreen](https://via.placeholder.com/20/228B22/FFFFFF?text=+) |
-| fuchsia | &HFF00FFFF | ![fuchsia](https://via.placeholder.com/20/FF00FF/000000?text=+) |
-| gainsboro | &HDCDCDCFF | ![gainsboro](https://via.placeholder.com/20/DCDCDC/000000?text=+) |
-| ghostwhite | &HF8F8FFFF | ![ghostwhite](https://via.placeholder.com/20/F8F8FF/000000?text=+) |
-| gold | &HFFD700FF | ![gold](https://via.placeholder.com/20/FFD700/000000?text=+) |
-| goldenrod | &HDAA520FF | ![goldenrod](https://via.placeholder.com/20/DAA520/000000?text=+) |
-| gray | &H808080FF | ![gray](https://via.placeholder.com/20/808080/FFFFFF?text=+) |
-| green | &H008000FF | ![green](https://via.placeholder.com/20/008000/FFFFFF?text=+) |
-| greenyellow | &HADFF2FFF | ![greenyellow](https://via.placeholder.com/20/ADFF2F/000000?text=+) |
-| honeydew | &HF0FFF0FF | ![honeydew](https://via.placeholder.com/20/F0FFF0/000000?text=+) |
-| hotpink | &HFF69B4FF | ![hotpink](https://via.placeholder.com/20/FF69B4/000000?text=+) |
-| indianred | &HCD5C5CFF | ![indianred](https://via.placeholder.com/20/CD5C5C/000000?text=+) |
-| indigo | &H4B0082FF | ![indigo](https://via.placeholder.com/20/4B0082/FFFFFF?text=+) |
-| ivory | &HFFFFF0FF | ![ivory](https://via.placeholder.com/20/FFFFF0/000000?text=+) |
-| khaki | &HF0E68CFF | ![khaki](https://via.placeholder.com/20/F0E68C/000000?text=+) |
-| lavender | &HE6E6FAFF | ![lavender](https://via.placeholder.com/20/E6E6FA/000000?text=+) |
-| lavenderblush | &HFFF0F5FF | ![lavenderblush](https://via.placeholder.com/20/FFF0F5/000000?text=+) |
-| lawngreen | &H7CFC00FF | ![lawngreen](https://via.placeholder.com/20/7CFC00/000000?text=+) |
-| lemonchiffon | &HFFFACDFF | ![lemonchiffon](https://via.placeholder.com/20/FFFACD/000000?text=+) |
-| lightblue | &HADD8E6FF | ![lightblue](https://via.placeholder.com/20/ADD8E6/000000?text=+) |
-| lightcoral | &HF08080FF | ![lightcoral](https://via.placeholder.com/20/F08080/000000?text=+) |
-| lightcyan | &HE0FFFFFF | ![lightcyan](https://via.placeholder.com/20/E0FFFF/000000?text=+) |
-| lightgoldenrodyellow | &HFAFAD2FF | ![lightgoldenrodyellow](https://via.placeholder.com/20/FAFAD2/000000?text=+) |
-| lightgray | &HD3D3D3FF | ![lightgray](https://via.placeholder.com/20/D3D3D3/000000?text=+) |
-| lightgreen | &H90EE90FF | ![lightgreen](https://via.placeholder.com/20/90EE90/000000?text=+) |
-| lightpink | &HFFB6C1FF | ![lightpink](https://via.placeholder.com/20/FFB6C1/000000?text=+) |
-| lightsalmon | &HFFA07AFF | ![lightsalmon](https://via.placeholder.com/20/FFA07A/000000?text=+) |
-| lightseagreen | &H20B2AAFF | ![lightseagreen](https://via.placeholder.com/20/20B2AA/FFFFFF?text=+) |
-| lightskyblue | &H87CEFAFF | ![lightskyblue](https://via.placeholder.com/20/87CEFA/000000?text=+) |
-| lightslategray | &H778899FF | ![lightslategray](https://via.placeholder.com/20/778899/FFFFFF?text=+) |
-| lightsteelblue | &HB0C4DEFF | ![lightsteelblue](https://via.placeholder.com/20/B0C4DE/000000?text=+) |
-| lightyellow | &HFFFFE0FF | ![lightyellow](https://via.placeholder.com/20/FFFFE0/000000?text=+) |
-| lime | &H00FF00FF | ![lime](https://via.placeholder.com/20/00FF00/000000?text=+) |
-| limegreen | &H32CD32FF | ![limegreen](https://via.placeholder.com/20/32CD32/000000?text=+) |
-| linen | &HFAF0E6FF | ![linen](https://via.placeholder.com/20/FAF0E6/000000?text=+) |
-| magenta | &HFF00FFFF | ![magenta](https://via.placeholder.com/20/FF00FF/000000?text=+) |
-| maroon | &H800000FF | ![maroon](https://via.placeholder.com/20/800000/FFFFFF?text=+) |
-| mediumaquamarine | &H66CDAAFF | ![mediumaquamarine](https://via.placeholder.com/20/66CDAA/000000?text=+) |
-| mediumblue | &H0000CDFF | ![mediumblue](https://via.placeholder.com/20/0000CD/FFFFFF?text=+) |
-| mediumorchid | &HBA55D3FF | ![mediumorchid](https://via.placeholder.com/20/BA55D3/000000?text=+) |
-| mediumpurple | &H9370DBFF | ![mediumpurple](https://via.placeholder.com/20/9370DB/000000?text=+) |
-| mediumseagreen | &H3CB371FF | ![mediumseagreen](https://via.placeholder.com/20/3CB371/FFFFFF?text=+) |
-| mediumslateblue | &H7B68EEFF | ![mediumslateblue](https://via.placeholder.com/20/7B68EE/000000?text=+) |
-| mediumspringgreen | &H00FA9AFF | ![mediumspringgreen](https://via.placeholder.com/20/00FA9A/000000?text=+) |
-| mediumturquoise | &H48D1CCFF | ![mediumturquoise](https://via.placeholder.com/20/48D1CC/000000?text=+) |
-| mediumvioletred | &HC71585FF | ![mediumvioletred](https://via.placeholder.com/20/C71585/FFFFFF?text=+) |
-| midnightblue | &H191970FF | ![midnightblue](https://via.placeholder.com/20/191970/FFFFFF?text=+) |
-| mintcream | &HF5FFFAFF | ![mintcream](https://via.placeholder.com/20/F5FFFA/000000?text=+) |
-| mistyrose | &HFFE4E1FF | ![mistyrose](https://via.placeholder.com/20/FFE4E1/000000?text=+) |
-| moccasin | &HFFE4B5FF | ![moccasin](https://via.placeholder.com/20/FFE4B5/000000?text=+) |
-| navajowhite | &HFFDEADFF | ![navajowhite](https://via.placeholder.com/20/FFDEAD/000000?text=+) |
-| navy | &H000080FF | ![navy](https://via.placeholder.com/20/000080/FFFFFF?text=+) |
-| oldlace | &HFDF5E6FF | ![oldlace](https://via.placeholder.com/20/FDF5E6/000000?text=+) |
-| olive | &H808000FF | ![olive](https://via.placeholder.com/20/808000/FFFFFF?text=+) |
-| olivedrab | &H6B8E23FF | ![olivedrab](https://via.placeholder.com/20/6B8E23/FFFFFF?text=+) |
-| orange | &HFFA500FF | ![orange](https://via.placeholder.com/20/FFA500/000000?text=+) |
-| orangered | &HFF4500FF | ![orangered](https://via.placeholder.com/20/FF4500/FFFFFF?text=+) |
-| orchid | &HDA70D6FF | ![orchid](https://via.placeholder.com/20/DA70D6/000000?text=+) |
-| palegoldenrod | &HEEE8AAFF | ![palegoldenrod](https://via.placeholder.com/20/EEE8AA/000000?text=+) |
-| palegreen | &H98FB98FF | ![palegreen](https://via.placeholder.com/20/98FB98/000000?text=+) |
-| paleturquoise | &HAFEEEEFF | ![paleturquoise](https://via.placeholder.com/20/AFEEEE/000000?text=+) |
-| palevioletred | &HDB7093FF | ![palevioletred](https://via.placeholder.com/20/DB7093/000000?text=+) |
-| papayawhip | &HFFEFD5FF | ![papayawhip](https://via.placeholder.com/20/FFEFD5/000000?text=+) |
-| peachpuff | &HFFDAB9FF | ![peachpuff](https://via.placeholder.com/20/FFDAB9/000000?text=+) |
-| peru | &HCD853FFF | ![peru](https://via.placeholder.com/20/CD853F/000000?text=+) |
-| pink | &HFFC0CBFF | ![pink](https://via.placeholder.com/20/FFC0CB/000000?text=+) |
-| plum | &HDDA0DDFF | ![plum](https://via.placeholder.com/20/DDA0DD/000000?text=+) |
-| powderblue | &HB0E0E6FF | ![powderblue](https://via.placeholder.com/20/B0E0E6/000000?text=+) |
-| purple | &H800080FF | ![purple](https://via.placeholder.com/20/800080/FFFFFF?text=+) |
-| rebeccapurple | &H663399FF | ![rebeccapurple](https://via.placeholder.com/20/663399/FFFFFF?text=+) |
-| red | &HFF0000FF | ![red](https://via.placeholder.com/20/FF0000/FFFFFF?text=+) |
-| rosybrown | &HBC8F8FFF | ![rosybrown](https://via.placeholder.com/20/BC8F8F/000000?text=+) |
-| royalblue | &H4169E1FF | ![royalblue](https://via.placeholder.com/20/4169E1/FFFFFF?text=+) |
-| saddlebrown | &H8B4513FF | ![saddlebrown](https://via.placeholder.com/20/8B4513/FFFFFF?text=+) |
-| salmon | &HFA8072FF | ![salmon](https://via.placeholder.com/20/FA8072/000000?text=+) |
-| sandybrown | &HF4A460FF | ![sandybrown](https://via.placeholder.com/20/F4A460/000000?text=+) |
-| seagreen | &H2E8B57FF | ![seagreen](https://via.placeholder.com/20/2E8B57/FFFFFF?text=+) |
-| seashell | &HFFF5EEFF | ![seashell](https://via.placeholder.com/20/FFF5EE/000000?text=+) |
-| sienna | &HA0522DFF | ![sienna](https://via.placeholder.com/20/A0522D/FFFFFF?text=+) |
-| silver | &HC0C0C0FF | ![silver](https://via.placeholder.com/20/C0C0C0/000000?text=+) |
-| skyblue | &H87CEEBFF | ![skyblue](https://via.placeholder.com/20/87CEEB/000000?text=+) |
-| slateblue | &H6A5ACDFF | ![slateblue](https://via.placeholder.com/20/6A5ACD/FFFFFF?text=+) |
-| slategray | &H708090FF | ![slategray](https://via.placeholder.com/20/708090/FFFFFF?text=+) |
-| snow | &HFFFAFAFF | ![snow](https://via.placeholder.com/20/FFFAFA/000000?text=+) |
-| springgreen | &H00FF7FFF | ![springgreen](https://via.placeholder.com/20/00FF7F/000000?text=+) |
-| steelblue | &H4682B4FF | ![steelblue](https://via.placeholder.com/20/4682B4/FFFFFF?text=+) |
-| tan | &HD2B48CFF | ![tan](https://via.placeholder.com/20/D2B48C/000000?text=+) |
-| teal | &H008080FF | ![teal](https://via.placeholder.com/20/008080/FFFFFF?text=+) |
-| thistle | &HD8BFD8FF | ![thistle](https://via.placeholder.com/20/D8BFD8/000000?text=+) |
-| tomato | &HFF6347FF | ![tomato](https://via.placeholder.com/20/FF6347/000000?text=+) |
-| turquoise | &H40E0D0FF | ![turquoise](https://via.placeholder.com/20/40E0D0/000000?text=+) |
-| violet | &HEE82EEFF | ![violet](https://via.placeholder.com/20/EE82EE/000000?text=+) |
-| wheat | &HF5DEB3FF | ![wheat](https://via.placeholder.com/20/F5DEB3/000000?text=+) |
-| white | &HFFFFFFFF | ![white](https://via.placeholder.com/20/FFFFFF/000000?text=+) |
-| whitesmoke | &HF5F5F5FF | ![whitesmoke](https://via.placeholder.com/20/F5F5F5/000000?text=+) |
-| yellow | &HFFFF00FF | ![yellow](https://via.placeholder.com/20/FFFF00/000000?text=+) |
-| yellowgreen | &H9ACD32FF | ![yellowgreen](https://via.placeholder.com/20/9ACD32/000000?text=+) |
+| aliceblue | &HF0F8FFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#F0F8FFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| antiquewhite | &HFAEBD7FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FAEBD7FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| aqua | &H00FFFFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#00FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| aquamarine | &H7FFFD4FF | <span style="display:inline-block;width:20px;height:20px;background-color:#7FFFD4FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| azure | &HF0FFFFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#F0FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| beige | &HF5F5DCFF | <span style="display:inline-block;width:20px;height:20px;background-color:#F5F5DCFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| bisque | &HFFE4C4FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFE4C4FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| black | &H000000FF | <span style="display:inline-block;width:20px;height:20px;background-color:#000000FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| blanchedalmond | &HFFEBCDFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFEBCDFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| blue | &H0000FFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#0000FFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| blueviolet | &H8A2BE2FF | <span style="display:inline-block;width:20px;height:20px;background-color:#8A2BE2FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| brown | &HA52A2AFF | <span style="display:inline-block;width:20px;height:20px;background-color:#A52A2AFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| burlywood | &HDEB887FF | <span style="display:inline-block;width:20px;height:20px;background-color:#DEB887FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| cadetblue | &H5F9EA0FF | <span style="display:inline-block;width:20px;height:20px;background-color:#5F9EA0FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| chartreuse | &H7FFF00FF | <span style="display:inline-block;width:20px;height:20px;background-color:#7FFF00FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| chocolate | &HD2691EFF | <span style="display:inline-block;width:20px;height:20px;background-color:#D2691EFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| coral | &HFF7F50FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF7F50FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| cornflowerblue | &H6495EDFF | <span style="display:inline-block;width:20px;height:20px;background-color:#6495EDFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| cornsilk | &HFFF8DCFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFF8DCFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| crimson | &HDC143CFF | <span style="display:inline-block;width:20px;height:20px;background-color:#DC143CFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| cyan | &H00FFFFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#00FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkblue | &H00008BFF | <span style="display:inline-block;width:20px;height:20px;background-color:#00008BFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkcyan | &H008B8BFF | <span style="display:inline-block;width:20px;height:20px;background-color:#008B8BFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkgoldenrod | &HB8860BFF | <span style="display:inline-block;width:20px;height:20px;background-color:#B8860BFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkgray | &HA9A9A9FF | <span style="display:inline-block;width:20px;height:20px;background-color:#A9A9A9FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkgreen | &H006400FF | <span style="display:inline-block;width:20px;height:20px;background-color:#006400FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkkhaki | &HBDB76BFF | <span style="display:inline-block;width:20px;height:20px;background-color:#BDB76BFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkmagenta | &H8B008BFF | <span style="display:inline-block;width:20px;height:20px;background-color:#8B008BFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkolivegreen | &H556B2FFF | <span style="display:inline-block;width:20px;height:20px;background-color:#556B2FFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkorange | &HFF8C00FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF8C00FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkorchid | &H9932CCFF | <span style="display:inline-block;width:20px;height:20px;background-color:#9932CCFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkred | &H8B0000FF | <span style="display:inline-block;width:20px;height:20px;background-color:#8B0000FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darksalmon | &HE9967AFF | <span style="display:inline-block;width:20px;height:20px;background-color:#E9967AFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkseagreen | &H8FBC8FFF | <span style="display:inline-block;width:20px;height:20px;background-color:#8FBC8FFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkslateblue | &H483D8BFF | <span style="display:inline-block;width:20px;height:20px;background-color:#483D8BFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkslategray | &H2F4F4FFF | <span style="display:inline-block;width:20px;height:20px;background-color:#2F4F4FFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkturquoise | &H00CED1FF | <span style="display:inline-block;width:20px;height:20px;background-color:#00CED1FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| darkviolet | &H9400D3FF | <span style="display:inline-block;width:20px;height:20px;background-color:#9400D3FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| deeppink | &HFF1493FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF1493FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| deepskyblue | &H00BFFFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#00BFFFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| dimgray | &H696969FF | <span style="display:inline-block;width:20px;height:20px;background-color:#696969FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| dodgerblue | &H1E90FFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#1E90FFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| firebrick | &HB22222FF | <span style="display:inline-block;width:20px;height:20px;background-color:#B22222FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| floralwhite | &HFFFAF0FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFFAF0FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| forestgreen | &H228B22FF | <span style="display:inline-block;width:20px;height:20px;background-color:#228B22FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| fuchsia | &HFF00FFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF00FFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| gainsboro | &HDCDCDCFF | <span style="display:inline-block;width:20px;height:20px;background-color:#DCDCDCFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| ghostwhite | &HF8F8FFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#F8F8FFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| gold | &HFFD700FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFD700FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| goldenrod | &HDAA520FF | <span style="display:inline-block;width:20px;height:20px;background-color:#DAA520FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| gray | &H808080FF | <span style="display:inline-block;width:20px;height:20px;background-color:#808080FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| green | &H008000FF | <span style="display:inline-block;width:20px;height:20px;background-color:#008000FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| greenyellow | &HADFF2FFF | <span style="display:inline-block;width:20px;height:20px;background-color:#ADFF2FFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| honeydew | &HF0FFF0FF | <span style="display:inline-block;width:20px;height:20px;background-color:#F0FFF0FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| hotpink | &HFF69B4FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF69B4FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| indianred | &HCD5C5CFF | <span style="display:inline-block;width:20px;height:20px;background-color:#CD5C5CFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| indigo | &H4B0082FF | <span style="display:inline-block;width:20px;height:20px;background-color:#4B0082FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| ivory | &HFFFFF0FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFFFF0FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| khaki | &HF0E68CFF | <span style="display:inline-block;width:20px;height:20px;background-color:#F0E68CFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lavender | &HE6E6FAFF | <span style="display:inline-block;width:20px;height:20px;background-color:#E6E6FAFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lavenderblush | &HFFF0F5FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFF0F5FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lawngreen | &H7CFC00FF | <span style="display:inline-block;width:20px;height:20px;background-color:#7CFC00FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lemonchiffon | &HFFFACDFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFFACDFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightblue | &HADD8E6FF | <span style="display:inline-block;width:20px;height:20px;background-color:#ADD8E6FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightcoral | &HF08080FF | <span style="display:inline-block;width:20px;height:20px;background-color:#F08080FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightcyan | &HE0FFFFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#E0FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightgoldenrodyellow | &HFAFAD2FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FAFAD2FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightgray | &HD3D3D3FF | <span style="display:inline-block;width:20px;height:20px;background-color:#D3D3D3FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightgreen | &H90EE90FF | <span style="display:inline-block;width:20px;height:20px;background-color:#90EE90FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightpink | &HFFB6C1FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFB6C1FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightsalmon | &HFFA07AFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFA07AFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightseagreen | &H20B2AAFF | <span style="display:inline-block;width:20px;height:20px;background-color:#20B2AAFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightskyblue | &H87CEFAFF | <span style="display:inline-block;width:20px;height:20px;background-color:#87CEFAFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightslategray | &H778899FF | <span style="display:inline-block;width:20px;height:20px;background-color:#778899FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightsteelblue | &HB0C4DEFF | <span style="display:inline-block;width:20px;height:20px;background-color:#B0C4DEFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lightyellow | &HFFFFE0FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFFFE0FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| lime | &H00FF00FF | <span style="display:inline-block;width:20px;height:20px;background-color:#00FF00FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| limegreen | &H32CD32FF | <span style="display:inline-block;width:20px;height:20px;background-color:#32CD32FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| linen | &HFAF0E6FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FAF0E6FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| magenta | &HFF00FFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF00FFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| maroon | &H800000FF | <span style="display:inline-block;width:20px;height:20px;background-color:#800000FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumaquamarine | &H66CDAAFF | <span style="display:inline-block;width:20px;height:20px;background-color:#66CDAAFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumblue | &H0000CDFF | <span style="display:inline-block;width:20px;height:20px;background-color:#0000CDFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumorchid | &HBA55D3FF | <span style="display:inline-block;width:20px;height:20px;background-color:#BA55D3FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumpurple | &H9370DBFF | <span style="display:inline-block;width:20px;height:20px;background-color:#9370DBFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumseagreen | &H3CB371FF | <span style="display:inline-block;width:20px;height:20px;background-color:#3CB371FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumslateblue | &H7B68EEFF | <span style="display:inline-block;width:20px;height:20px;background-color:#7B68EEFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumspringgreen | &H00FA9AFF | <span style="display:inline-block;width:20px;height:20px;background-color:#00FA9AFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumturquoise | &H48D1CCFF | <span style="display:inline-block;width:20px;height:20px;background-color:#48D1CCFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mediumvioletred | &HC71585FF | <span style="display:inline-block;width:20px;height:20px;background-color:#C71585FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| midnightblue | &H191970FF | <span style="display:inline-block;width:20px;height:20px;background-color:#191970FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mintcream | &HF5FFFAFF | <span style="display:inline-block;width:20px;height:20px;background-color:#F5FFFAFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| mistyrose | &HFFE4E1FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFE4E1FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| moccasin | &HFFE4B5FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFE4B5FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| navajowhite | &HFFDEADFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFDEADFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| navy | &H000080FF | <span style="display:inline-block;width:20px;height:20px;background-color:#000080FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| oldlace | &HFDF5E6FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FDF5E6FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| olive | &H808000FF | <span style="display:inline-block;width:20px;height:20px;background-color:#808000FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| olivedrab | &H6B8E23FF | <span style="display:inline-block;width:20px;height:20px;background-color:#6B8E23FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| orange | &HFFA500FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFA500FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| orangered | &HFF4500FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF4500FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| orchid | &HDA70D6FF | <span style="display:inline-block;width:20px;height:20px;background-color:#DA70D6FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| palegoldenrod | &HEEE8AAFF | <span style="display:inline-block;width:20px;height:20px;background-color:#EEE8AAFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| palegreen | &H98FB98FF | <span style="display:inline-block;width:20px;height:20px;background-color:#98FB98FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| paleturquoise | &HAFEEEEFF | <span style="display:inline-block;width:20px;height:20px;background-color:#AFEEEEFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| palevioletred | &HDB7093FF | <span style="display:inline-block;width:20px;height:20px;background-color:#DB7093FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| papayawhip | &HFFEFD5FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFEFD5FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| peachpuff | &HFFDAB9FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFDAB9FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| peru | &HCD853FFF | <span style="display:inline-block;width:20px;height:20px;background-color:#CD853FFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| pink | &HFFC0CBFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFC0CBFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| plum | &HDDA0DDFF | <span style="display:inline-block;width:20px;height:20px;background-color:#DDA0DDFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| powderblue | &HB0E0E6FF | <span style="display:inline-block;width:20px;height:20px;background-color:#B0E0E6FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| purple | &H800080FF | <span style="display:inline-block;width:20px;height:20px;background-color:#800080FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| rebeccapurple | &H663399FF | <span style="display:inline-block;width:20px;height:20px;background-color:#663399FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| red | &HFF0000FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF0000FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| rosybrown | &HBC8F8FFF | <span style="display:inline-block;width:20px;height:20px;background-color:#BC8F8FFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| royalblue | &H4169E1FF | <span style="display:inline-block;width:20px;height:20px;background-color:#4169E1FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| saddlebrown | &H8B4513FF | <span style="display:inline-block;width:20px;height:20px;background-color:#8B4513FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| salmon | &HFA8072FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FA8072FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| sandybrown | &HF4A460FF | <span style="display:inline-block;width:20px;height:20px;background-color:#F4A460FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| seagreen | &H2E8B57FF | <span style="display:inline-block;width:20px;height:20px;background-color:#2E8B57FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| seashell | &HFFF5EEFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFF5EEFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| sienna | &HA0522DFF | <span style="display:inline-block;width:20px;height:20px;background-color:#A0522DFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| silver | &HC0C0C0FF | <span style="display:inline-block;width:20px;height:20px;background-color:#C0C0C0FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| skyblue | &H87CEEBFF | <span style="display:inline-block;width:20px;height:20px;background-color:#87CEEBFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| slateblue | &H6A5ACDFF | <span style="display:inline-block;width:20px;height:20px;background-color:#6A5ACDFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| slategray | &H708090FF | <span style="display:inline-block;width:20px;height:20px;background-color:#708090FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| snow | &HFFFAFAFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFFAFAFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| springgreen | &H00FF7FFF | <span style="display:inline-block;width:20px;height:20px;background-color:#00FF7FFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| steelblue | &H4682B4FF | <span style="display:inline-block;width:20px;height:20px;background-color:#4682B4FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| tan | &HD2B48CFF | <span style="display:inline-block;width:20px;height:20px;background-color:#D2B48CFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| teal | &H008080FF | <span style="display:inline-block;width:20px;height:20px;background-color:#008080FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| thistle | &HD8BFD8FF | <span style="display:inline-block;width:20px;height:20px;background-color:#D8BFD8FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| tomato | &HFF6347FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FF6347FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| turquoise | &H40E0D0FF | <span style="display:inline-block;width:20px;height:20px;background-color:#40E0D0FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| violet | &HEE82EEFF | <span style="display:inline-block;width:20px;height:20px;background-color:#EE82EEFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| wheat | &HF5DEB3FF | <span style="display:inline-block;width:20px;height:20px;background-color:#F5DEB3FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| white | &HFFFFFFFF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFFFFFFF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| whitesmoke | &HF5F5F5FF | <span style="display:inline-block;width:20px;height:20px;background-color:#F5F5F5FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| yellow | &HFFFF00FF | <span style="display:inline-block;width:20px;height:20px;background-color:#FFFF00FF;border:1px solid #ccc;vertical-align:middle;"></span> |
+| yellowgreen | &H9ACD32FF | <span style="display:inline-block;width:20px;height:20px;background-color:#9ACD32FF;border:1px solid #ccc;vertical-align:middle;"></span> |
 
 **Note:** The swatches in the table above are visual representations. In actual usage, color names are case-insensitive, so `"Red"`, `"red"`, and `"RED"` all refer to the same color.

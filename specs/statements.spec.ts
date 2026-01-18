@@ -26,6 +26,7 @@ import { VoiceStatement } from '../src/lang/statements/audio/voice-statement';
 import { PlayStatement } from '../src/lang/statements/audio/play-statement';
 
 import { LiteralExpression } from '../src/lang/expressions/literals/literal-expression';
+import { PrintStatement } from '../src/lang/statements/io/print-statement';
 import { Graphics, Color } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
 
@@ -42,6 +43,8 @@ class MockGraphics extends Graphics
     public circles: Array<{ x: number; y: number; radius: number; filled: boolean; color?: Color }> = [];
     public triangles: Array<{ x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; filled: boolean; color?: Color }> = [];
     public arcs: Array<{ x: number; y: number; radius: number; startAngle: number; endAngle: number; color?: Color }> = [];
+    public printedText: string[] = [];
+    public newLineCount: number = 0;
     
     public override setForegroundColor(color: Color): void
     {
@@ -99,6 +102,23 @@ class MockGraphics extends Graphics
     public override clear(): void
     {
         this.clearCalled = true;
+    }
+    
+    public override printText(text: string): void
+    {
+        this.printedText.push(text);
+        super.printText(text);
+    }
+    
+    public override newLine(): void
+    {
+        this.newLineCount++;
+        super.newLine();
+    }
+    
+    public getPrintedOutput(): string
+    {
+        return this.printedText.join('');
     }
 }
 
@@ -1265,6 +1285,228 @@ describe('Statement Implementations', () =>
                 
                 expect(audio.sequences[0]).toBe('O4 L4 C D E F G A B O5 C');
             });
+        });
+    });
+    
+    describe('PRINT Statement', () =>
+    {
+        beforeEach(() =>
+        {
+            graphics.printedText = [];
+            graphics.newLineCount = 0;
+        });
+        
+        it('should print single string expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Hello' })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Hello');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print single integer expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 42 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('42');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print single real expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Real, value: 3.14 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('3.14');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print single complex expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('3+4i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print multiple expressions with no spacing (comma-separated)', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Name: ' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'Alice' }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Age: ' }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 25 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Name: Alice Age: 25');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print mixed types (string, integer, real, complex)', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Item: ' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'Widget' }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Count: ' }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Price: ' }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 19.99 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Complex: ' }),
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Item: Widget Count: 10 Price: 19.99 Complex: 3+4i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should not add newline when semicolon at end', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Enter name: ' })
+            ], false);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Enter name: ');
+            expect(graphics.newLineCount).toBe(0);
+        });
+        
+        it('should print empty PRINT as blank line', () =>
+        {
+            const stmt = new PrintStatement([]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should concatenate multiple items with no spacing', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'A' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'B' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'C' })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('ABC');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle negative integers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: -42 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('-42');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle negative reals', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Real, value: -3.14 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('-3.14');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle complex with negative imaginary part', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: -4 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('3-4i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle zero values', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' ' }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 0.0 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' ' }),
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('0 0 0+0i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle large numbers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 123456789 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' ' }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 123456.789 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('123456789 123456.789');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle empty string', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: '' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'test' }),
+                new LiteralExpression({ type: EduBasicType.String, value: '' })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('test');
+            expect(graphics.newLineCount).toBe(1);
         });
     });
 });

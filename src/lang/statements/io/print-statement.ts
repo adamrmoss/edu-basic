@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { valueToString } from '../../edu-basic-value';
 
 export class PrintStatement extends Statement
 {
@@ -29,13 +30,8 @@ export class PrintStatement extends Statement
         for (let i = 0; i < values.length; i++)
         {
             const value = values[i];
-            const text = value.value?.toString() ?? '';
+            const text = valueToString(value);
             graphics.printText(text);
-
-            if (i < values.length - 1)
-            {
-                graphics.printText(' ');
-            }
         }
 
         if (this.newline)
@@ -55,7 +51,7 @@ export class PrintStatement extends Statement
 
         if (this.expressions.length > 0)
         {
-            result += ' ' + this.expressions.map(expr => expr.toString()).join('; ');
+            result += ' ' + this.expressions.map(expr => expr.toString()).join(', ');
         }
 
         if (!this.newline)
