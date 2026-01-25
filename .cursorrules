@@ -116,6 +116,26 @@ When solving problems, follow this workflow:
 - Subdivide projects semantically in domain space
 - Organize by domain concepts, NOT by technical layers
 
+## Module Organization & Barrel Files
+- **ALWAYS use barrel files (index.ts) for directories with multiple exports**
+- **Barrel files MUST be created for:**
+  - Any directory containing 3+ related TypeScript files that export classes/types/interfaces
+  - Subdirectories that group related functionality (e.g., `statements/array/`, `statements/control-flow/`)
+  - Main directories that contain subdirectories (e.g., `statements/`, `expressions/`)
+- **Barrel file structure:**
+  - Use `export * from './filename'` for each file in the directory
+  - Do NOT export non-public utilities or internal helpers from barrel files
+  - Main barrel files should re-export from subdirectory barrels when appropriate
+- **Import rules:**
+  - **ALWAYS import from barrel files** (e.g., `from './statements/array'`) instead of individual files (e.g., `from './statements/array/pop-statement'`)
+  - Use barrel files to simplify imports and reduce path length
+  - Group related imports from the same barrel on a single line when appropriate
+- **Examples:**
+  - ✅ `import { PopStatement, PushStatement } from '../../lang/statements/array'`
+  - ❌ `import { PopStatement } from '../../lang/statements/array/pop-statement'`
+  - ✅ `import { IfStatement, WhileStatement } from '../../lang/statements/control-flow'`
+  - ❌ `import { IfStatement } from '../../lang/statements/control-flow/if-statement'`
+
 ## EduBASIC Language Terminology
 - NEVER use the term "function" for computational operations (e.g., SIN, COS, PRINT)
 - In EduBASIC, "function" is ONLY used for set-theoretic mathematical functions

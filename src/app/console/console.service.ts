@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ParserService, ParsedLine } from '../interpreter/parser.service';
+import { ParserService, ParsedLine } from '../interpreter/parser';
 import { InterpreterService } from '../interpreter/interpreter.service';
 import { GraphicsService } from '../interpreter/graphics.service';
 import { AudioService } from '../interpreter/audio.service';
 import { ExpressionParserService } from '../interpreter/expression-parser.service';
 import { Expression } from '../../lang/expressions/expression';
 import { Statement } from '../../lang/statements/statement';
-import { ConsoleStatement } from '../../lang/statements/misc/console-statement';
+import { ConsoleStatement } from '../../lang/statements/misc';
 
 export interface ConsoleEntry
 {

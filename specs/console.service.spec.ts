@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { ConsoleService } from '../src/app/console/console.service';
-import { ParserService, ParsedLine } from '../src/app/interpreter/parser.service';
+import { ParserService, ParsedLine } from '../src/app/interpreter/parser';
 import { InterpreterService } from '../src/app/interpreter/interpreter.service';
 import { GraphicsService } from '../src/app/interpreter/graphics.service';
 import { AudioService } from '../src/app/interpreter/audio.service';
 import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
-import { LetStatement } from '../src/lang/statements/variables/let-statement';
-import { PrintStatement } from '../src/lang/statements/io/print-statement';
+import { LetStatement } from '../src/lang/statements/variables';
+import { PrintStatement } from '../src/lang/statements/io';
 import { UnparsableStatement } from '../src/lang/statements/unparsable-statement';
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { EduBasicType } from '../src/lang/edu-basic-value';

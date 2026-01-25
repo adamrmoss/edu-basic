@@ -1,20 +1,18 @@
-import { ParserService } from '../src/app/interpreter/parser.service';
+import { ParserService } from '../src/app/interpreter/parser';
 import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
-import { LetStatement } from '../src/lang/statements/variables/let-statement';
-import { LocalStatement } from '../src/lang/statements/variables/local-statement';
-import { DimStatement } from '../src/lang/statements/variables/dim-statement';
-import { IfStatement } from '../src/lang/statements/control-flow/if-statement';
-import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-statement';
-import { PrintStatement } from '../src/lang/statements/io/print-statement';
-import { GotoStatement } from '../src/lang/statements/control-flow/goto-statement';
-import { LabelStatement } from '../src/lang/statements/control-flow/label-statement';
-import { ForStatement } from '../src/lang/statements/control-flow/for-statement';
-import { WhileStatement } from '../src/lang/statements/control-flow/while-statement';
-import { ColorStatement } from '../src/lang/statements/io/color-statement';
-import { PsetStatement } from '../src/lang/statements/graphics/pset-statement';
-import { LineStatement } from '../src/lang/statements/graphics/line-statement';
-import { OpenStatement, FileMode } from '../src/lang/statements/file-io/open-statement';
-import { CloseStatement } from '../src/lang/statements/file-io/close-statement';
+import { DimStatement, LetStatement, LocalStatement } from '../src/lang/statements/variables';
+import {
+    EndStatement,
+    EndType,
+    ForStatement,
+    GotoStatement,
+    IfStatement,
+    LabelStatement,
+    WhileStatement
+} from '../src/lang/statements/control-flow';
+import { ColorStatement, PrintStatement } from '../src/lang/statements/io';
+import { LineStatement, PsetStatement } from '../src/lang/statements/graphics';
+import { CloseStatement, FileMode, OpenStatement } from '../src/lang/statements/file-io';
 
 describe('ParserService', () =>
 {

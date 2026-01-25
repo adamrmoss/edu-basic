@@ -4,13 +4,17 @@ import { ExecutionContext } from '../src/lang/execution-context';
 import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
 import { FileSystemService } from '../src/app/files/filesystem.service';
-import { IfStatement } from '../src/lang/statements/control-flow/if-statement';
-import { WhileStatement } from '../src/lang/statements/control-flow/while-statement';
-import { DoLoopStatement, DoLoopVariant } from '../src/lang/statements/control-flow/do-loop-statement';
-import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-statement';
-import { WendStatement } from '../src/lang/statements/control-flow/wend-statement';
-import { LoopStatement } from '../src/lang/statements/control-flow/loop-statement';
-import { PrintStatement } from '../src/lang/statements/io/print-statement';
+import {
+    DoLoopStatement,
+    DoLoopVariant,
+    EndStatement,
+    EndType,
+    IfStatement,
+    LoopStatement,
+    WendStatement,
+    WhileStatement
+} from '../src/lang/statements/control-flow';
+import { PrintStatement } from '../src/lang/statements/io';
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { EduBasicType, EduBasicValue } from '../src/lang/edu-basic-value';
 import { ExecutionResult } from '../src/lang/statements/statement';

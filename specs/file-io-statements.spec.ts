@@ -7,10 +7,7 @@ import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
 import { FileSystemService } from '../src/app/files/filesystem.service';
 
-import { OpenStatement, FileMode } from '../src/lang/statements/file-io/open-statement';
-import { CloseStatement } from '../src/lang/statements/file-io/close-statement';
-import { ReadfileStatement } from '../src/lang/statements/file-io/readfile-statement';
-import { WritefileStatement } from '../src/lang/statements/file-io/writefile-statement';
+import { CloseStatement, FileMode, OpenStatement, ReadfileStatement, WritefileStatement } from '../src/lang/statements/file-io';
 
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { VariableExpression } from '../src/lang/expressions/special/variable-expression';

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
-import { ParserService, ParsedLine } from '../interpreter/parser.service';
+import { ParserService, ParsedLine } from '../interpreter/parser';
 import { Program } from '../../lang/program';
 import { ExecutionResult } from '../../lang/statements/statement';
 
