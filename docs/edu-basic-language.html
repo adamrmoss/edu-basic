@@ -751,7 +751,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span:focus {
   text-decoration: none;
 }
 </style><script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script><script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script><script>!function(){if("undefined"!=typeof Prism&&"undefined"!=typeof document){var e=[],t={},n=function(){};Prism.plugins.toolbar={};var a=Prism.plugins.toolbar.registerButton=function(n,a){var r;r="function"==typeof a?a:function(e){var t;return"function"==typeof a.onClick?((t=document.createElement("button")).type="button",t.addEventListener("click",(function(){a.onClick.call(this,e)}))):"string"==typeof a.url?(t=document.createElement("a")).href=a.url:t=document.createElement("span"),a.className&&t.classList.add(a.className),t.textContent=a.text,t},n in t?console.warn('There is a button with the key "'+n+'" registered already.'):e.push(t[n]=r)},r=Prism.plugins.toolbar.hook=function(a){var r=a.element.parentNode;var l=a.element.classList;if(l.contains('language-mermaid') || l.contains('language-echarts') || l.contains('language-plantuml')){return;} if(r&&/pre/i.test(r.nodeName)&&!r.parentNode.classList.contains("code-toolbar")){var o=document.createElement("div");o.classList.add("code-toolbar"),r.parentNode.insertBefore(o,r),o.appendChild(r);var i=document.createElement("div");i.classList.add("toolbar");var l=e,d=function(e){for(;e;){var t=e.getAttribute("data-toolbar-order");if(null!=t)return(t=t.trim()).length?t.split(/\s*,\s*/g):[];e=e.parentElement}}(a.element);d&&(l=d.map((function(e){return t[e]||n}))),l.forEach((function(e){var t=e(a);if(t){var n=document.createElement("div");n.classList.add("toolbar-item"),n.appendChild(t),i.appendChild(n)}})),o.appendChild(i)}};a("label",(function(e){var t=e.element.parentNode;if(t&&/pre/i.test(t.nodeName)&&t.hasAttribute("data-label")){var n,a,r=t.getAttribute("data-label");try{a=document.querySelector("template#"+r)}catch(e){}return a?n=a.content:(t.hasAttribute("data-url")?(n=document.createElement("a")).href=t.getAttribute("data-url"):n=document.createElement("span"),n.textContent=r),n}})),Prism.hooks.add("complete",r)}}();</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/toolbar/prism-toolbar.min.css"><script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script><script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script><style>div.code-toolbar > .toolbar > .toolbar-item > a, div.code-toolbar > .toolbar > .toolbar-item > button, div.code-toolbar > .toolbar > .toolbar-item > span {padding: 4px .5em; background: #f5f2f0; background: rgba(224, 224, 224, 0.4);}</style><script>window.MathJax = {     tex: { tags: 'ams', displayMath: [ ['\\[', '\\]'] ] } ,     startup: {     pageReady() {       return MathJax.startup.defaultPageReady().then(function () {          window.mweb_mathjax_ready_val = 'yes';          if(window.mweb_mathjax_ready !== undefined){ mweb_mathjax_ready(); }       });     }   }};document.addEventListener('DOMContentLoaded', function(event) {    if (typeof Prism != 'undefined') {         Prism.highlightAll();     }});window.mweb_mathjax_ready_val = '';function theMWebMathJaxRenderIsReady(key){ return window.mweb_mathjax_ready_val; }</script><script>window.MathJax = { tex: { tags: 'ams', displayMath: [ ['\\[', '\\]'] ] } }; </script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script> <style>body{max-width:808px; padding:24px;}</style></head><body><div id='markdown_content' class='markdown-body'><h1><a id="edubasic-language-reference" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>EduBASIC Language Reference</h1>
-<p><em>Copyright © 2025 Adam R Moss / Fuzzy Logic Publishing. Licensed under the MIT License.</em></p>
+<p><em>Copyright © 2025 Dietz-Moss Publishing. Licensed under the MIT License.</em></p>
 <h2><a id="table-of-contents" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Table of Contents</h2>
 <ul>
 <li><a href="#data-types-variables-arithmetic-and-boolean-operations">Data Types, Variables, Arithmetic, and Boolean Operations</a>
@@ -760,6 +760,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span:focus {
 <li><a href="#type-sigils">Type Sigils</a></li>
 <li><a href="#variable-names">Variable Names</a></li>
 <li><a href="#variable-declaration">Variable Declaration</a></li>
+<li><a href="#default-values">Default Values</a></li>
 <li><a href="#literals">Literals</a></li>
 <li><a href="#type-coercion">Type Coercion</a></li>
 <li><a href="#structures">Structures</a></li>
@@ -794,6 +795,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span:focus {
 <li><a href="#throw-statement">THROW Statement</a></li>
 </ul>
 </li>
+<li><a href="#date-and-time-functions">Date and Time Functions</a></li>
 <li><a href="#summary-structured-vs-unstructured-flow-control">Summary: Structured vs. Unstructured Flow Control</a></li>
 </ul>
 </li>
@@ -878,6 +880,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span:focus {
 </li>
 <li><a href="#audio">Audio</a>
 <ul>
+<li><a href="#grit-overview">GRIT Overview</a></li>
 <li><a href="#tempo-statement">TEMPO Statement</a></li>
 <li><a href="#volume-statement">VOLUME Statement</a></li>
 <li><a href="#voice-statement">VOICE Statement</a></li>
@@ -888,7 +891,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span:focus {
 <li><a href="#audio-examples">Audio Examples</a></li>
 </ul>
 </li>
-<li><a href="#command-and-function-reference">Command and Function Reference</a>
+<li><a href="#statement-and-operator-reference">Statement and Operator Reference</a>
 <ul>
 <li>(Alphabetical listing of 100+ commands, functions, and operators)</li>
 </ul>
@@ -922,6 +925,7 @@ div.code-toolbar > .toolbar > .toolbar-item > span:focus {
 <li><a href="#operator-precedence-summary">Operator Precedence Summary</a></li>
 </ul>
 </li>
+<li><a href="#appendix-css-color-names">Appendix: CSS Color Names</a></li>
 </ul>
 <hr />
 <h2><a id="data-types-variables-arithmetic-and-boolean-operations" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Data Types, Variables, Arithmetic, and Boolean Operations</h2>
@@ -1003,6 +1007,67 @@ LET player = { name$: &quot;Bob&quot;, score%: 100 }      ' Structure (no sigil)
 <h3><a id="variable-declaration" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Variable Declaration</h3>
 <p>Variables in EduBASIC are <strong>implicitly declared</strong>—you simply assign a value with the <code>LET</code> or <code>LOCAL</code> statements to create a variable. <strong>No variables need to be declared ahead of time</strong>, whether they are scalars, structures, or arrays.</p>
 <p>The <code>DIM</code> statement is used <strong>only</strong> for resizing arrays (changing the size of an array). Undeclared arrays are presumed to have size 0, so you can use <code>DIM</code> to resize them even if they haven't been assigned yet. All other variables are created automatically when first assigned with <code>LET</code> or <code>LOCAL</code>.</p>
+<h3><a id="let-statement" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>LET Statement</h3>
+<p>The <code>LET</code> statement assigns a value to a variable, creating module-level (global) variables.</p>
+<p><strong>Syntax:</strong></p>
+<pre><code class="language-plain_text">LET variable = expression
+LET array[] = expression
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Creates module-level (global) variables that persist throughout the program</li>
+<li>Can assign to scalars, structures, or arrays</li>
+<li>For arrays, the expression can be an array literal, another array, or an array slice</li>
+<li>The <code>LET</code> keyword is optional in some contexts but recommended for clarity</li>
+<li>Variables are created automatically on first assignment—no declaration needed</li>
+<li>Type is determined by the variable's sigil (or lack of sigil for structures)</li>
+</ul>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-plain_text">LET count% = 10
+LET name$ = &quot;Alice&quot;
+LET result# = 3.14159
+LET complex&amp; = 3+4i
+
+' Array assignments
+LET numbers%[] = [1, 2, 3, 4, 5]
+LET copy%[] = numbers%[]
+LET slice%[] = numbers%[2 TO 4]
+
+' Structure assignment
+LET player = { name$: &quot;Bob&quot;, score%: 100 }
+</code></pre>
+<h3><a id="swap-statement" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>SWAP Statement</h3>
+<p>The <code>SWAP</code> statement exchanges the values of two variables of the same type.</p>
+<p><strong>Syntax:</strong></p>
+<pre><code class="language-plain_text">SWAP variable1 WITH variable2
+SWAP array1[] WITH array2[]
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Exchanges the values of two variables</li>
+<li>Both operands must be of the same type (both integers, both reals, both strings, both arrays, etc.)</li>
+<li>Can swap scalars or arrays</li>
+<li>Arrays must be of the same element type</li>
+<li>The operation is atomic (both values are swapped simultaneously)</li>
+</ul>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-plain_text">LET x% = 5
+LET y% = 10
+SWAP x% WITH y%
+PRINT &quot;x: &quot;, x%, &quot; y: &quot;, y%    ' Prints: x: 10 y: 5
+
+LET arr1%[] = [1, 2, 3]
+LET arr2%[] = [4, 5, 6]
+SWAP arr1%[] WITH arr2%[]
+PRINT arr1%[]    ' Prints: 4, 5, 6
+PRINT arr2%[]    ' Prints: 1, 2, 3
+
+' Swap strings
+LET a$ = &quot;Hello&quot;
+LET b$ = &quot;World&quot;
+SWAP a$ WITH b$
+PRINT a$, &quot; &quot;, b$    ' Prints: World Hello
+</code></pre>
 <h3><a id="default-values" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Default Values</h3>
 <p>When a variable is first created (before any assignment), it has a default value based on its type:</p>
 <table>
@@ -1451,7 +1516,7 @@ LET point = { x%: 100, y%: 200 }
 LET person = { firstName$: &quot;John&quot;, lastName$: &quot;Doe&quot;, age%: 30, email$: &quot;john@example.com&quot; }
 
 ' Access structure members
-PRINT person[firstName$]; &quot; &quot;; person[lastName$]
+PRINT person[firstName$], &quot; &quot;, person[lastName$]
 LET person[age%] += 1
 
 ' Structures can contain any data type
@@ -1469,7 +1534,7 @@ LET person = { name: { first$: &quot;John&quot;, last$: &quot;Doe&quot; }, addre
 LET game = { player: { name$: &quot;Hero&quot;, stats: { hp%: 100, mp%: 50 }, items$[]: [&quot;sword&quot;, &quot;shield&quot;] }, enemies%[]: [10, 15, 20] }
 
 ' Access nested structure members
-PRINT person[name][first$]; &quot; &quot;; person[name][last$]
+PRINT person[name][first$], &quot; &quot;, person[name][last$]
 PRINT person[address][street$]
 
 ' Access array members within structures
@@ -1509,7 +1574,22 @@ LET names$[] = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;]
 </code></pre>
 <p><strong>Important:</strong> Undeclared arrays (arrays that haven't been assigned yet) are presumed to have size 0. You can assign to them or resize them with <code>DIM</code> before use.</p>
 <h4><a id="array-resizing" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Array Resizing</h4>
-<p>The <code>DIM</code> keyword is used <strong>only</strong> for resizing arrays. Undeclared arrays are presumed to have size 0, so you can use <code>DIM</code> to resize them even if they haven't been assigned yet.</p>
+<p>The <code>DIM</code> statement is used <strong>only</strong> for resizing arrays. Undeclared arrays are presumed to have size 0, so you can use <code>DIM</code> to resize them even if they haven't been assigned yet.</p>
+<p><strong>Syntax:</strong></p>
+<pre><code class="language-plain_text">DIM arrayName[size]
+DIM arrayName[start TO end]
+DIM arrayName[size1, size2, ...]
+DIM arrayName[start1 TO end1, start2 TO end2, ...]
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Arrays are one-based by default (index 1 is the first element)</li>
+<li><code>DIM</code> resizes an array to the specified size or range</li>
+<li>If the array doesn't exist, <code>DIM</code> creates it</li>
+<li>If the array already exists, <code>DIM</code> resizes it (existing elements may be preserved or cleared depending on the new size)</li>
+<li>For multi-dimensional arrays, specify dimensions separated by commas</li>
+<li>Custom ranges use <code>start TO end</code> syntax</li>
+</ul>
 <p><strong>Resize to a new size:</strong></p>
 <pre><code class="language-plain_text">DIM numbers%[10]    ' Resize to 10 elements (indices 1-10), creates array if it doesn't exist
 LET numbers%[] = [1, 2, 3]
@@ -1687,12 +1767,12 @@ SWAP array1[] WITH array2[]
 <pre><code class="language-plain_text">LET x% = 5
 LET y% = 10
 SWAP x% WITH y%
-PRINT x%, y%        ' Prints: 10    5
+PRINT &quot;x: &quot;, x%, &quot; y: &quot;, y%        ' Prints: x: 10 y: 5
 
 LET firstName$ = &quot;John&quot;
 LET lastName$ = &quot;Doe&quot;
 SWAP firstName$ WITH lastName$
-PRINT firstName$, lastName$    ' Prints: Doe    John
+PRINT firstName$, &quot; &quot;, lastName$    ' Prints: Doe John
 
 LET arr1%[] = [1, 2, 3]
 LET arr2%[] = [4, 5, 6]
@@ -2137,13 +2217,23 @@ IF arr4%[] &lt; arr1%[] THEN PRINT &quot;Shorter is less&quot;    ' TRUE% (short
 <li><code>RND#</code> - Returns a random real number in the range [0, 1)</li>
 </ul>
 <p><strong>Random Number Generator Seed:</strong></p>
-<p>The <code>RANDOMIZE</code> command initializes the random number generator with a seed value:</p>
+<p>The <code>RANDOMIZE</code> statement initializes the random number generator with a seed value.</p>
+<p><strong>Syntax:</strong></p>
 <pre><code class="language-plain_text">RANDOMIZE
+RANDOMIZE seedValue%
 </code></pre>
-<p>Seeds the generator with the current Unix timestamp (<code>NOW%</code>). This produces different random sequences each time the program runs.</p>
-<pre><code class="language-plain_text">RANDOMIZE seedValue%
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Without an argument, seeds the generator with the current Unix timestamp (<code>NOW%</code>)</li>
+<li>With an argument, seeds the generator with the specified integer value</li>
+<li>Using the same seed value produces the same sequence of random numbers</li>
+<li>Different seeds produce different random sequences</li>
+</ul>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-plain_text">RANDOMIZE    ' Seed with current timestamp (different each run)
+RANDOMIZE 12345    ' Seed with specific value (reproducible)
+RANDOMIZE NOW%    ' Explicitly seed with current timestamp
 </code></pre>
-<p>Seeds the generator with a specific integer value. Using the same seed value produces the same sequence of random numbers, which is useful for testing and reproducible results.</p>
 <p><strong>Mathematical Constants:</strong></p>
 <ul>
 <li><code>PI#</code> - Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793)</li>
@@ -2441,7 +2531,7 @@ WEND
 <pre><code class="language-plain_text">LET input$ = &quot;&quot;
 WHILE input$ &lt;&gt; &quot;quit&quot;
     INPUT &quot;Enter command: &quot;, input$
-    PRINT &quot;You entered: &quot;; input$
+    PRINT &quot;You entered: &quot;, input$
 WEND
 </code></pre>
 <pre><code class="language-plain_text">WHILE NOT EOF fileHandle%
@@ -2466,7 +2556,7 @@ UEND
 <pre><code class="language-plain_text">LET input$ = &quot;&quot;
 UNTIL input$ = &quot;quit&quot;
     INPUT &quot;Enter command (or 'quit'): &quot;, input$
-    PRINT &quot;You entered: &quot;; input$
+    PRINT &quot;You entered: &quot;, input$
 UEND
 </code></pre>
 <p><strong>Note:</strong> <code>UNTIL condition</code> is exactly equivalent to <code>WHILE NOT condition</code>.</p>
@@ -2510,7 +2600,7 @@ LOOP
 </code></pre>
 <pre><code class="language-plain_text">DO
     INPUT &quot;Enter a number (0 to quit): &quot;, num%
-    PRINT &quot;You entered: &quot;; num%
+    PRINT &quot;You entered: &quot;, num%
 LOOP UNTIL num% = 0
 </code></pre>
 <pre><code class="language-plain_text">PRINT &quot;Press ESC to exit...&quot;
@@ -2530,7 +2620,7 @@ EXIT SUB
 <p><strong>Examples:</strong></p>
 <pre><code class="language-plain_text">FOR i% = 1 TO 100
     IF numbers%[i%] = target% THEN
-        PRINT &quot;Found at position: &quot;; i%
+        PRINT &quot;Found at position: &quot;, i%
         EXIT FOR
     END IF
 NEXT i%
@@ -2565,7 +2655,7 @@ WEND
     INPUT &quot;Enter number (0 to quit): &quot;, num%
     IF num% = 0 THEN EXIT DO
     IF num% &lt; 0 THEN CONTINUE DO    ' Skip negative numbers
-    PRINT &quot;Positive number: &quot;; num%
+    PRINT &quot;Positive number: &quot;, num%
 LOOP
 </code></pre>
 <p><strong>Note:</strong> <code>CONTINUE</code> is different from <code>EXIT</code>. <code>CONTINUE</code> skips to the next iteration of the loop, while <code>EXIT</code> exits the loop entirely.</p>
@@ -2578,12 +2668,32 @@ END SUB
 </code></pre>
 <p><strong>Note:</strong> Parameters are passed <strong>by value</strong> by default. Prefix individual parameters with <code>BYREF</code> to pass by reference. Parentheses are not permitted in <code>SUB</code> declarations.</p>
 <p><strong>Calling a <code>SUB</code>:</strong></p>
-<pre><code class="language-plain_text">CALL procedureName argument1, argument2, ...
+<p>The <code>CALL</code> statement invokes a subroutine procedure with arguments.</p>
+<p><strong>Syntax:</strong></p>
+<pre><code class="language-plain_text">CALL procedureName arg1, arg2, ...
+procedureName arg1, arg2, ...
 </code></pre>
-<p>or simply:</p>
-<pre><code class="language-plain_text">procedureName argument1, argument2, ...
+<p><strong>Rules:</strong></p>
+<ul>
+<li>The <code>CALL</code> keyword is optional—you can call a subroutine by name directly</li>
+<li>Parentheses are not permitted in <code>CALL</code> statements or direct subroutine calls</li>
+<li>Arguments are passed by position (first argument to first parameter, etc.)</li>
+<li>Arguments must match the parameter types (type sigils must match)</li>
+<li>Arguments are passed by value by default, unless the parameter is marked with <code>BYREF</code></li>
+</ul>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-plain_text">CALL DrawBox 10, 5, &quot;*&quot;
+DrawBox 20, 3, &quot;#&quot;    ' Same as CALL DrawBox 20, 3, &quot;#&quot;
+
+SUB DrawBox width%, height%, char$
+    FOR row% = 1 TO height%
+        FOR col% = 1 TO width%
+            PRINT char$;
+        NEXT col%
+        PRINT
+    NEXT row%
+END SUB
 </code></pre>
-<p><strong>Note:</strong> Parentheses are not permitted in <code>CALL</code> statements or direct subroutine calls.</p>
 <p><strong>Rules:</strong></p>
 <ul>
 <li>Parameters must include type sigils</li>
@@ -2621,22 +2731,57 @@ END SUB
 LET x% = 100
 LET y% = 100
 CALL TestParameters x%, y%
-PRINT &quot;x =&quot;; x%        ' Prints: x = 100 (unchanged, passed by value)
-PRINT &quot;y =&quot;; y%        ' Prints: y = 999 (changed, passed by reference)
+PRINT &quot;x =&quot;, x%        ' Prints: x = 100 (unchanged, passed by value)
+PRINT &quot;y =&quot;, y%        ' Prints: y = 999 (changed, passed by reference)
 </code></pre>
 <h4><a id="local-variables" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Local Variables</h4>
-<p>Variables created with the <code>LET</code> statement inside a <code>SUB</code> are <strong>module-level</strong> (global). To create variables that are local to the current stack frame, use the <code>LOCAL</code> statement:</p>
-<pre><code class="language-plain_text">LOCAL variableName = value
+<p>Variables created with the <code>LET</code> statement inside a <code>SUB</code> are <strong>module-level</strong> (global). To create variables that are local to the current stack frame, use the <code>LOCAL</code> statement.</p>
+<p><strong>Syntax:</strong></p>
+<pre><code class="language-plain_text">LOCAL variable = expression
+LOCAL array[] = expression
 </code></pre>
-<p>The <code>LOCAL</code> statement creates variables scoped to the current stack frame:</p>
+<p><strong>Rules:</strong></p>
 <ul>
+<li>Creates variables scoped to the current stack frame</li>
 <li>Inside a <code>SUB</code>: variables are local to that procedure's stack frame</li>
 <li>Outside any <code>SUB</code>: variables are local to the bottom-level stack frame</li>
 <li>Local variables are only accessible within their stack frame</li>
 <li>Local variables are destroyed when their stack frame is popped (when the <code>SUB</code> exits)</li>
 <li>Local variables do not conflict with module-level variables of the same name</li>
 <li>Local variables must still include type sigils</li>
+<li>Can create local scalars or arrays</li>
+<li>Local arrays are destroyed when the stack frame is popped</li>
 </ul>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-plain_text">SUB DrawBox width%, height%, char$
+    LOCAL row%
+    LOCAL col%
+    
+    FOR row% = 1 TO height%
+        FOR col% = 1 TO width%
+            PRINT char$;
+        NEXT col%
+        PRINT
+    NEXT row%
+END SUB
+
+SUB CalculateStats values#[], count%, BYREF average#, BYREF maximum#
+    LOCAL sum# = 0
+    LOCAL i%
+    LOCAL buffer%[] = [0, 0, 0]    ' Local array
+    
+    LET maximum# = values#[1]
+    
+    FOR i% = 1 TO count%
+        LET sum# += values#[i%]
+        IF values#[i%] &gt; maximum# THEN
+            LET maximum# = values#[i%]
+        END IF
+    NEXT i%
+    
+    LET average# = sum# / count%
+END SUB
+</code></pre>
 <p><strong>Examples:</strong></p>
 <pre><code class="language-plain_text">SUB DrawBox width%, height%, char$
     LOCAL row%
@@ -2674,7 +2819,7 @@ DIM scores#[10]
 LET avg# = 0
 LET max# = 0
 CALL CalculateStats scores#, 10, avg#, max#
-PRINT &quot;Average:&quot;; avg#; &quot;Maximum:&quot;; max#
+PRINT &quot;Average:&quot;, avg#, &quot;Maximum:&quot;, max#
 </code></pre>
 <pre><code class="language-plain_text">SUB InitializeGame
     ' These are module-level variables (global)
@@ -2714,7 +2859,7 @@ PRINT &quot;Go!&quot;
 </code></pre>
 <pre><code class="language-plain_text">' Simple animation loop
 FOR i% = 1 TO 10
-    PRINT &quot;Frame &quot;; i%
+    PRINT &quot;Frame &quot;, i%
     SLEEP 100    ' Wait 100ms between frames
 NEXT i%
 </code></pre>
@@ -2757,7 +2902,7 @@ END TRY
     READFILE &quot;data.txt&quot; INTO content$
     CLOSE file%
 CATCH error$
-    PRINT &quot;Error occurred: &quot;; error$
+    PRINT &quot;Error occurred: &quot;, error$
 FINALLY
     IF EXISTS &quot;data.txt&quot; THEN
         CLOSE file%
@@ -2766,12 +2911,12 @@ END TRY
 </code></pre>
 <pre><code class="language-plain_text">TRY
     LET result# = 10 / divisor%
-    PRINT &quot;Result: &quot;; result#
+    PRINT &quot;Result: &quot;, result#
 CATCH error$
     IF error$ = &quot;Division by zero&quot; THEN
         PRINT &quot;Cannot divide by zero&quot;
     ELSE
-        PRINT &quot;Error: &quot;; error$
+        PRINT &quot;Error: &quot;, error$
     END IF
 END TRY
 </code></pre>
@@ -2786,9 +2931,9 @@ END TRY
 <pre><code class="language-plain_text">' Try without finally (only catch for error handling)
 TRY
     LET value% = VAL userInput$
-    PRINT &quot;Parsed value: &quot;; value%
+    PRINT &quot;Parsed value: &quot;, value%
 CATCH error$
-    PRINT &quot;Invalid input: &quot;; error$
+    PRINT &quot;Invalid input: &quot;, error$
 END TRY
 </code></pre>
 <p><strong>Error Propagation:</strong></p>
@@ -2822,7 +2967,7 @@ END SUB
 TRY
     ValidateInput userValue%
 CATCH error$
-    PRINT &quot;Validation failed: &quot;; error$
+    PRINT &quot;Validation failed: &quot;, error$
 END TRY
 </code></pre>
 <p><strong>Rules:</strong></p>
@@ -2846,7 +2991,7 @@ END TRY
         END IF
     END TRY
 CATCH error$
-    PRINT &quot;Failed to load configuration: &quot;; error$
+    PRINT &quot;Failed to load configuration: &quot;, error$
     END
 END TRY
 </code></pre>
@@ -2854,34 +2999,34 @@ END TRY
 <p>EduBASIC provides simple date and time operators for educational purposes. These operators return formatted strings or integer timestamps that are easy to display and work with.</p>
 <p><strong><code>DATE$</code> - Current date as string:</strong></p>
 <pre><code class="language-plain_text">LET today$ = DATE$
-PRINT &quot;Today is: &quot;; today$    ' Prints: &quot;Today is: 2025-01-15&quot; (YYYY-MM-DD format)
+PRINT &quot;Today is: &quot;, today$    ' Prints: &quot;Today is: 2025-01-15&quot; (YYYY-MM-DD format)
 </code></pre>
 <p>Returns the current date as a string in <code>YYYY-MM-DD</code> format (ISO 8601 date format). This format is unambiguous and easy to parse.</p>
 <p><strong><code>TIME$</code> - Current time as string:</strong></p>
 <pre><code class="language-plain_text">LET now$ = TIME$
-PRINT &quot;Current time: &quot;; now$    ' Prints: &quot;Current time: 14:30:45&quot; (HH:MM:SS format)
+PRINT &quot;Current time: &quot;, now$    ' Prints: &quot;Current time: 14:30:45&quot; (HH:MM:SS format)
 </code></pre>
 <p>Returns the current time as a string in <code>HH:MM:SS</code> format (24-hour format).</p>
 <p><strong><code>NOW%</code> - Current timestamp:</strong></p>
 <pre><code class="language-plain_text">LET timestamp% = NOW%
-PRINT &quot;Timestamp: &quot;; timestamp%    ' Prints: &quot;Timestamp: 1736968245&quot; (Unix timestamp)
+PRINT &quot;Timestamp: &quot;, timestamp%    ' Prints: &quot;Timestamp: 1736968245&quot; (Unix timestamp)
 </code></pre>
 <p>Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.</p>
 <p><strong>Examples:</strong></p>
 <pre><code class="language-plain_text">' Display current date and time
-PRINT &quot;Date: &quot;; DATE$
-PRINT &quot;Time: &quot;; TIME$
+PRINT &quot;Date: &quot;, DATE$
+PRINT &quot;Time: &quot;, TIME$
 
 ' Calculate elapsed time
 LET startTime% = NOW%
 SLEEP 2000    ' Wait 2 seconds
 LET endTime% = NOW%
 LET elapsed% = endTime% - startTime%
-PRINT &quot;Elapsed: &quot;; elapsed%; &quot; seconds&quot;
+PRINT &quot;Elapsed: &quot;, elapsed%, &quot; seconds&quot;
 </code></pre>
 <pre><code class="language-plain_text">' Log with timestamp
 SUB LogMessage (msg$)
-    PRINT DATE$; &quot; &quot;; TIME$; &quot; - &quot;; msg$
+    PRINT DATE$, &quot; &quot;, TIME$, &quot; - &quot;, msg$
 END SUB
 
 LogMessage &quot;Program started&quot;
@@ -2925,18 +3070,29 @@ END IF
 <p>The <code>PRINT</code> statement outputs text and values to the text display. It can print scalars, arrays, or a combination of both.</p>
 <p><strong>Syntax:</strong></p>
 <pre><code class="language-plain_text">PRINT expression1, expression2, ...
-PRINT expression1; expression2; ...
+PRINT expression1, expression2, ...;
 PRINT array[]
+PRINT array[];
 PRINT
 </code></pre>
+<p><strong>Mixed Type Arguments:</strong><br />
+The <code>PRINT</code> statement accepts expressions of any type (Integer, Real, Complex, String, Array) separated by commas. Each expression is automatically converted to its string representation and concatenated with no spacing between items.</p>
 <p><strong>Output Formatting:</strong></p>
 <ul>
-<li><strong>Comma (<code>,</code>):</strong> Separates items with tab spacing</li>
-<li><strong>Semicolon (<code>;</code>):</strong> Separates items with no spacing (concatenated)</li>
-<li><strong>No separator:</strong> Ends the line (same as semicolon followed by newline)</li>
-<li><strong>Ending with semicolon:</strong> Suppresses the newline, so the next <code>PRINT</code> continues on the same line</li>
+<li><strong>Comma (<code>,</code>):</strong> Separates items with no spacing (concatenated)</li>
+<li><strong>Semicolon (<code>;</code>) at end:</strong> Suppresses the newline, so the next <code>PRINT</code> continues on the same line</li>
+<li><strong>No separator at end:</strong> Ends the line (adds a newline)</li>
 <li><strong>Empty <code>PRINT</code>:</strong> Outputs a blank line (newline only)</li>
-<li><strong>Array:</strong> When printing an array, all elements are printed, separated by commas</li>
+<li><strong>Array:</strong> When printing an array, all elements are printed in brackets with spaces after commas (e.g., <code>[1, 2, 3, 4, 5]</code>)</li>
+</ul>
+<p><strong>Type Conversion:</strong><br />
+All value types are automatically converted to strings when printed:</p>
+<ul>
+<li><strong>Integer:</strong> Decimal representation (e.g., <code>42</code> → <code>&quot;42&quot;</code>)</li>
+<li><strong>Real:</strong> Decimal representation (e.g., <code>3.14</code> → <code>&quot;3.14&quot;</code>)</li>
+<li><strong>Complex:</strong> Format <code>&quot;real+imaginaryi&quot;</code> or <code>&quot;real-imaginaryi&quot;</code> (e.g., <code>3+4i</code> → <code>&quot;3+4i&quot;</code>)</li>
+<li><strong>String:</strong> Printed as-is</li>
+<li><strong>Array:</strong> All elements printed in brackets with spaces after commas (e.g., <code>[1, 2, 3]</code> → <code>&quot;[1, 2, 3]&quot;</code>)</li>
 </ul>
 <p><strong>Controlling Newlines:</strong></p>
 <ul>
@@ -2944,28 +3100,57 @@ PRINT
 <li>To output a blank line, use an empty <code>PRINT</code> statement (no arguments)</li>
 </ul>
 <p><strong>Examples:</strong></p>
+<p><strong>Basic Printing:</strong></p>
 <pre><code class="language-plain_text">PRINT &quot;Hello, world!&quot;
-PRINT &quot;Name: &quot;; name$; &quot; Age: &quot;; age%
-PRINT &quot;X:&quot;, x%, &quot;Y:&quot;, y%
+PRINT &quot;Name: &quot;, name$, &quot; Age: &quot;, age%
+PRINT &quot;X: &quot;, x%, &quot; Y: &quot;, y%
+</code></pre>
+<p><strong>Mixed Types:</strong></p>
+<pre><code class="language-plain_text">LET count% = 10
+LET price# = 19.99
+LET name$ = &quot;Widget&quot;
+LET z&amp; = 3+4i
 
-' Print arrays
-PRINT numbers%[]    ' Prints all elements: 1, 2, 3, 4, 5
-PRINT &quot;Scores: &quot;; scores%[]    ' Prints: Scores: 85, 90, 78, 92
-
-' Suppress newline to continue on same line
-PRINT &quot;Enter your name: &quot;;
+PRINT &quot;Item: &quot;, name$, &quot; Count: &quot;, count%, &quot; Price: &quot;, price#, &quot; Complex: &quot;, z&amp;
+' Prints: Item: Widget Count: 10 Price: 19.99 Complex: 3+4i
+</code></pre>
+<p><strong>Print Arrays:</strong></p>
+<pre><code class="language-plain_text">PRINT numbers%[]    ' Prints: [1, 2, 3, 4, 5]
+PRINT &quot;Scores: &quot;, scores%[]    ' Prints: Scores: [85, 90, 78, 92]
+</code></pre>
+<p><strong>Suppress Newline:</strong></p>
+<pre><code class="language-plain_text">PRINT &quot;Enter your name: &quot;;
 INPUT name$
-
-' Print blank lines for spacing
-PRINT
+</code></pre>
+<p><strong>Print Blank Lines:</strong></p>
+<pre><code class="language-plain_text">PRINT
 PRINT &quot;Line 1&quot;
 PRINT
 PRINT &quot;Line 3&quot;
-
-' Multiple items on same line
-PRINT &quot;Count: &quot;; count%; &quot;  &quot;;
-PRINT &quot;Total: &quot;; total#
 </code></pre>
+<p><strong>Multiple Items on Same Line:</strong></p>
+<pre><code class="language-plain_text">PRINT &quot;Count: &quot;, count%, &quot;  &quot;;
+PRINT &quot;Total: &quot;, total#
+</code></pre>
+<p><strong>String Concatenation Alternative:</strong><br />
+You can also use string concatenation with the <code>+</code> operator to build strings before printing. This is useful when you need more control over spacing or formatting:</p>
+<pre><code class="language-plain_text">' Using PRINT with commas (no spacing)
+PRINT &quot;Name: &quot;, name$, &quot;Age: &quot;, age%
+' Prints: Name: AliceAge: 25
+
+' Using string concatenation (with spacing)
+PRINT &quot;Name: &quot; + name$ + &quot; Age: &quot; + STR age%
+' Prints: Name: Alice Age: 25
+
+' Complex formatting with concatenation
+LET message$ = &quot;Result: &quot; + STR result# + &quot; (&quot; + STR count% + &quot; items)&quot;
+PRINT message$
+</code></pre>
+<p><strong>When to Use Each Approach:</strong></p>
+<ul>
+<li><strong>Use commas in PRINT:</strong> When you want automatic type conversion and no spacing between items</li>
+<li><strong>Use string concatenation:</strong> When you need explicit spacing, complex formatting, or want to build the string separately</li>
+</ul>
 <p><strong>Special Characters:</strong></p>
 <ul>
 <li><code>\n</code> - Newline</li>
@@ -2994,35 +3179,35 @@ INPUT array[]
 <pre><code class="language-plain_text">' Reading an integer
 PRINT &quot;Enter your age: &quot;;
 INPUT age%
-PRINT &quot;You are &quot;; age%; &quot; years old&quot;
+PRINT &quot;You are &quot;, age%, &quot; years old&quot;
 
 ' Reading a real number
 PRINT &quot;Enter temperature: &quot;;
 INPUT temperature#
-PRINT &quot;Temperature is &quot;; temperature#
+PRINT &quot;Temperature is &quot;, temperature#
 
 ' Reading a string
 PRINT &quot;Enter your name: &quot;;
 INPUT name$
-PRINT &quot;Hello, &quot;; name$; &quot;!&quot;
+PRINT &quot;Hello, &quot;, name$, &quot;!&quot;
 
 ' Reading a complex number
 PRINT &quot;Enter complex number (e.g., 3+4i): &quot;;
 INPUT z&amp;
-PRINT &quot;You entered: &quot;; z&amp;
+PRINT &quot;You entered: &quot;, z&amp;
 
 ' Reading multiple values
 PRINT &quot;Enter X coordinate: &quot;;
 INPUT x%
 PRINT &quot;Enter Y coordinate: &quot;;
 INPUT y%
-PRINT &quot;Position: (&quot;; x%; &quot;, &quot;; y%; &quot;)&quot;
+PRINT &quot;Position: (&quot;, x%, &quot;, &quot;, y%, &quot;)&quot;
 
 ' Reading into an array
 DIM scores%[5]
 PRINT &quot;Enter 5 scores (comma-separated): &quot;;
 INPUT scores%[]
-PRINT &quot;Scores: &quot;; scores%[]
+PRINT &quot;Scores: &quot;, scores%[]
 
 ' Using LOCATE for formatted input
 LOCATE 10, 1
@@ -3344,7 +3529,7 @@ IF key$ = &quot;ENTER&quot; THEN GOSUB SelectOption
 <h3><a id="string-operations" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>String Operations</h3>
 <p>EduBASIC provides several operations for working with string data.</p>
 <h4><a id="string-concatenation" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>String Concatenation</h4>
-<p>Strings can be concatenated using the <code>+</code> operator or by using semicolons in <code>PRINT</code> statements.</p>
+<p>Strings can be concatenated using the <code>+</code> operator or by using commas in <code>PRINT</code> statements.</p>
 <p><strong>Syntax:</strong></p>
 <pre><code class="language-plain_text">LET result$ = string1$ + string2$
 LET result$ = string1$ + &quot;literal&quot; + string2$
@@ -3838,6 +4023,30 @@ CLOSE file%
 <li>Graphics statements can override the global color using <code>WITH color%</code> when needed</li>
 </ul>
 <p><strong>Note:</strong> The text display system overlays the graphics display, allowing you to combine text and graphics in the same program.</p>
+<h3><a id="cls-statement" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>CLS Statement</h3>
+<p>The <code>CLS</code> statement clears the graphics screen.</p>
+<p><strong>Syntax:</strong></p>
+<pre><code class="language-plain_text">CLS
+CLS WITH backgroundColor%
+</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Clears the entire graphics display (640×480 pixels)</li>
+<li>Without a color, clears to black (<code>&amp;H000000FF</code>)</li>
+<li>With <code>WITH backgroundColor%</code>, clears to the specified background color</li>
+<li>Color is a 32-bit RGBA integer in <code>&amp;HRRGGBBAA</code> format</li>
+<li>Does not affect the text display overlay</li>
+<li>Automatically switches to the output tab</li>
+</ul>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-plain_text">CLS    ' Clear to black
+
+CLS WITH &amp;H000033FF    ' Clear to dark blue
+
+' Clear to a custom color
+LET bgColor% = &amp;HFF6600FF    ' Orange background
+CLS WITH bgColor%
+</code></pre>
 <h3><a id="pset-statement" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>PSET Statement</h3>
 <p>The <code>PSET</code> statement sets a single pixel to a color.</p>
 <p><strong>Syntax:</strong></p>
@@ -4881,7 +5090,7 @@ PLAY 0, &quot;N60 N62 N64 N65 N67&quot;
 
 ' Check how many notes remain
 LET notesLeft% = NOTES 0
-IF notesLeft% &gt; 0 THEN PRINT &quot;Voice 0 still playing: &quot;; notesLeft%; &quot; notes&quot;
+IF notesLeft% &gt; 0 THEN PRINT &quot;Voice 0 still playing: &quot;, notesLeft%, &quot; notes&quot;
 
 ' Play on different voice - same MML, different GRIT timbre and ADSR
 PLAY 1, &quot;N60 L4&quot;    ' Play note 60 (middle C) for quarter note duration
@@ -4918,8 +5127,8 @@ PLAY 1, &quot;CEG CEG&quot;
 ' Check remaining notes for both voices
 LET notes0% = NOTES 0
 LET notes1% = NOTES 1
-PRINT &quot;Voice 0: &quot;; notes0%; &quot; notes remaining&quot;
-PRINT &quot;Voice 1: &quot;; notes1%; &quot; notes remaining&quot;
+PRINT &quot;Voice 0: &quot;, notes0%, &quot; notes remaining&quot;
+PRINT &quot;Voice 1: &quot;, notes1%, &quot; notes remaining&quot;
 </code></pre>
 <p><strong>GRIT Noise Example:</strong></p>
 <pre><code class="language-plain_text">VOICE 0 PRESET 5 ADSR PRESET 0    ' Engine sound preset
@@ -5003,8 +5212,8 @@ TEMPO 120
 PLAY 0, &quot;N60 L4&quot;
 PLAY 1, &quot;N64 L2&quot;
 </code></pre>
-<h2><a id="command-and-function-reference" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Command and Function Reference</h2>
-<p>This section provides an alphabetical reference of all EduBASIC commands, mathematical functions, and operators.</p>
+<h2><a id="statement-and-operator-reference" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Statement and Operator Reference</h2>
+<p>This section provides an alphabetical reference of all EduBASIC statements, mathematical functions, and operators.</p>
 <hr />
 <h3><a id="acos" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>ACOS</h3>
 <p><strong>Type:</strong> Function (Trigonometric)<br />
@@ -5131,7 +5340,7 @@ PRINT angle#    ' Prints: 0.785... (π/4 radians)
 <pre><code class="language-plain_text">TRY
     OPEN &quot;data.txt&quot; FOR READ AS file%
 CATCH error$
-    PRINT &quot;Error: &quot;; error$
+    PRINT &quot;Error: &quot;, error$
 END TRY
 </code></pre>
 <hr />
@@ -5285,7 +5494,7 @@ PRINT root&amp;    ' Prints: 0+1i
 <strong>Description:</strong> Returns the current date as a string in <code>YYYY-MM-DD</code> format (ISO 8601 date format).<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET today$ = DATE$
-PRINT &quot;Today is: &quot;; today$    ' Prints: &quot;Today is: 2025-01-15&quot;
+PRINT &quot;Today is: &quot;, today$    ' Prints: &quot;Today is: 2025-01-15&quot;
 
 IF DATE$ = &quot;2025-12-25&quot; THEN
     PRINT &quot;Merry Christmas!&quot;
@@ -5423,7 +5632,7 @@ END UNLESS
 <pre><code class="language-plain_text">TRY
     OPEN &quot;file.txt&quot; FOR READ AS file%
 CATCH error$
-    PRINT &quot;Error: &quot;; error$
+    PRINT &quot;Error: &quot;, error$
 FINALLY
     CLOSE file%
 END TRY
@@ -5507,7 +5716,7 @@ END IF
     OPEN &quot;data.txt&quot; FOR READ AS file%
     READFILE &quot;data.txt&quot; INTO content$
 CATCH error$
-    PRINT &quot;Error: &quot;; error$
+    PRINT &quot;Error: &quot;, error$
 FINALLY
     CLOSE file%
 END TRY
@@ -5528,10 +5737,10 @@ PRINT FLOOR -3.2     ' Prints: -4
 <strong>Description:</strong> Finds the first element in an array that matches a value. Returns the element value if found, or 0 (for numeric arrays) or &quot;&quot; (for string arrays) if not found.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET found% = numbers%[] FIND 5
-IF found% &lt;&gt; 0 THEN PRINT &quot;Found:&quot;, found%
+IF found% &lt;&gt; 0 THEN PRINT &quot;Found: &quot;, found%
 
 LET found$ = names$[] FIND &quot;Bob&quot;
-IF found$ &lt;&gt; &quot;&quot; THEN PRINT &quot;Found:&quot;, found$
+IF found$ &lt;&gt; &quot;&quot; THEN PRINT &quot;Found: &quot;, found$
 </code></pre>
 <hr />
 <h3><a id="for" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>FOR</h3>
@@ -5731,7 +5940,7 @@ LET hexStr$ = HEX 4095    ' &quot;FFF&quot;
 DO
     LET key$ = INKEY$
     IF key$ &lt;&gt; &quot;&quot; THEN
-        PRINT &quot;Key pressed: &quot;; key$
+        PRINT &quot;Key pressed: &quot;, key$
         IF key$ = &quot;ESC&quot; THEN EXIT DO
     END IF
 LOOP
@@ -5787,10 +5996,10 @@ LET pos% = &quot;Hello world&quot; INSTR &quot;o&quot; FROM 5    ' 5 (start sear
 <strong>Description:</strong> Finds the index of the first occurrence of a value in an array. Returns 0 if not found.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET index% = numbers%[] INDEXOF 5
-IF index% &gt; 0 THEN PRINT &quot;Found at index:&quot;, index%
+IF index% &gt; 0 THEN PRINT &quot;Found at index: &quot;, index%
 
 LET index% = names$[] INDEXOF &quot;Bob&quot;
-IF index% &gt; 0 THEN PRINT &quot;Found at index:&quot;, index%
+IF index% &gt; 0 THEN PRINT &quot;Found at index: &quot;, index%
 </code></pre>
 <hr />
 <h3><a id="includes" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>INCLUDES</h3>
@@ -6069,14 +6278,14 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 <strong>Description:</strong> Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET timestamp% = NOW%
-PRINT &quot;Timestamp: &quot;; timestamp%    ' Prints: &quot;Timestamp: 1736968245&quot;
+PRINT &quot;Timestamp: &quot;, timestamp%    ' Prints: &quot;Timestamp: 1736968245&quot;
 
 ' Calculate elapsed time
 LET startTime% = NOW%
 SLEEP 2000    ' Wait 2 seconds
 LET endTime% = NOW%
 LET elapsed% = endTime% - startTime%
-PRINT &quot;Elapsed: &quot;; elapsed%; &quot; seconds&quot;
+PRINT &quot;Elapsed: &quot;, elapsed%, &quot; seconds&quot;
 </code></pre>
 <hr />
 <h3><a id="open" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>OPEN</h3>
@@ -6129,7 +6338,7 @@ PLAY 0, &quot;N60 N64 N67 L2&quot;    ' Play chord using MIDI note numbers (cont
 
 ' Check how many notes remain
 LET notesLeft% = NOTES 0
-IF notesLeft% &gt; 0 THEN PRINT &quot;Still playing: &quot;; notesLeft%; &quot; notes remaining&quot;
+IF notesLeft% &gt; 0 THEN PRINT &quot;Still playing: &quot;, notesLeft%, &quot; notes remaining&quot;
 </code></pre>
 <hr />
 <h3><a id="pi" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>PI#</h3>
@@ -6147,15 +6356,24 @@ LET halfCircle# = PI# * radius#
 <hr />
 <h3><a id="print" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>PRINT</h3>
 <p><strong>Type:</strong> Command (Text I/O)<br />
-<strong>Syntax:</strong> <code>PRINT expression1, expression2, ...</code> or <code>PRINT expression1; expression2; ...</code> or <code>PRINT array[]</code> or <code>PRINT</code><br />
-<strong>Description:</strong> Outputs text and values to the text display. Comma (<code>,</code>) separates items with tab spacing. Semicolon (<code>;</code>) separates items with no spacing (concatenated). Ending with semicolon suppresses the newline. Empty <code>PRINT</code> outputs a blank line. When printing an array, all elements are printed, separated by commas.<br />
+<strong>Syntax:</strong> <code>PRINT expression1, expression2, ...</code> or <code>PRINT expression1, expression2, ...;</code> or <code>PRINT array[]</code> or <code>PRINT array[];</code> or <code>PRINT</code><br />
+<strong>Description:</strong> Outputs text and values to the text display. The <code>PRINT</code> statement accepts expressions of any type (Integer, Real, Complex, String, Array) separated by commas. Each expression is automatically converted to its string representation and concatenated with no spacing between items. Comma (<code>,</code>) separates items with no spacing (concatenated). Semicolon (<code>;</code>) at the end suppresses the newline. Empty <code>PRINT</code> outputs a blank line. When printing an array, all elements are printed in brackets with spaces after commas (e.g., <code>[1, 2, 3, 4, 5]</code>).<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">PRINT &quot;Hello, world!&quot;
-PRINT &quot;Name: &quot;; name$; &quot; Age: &quot;; age%
-PRINT &quot;X:&quot;, x%, &quot;Y:&quot;, y%
-PRINT numbers%[]    ' Prints all array elements
-PRINT &quot;Scores: &quot;; scores%[]    ' Prints: Scores: 85, 90, 78
+PRINT &quot;Name: &quot;, name$, &quot; Age: &quot;, age%
+PRINT &quot;X: &quot;, x%, &quot; Y: &quot;, y%
+
+' Mixed types
+PRINT &quot;Item: &quot;, name$, &quot; Count: &quot;, count%, &quot; Price: &quot;, price#, &quot; Complex: &quot;, z&amp;
+' Prints: Item: Widget Count: 10 Price: 19.99 Complex: 3+4i
+
+PRINT numbers%[]    ' Prints: [1, 2, 3, 4, 5]
+PRINT &quot;Scores: &quot;, scores%[]    ' Prints: Scores: [85, 90, 78]
+PRINT &quot;Enter name: &quot;;    ' No newline, continues on same line
 PRINT    ' Blank line
+
+' String concatenation alternative
+PRINT &quot;Name: &quot; + name$ + &quot; Age: &quot; + STR age%    ' With explicit spacing
 </code></pre>
 <hr />
 <h3><a id="pset" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>PSET</h3>
@@ -6213,7 +6431,7 @@ RANDOMIZE NOW%         ' Explicitly seed with current timestamp
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">PLAY 0, &quot;CDEFGAB C&quot;
 LET notesLeft% = NOTES 0
-IF notesLeft% &gt; 0 THEN PRINT &quot;Voice 0 still playing: &quot;; notesLeft%; &quot; notes remaining&quot;
+IF notesLeft% &gt; 0 THEN PRINT &quot;Voice 0 still playing: &quot;, notesLeft%, &quot; notes remaining&quot;
 
 ' Wait for voice to finish
 DO
@@ -6513,7 +6731,7 @@ END SUB
 <pre><code class="language-plain_text">LET x% = 5
 LET y% = 10
 SWAP x% WITH y%
-PRINT x%, y%    ' Prints: 10    5
+PRINT &quot;x: &quot;, x%, &quot; y: &quot;, y%    ' Prints: x: 10 y: 5
 
 LET arr1%[] = [1, 2, 3]
 LET arr2%[] = [4, 5, 6]
@@ -6546,9 +6764,9 @@ PRINT result#    ' Prints: 0.0
 <strong>Description:</strong> Returns the current time as a string in <code>HH:MM:SS</code> format (24-hour format).<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET now$ = TIME$
-PRINT &quot;Current time: &quot;; now$    ' Prints: &quot;Current time: 14:30:45&quot;
+PRINT &quot;Current time: &quot;, now$    ' Prints: &quot;Current time: 14:30:45&quot;
 
-PRINT DATE$; &quot; &quot;; TIME$; &quot; - Program started&quot;
+PRINT DATE$, &quot; &quot;, TIME$, &quot; - Program started&quot;
 </code></pre>
 <hr />
 <h3><a id="then" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>THEN</h3>
@@ -6582,7 +6800,7 @@ END IF
     OPEN &quot;data.txt&quot; FOR READ AS file%
     READFILE &quot;data.txt&quot; INTO content$
 CATCH error$
-    PRINT &quot;Error: &quot;; error$
+    PRINT &quot;Error: &quot;, error$
 FINALLY
     CLOSE file%
 END TRY
@@ -6712,7 +6930,7 @@ UEND
 LET input$ = &quot;&quot;
 UNTIL input$ = &quot;quit&quot;
     INPUT &quot;Enter command (or 'quit'): &quot;, input$
-    PRINT &quot;You entered: &quot;; input$
+    PRINT &quot;You entered: &quot;, input$
 UEND
 </code></pre>
 <hr />
@@ -7903,707 +8121,707 @@ WRITEFILE output$ TO &quot;results.txt&quot;
 <tr>
 <td>aliceblue</td>
 <td>&amp;HF0F8FFFF</td>
-<td><img src="https://via.placeholder.com/20/F0F8FF/000000?text=+" alt="aliceblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F0F8FFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>antiquewhite</td>
 <td>&amp;HFAEBD7FF</td>
-<td><img src="https://via.placeholder.com/20/FAEBD7/000000?text=+" alt="antiquewhite" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FAEBD7FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>aqua</td>
 <td>&amp;H00FFFFFF</td>
-<td><img src="https://via.placeholder.com/20/00FFFF/000000?text=+" alt="aqua" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>aquamarine</td>
 <td>&amp;H7FFFD4FF</td>
-<td><img src="https://via.placeholder.com/20/7FFFD4/000000?text=+" alt="aquamarine" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#7FFFD4FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>azure</td>
 <td>&amp;HF0FFFFFF</td>
-<td><img src="https://via.placeholder.com/20/F0FFFF/000000?text=+" alt="azure" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F0FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>beige</td>
 <td>&amp;HF5F5DCFF</td>
-<td><img src="https://via.placeholder.com/20/F5F5DC/000000?text=+" alt="beige" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F5F5DCFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>bisque</td>
 <td>&amp;HFFE4C4FF</td>
-<td><img src="https://via.placeholder.com/20/FFE4C4/000000?text=+" alt="bisque" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFE4C4FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>black</td>
 <td>&amp;H000000FF</td>
-<td><img src="https://via.placeholder.com/20/000000/FFFFFF?text=+" alt="black" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#000000FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>blanchedalmond</td>
 <td>&amp;HFFEBCDFF</td>
-<td><img src="https://via.placeholder.com/20/FFEBCD/000000?text=+" alt="blanchedalmond" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFEBCDFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>blue</td>
 <td>&amp;H0000FFFF</td>
-<td><img src="https://via.placeholder.com/20/0000FF/FFFFFF?text=+" alt="blue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#0000FFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>blueviolet</td>
 <td>&amp;H8A2BE2FF</td>
-<td><img src="https://via.placeholder.com/20/8A2BE2/FFFFFF?text=+" alt="blueviolet" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#8A2BE2FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>brown</td>
 <td>&amp;HA52A2AFF</td>
-<td><img src="https://via.placeholder.com/20/A52A2A/FFFFFF?text=+" alt="brown" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#A52A2AFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>burlywood</td>
 <td>&amp;HDEB887FF</td>
-<td><img src="https://via.placeholder.com/20/DEB887/000000?text=+" alt="burlywood" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#DEB887FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>cadetblue</td>
 <td>&amp;H5F9EA0FF</td>
-<td><img src="https://via.placeholder.com/20/5F9EA0/FFFFFF?text=+" alt="cadetblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#5F9EA0FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>chartreuse</td>
 <td>&amp;H7FFF00FF</td>
-<td><img src="https://via.placeholder.com/20/7FFF00/000000?text=+" alt="chartreuse" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#7FFF00FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>chocolate</td>
 <td>&amp;HD2691EFF</td>
-<td><img src="https://via.placeholder.com/20/D2691E/FFFFFF?text=+" alt="chocolate" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#D2691EFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>coral</td>
 <td>&amp;HFF7F50FF</td>
-<td><img src="https://via.placeholder.com/20/FF7F50/000000?text=+" alt="coral" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF7F50FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>cornflowerblue</td>
 <td>&amp;H6495EDFF</td>
-<td><img src="https://via.placeholder.com/20/6495ED/000000?text=+" alt="cornflowerblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#6495EDFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>cornsilk</td>
 <td>&amp;HFFF8DCFF</td>
-<td><img src="https://via.placeholder.com/20/FFF8DC/000000?text=+" alt="cornsilk" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFF8DCFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>crimson</td>
 <td>&amp;HDC143CFF</td>
-<td><img src="https://via.placeholder.com/20/DC143C/FFFFFF?text=+" alt="crimson" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#DC143CFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>cyan</td>
 <td>&amp;H00FFFFFF</td>
-<td><img src="https://via.placeholder.com/20/00FFFF/000000?text=+" alt="cyan" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkblue</td>
 <td>&amp;H00008BFF</td>
-<td><img src="https://via.placeholder.com/20/00008B/FFFFFF?text=+" alt="darkblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00008BFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkcyan</td>
 <td>&amp;H008B8BFF</td>
-<td><img src="https://via.placeholder.com/20/008B8B/FFFFFF?text=+" alt="darkcyan" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#008B8BFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkgoldenrod</td>
 <td>&amp;HB8860BFF</td>
-<td><img src="https://via.placeholder.com/20/B8860B/FFFFFF?text=+" alt="darkgoldenrod" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#B8860BFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkgray</td>
 <td>&amp;HA9A9A9FF</td>
-<td><img src="https://via.placeholder.com/20/A9A9A9/000000?text=+" alt="darkgray" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#A9A9A9FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkgreen</td>
 <td>&amp;H006400FF</td>
-<td><img src="https://via.placeholder.com/20/006400/FFFFFF?text=+" alt="darkgreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#006400FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkkhaki</td>
 <td>&amp;HBDB76BFF</td>
-<td><img src="https://via.placeholder.com/20/BDB76B/000000?text=+" alt="darkkhaki" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#BDB76BFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkmagenta</td>
 <td>&amp;H8B008BFF</td>
-<td><img src="https://via.placeholder.com/20/8B008B/FFFFFF?text=+" alt="darkmagenta" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#8B008BFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkolivegreen</td>
 <td>&amp;H556B2FFF</td>
-<td><img src="https://via.placeholder.com/20/556B2F/FFFFFF?text=+" alt="darkolivegreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#556B2FFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkorange</td>
 <td>&amp;HFF8C00FF</td>
-<td><img src="https://via.placeholder.com/20/FF8C00/000000?text=+" alt="darkorange" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF8C00FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkorchid</td>
 <td>&amp;H9932CCFF</td>
-<td><img src="https://via.placeholder.com/20/9932CC/FFFFFF?text=+" alt="darkorchid" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#9932CCFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkred</td>
 <td>&amp;H8B0000FF</td>
-<td><img src="https://via.placeholder.com/20/8B0000/FFFFFF?text=+" alt="darkred" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#8B0000FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darksalmon</td>
 <td>&amp;HE9967AFF</td>
-<td><img src="https://via.placeholder.com/20/E9967A/000000?text=+" alt="darksalmon" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#E9967AFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkseagreen</td>
 <td>&amp;H8FBC8FFF</td>
-<td><img src="https://via.placeholder.com/20/8FBC8F/000000?text=+" alt="darkseagreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#8FBC8FFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkslateblue</td>
 <td>&amp;H483D8BFF</td>
-<td><img src="https://via.placeholder.com/20/483D8B/FFFFFF?text=+" alt="darkslateblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#483D8BFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkslategray</td>
 <td>&amp;H2F4F4FFF</td>
-<td><img src="https://via.placeholder.com/20/2F4F4F/FFFFFF?text=+" alt="darkslategray" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#2F4F4FFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkturquoise</td>
 <td>&amp;H00CED1FF</td>
-<td><img src="https://via.placeholder.com/20/00CED1/000000?text=+" alt="darkturquoise" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00CED1FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>darkviolet</td>
 <td>&amp;H9400D3FF</td>
-<td><img src="https://via.placeholder.com/20/9400D3/FFFFFF?text=+" alt="darkviolet" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#9400D3FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>deeppink</td>
 <td>&amp;HFF1493FF</td>
-<td><img src="https://via.placeholder.com/20/FF1493/FFFFFF?text=+" alt="deeppink" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF1493FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>deepskyblue</td>
 <td>&amp;H00BFFFFF</td>
-<td><img src="https://via.placeholder.com/20/00BFFF/000000?text=+" alt="deepskyblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00BFFFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>dimgray</td>
 <td>&amp;H696969FF</td>
-<td><img src="https://via.placeholder.com/20/696969/FFFFFF?text=+" alt="dimgray" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#696969FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>dodgerblue</td>
 <td>&amp;H1E90FFFF</td>
-<td><img src="https://via.placeholder.com/20/1E90FF/000000?text=+" alt="dodgerblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#1E90FFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>firebrick</td>
 <td>&amp;HB22222FF</td>
-<td><img src="https://via.placeholder.com/20/B22222/FFFFFF?text=+" alt="firebrick" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#B22222FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>floralwhite</td>
 <td>&amp;HFFFAF0FF</td>
-<td><img src="https://via.placeholder.com/20/FFFAF0/000000?text=+" alt="floralwhite" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFFAF0FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>forestgreen</td>
 <td>&amp;H228B22FF</td>
-<td><img src="https://via.placeholder.com/20/228B22/FFFFFF?text=+" alt="forestgreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#228B22FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>fuchsia</td>
 <td>&amp;HFF00FFFF</td>
-<td><img src="https://via.placeholder.com/20/FF00FF/000000?text=+" alt="fuchsia" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF00FFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>gainsboro</td>
 <td>&amp;HDCDCDCFF</td>
-<td><img src="https://via.placeholder.com/20/DCDCDC/000000?text=+" alt="gainsboro" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#DCDCDCFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>ghostwhite</td>
 <td>&amp;HF8F8FFFF</td>
-<td><img src="https://via.placeholder.com/20/F8F8FF/000000?text=+" alt="ghostwhite" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F8F8FFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>gold</td>
 <td>&amp;HFFD700FF</td>
-<td><img src="https://via.placeholder.com/20/FFD700/000000?text=+" alt="gold" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFD700FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>goldenrod</td>
 <td>&amp;HDAA520FF</td>
-<td><img src="https://via.placeholder.com/20/DAA520/000000?text=+" alt="goldenrod" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#DAA520FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>gray</td>
 <td>&amp;H808080FF</td>
-<td><img src="https://via.placeholder.com/20/808080/FFFFFF?text=+" alt="gray" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#808080FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>green</td>
 <td>&amp;H008000FF</td>
-<td><img src="https://via.placeholder.com/20/008000/FFFFFF?text=+" alt="green" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#008000FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>greenyellow</td>
 <td>&amp;HADFF2FFF</td>
-<td><img src="https://via.placeholder.com/20/ADFF2F/000000?text=+" alt="greenyellow" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#ADFF2FFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>honeydew</td>
 <td>&amp;HF0FFF0FF</td>
-<td><img src="https://via.placeholder.com/20/F0FFF0/000000?text=+" alt="honeydew" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F0FFF0FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>hotpink</td>
 <td>&amp;HFF69B4FF</td>
-<td><img src="https://via.placeholder.com/20/FF69B4/000000?text=+" alt="hotpink" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF69B4FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>indianred</td>
 <td>&amp;HCD5C5CFF</td>
-<td><img src="https://via.placeholder.com/20/CD5C5C/000000?text=+" alt="indianred" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#CD5C5CFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>indigo</td>
 <td>&amp;H4B0082FF</td>
-<td><img src="https://via.placeholder.com/20/4B0082/FFFFFF?text=+" alt="indigo" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#4B0082FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>ivory</td>
 <td>&amp;HFFFFF0FF</td>
-<td><img src="https://via.placeholder.com/20/FFFFF0/000000?text=+" alt="ivory" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFFFF0FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>khaki</td>
 <td>&amp;HF0E68CFF</td>
-<td><img src="https://via.placeholder.com/20/F0E68C/000000?text=+" alt="khaki" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F0E68CFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lavender</td>
 <td>&amp;HE6E6FAFF</td>
-<td><img src="https://via.placeholder.com/20/E6E6FA/000000?text=+" alt="lavender" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#E6E6FAFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lavenderblush</td>
 <td>&amp;HFFF0F5FF</td>
-<td><img src="https://via.placeholder.com/20/FFF0F5/000000?text=+" alt="lavenderblush" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFF0F5FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lawngreen</td>
 <td>&amp;H7CFC00FF</td>
-<td><img src="https://via.placeholder.com/20/7CFC00/000000?text=+" alt="lawngreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#7CFC00FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lemonchiffon</td>
 <td>&amp;HFFFACDFF</td>
-<td><img src="https://via.placeholder.com/20/FFFACD/000000?text=+" alt="lemonchiffon" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFFACDFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightblue</td>
 <td>&amp;HADD8E6FF</td>
-<td><img src="https://via.placeholder.com/20/ADD8E6/000000?text=+" alt="lightblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#ADD8E6FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightcoral</td>
 <td>&amp;HF08080FF</td>
-<td><img src="https://via.placeholder.com/20/F08080/000000?text=+" alt="lightcoral" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F08080FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightcyan</td>
 <td>&amp;HE0FFFFFF</td>
-<td><img src="https://via.placeholder.com/20/E0FFFF/000000?text=+" alt="lightcyan" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#E0FFFFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightgoldenrodyellow</td>
 <td>&amp;HFAFAD2FF</td>
-<td><img src="https://via.placeholder.com/20/FAFAD2/000000?text=+" alt="lightgoldenrodyellow" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FAFAD2FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightgray</td>
 <td>&amp;HD3D3D3FF</td>
-<td><img src="https://via.placeholder.com/20/D3D3D3/000000?text=+" alt="lightgray" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#D3D3D3FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightgreen</td>
 <td>&amp;H90EE90FF</td>
-<td><img src="https://via.placeholder.com/20/90EE90/000000?text=+" alt="lightgreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#90EE90FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightpink</td>
 <td>&amp;HFFB6C1FF</td>
-<td><img src="https://via.placeholder.com/20/FFB6C1/000000?text=+" alt="lightpink" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFB6C1FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightsalmon</td>
 <td>&amp;HFFA07AFF</td>
-<td><img src="https://via.placeholder.com/20/FFA07A/000000?text=+" alt="lightsalmon" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFA07AFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightseagreen</td>
 <td>&amp;H20B2AAFF</td>
-<td><img src="https://via.placeholder.com/20/20B2AA/FFFFFF?text=+" alt="lightseagreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#20B2AAFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightskyblue</td>
 <td>&amp;H87CEFAFF</td>
-<td><img src="https://via.placeholder.com/20/87CEFA/000000?text=+" alt="lightskyblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#87CEFAFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightslategray</td>
 <td>&amp;H778899FF</td>
-<td><img src="https://via.placeholder.com/20/778899/FFFFFF?text=+" alt="lightslategray" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#778899FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightsteelblue</td>
 <td>&amp;HB0C4DEFF</td>
-<td><img src="https://via.placeholder.com/20/B0C4DE/000000?text=+" alt="lightsteelblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#B0C4DEFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lightyellow</td>
 <td>&amp;HFFFFE0FF</td>
-<td><img src="https://via.placeholder.com/20/FFFFE0/000000?text=+" alt="lightyellow" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFFFE0FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>lime</td>
 <td>&amp;H00FF00FF</td>
-<td><img src="https://via.placeholder.com/20/00FF00/000000?text=+" alt="lime" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00FF00FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>limegreen</td>
 <td>&amp;H32CD32FF</td>
-<td><img src="https://via.placeholder.com/20/32CD32/000000?text=+" alt="limegreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#32CD32FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>linen</td>
 <td>&amp;HFAF0E6FF</td>
-<td><img src="https://via.placeholder.com/20/FAF0E6/000000?text=+" alt="linen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FAF0E6FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>magenta</td>
 <td>&amp;HFF00FFFF</td>
-<td><img src="https://via.placeholder.com/20/FF00FF/000000?text=+" alt="magenta" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF00FFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>maroon</td>
 <td>&amp;H800000FF</td>
-<td><img src="https://via.placeholder.com/20/800000/FFFFFF?text=+" alt="maroon" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#800000FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumaquamarine</td>
 <td>&amp;H66CDAAFF</td>
-<td><img src="https://via.placeholder.com/20/66CDAA/000000?text=+" alt="mediumaquamarine" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#66CDAAFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumblue</td>
 <td>&amp;H0000CDFF</td>
-<td><img src="https://via.placeholder.com/20/0000CD/FFFFFF?text=+" alt="mediumblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#0000CDFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumorchid</td>
 <td>&amp;HBA55D3FF</td>
-<td><img src="https://via.placeholder.com/20/BA55D3/000000?text=+" alt="mediumorchid" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#BA55D3FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumpurple</td>
 <td>&amp;H9370DBFF</td>
-<td><img src="https://via.placeholder.com/20/9370DB/000000?text=+" alt="mediumpurple" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#9370DBFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumseagreen</td>
 <td>&amp;H3CB371FF</td>
-<td><img src="https://via.placeholder.com/20/3CB371/FFFFFF?text=+" alt="mediumseagreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#3CB371FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumslateblue</td>
 <td>&amp;H7B68EEFF</td>
-<td><img src="https://via.placeholder.com/20/7B68EE/000000?text=+" alt="mediumslateblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#7B68EEFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumspringgreen</td>
 <td>&amp;H00FA9AFF</td>
-<td><img src="https://via.placeholder.com/20/00FA9A/000000?text=+" alt="mediumspringgreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00FA9AFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumturquoise</td>
 <td>&amp;H48D1CCFF</td>
-<td><img src="https://via.placeholder.com/20/48D1CC/000000?text=+" alt="mediumturquoise" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#48D1CCFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mediumvioletred</td>
 <td>&amp;HC71585FF</td>
-<td><img src="https://via.placeholder.com/20/C71585/FFFFFF?text=+" alt="mediumvioletred" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#C71585FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>midnightblue</td>
 <td>&amp;H191970FF</td>
-<td><img src="https://via.placeholder.com/20/191970/FFFFFF?text=+" alt="midnightblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#191970FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mintcream</td>
 <td>&amp;HF5FFFAFF</td>
-<td><img src="https://via.placeholder.com/20/F5FFFA/000000?text=+" alt="mintcream" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F5FFFAFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>mistyrose</td>
 <td>&amp;HFFE4E1FF</td>
-<td><img src="https://via.placeholder.com/20/FFE4E1/000000?text=+" alt="mistyrose" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFE4E1FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>moccasin</td>
 <td>&amp;HFFE4B5FF</td>
-<td><img src="https://via.placeholder.com/20/FFE4B5/000000?text=+" alt="moccasin" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFE4B5FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>navajowhite</td>
 <td>&amp;HFFDEADFF</td>
-<td><img src="https://via.placeholder.com/20/FFDEAD/000000?text=+" alt="navajowhite" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFDEADFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>navy</td>
 <td>&amp;H000080FF</td>
-<td><img src="https://via.placeholder.com/20/000080/FFFFFF?text=+" alt="navy" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#000080FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>oldlace</td>
 <td>&amp;HFDF5E6FF</td>
-<td><img src="https://via.placeholder.com/20/FDF5E6/000000?text=+" alt="oldlace" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FDF5E6FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>olive</td>
 <td>&amp;H808000FF</td>
-<td><img src="https://via.placeholder.com/20/808000/FFFFFF?text=+" alt="olive" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#808000FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>olivedrab</td>
 <td>&amp;H6B8E23FF</td>
-<td><img src="https://via.placeholder.com/20/6B8E23/FFFFFF?text=+" alt="olivedrab" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#6B8E23FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>orange</td>
 <td>&amp;HFFA500FF</td>
-<td><img src="https://via.placeholder.com/20/FFA500/000000?text=+" alt="orange" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFA500FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>orangered</td>
 <td>&amp;HFF4500FF</td>
-<td><img src="https://via.placeholder.com/20/FF4500/FFFFFF?text=+" alt="orangered" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF4500FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>orchid</td>
 <td>&amp;HDA70D6FF</td>
-<td><img src="https://via.placeholder.com/20/DA70D6/000000?text=+" alt="orchid" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#DA70D6FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>palegoldenrod</td>
 <td>&amp;HEEE8AAFF</td>
-<td><img src="https://via.placeholder.com/20/EEE8AA/000000?text=+" alt="palegoldenrod" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#EEE8AAFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>palegreen</td>
 <td>&amp;H98FB98FF</td>
-<td><img src="https://via.placeholder.com/20/98FB98/000000?text=+" alt="palegreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#98FB98FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>paleturquoise</td>
 <td>&amp;HAFEEEEFF</td>
-<td><img src="https://via.placeholder.com/20/AFEEEE/000000?text=+" alt="paleturquoise" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#AFEEEEFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>palevioletred</td>
 <td>&amp;HDB7093FF</td>
-<td><img src="https://via.placeholder.com/20/DB7093/000000?text=+" alt="palevioletred" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#DB7093FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>papayawhip</td>
 <td>&amp;HFFEFD5FF</td>
-<td><img src="https://via.placeholder.com/20/FFEFD5/000000?text=+" alt="papayawhip" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFEFD5FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>peachpuff</td>
 <td>&amp;HFFDAB9FF</td>
-<td><img src="https://via.placeholder.com/20/FFDAB9/000000?text=+" alt="peachpuff" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFDAB9FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>peru</td>
 <td>&amp;HCD853FFF</td>
-<td><img src="https://via.placeholder.com/20/CD853F/000000?text=+" alt="peru" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#CD853FFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>pink</td>
 <td>&amp;HFFC0CBFF</td>
-<td><img src="https://via.placeholder.com/20/FFC0CB/000000?text=+" alt="pink" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFC0CBFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>plum</td>
 <td>&amp;HDDA0DDFF</td>
-<td><img src="https://via.placeholder.com/20/DDA0DD/000000?text=+" alt="plum" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#DDA0DDFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>powderblue</td>
 <td>&amp;HB0E0E6FF</td>
-<td><img src="https://via.placeholder.com/20/B0E0E6/000000?text=+" alt="powderblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#B0E0E6FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>purple</td>
 <td>&amp;H800080FF</td>
-<td><img src="https://via.placeholder.com/20/800080/FFFFFF?text=+" alt="purple" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#800080FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>rebeccapurple</td>
 <td>&amp;H663399FF</td>
-<td><img src="https://via.placeholder.com/20/663399/FFFFFF?text=+" alt="rebeccapurple" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#663399FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>red</td>
 <td>&amp;HFF0000FF</td>
-<td><img src="https://via.placeholder.com/20/FF0000/FFFFFF?text=+" alt="red" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF0000FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>rosybrown</td>
 <td>&amp;HBC8F8FFF</td>
-<td><img src="https://via.placeholder.com/20/BC8F8F/000000?text=+" alt="rosybrown" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#BC8F8FFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>royalblue</td>
 <td>&amp;H4169E1FF</td>
-<td><img src="https://via.placeholder.com/20/4169E1/FFFFFF?text=+" alt="royalblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#4169E1FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>saddlebrown</td>
 <td>&amp;H8B4513FF</td>
-<td><img src="https://via.placeholder.com/20/8B4513/FFFFFF?text=+" alt="saddlebrown" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#8B4513FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>salmon</td>
 <td>&amp;HFA8072FF</td>
-<td><img src="https://via.placeholder.com/20/FA8072/000000?text=+" alt="salmon" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FA8072FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>sandybrown</td>
 <td>&amp;HF4A460FF</td>
-<td><img src="https://via.placeholder.com/20/F4A460/000000?text=+" alt="sandybrown" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F4A460FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>seagreen</td>
 <td>&amp;H2E8B57FF</td>
-<td><img src="https://via.placeholder.com/20/2E8B57/FFFFFF?text=+" alt="seagreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#2E8B57FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>seashell</td>
 <td>&amp;HFFF5EEFF</td>
-<td><img src="https://via.placeholder.com/20/FFF5EE/000000?text=+" alt="seashell" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFF5EEFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>sienna</td>
 <td>&amp;HA0522DFF</td>
-<td><img src="https://via.placeholder.com/20/A0522D/FFFFFF?text=+" alt="sienna" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#A0522DFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>silver</td>
 <td>&amp;HC0C0C0FF</td>
-<td><img src="https://via.placeholder.com/20/C0C0C0/000000?text=+" alt="silver" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#C0C0C0FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>skyblue</td>
 <td>&amp;H87CEEBFF</td>
-<td><img src="https://via.placeholder.com/20/87CEEB/000000?text=+" alt="skyblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#87CEEBFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>slateblue</td>
 <td>&amp;H6A5ACDFF</td>
-<td><img src="https://via.placeholder.com/20/6A5ACD/FFFFFF?text=+" alt="slateblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#6A5ACDFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>slategray</td>
 <td>&amp;H708090FF</td>
-<td><img src="https://via.placeholder.com/20/708090/FFFFFF?text=+" alt="slategray" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#708090FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>snow</td>
 <td>&amp;HFFFAFAFF</td>
-<td><img src="https://via.placeholder.com/20/FFFAFA/000000?text=+" alt="snow" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFFAFAFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>springgreen</td>
 <td>&amp;H00FF7FFF</td>
-<td><img src="https://via.placeholder.com/20/00FF7F/000000?text=+" alt="springgreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#00FF7FFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>steelblue</td>
 <td>&amp;H4682B4FF</td>
-<td><img src="https://via.placeholder.com/20/4682B4/FFFFFF?text=+" alt="steelblue" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#4682B4FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>tan</td>
 <td>&amp;HD2B48CFF</td>
-<td><img src="https://via.placeholder.com/20/D2B48C/000000?text=+" alt="tan" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#D2B48CFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>teal</td>
 <td>&amp;H008080FF</td>
-<td><img src="https://via.placeholder.com/20/008080/FFFFFF?text=+" alt="teal" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#008080FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>thistle</td>
 <td>&amp;HD8BFD8FF</td>
-<td><img src="https://via.placeholder.com/20/D8BFD8/000000?text=+" alt="thistle" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#D8BFD8FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>tomato</td>
 <td>&amp;HFF6347FF</td>
-<td><img src="https://via.placeholder.com/20/FF6347/000000?text=+" alt="tomato" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FF6347FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>turquoise</td>
 <td>&amp;H40E0D0FF</td>
-<td><img src="https://via.placeholder.com/20/40E0D0/000000?text=+" alt="turquoise" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#40E0D0FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>violet</td>
 <td>&amp;HEE82EEFF</td>
-<td><img src="https://via.placeholder.com/20/EE82EE/000000?text=+" alt="violet" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#EE82EEFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>wheat</td>
 <td>&amp;HF5DEB3FF</td>
-<td><img src="https://via.placeholder.com/20/F5DEB3/000000?text=+" alt="wheat" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F5DEB3FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>white</td>
 <td>&amp;HFFFFFFFF</td>
-<td><img src="https://via.placeholder.com/20/FFFFFF/000000?text=+" alt="white" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFFFFFFF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>whitesmoke</td>
 <td>&amp;HF5F5F5FF</td>
-<td><img src="https://via.placeholder.com/20/F5F5F5/000000?text=+" alt="whitesmoke" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#F5F5F5FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>yellow</td>
 <td>&amp;HFFFF00FF</td>
-<td><img src="https://via.placeholder.com/20/FFFF00/000000?text=+" alt="yellow" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#FFFF00FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 <tr>
 <td>yellowgreen</td>
 <td>&amp;H9ACD32FF</td>
-<td><img src="https://via.placeholder.com/20/9ACD32/000000?text=+" alt="yellowgreen" /></td>
+<td><span style="display:inline-block;width:20px;height:20px;background-color:#9ACD32FF;border:1px solid #ccc;vertical-align:middle;"></span></td>
 </tr>
 </tbody>
 </table>

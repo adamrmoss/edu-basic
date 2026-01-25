@@ -1,6 +1,6 @@
 # EduBASIC Language Reference
 
-*Copyright © 2025 Adam R Moss / Fuzzy Logic Publishing. Licensed under the MIT License.*
+*Copyright © 2025 Dietz-Moss Publishing. Licensed under the MIT License.*
 
 ## Table of Contents
 
@@ -2242,7 +2242,7 @@ The `PRINT` statement accepts expressions of any type (Integer, Real, Complex, S
 - **Semicolon (`;`) at end:** Suppresses the newline, so the next `PRINT` continues on the same line
 - **No separator at end:** Ends the line (adds a newline)
 - **Empty `PRINT`:** Outputs a blank line (newline only)
-- **Array:** When printing an array, all elements are printed, separated by commas
+- **Array:** When printing an array, all elements are printed in brackets with spaces after commas (e.g., `[1, 2, 3, 4, 5]`)
 
 **Type Conversion:**
 All value types are automatically converted to strings when printed:
@@ -2250,7 +2250,7 @@ All value types are automatically converted to strings when printed:
 - **Real:** Decimal representation (e.g., `3.14` → `"3.14"`)
 - **Complex:** Format `"real+imaginaryi"` or `"real-imaginaryi"` (e.g., `3+4i` → `"3+4i"`)
 - **String:** Printed as-is
-- **Array:** All elements printed, separated by commas
+- **Array:** All elements printed in brackets with spaces after commas (e.g., `[1, 2, 3]` → `"[1, 2, 3]"`)
 
 **Controlling Newlines:**
 - To avoid a newline at the end of output, end the `PRINT` statement with a semicolon
@@ -2278,8 +2278,8 @@ PRINT "Item: ", name$, " Count: ", count%, " Price: ", price#, " Complex: ", z&
 
 **Print Arrays:**
 ```
-PRINT numbers%[]    ' Prints all elements: 1, 2, 3, 4, 5
-PRINT "Scores: ", scores%[]    ' Prints: Scores: 85, 90, 78, 92
+PRINT numbers%[]    ' Prints: [1, 2, 3, 4, 5]
+PRINT "Scores: ", scores%[]    ' Prints: Scores: [85, 90, 78, 92]
 ```
 
 **Suppress Newline:**
@@ -5777,7 +5777,7 @@ LET halfCircle# = PI# * radius#
 
 **Type:** Command (Text I/O)  
 **Syntax:** `PRINT expression1, expression2, ...` or `PRINT expression1, expression2, ...;` or `PRINT array[]` or `PRINT array[];` or `PRINT`  
-**Description:** Outputs text and values to the text display. The `PRINT` statement accepts expressions of any type (Integer, Real, Complex, String, Array) separated by commas. Each expression is automatically converted to its string representation and concatenated with no spacing between items. Comma (`,`) separates items with no spacing (concatenated). Semicolon (`;`) at the end suppresses the newline. Empty `PRINT` outputs a blank line. When printing an array, all elements are printed, separated by commas.  
+**Description:** Outputs text and values to the text display. The `PRINT` statement accepts expressions of any type (Integer, Real, Complex, String, Array) separated by commas. Each expression is automatically converted to its string representation and concatenated with no spacing between items. Comma (`,`) separates items with no spacing (concatenated). Semicolon (`;`) at the end suppresses the newline. Empty `PRINT` outputs a blank line. When printing an array, all elements are printed in brackets with spaces after commas (e.g., `[1, 2, 3, 4, 5]`).  
 **Example:**
 ```
 PRINT "Hello, world!"
@@ -5788,8 +5788,8 @@ PRINT "X: ", x%, " Y: ", y%
 PRINT "Item: ", name$, " Count: ", count%, " Price: ", price#, " Complex: ", z&
 ' Prints: Item: Widget Count: 10 Price: 19.99 Complex: 3+4i
 
-PRINT numbers%[]    ' Prints all array elements
-PRINT "Scores: ", scores%[]    ' Prints: Scores: 85, 90, 78
+PRINT numbers%[]    ' Prints: [1, 2, 3, 4, 5]
+PRINT "Scores: ", scores%[]    ' Prints: Scores: [85, 90, 78]
 PRINT "Enter name: ";    ' No newline, continues on same line
 PRINT    ' Blank line
 

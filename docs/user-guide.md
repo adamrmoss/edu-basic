@@ -1,6 +1,6 @@
 # EduBASIC User Guide
 
-*Copyright © 2025 Adam R Moss / Fuzzy Logic Publishing. Licensed under the MIT License.*
+*Copyright © 2025 Dietz-Moss Publishing. Licensed under the MIT License.*
 
 ## Table of Contents
 
