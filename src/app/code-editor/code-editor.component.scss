@@ -66,6 +66,23 @@
     line-height: 20px;
     min-height: 20px;
     width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 4px;
+
+    &.error
+    {
+        color: $orange;
+        background-color: rgba($orange, 0.1);
+    }
+}
+
+.error-indicator
+{
+    color: $orange;
+    font-size: 12px;
+    margin-left: 4px;
 }
 
 .code-textarea

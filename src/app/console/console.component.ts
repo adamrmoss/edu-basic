@@ -41,9 +41,27 @@ export class ConsoleComponent implements OnInit, OnDestroy
         switch (event.key)
         {
             case 'Enter':
-                this.consoleService.executeCommand(this.currentInput);
-                this.currentInput = '';
+            {
+                const input = this.currentInput.trim();
+                
+                if (input)
+                {
+                    const canonical = this.getCanonicalRepresentation(input);
+                    
+                    if (canonical !== null)
+                    {
+                        this.currentInput = canonical;
+                        this.consoleService.executeCommand(canonical);
+                        this.currentInput = '';
+                    }
+                    else
+                    {
+                        this.consoleService.executeCommand(input);
+                        this.currentInput = '';
+                    }
+                }
                 break;
+            }
 
             case 'ArrowUp':
             {
@@ -69,5 +87,24 @@ export class ConsoleComponent implements OnInit, OnDestroy
                 break;
             }
         }
+    }
+
+    private getCanonicalRepresentation(input: string): string | null
+    {
+        try
+        {
+            const parsedLine = this.consoleService.parseLine(input);
+            
+            if (parsedLine && !parsedLine.hasError)
+            {
+                return parsedLine.statement.toString();
+            }
+        }
+        catch (error)
+        {
+            // Ignore parse errors, return null to use original input
+        }
+        
+        return null;
     }
 }
