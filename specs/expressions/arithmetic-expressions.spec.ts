@@ -1,6 +1,6 @@
-import { ArithmeticExpression, ArithmeticOperator } from '../../src/lang/expressions/arithmetic/arithmetic-expression';
-import { UnaryOperatorExpression, UnaryOperator } from '../../src/lang/expressions/arithmetic/unary-operator-expression';
-import { LiteralExpression } from '../../src/lang/expressions/literals/literal-expression';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../src/lang/expressions/binary-expression';
+import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../src/lang/expressions/unary-expression';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
 import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
 import { ExecutionContext } from '../../src/lang/execution-context';
 import { EduBasicType } from '../../src/lang/edu-basic-value';
@@ -20,7 +20,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -32,7 +32,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
             const right = new LiteralExpression({ type: EduBasicType.Real, value: 3.5 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -44,7 +44,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Real, value: 2.5 });
             const right = new LiteralExpression({ type: EduBasicType.Real, value: 3.5 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -59,7 +59,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Subtract, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Subtract, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -71,7 +71,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Subtract, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Subtract, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -86,7 +86,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Multiply, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Multiply, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -98,7 +98,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
             const right = new LiteralExpression({ type: EduBasicType.Real, value: 2.5 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Multiply, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Multiply, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -109,23 +109,23 @@ describe('Arithmetic Expressions', () =>
 
     describe('Division', () =>
     {
-        it('should divide and always return real', () =>
+        it('should return integer when integer division results in whole number', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Divide, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
-            expect(result.type).toBe(EduBasicType.Real);
-            expect(result.value).toBeCloseTo(5.0);
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(5);
         });
 
         it('should handle non-integer division', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 7 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Divide, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -133,11 +133,35 @@ describe('Arithmetic Expressions', () =>
             expect(result.value).toBeCloseTo(3.5);
         });
 
+        it('should return real for non-whole number division', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 1 });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(0.5);
+        });
+
+        it('should return real when at least one operand is real', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
+            const right = new LiteralExpression({ type: EduBasicType.Real, value: 2 });
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(5.0);
+        });
+
         it('should throw error on division by zero', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Divide, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
 
             expect(() => expr.evaluate(context)).toThrow('Division by zero');
         });
@@ -149,7 +173,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Modulo, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Modulo, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -161,7 +185,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: -10 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Modulo, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Modulo, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -173,7 +197,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Modulo, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Modulo, right, BinaryOperatorCategory.Arithmetic);
 
             expect(() => expr.evaluate(context)).toThrow('Modulo by zero');
         });
@@ -185,7 +209,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Power, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Power, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -197,7 +221,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 4 });
             const right = new LiteralExpression({ type: EduBasicType.Real, value: 0.5 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Power, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Power, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -209,7 +233,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.PowerAlt, right);
+            const expr = new BinaryExpression(left, BinaryOperator.PowerAlt, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
@@ -223,7 +247,7 @@ describe('Arithmetic Expressions', () =>
         it('should apply unary plus (no change)', () =>
         {
             const operand = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
-            const expr = new UnaryOperatorExpression(UnaryOperator.Plus, operand);
+            const expr = new UnaryExpression(UnaryOperator.Plus, operand, UnaryOperatorCategory.Prefix);
 
             const result = expr.evaluate(context);
 
@@ -234,7 +258,7 @@ describe('Arithmetic Expressions', () =>
         it('should negate integer', () =>
         {
             const operand = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
-            const expr = new UnaryOperatorExpression(UnaryOperator.Minus, operand);
+            const expr = new UnaryExpression(UnaryOperator.Minus, operand, UnaryOperatorCategory.Prefix);
 
             const result = expr.evaluate(context);
 
@@ -245,7 +269,7 @@ describe('Arithmetic Expressions', () =>
         it('should negate real', () =>
         {
             const operand = new LiteralExpression({ type: EduBasicType.Real, value: 3.5 });
-            const expr = new UnaryOperatorExpression(UnaryOperator.Minus, operand);
+            const expr = new UnaryExpression(UnaryOperator.Minus, operand, UnaryOperatorCategory.Prefix);
 
             const result = expr.evaluate(context);
 
@@ -259,13 +283,16 @@ describe('Arithmetic Expressions', () =>
                 type: EduBasicType.Complex, 
                 value: { real: 3, imaginary: 4 } 
             });
-            const expr = new UnaryOperatorExpression(UnaryOperator.Minus, operand);
+            const expr = new UnaryExpression(UnaryOperator.Minus, operand, UnaryOperatorCategory.Prefix);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(-3);
-            expect(result.value.imaginary).toBe(-4);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(-3);
+                expect(result.value.imaginary).toBe(-4);
+            }
         });
     });
 
@@ -275,98 +302,119 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(4);
-            expect(result.value.imaginary).toBe(6);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(4);
+                expect(result.value.imaginary).toBe(6);
+            }
         });
 
         it('should subtract complex numbers', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 5, imaginary: 6 } });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 2, imaginary: 3 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Subtract, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Subtract, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(3);
-            expect(result.value.imaginary).toBe(3);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(3);
+                expect(result.value.imaginary).toBe(3);
+            }
         });
 
         it('should multiply complex numbers', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Multiply, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Multiply, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(-5);
-            expect(result.value.imaginary).toBe(10);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(-5);
+                expect(result.value.imaginary).toBe(10);
+            }
         });
 
         it('should divide complex numbers', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 1 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Divide, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(1.5);
-            expect(result.value.imaginary).toBeCloseTo(0.5);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(1.5);
+                expect(result.value.imaginary).toBeCloseTo(0.5);
+            }
         });
 
         it('should add integer and complex number', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBe(8);
-            expect(result.value.imaginary).toBe(4);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBe(8);
+                expect(result.value.imaginary).toBe(4);
+            }
         });
 
         it('should add real and complex number', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Real, value: 2.5 });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1.5, imaginary: 3 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Add, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(4.0);
-            expect(result.value.imaginary).toBe(3);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(4.0);
+                expect(result.value.imaginary).toBe(3);
+            }
         });
 
         it('should compute complex power', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 0, imaginary: 1 } });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Power, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Power, right, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Complex);
-            expect(result.value.real).toBeCloseTo(-1.0);
-            expect(result.value.imaginary).toBeCloseTo(0.0);
+            if (result.type === EduBasicType.Complex)
+            {
+                expect(result.value.real).toBeCloseTo(-1.0);
+                expect(result.value.imaginary).toBeCloseTo(0.0);
+            }
         });
 
         it('should throw error on complex modulo', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 5, imaginary: 3 } });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 2, imaginary: 1 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Modulo, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Modulo, right, BinaryOperatorCategory.Arithmetic);
 
             expect(() => expr.evaluate(context)).toThrow('Modulo operator is not applicable to complex numbers');
         });
@@ -375,7 +423,7 @@ describe('Arithmetic Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 5, imaginary: 3 } });
             const right = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } });
-            const expr = new ArithmeticExpression(left, ArithmeticOperator.Divide, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
 
             expect(() => expr.evaluate(context)).toThrow('Division by zero');
         });
@@ -389,8 +437,8 @@ describe('Arithmetic Expressions', () =>
             const three = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
             const two = new LiteralExpression({ type: EduBasicType.Integer, value: 2 });
 
-            const multiply = new ArithmeticExpression(three, ArithmeticOperator.Multiply, two);
-            const add = new ArithmeticExpression(five, ArithmeticOperator.Add, multiply);
+            const multiply = new BinaryExpression(three, BinaryOperator.Multiply, two, BinaryOperatorCategory.Arithmetic);
+            const add = new BinaryExpression(five, BinaryOperator.Add, multiply, BinaryOperatorCategory.Arithmetic);
 
             const result = add.evaluate(context);
 
@@ -404,12 +452,108 @@ describe('Arithmetic Expressions', () =>
 
             const variable = new VariableExpression('x%');
             const literal = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
-            const expr = new ArithmeticExpression(variable, ArithmeticOperator.Add, literal);
+            const expr = new BinaryExpression(variable, BinaryOperator.Add, literal, BinaryOperatorCategory.Arithmetic);
 
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Integer);
             expect(result.value).toBe(15);
+        });
+    });
+
+    describe('Edge Cases', () =>
+    {
+        it('should handle string concatenation with addition', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.String, value: 'Hello' });
+            const right = new LiteralExpression({ type: EduBasicType.String, value: 'World' });
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.String);
+            expect(result.value).toBe('HelloWorld');
+        });
+
+        it('should throw error when adding string and number (not concatenation)', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.String, value: 'Value: ' });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 42 });
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
+
+            expect(() => expr.evaluate(context)).toThrow('Cannot convert STRING to number');
+        });
+
+        it('should handle very large real numbers', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Real, value: 1e308 });
+            const right = new LiteralExpression({ type: EduBasicType.Real, value: 1e308 });
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(Infinity);
+        });
+
+        it('should handle very small real numbers', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Real, value: 1e-308 });
+            const right = new LiteralExpression({ type: EduBasicType.Real, value: 1e-308 });
+            const expr = new BinaryExpression(left, BinaryOperator.Add, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBeCloseTo(2e-308);
+        });
+
+        it('should handle real division by very small number', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Real, value: 1 });
+            const right = new LiteralExpression({ type: EduBasicType.Real, value: 1e-10 });
+            const expr = new BinaryExpression(left, BinaryOperator.Divide, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBeCloseTo(1e10);
+        });
+
+        it('should handle modulo with equal operands', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
+            const expr = new BinaryExpression(left, BinaryOperator.Modulo, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(0);
+        });
+
+        it('should handle power of 1', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 1 });
+            const expr = new BinaryExpression(left, BinaryOperator.Power, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(5);
+        });
+
+        it('should handle power of 0', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const expr = new BinaryExpression(left, BinaryOperator.Power, right, BinaryOperatorCategory.Arithmetic);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(1);
         });
     });
 });

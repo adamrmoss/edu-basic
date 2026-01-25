@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Token, TokenType, Tokenizer } from './tokenizer.service';
 import { Expression } from '../../lang/expressions/expression';
-import { LiteralExpression } from '../../lang/expressions/literals/literal-expression';
-import { ArithmeticExpression, ArithmeticOperator } from '../../lang/expressions/arithmetic/arithmetic-expression';
-import { ComparisonExpression, ComparisonOperator } from '../../lang/expressions/comparison/comparison-expression';
-import { LogicalExpression, LogicalOperator } from '../../lang/expressions/logical/logical-expression';
-import { UnaryOperatorExpression, UnaryOperator } from '../../lang/expressions/arithmetic/unary-operator-expression';
+import { LiteralExpression } from '../../lang/expressions/literal-expression';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../lang/expressions/binary-expression';
+import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../lang/expressions/unary-expression';
+import { FunctionCallExpression, FunctionName } from '../../lang/expressions/function-call-expression';
 import { VariableExpression } from '../../lang/expressions/special/variable-expression';
 import { ParenthesizedExpression } from '../../lang/expressions/special/parenthesized-expression';
+import { NullaryExpression } from '../../lang/expressions/nullary-expression';
 import { EduBasicType } from '../../lang/edu-basic-value';
+import { Constant } from '../../lang/expressions/helpers/constant-evaluator';
 
 @Injectable({
     providedIn: 'root'
@@ -38,7 +39,7 @@ export class ExpressionParserService
         while (this.matchKeyword('IMP'))
         {
             const right = this.xorXnor();
-            expr = new LogicalExpression(expr, LogicalOperator.Imp, right);
+            expr = new BinaryExpression(expr, BinaryOperator.Imp, right, BinaryOperatorCategory.Logical);
         }
 
         return expr;
@@ -50,9 +51,9 @@ export class ExpressionParserService
 
         while (this.matchKeyword('XOR') || this.matchKeyword('XNOR'))
         {
-            const operator = this.previous().value === 'XOR' ? LogicalOperator.Xor : LogicalOperator.Xnor;
+            const operator = this.previous().value === 'XOR' ? BinaryOperator.Xor : BinaryOperator.Xnor;
             const right = this.orNor();
-            expr = new LogicalExpression(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Logical);
         }
 
         return expr;
@@ -64,9 +65,9 @@ export class ExpressionParserService
 
         while (this.matchKeyword('OR') || this.matchKeyword('NOR'))
         {
-            const operator = this.previous().value === 'OR' ? LogicalOperator.Or : LogicalOperator.Nor;
+            const operator = this.previous().value === 'OR' ? BinaryOperator.Or : BinaryOperator.Nor;
             const right = this.andNand();
-            expr = new LogicalExpression(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Logical);
         }
 
         return expr;
@@ -78,9 +79,9 @@ export class ExpressionParserService
 
         while (this.matchKeyword('AND') || this.matchKeyword('NAND'))
         {
-            const operator = this.previous().value === 'AND' ? LogicalOperator.And : LogicalOperator.Nand;
+            const operator = this.previous().value === 'AND' ? BinaryOperator.And : BinaryOperator.Nand;
             const right = this.not();
-            expr = new LogicalExpression(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Logical);
         }
 
         return expr;
@@ -91,7 +92,7 @@ export class ExpressionParserService
         if (this.matchKeyword('NOT'))
         {
             const operand = this.not();
-            return new LogicalExpression(null, LogicalOperator.Not, operand);
+            return new UnaryExpression(UnaryOperator.Not, operand, UnaryOperatorCategory.Prefix);
         }
 
         return this.comparison();
@@ -105,34 +106,34 @@ export class ExpressionParserService
                          TokenType.Greater, TokenType.LessEqual, TokenType.GreaterEqual))
         {
             const operatorToken = this.previous().value;
-            let operator: ComparisonOperator;
+            let operator: BinaryOperator;
 
             switch (operatorToken)
             {
                 case '=':
-                    operator = ComparisonOperator.Equal;
+                    operator = BinaryOperator.Equal;
                     break;
                 case '<>':
-                    operator = ComparisonOperator.NotEqual;
+                    operator = BinaryOperator.NotEqual;
                     break;
                 case '<':
-                    operator = ComparisonOperator.LessThan;
+                    operator = BinaryOperator.LessThan;
                     break;
                 case '>':
-                    operator = ComparisonOperator.GreaterThan;
+                    operator = BinaryOperator.GreaterThan;
                     break;
                 case '<=':
-                    operator = ComparisonOperator.LessThanOrEqual;
+                    operator = BinaryOperator.LessThanOrEqual;
                     break;
                 case '>=':
-                    operator = ComparisonOperator.GreaterThanOrEqual;
+                    operator = BinaryOperator.GreaterThanOrEqual;
                     break;
                 default:
                     throw new Error(`Unknown comparison operator: ${operatorToken}`);
             }
 
             const right = this.addSub();
-            expr = new ComparisonExpression(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Comparison);
         }
 
         return expr;
@@ -145,9 +146,9 @@ export class ExpressionParserService
         while (this.match(TokenType.Plus, TokenType.Minus))
         {
             const operatorToken = this.previous().value;
-            const operator = operatorToken === '+' ? ArithmeticOperator.Add : ArithmeticOperator.Subtract;
+            const operator = operatorToken === '+' ? BinaryOperator.Add : BinaryOperator.Subtract;
             const right = this.mulDiv();
-            expr = new ArithmeticExpression(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Arithmetic);
         }
 
         return expr;
@@ -160,25 +161,25 @@ export class ExpressionParserService
         while (this.match(TokenType.Star, TokenType.Slash) || this.matchKeyword('MOD'))
         {
             const operatorToken = this.previous().value;
-            let operator: ArithmeticOperator;
+            let operator: BinaryOperator;
 
             switch (operatorToken)
             {
                 case '*':
-                    operator = ArithmeticOperator.Multiply;
+                    operator = BinaryOperator.Multiply;
                     break;
                 case '/':
-                    operator = ArithmeticOperator.Divide;
+                    operator = BinaryOperator.Divide;
                     break;
                 case 'MOD':
-                    operator = ArithmeticOperator.Modulo;
+                    operator = BinaryOperator.Modulo;
                     break;
                 default:
                     throw new Error(`Unknown operator: ${operatorToken}`);
             }
 
             const right = this.unaryPlusMinus();
-            expr = new ArithmeticExpression(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Arithmetic);
         }
 
         return expr;
@@ -191,7 +192,7 @@ export class ExpressionParserService
             const operatorToken = this.previous().value;
             const operator = operatorToken === '+' ? UnaryOperator.Plus : UnaryOperator.Minus;
             const operand = this.unaryPlusMinus();
-            return new UnaryOperatorExpression(operator, operand);
+            return new UnaryExpression(operator, operand, UnaryOperatorCategory.Prefix);
         }
 
         return this.exponentiation();
@@ -204,9 +205,9 @@ export class ExpressionParserService
         if (this.match(TokenType.Caret, TokenType.StarStar))
         {
             const operatorToken = this.previous().value;
-            const operator = operatorToken === '^' ? ArithmeticOperator.Power : ArithmeticOperator.PowerAlt;
+            const operator = operatorToken === '^' ? BinaryOperator.Power : BinaryOperator.PowerAlt;
             const right = this.exponentiation();
-            expr = new ArithmeticExpression(expr, operator, right);
+            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Arithmetic);
         }
 
         return expr;
@@ -239,6 +240,53 @@ export class ExpressionParserService
             return new LiteralExpression({ type: EduBasicType.String, value });
         }
 
+        // Check for constants
+        if (this.check(TokenType.Identifier))
+        {
+            const constantName = this.peek().value;
+            const constant = this.parseConstant(constantName);
+            if (constant !== null)
+            {
+                this.advance();
+                return new NullaryExpression(constant);
+            }
+        }
+
+        // Check for function calls
+        if (this.check(TokenType.Identifier))
+        {
+            const functionName = this.peek().value;
+            const parsedFunction = this.parseFunctionCall(functionName);
+            if (parsedFunction !== null)
+            {
+                return parsedFunction;
+            }
+        }
+
+        // Check for unary function operators (SIN, COS, ABS, etc.)
+        if (this.check(TokenType.Keyword))
+        {
+            const keyword = this.peek().value;
+            const unaryOp = this.parseUnaryFunction(keyword);
+            if (unaryOp !== null)
+            {
+                this.advance();
+                // Parentheses are optional for unary functions
+                if (this.match(TokenType.LeftParen))
+                {
+                    const argument = this.expression();
+                    this.consume(TokenType.RightParen, `Expected ')' after ${keyword} argument`);
+                    return new UnaryExpression(unaryOp.operator, argument, unaryOp.category);
+                }
+                else
+                {
+                    // No parentheses - parse the next expression as the argument
+                    const argument = this.unaryPlusMinus();
+                    return new UnaryExpression(unaryOp.operator, argument, unaryOp.category);
+                }
+            }
+        }
+
         if (this.match(TokenType.Identifier))
         {
             const name = this.previous().value;
@@ -253,6 +301,263 @@ export class ExpressionParserService
         }
 
         throw new Error(`Unexpected token: ${this.peek().value} at line ${this.peek().line}`);
+    }
+
+    private parseConstant(name: string): Constant | null
+    {
+        const upperName = name.toUpperCase();
+        switch (upperName)
+        {
+            case 'PI#':
+            case 'PI':
+                return Constant.Pi;
+            case 'E#':
+            case 'E':
+                return Constant.E;
+            case 'TRUE%':
+            case 'TRUE':
+                return Constant.True;
+            case 'FALSE%':
+            case 'FALSE':
+                return Constant.False;
+            case 'RND#':
+            case 'RND':
+                return Constant.Rnd;
+            case 'INKEY$':
+            case 'INKEY':
+                return Constant.Inkey;
+            case 'DATE$':
+            case 'DATE':
+                return Constant.Date;
+            case 'TIME$':
+            case 'TIME':
+                return Constant.Time;
+            case 'NOW%':
+            case 'NOW':
+                return Constant.Now;
+            default:
+                return null;
+        }
+    }
+
+    private parseFunctionCall(name: string): FunctionCallExpression | null
+    {
+        // Check if it's a function call (identifier followed by '(')
+        if (!this.check(TokenType.Identifier) || this.peek().value !== name)
+        {
+            return null;
+        }
+
+        const nextIndex = this.current + 1;
+        if (nextIndex >= this.tokens.length || this.tokens[nextIndex].type !== TokenType.LeftParen)
+        {
+            return null;
+        }
+
+        // Parse function name
+        let functionName: FunctionName | null = null;
+
+        switch (name.toUpperCase())
+        {
+            // String functions (2 args)
+            case 'LEFT':
+            case 'LEFT$':
+                functionName = FunctionName.Left;
+                break;
+            case 'RIGHT':
+            case 'RIGHT$':
+                functionName = FunctionName.Right;
+                break;
+            case 'INSTR':
+                functionName = FunctionName.Instr;
+                break;
+            case 'REPLACE':
+                functionName = FunctionName.Replace;
+                break;
+            case 'STARTSWITH':
+                functionName = FunctionName.Startswith;
+                break;
+            case 'ENDSWITH':
+                functionName = FunctionName.Endswith;
+                break;
+            
+            // String functions (3 args)
+            case 'MID':
+            case 'MID$':
+                functionName = FunctionName.Mid;
+                break;
+            
+            // Array functions (2 args)
+            case 'FIND':
+                functionName = FunctionName.Find;
+                break;
+            case 'INDEXOF':
+                functionName = FunctionName.IndexOf;
+                break;
+            case 'INCLUDES':
+                functionName = FunctionName.Includes;
+                break;
+            case 'JOIN':
+                functionName = FunctionName.Join;
+                break;
+            
+            // Array functions (1 arg)
+            case 'SIZE':
+                functionName = FunctionName.Size;
+                break;
+            case 'EMPTY':
+                functionName = FunctionName.Empty;
+                break;
+            case 'LEN':
+                functionName = FunctionName.Len;
+                break;
+        }
+
+        if (functionName === null)
+        {
+            return null;
+        }
+
+        // Parse arguments
+        this.advance(); // consume function name
+        this.consume(TokenType.LeftParen, `Expected '(' after ${name}`);
+        
+        const args: Expression[] = [];
+        if (!this.check(TokenType.RightParen))
+        {
+            do
+            {
+                args.push(this.expression());
+            }
+            while (this.match(TokenType.Comma));
+        }
+        
+        this.consume(TokenType.RightParen, `Expected ')' after ${name} arguments`);
+        
+        return new FunctionCallExpression(functionName, args);
+    }
+
+    private parseUnaryFunction(keyword: string): { operator: UnaryOperator; category: UnaryOperatorCategory } | null
+    {
+        switch (keyword.toUpperCase())
+        {
+            // Mathematical
+            case 'SIN':
+                return { operator: UnaryOperator.Sin, category: UnaryOperatorCategory.Mathematical };
+            case 'COS':
+                return { operator: UnaryOperator.Cos, category: UnaryOperatorCategory.Mathematical };
+            case 'TAN':
+                return { operator: UnaryOperator.Tan, category: UnaryOperatorCategory.Mathematical };
+            case 'ASIN':
+                return { operator: UnaryOperator.Asin, category: UnaryOperatorCategory.Mathematical };
+            case 'ACOS':
+                return { operator: UnaryOperator.Acos, category: UnaryOperatorCategory.Mathematical };
+            case 'ATAN':
+                return { operator: UnaryOperator.Atan, category: UnaryOperatorCategory.Mathematical };
+            case 'SINH':
+                return { operator: UnaryOperator.Sinh, category: UnaryOperatorCategory.Mathematical };
+            case 'COSH':
+                return { operator: UnaryOperator.Cosh, category: UnaryOperatorCategory.Mathematical };
+            case 'TANH':
+                return { operator: UnaryOperator.Tanh, category: UnaryOperatorCategory.Mathematical };
+            case 'ASINH':
+                return { operator: UnaryOperator.Asinh, category: UnaryOperatorCategory.Mathematical };
+            case 'ACOSH':
+                return { operator: UnaryOperator.Acosh, category: UnaryOperatorCategory.Mathematical };
+            case 'ATANH':
+                return { operator: UnaryOperator.Atanh, category: UnaryOperatorCategory.Mathematical };
+            case 'EXP':
+                return { operator: UnaryOperator.Exp, category: UnaryOperatorCategory.Mathematical };
+            case 'LOG':
+                return { operator: UnaryOperator.Log, category: UnaryOperatorCategory.Mathematical };
+            case 'LOG10':
+                return { operator: UnaryOperator.Log10, category: UnaryOperatorCategory.Mathematical };
+            case 'LOG2':
+                return { operator: UnaryOperator.Log2, category: UnaryOperatorCategory.Mathematical };
+            case 'SQRT':
+                return { operator: UnaryOperator.Sqrt, category: UnaryOperatorCategory.Mathematical };
+            case 'CBRT':
+                return { operator: UnaryOperator.Cbrt, category: UnaryOperatorCategory.Mathematical };
+            case 'ROUND':
+                return { operator: UnaryOperator.Round, category: UnaryOperatorCategory.Mathematical };
+            case 'FLOOR':
+                return { operator: UnaryOperator.Floor, category: UnaryOperatorCategory.Mathematical };
+            case 'CEIL':
+                return { operator: UnaryOperator.Ceil, category: UnaryOperatorCategory.Mathematical };
+            case 'TRUNC':
+                return { operator: UnaryOperator.Trunc, category: UnaryOperatorCategory.Mathematical };
+            case 'EXPAND':
+                return { operator: UnaryOperator.Expand, category: UnaryOperatorCategory.Mathematical };
+            case 'SGN':
+                return { operator: UnaryOperator.Sgn, category: UnaryOperatorCategory.Mathematical };
+            case 'ABS':
+                return { operator: UnaryOperator.Abs, category: UnaryOperatorCategory.Mathematical };
+            
+            // Complex
+            case 'REAL':
+                return { operator: UnaryOperator.Real, category: UnaryOperatorCategory.Complex };
+            case 'IMAG':
+                return { operator: UnaryOperator.Imag, category: UnaryOperatorCategory.Complex };
+            case 'REALPART':
+                return { operator: UnaryOperator.Realpart, category: UnaryOperatorCategory.Complex };
+            case 'IMAGPART':
+                return { operator: UnaryOperator.Imagpart, category: UnaryOperatorCategory.Complex };
+            case 'CONJ':
+                return { operator: UnaryOperator.Conj, category: UnaryOperatorCategory.Complex };
+            case 'CABS':
+                return { operator: UnaryOperator.Cabs, category: UnaryOperatorCategory.Complex };
+            case 'CARG':
+                return { operator: UnaryOperator.Carg, category: UnaryOperatorCategory.Complex };
+            case 'CSQRT':
+                return { operator: UnaryOperator.Csqrt, category: UnaryOperatorCategory.Complex };
+            
+            // String manipulation
+            case 'ASC':
+                return { operator: UnaryOperator.Asc, category: UnaryOperatorCategory.StringManipulation };
+            case 'CHR':
+            case 'CHR$':
+                return { operator: UnaryOperator.Chr, category: UnaryOperatorCategory.StringManipulation };
+            case 'UCASE':
+            case 'UPPER':
+            case 'UPPER$':
+                return { operator: UnaryOperator.Ucase, category: UnaryOperatorCategory.StringManipulation };
+            case 'LCASE':
+            case 'LOWER':
+            case 'LOWER$':
+                return { operator: UnaryOperator.Lcase, category: UnaryOperatorCategory.StringManipulation };
+            case 'LTRIM':
+            case 'LTRIM$':
+                return { operator: UnaryOperator.Ltrim, category: UnaryOperatorCategory.StringManipulation };
+            case 'RTRIM':
+            case 'RTRIM$':
+                return { operator: UnaryOperator.Rtrim, category: UnaryOperatorCategory.StringManipulation };
+            case 'TRIM':
+            case 'TRIM$':
+                return { operator: UnaryOperator.Trim, category: UnaryOperatorCategory.StringManipulation };
+            case 'REVERSE':
+            case 'REVERSE$':
+                return { operator: UnaryOperator.Reverse, category: UnaryOperatorCategory.StringManipulation };
+            
+            // Type conversion
+            case 'INT':
+            case 'CINT':
+                return { operator: UnaryOperator.Int, category: UnaryOperatorCategory.TypeConversion };
+            case 'STR':
+            case 'CSTR':
+            case 'STR$':
+                return { operator: UnaryOperator.Str, category: UnaryOperatorCategory.TypeConversion };
+            case 'VAL':
+                return { operator: UnaryOperator.Val, category: UnaryOperatorCategory.TypeConversion };
+            case 'HEX':
+            case 'HEX$':
+                return { operator: UnaryOperator.Hex, category: UnaryOperatorCategory.TypeConversion };
+            case 'BIN':
+            case 'BIN$':
+                return { operator: UnaryOperator.Bin, category: UnaryOperatorCategory.TypeConversion };
+            
+            default:
+                return null;
+        }
     }
 
     private parseComplexLiteral(text: string): { real: number; imaginary: number }
@@ -347,4 +652,3 @@ export class ExpressionParserService
         throw new Error(message);
     }
 }
-

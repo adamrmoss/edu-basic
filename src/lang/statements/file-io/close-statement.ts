@@ -44,4 +44,3 @@ export class CloseStatement extends Statement
         return `CLOSE ${this.fileHandle.toString()}`;
     }
 }
-

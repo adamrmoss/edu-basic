@@ -134,4 +134,3 @@ export class ForStatement extends Statement
         return result;
     }
 }
-

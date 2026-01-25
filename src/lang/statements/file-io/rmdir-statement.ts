@@ -31,4 +31,3 @@ export class RmdirStatement extends Statement
         return `RMDIR ${this.path.toString()}`;
     }
 }
-

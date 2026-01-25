@@ -55,4 +55,3 @@ export class ReadfileStatement extends Statement
         return `READFILE ${this.variableName} FROM ${this.filename.toString()}`;
     }
 }
-

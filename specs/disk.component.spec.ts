@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { DiskComponent } from '../src/app/disk/disk.component';
-import { DiskService } from '../src/app/disk.service';
+import { DiskService } from '../src/app/disk/disk.service';
 import { BehaviorSubject } from 'rxjs';
 
 describe('DiskComponent', () => {
@@ -19,7 +19,8 @@ describe('DiskComponent', () => {
         const diskServiceMock = {
             diskName$: diskNameSubject.asObservable(),
             filesChanged$: filesChangedSubject.asObservable(),
-            setDiskName: jest.fn(),
+            diskName: 'TestDisk',
+            programCode: '',
             newDisk: jest.fn(),
             loadDisk: jest.fn(),
             saveDisk: jest.fn(),
@@ -90,7 +91,7 @@ describe('DiskComponent', () => {
             component.diskName = 'NewName';
             component.onDiskNameChange();
 
-            expect(diskService.setDiskName).toHaveBeenCalledWith('NewName');
+            expect(diskService.diskName).toBe('NewName');
         });
 
         it('should create new disk with prompt', () => {

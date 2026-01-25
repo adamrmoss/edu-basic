@@ -35,4 +35,3 @@ export class LocalStatement extends Statement
         return `LOCAL ${this.variableName} = ${this.value.toString()}`;
     }
 }
-

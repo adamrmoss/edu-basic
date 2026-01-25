@@ -9,202 +9,103 @@ All expressions extend the abstract `Expression` class:
 ```typescript
 abstract class Expression extends RuntimeNode {
     abstract evaluate(context: ExecutionContext): EduBasicValue;
+    abstract toString(): string;
 }
 ```
 
-## Expression Categories
+## Core Expression Classes
 
-### Literal Expressions
+The expression system uses three unified expression classes:
 
-**Location**: `src/lang/expressions/literals/`
+### BinaryExpression
 
-Represent constant values in source code.
+**Location**: `src/lang/expressions/binary-expression.ts`
 
-**Types**:
-- `LiteralExpression` - Base for all literals
-- `ArrayLiteralExpression` - Array literals `[1, 2, 3]`
-- `ComplexLiteralExpression` - Complex literals `(1+2i)`
-- `StructureLiteralExpression` - Structure literals `{key: value}`
-
-**Evaluation**: Returns the literal value directly.
-
-### Variable Expressions
-
-**Location**: `src/lang/expressions/special/variable-expression.ts`
-
-Accesses variable values.
-
-**Evaluation**:
-1. Calls `context.getVariable(name)`
-2. Returns variable value or default
-
-### Arithmetic Expressions
-
-**Location**: `src/lang/expressions/arithmetic/`
-
-Binary arithmetic operations.
+Handles all binary (infix) operators.
 
 **Operators**:
-- `+` (Add)
-- `-` (Subtract)
-- `*` (Multiply)
-- `/` (Divide)
-- `MOD` (Modulo)
-- `^` or `**` (Power)
+- **Arithmetic**: `+`, `-`, `*`, `/`, `MOD`, `^`, `**`
+- **Comparison**: `=`, `<>`, `<`, `>`, `<=`, `>=`
+- **Logical**: `AND`, `OR`, `XOR`, `XNOR`, `NAND`, `NOR`, `IMP`
 
 **Type Handling**:
-- Integer + Integer → Integer
+- Integer + Integer → Integer (if result is whole number)
+- Integer / Integer → Integer (if result is whole number), otherwise Real
 - Mixed numeric → Real
-- Complex numbers → Complex operations
+- Complex numbers → Complex operations (automatic upcasting)
 - String concatenation via `+` operator
+- Comparison operators return Integer (-1 for true, 0 for false)
+- Complex comparisons: Not supported (throws error)
 
-**Unary Operators**:
-- `UnaryOperatorExpression` - Unary `+` and `-`
-- Location: `src/lang/expressions/arithmetic/unary-operator-expression.ts`
+### UnaryExpression
 
-### Comparison Expressions
+**Location**: `src/lang/expressions/unary-expression.ts`
 
-**Location**: `src/lang/expressions/comparison/`
-
-Comparison operations returning boolean (as Integer 0/1).
+Handles all unary operators and single-argument functions.
 
 **Operators**:
-- `==` (Equal)
-- `!=` (Not Equal)
-- `<` (Less)
-- `>` (Greater)
-- `<=` (Less or Equal)
-- `>=` (Greater or Equal)
-
-**Type Coercion**:
-- Numeric comparisons: Coerce to common numeric type
-- String comparisons: Lexicographic
-- Complex comparisons: Not supported (error)
-
-### Logical Expressions
-
-**Location**: `src/lang/expressions/logical/`
-
-Boolean logic operations.
-
-**Operators**:
-- `AND` - Logical AND
-- `OR` - Logical OR
-- `NOT` - Logical NOT (unary)
-- `NAND` - Logical NAND
-- `NOR` - Logical NOR
-- `XOR` - Exclusive OR
-- `XNOR` - Exclusive NOR
-- `IMP` - Implication
-
-**Evaluation**:
-- Operands coerced to boolean (0 = false, non-zero = true)
-- Returns Integer (0 or 1)
-
-### Mathematical Expressions
-
-**Location**: `src/lang/expressions/mathematical/`
-
-Mathematical functions.
-
-**Operators**:
-- `SIN`, `COS`, `TAN` - Trigonometry
-- `ASIN`, `ACOS`, `ATAN` - Inverse trigonometry
-- `SINH`, `COSH`, `TANH` - Hyperbolic
-- `LOG`, `LOG10`, `EXP` - Logarithms and exponential
-- `SQRT`, `CBRT` - Roots
-- `ABS` - Absolute value
-- `FLOOR`, `CEIL`, `ROUND` - Rounding
-- `MIN`, `MAX` - Min/max
-- `RAND` - Random number
+- **Prefix**: `+`, `-`, `NOT`
+- **Mathematical**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `ROUND`, `FLOOR`, `CEIL`, `TRUNC`, `EXPAND`, `SGN`, `ABS`
+- **Complex**: `REAL`, `IMAG`, `REALPART`, `IMAGPART`, `CONJ`, `CABS`, `CARG`, `CSQRT`
+- **String Manipulation**: `ASC`, `CHR`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`
+- **Type Conversion**: `INT`, `STR`, `VAL`, `HEX`, `BIN`
 
 **Type Handling**:
-- Operands coerced to Real
-- Results are Real
-- Complex numbers supported where applicable
+- Mathematical functions automatically upcast to Complex when needed (e.g., `SQRT(-1)`, `LOG(-1)`)
+- `REALPART` and `IMAGPART` work on any numeric type (extract real/imaginary parts)
+- `REAL` and `IMAG` require complex operands
+- Results preserve type when possible (e.g., `ABS` of integer may return integer)
 
-### String Expressions
+### FunctionCallExpression
 
-**Location**: `src/lang/expressions/string/`
+**Location**: `src/lang/expressions/function-call-expression.ts`
 
-String operations.
+Handles multi-argument function calls.
 
-**Operators**:
-- `+` - String concatenation
-- `&` - String concatenation (alternative)
+**Functions**:
+- **String**: `LEFT`, `RIGHT`, `MID`, `INSTR`, `REPLACE`, `STARTSWITH`, `ENDSWITH`
+- **Array**: `FIND`, `JOIN`, `INDEXOF`, `INCLUDES`, `SIZE`, `EMPTY`, `LEN`
 
-**String Manipulation**:
-- Location: `src/lang/expressions/string-manipulation/`
-- `LEFT$`, `RIGHT$`, `MID$` - Substring extraction
-- `LEN` - String length
-- `UPPER$`, `LOWER$` - Case conversion
-- `TRIM$`, `LTRIM$`, `RTRIM$` - Whitespace removal
+**Evaluation**: Validates argument count and delegates to helper evaluators.
 
-### Array Expressions
+## Nullary Expressions
 
-**Location**: `src/lang/expressions/array/`
+**Location**: `src/lang/expressions/nullary-expression.ts`
 
-Array operations.
+Represents nullary operators (built-in values that take no arguments) that evaluate at runtime. Nullary operators can be thought of as "pseudo-variables" or "constants that can change" - they behave like variables in that they can be used anywhere a value is expected, but unlike true constants, some of them (like `RND#`, `DATE$`, `TIME$`, `NOW%`) return different values on each evaluation.
 
-**Operators**:
-- Array access: `arr[index]`
-- Array literals: `[1, 2, 3]`
-- Array operations: `SIZE`, `EMPTY`, etc.
+**Built-in Nullary Operators**:
+- `PI#`, `E#` - Mathematical constants (unchanging)
+- `RND#` - Random number (evaluated fresh at runtime)
+- `INKEY$` - Keyboard input (evaluated at runtime)
+- `DATE$`, `TIME$`, `NOW%` - Date/time (evaluated fresh at runtime)
+- `TRUE%`, `FALSE%` - Boolean constants (unchanging)
 
-**Array Access**:
-- Location: `src/lang/expressions/special/array-access-expression.ts`
-- Evaluates index expression
-- Accesses array element
-- Returns element value or default
+**Evaluation**: Calls `ConstantEvaluator.evaluate()` at runtime, ensuring values like `RND#` and `DATE$` are fresh on each evaluation. This is critical for runtime-dependent values - each evaluation produces a new value. The term "nullary operator" emphasizes that these are operators that take zero arguments, distinguishing them from both true constants (which never change) and variables (which are user-defined).
 
-### Complex Expressions
-
-**Location**: `src/lang/expressions/complex/`
-
-Complex number operations.
-
-**Operators**:
-- `+`, `-`, `*`, `/` - Arithmetic
-- `REAL`, `IMAG` - Extract parts
-- `CONJ` - Conjugate
-- `ABS` - Magnitude
-- `ARG` - Argument (phase)
-
-### Type Conversion Expressions
-
-**Location**: `src/lang/expressions/type-conversion/`
-
-Type conversion operations.
-
-**Operators**:
-- `CINT`, `CLNG` - To integer
-- `CSNG`, `CDBL` - To real
-- `CSTR` - To string
-- `CCOMPLEX` - To complex
-
-### Special Expressions
+## Special Expressions
 
 **Location**: `src/lang/expressions/special/`
 
-Special-purpose expressions.
+Special-purpose expressions that don't fit the unified pattern:
 
-**Types**:
-- `ParenthesizedExpression` - `(expr)` - Groups expressions
-- `AbsoluteValueExpression` - `ABS(expr)` - Absolute value
-- `StructureMemberExpression` - `struct.member` - Structure access
-- `ArrayAccessExpression` - `arr[index]` - Array indexing
+- `LiteralExpression` - All literal values (Integer, Real, Complex, String, Array, Structure)
 - `VariableExpression` - Variable access
+- `ParenthesizedExpression` - `(expr)` - Groups expressions
+- `ArrayAccessExpression` - `arr[index]` - Array indexing
+- `StructureMemberExpression` - `struct.member` - Structure member access
 
-### Constant Expressions
+## Helper Evaluators
 
-**Location**: `src/lang/expressions/constants/`
+**Location**: `src/lang/expressions/helpers/`
 
-Built-in constants.
+Helper classes encapsulate evaluation logic:
 
-**Constants**:
-- `PI#` - Pi (3.14159...)
-- `E#` - Euler's number
-- `TRUE`, `FALSE` - Boolean constants
+- `MathematicalFunctionEvaluator` - Mathematical functions with automatic complex upcasting
+- `ComplexFunctionEvaluator` - Complex number operations (`REAL`, `IMAG`, `REALPART`, `IMAGPART`, `CONJ`, `CABS`, `CARG`, `CSQRT`)
+- `StringFunctionEvaluator` - String manipulation functions
+- `TypeConversionEvaluator` - Type conversion functions
+- `ConstantEvaluator` - Built-in constants
 
 ## Expression Parsing
 
@@ -217,10 +118,10 @@ From lowest to highest:
 3. **OR, NOR**
 4. **AND, NAND**
 5. **NOT** (Unary)
-6. **Comparison** (`==`, `!=`, `<`, `>`, `<=`, `>=`)
+6. **Comparison** (`=`, `<>`, `<`, `>`, `<=`, `>=`)
 7. **Arithmetic** (`+`, `-`, `*`, `/`, `MOD`, `^`, `**`)
-8. **Unary** (`+`, `-`, `NOT`)
-9. **Primary** (literals, variables, function calls)
+8. **Unary** (`+`, `-`, `NOT`, function calls)
+9. **Primary** (literals, variables, parentheses, array access, structure access)
 
 ### Parsing Methods
 
@@ -233,52 +134,120 @@ From lowest to highest:
 - `andNand()` - AND, NAND operators
 - `not()` - NOT operator
 - `comparison()` - Comparison operators
-- `term()` - Addition, subtraction
-- `factor()` - Multiplication, division, modulo
-- `unary()` - Unary operators
-- `primary()` - Literals, variables, parentheses
+- `addSub()` - Addition, subtraction
+- `mulDiv()` - Multiplication, division, modulo
+- `exponentiation()` - Power operators
+- `unary()` - Unary operators and function calls
+- `primary()` - Literals, variables, parentheses, array access, structure access, function calls
 
-### Parenthesized Expressions
+## Type System
 
-Parentheses override operator precedence:
-
-```typescript
-class ParenthesizedExpression extends Expression {
-    constructor(public readonly expression: Expression) {}
-}
-```
-
-## Expression Evaluation
-
-### Evaluation Flow
+### Type Hierarchy
 
 ```
-Expression.evaluate(context)
-    ↓
-Evaluate operands recursively
-    ↓
-Perform operation
-    ↓
-Return EduBasicValue
+Integer → Real → Complex
+String (separate)
+Array (typed by element type)
+Structure
 ```
 
-### Type Coercion
+### Automatic Type Coercion
 
 **Numeric Coercion**:
 - Integer → Real: Automatic promotion
-- Real → Integer: Truncation
-- Numeric → Complex: Real part set, imaginary = 0
+- Real → Complex: Real part set, imaginary = 0
+- Integer → Complex: Real part set, imaginary = 0
 
-**String Coercion**:
-- Any value → String: `toString()` conversion
-- String → Numeric: Parse if possible
+**Mathematical Functions**:
+- Automatically upcast to Complex when operation requires it:
+  - `SQRT` of negative → Complex
+  - `LOG` of negative → Complex
+  - `ASIN`/`ACOS` outside [-1, 1] → Complex
+  - `ACOSH` of value < 1 → Complex
+  - `ATANH` outside (-1, 1) → Complex
 
-**Boolean Coercion**:
-- 0 → false
-- Non-zero → true
-- Used in logical operations
+**Division**:
+- Integer / Integer → Integer (if whole number result), otherwise Real
+- Any Real operand → Real result
 
-### Error Handling
+**Downcasting Errors**:
+- Complex → Real/Integer: Throws error (use `REALPART` or `IMAGPART`)
+- Detected during variable assignment in `LetStatement`
+
+### Type Checking
+
+- Type checking occurs during evaluation
+- Invalid operations throw errors immediately
+- Downcasting errors provide helpful messages
+
+## Expression Examples
+
+### Arithmetic
+```
+10 + 20          → 30 (Integer)
+10.5 + 20        → 30.5 (Real)
+10 / 2           → 5 (Integer)
+7 / 2            → 3.5 (Real)
+"Hello" + "World" → "HelloWorld" (String)
+(1+2i) + (3+4i)  → (4+6i) (Complex)
+```
+
+### Comparison
+```
+10 < 20          → -1 (true)
+10 = 20          → 0 (false)
+"abc" < "def"    → -1 (true)
+```
+
+### Logical
+```
+10 AND 20        → -1 (true)
+NOT 0            → -1 (true)
+10 OR 0          → -1 (true)
+```
+
+### Mathematical
+```
+SIN(PI# / 2)     → 1.0 (Real)
+SQRT(16)         → 4.0 (Real)
+SQRT(-4)         → (0+2i) (Complex, automatic upcast)
+LOG(-1)          → (0+πi) (Complex, automatic upcast)
+ABS(-10)         → 10 (Real)
+```
+
+### Complex Numbers
+```
+REALPART((3+4i)) → 3.0 (Real)
+IMAGPART((3+4i)) → 4.0 (Real)
+REALPART(5)      → 5.0 (Real)
+IMAGPART(5)      → 0.0 (Real)
+CONJ((3+4i))     → (3-4i) (Complex)
+CABS((3+4i))     → 5.0 (Real)
+```
+
+### String Functions
+```
+LEFT("Hello", 3)  → "Hel" (String)
+MID("Hello", 2, 3) → "ell" (String)
+LEN("Hello")      → 5 (Integer)
+```
+
+### Array Functions
+```
+SIZE([1, 2, 3])  → 3 (Integer)
+FIND([1, 2, 3], 2) → 1 (Integer, 0-based)
+JOIN([1, 2, 3], ",") → "1,2,3" (String)
+```
+
+### Type Conversion
+```
+INT(3.7)         → 3 (Integer)
+STR(42)          → "42" (String)
+VAL("3.14")      → 3.14 (Real)
+HEX(255)         → "FF" (String)
+```
+
+## Error Handling
 
 **Type Errors**:
 - Invalid type operations throw errors
@@ -290,60 +259,13 @@ Return EduBasicValue
 - Throws error
 - Handled gracefully
 
-## Expression Examples
+**Downcasting Errors**:
+- Complex → Real/Integer assignment throws error
+- Suggests using `REALPART` or `IMAGPART`
 
-### Arithmetic
-```
-10 + 20          → 30 (Integer)
-10.5 + 20        → 30.5 (Real)
-"Hello" + "World" → "HelloWorld" (String)
-```
-
-### Comparison
-```
-10 < 20          → 1 (true)
-10 == 20         → 0 (false)
-"abc" < "def"    → 1 (true)
-```
-
-### Logical
-```
-10 AND 20        → 1 (true)
-NOT 0            → 1 (true)
-10 OR 0          → 1 (true)
-```
-
-### Mathematical
-```
-SIN(PI# / 2)     → 1.0 (Real)
-SQRT(16)         → 4.0 (Real)
-ABS(-10)         → 10 (Integer)
-```
-
-### Array
-```
-arr%[0]          → First element
-SIZE(arr%[])      → Array length
-```
-
-### Complex
-```
-(1+2i) + (3+4i)  → (4+6i)
-REAL((1+2i))     → 1.0
-ABS((3+4i))      → 5.0
-```
-
-## Expression Optimization
-
-**Current Implementation**:
-- No expression optimization
-- All expressions evaluated at runtime
-- No constant folding
-
-**Future Enhancements**:
-- Constant folding
-- Expression simplification
-- Dead code elimination
+**Domain Errors**:
+- Mathematical functions automatically upcast to Complex when needed
+- Operations that would produce NaN instead produce Complex results
 
 ## Expression Testing
 

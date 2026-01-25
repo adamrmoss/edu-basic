@@ -75,4 +75,3 @@ export class DimStatement extends Statement
         return `DIM ${this.arrayName}[${dims}]`;
     }
 }
-

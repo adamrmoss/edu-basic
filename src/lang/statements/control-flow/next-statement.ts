@@ -65,4 +65,3 @@ export class NextStatement extends Statement
         return 'NEXT';
     }
 }
-

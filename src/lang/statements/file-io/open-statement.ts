@@ -85,4 +85,3 @@ export class OpenStatement extends Statement
         return `OPEN ${this.filename.toString()} FOR ${modeStr} AS ${this.handleVariable}`;
     }
 }
-

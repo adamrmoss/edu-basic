@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { valueToString } from '../../edu-basic-value';
 
 export class ThrowStatement extends Statement
 {
@@ -24,7 +25,7 @@ export class ThrowStatement extends Statement
     ): ExecutionStatus
     {
         const messageValue = this.message.evaluate(context);
-        throw new Error(messageValue.value?.toString() ?? 'Thrown error');
+        throw new Error(valueToString(messageValue));
     }
 
     public override toString(): string
@@ -32,4 +33,3 @@ export class ThrowStatement extends Statement
         return `THROW ${this.message.toString()}`;
     }
 }
-

@@ -228,4 +228,3 @@ export class SelectCaseStatement extends Statement
         return result;
     }
 }
-

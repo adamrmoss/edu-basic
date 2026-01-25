@@ -32,4 +32,3 @@ export class ReadFileStatement extends Statement
         return `READ ${this.variableName} FROM ${this.fileHandle.toString()}`;
     }
 }
-

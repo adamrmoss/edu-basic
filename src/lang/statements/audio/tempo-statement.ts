@@ -37,4 +37,3 @@ export class TempoStatement extends Statement
         return `TEMPO ${this.bpm.toString()}`;
     }
 }
-

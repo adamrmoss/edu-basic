@@ -33,4 +33,3 @@ export class ElseStatement extends Statement
         return 'ELSE';
     }
 }
-

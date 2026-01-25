@@ -32,19 +32,22 @@ EduBASIC is an Angular-based web application that provides a BASIC programming e
 
 **Documentation:**
 
-**Language Documentation:**
-- [EduBASIC Tutorial](docs/edu-basic-tutorial.md) - Introduction to language and development environment, with examples
+**User Documentation:**
+- [EduBASIC User Guide](docs/user-guide.md) - Complete guide to using the EduBASIC software interface and features
 - [EduBASIC Language Reference](docs/edu-basic-language.md) - Complete language specification and reference
 
 **System Architecture Documentation:**
 - [Architecture Overview](docs/architecture.md) - High-level system architecture and design principles
-- [Application Components](src/app/README.md) - All Angular UI components and their functionality
-- [Interpreter Services](src/app/interpreter/README.md) - Interpreter, parser, tokenizer, and expression parser services
-- [Console Service](src/app/console/README.md) - Console command execution and history management
-- [Language Core](src/lang/README.md) - Core language types, execution model, runtime execution, graphics, and audio
-- [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
-- [Statements System](src/lang/statements/README.md) - All statement types and their execution
-- [Grit Synthesis System](src/grit/README.md) - Audio synthesis engine and components
+- [Source Code Documentation](src/README.md) - Complete index of all in-source documentation
+  - [Application Components](src/app/README.md) - All Angular UI components and their functionality
+  - [Interpreter Services](src/app/interpreter/README.md) - Interpreter, parser, tokenizer, and expression parser services
+  - [Console Service](src/app/console/README.md) - Console command execution and history management
+  - [Language Core](src/lang/README.md) - Core language types, execution model, runtime execution, graphics, and audio
+  - [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
+  - [Statements System](src/lang/statements/README.md) - All statement types and their execution
+  - [Grit Synthesis System](src/grit/README.md) - Audio synthesis engine and components
+- [GRIT Noise Synthesis System](docs/grit-noise-synthesis-system.md) - Complete technical documentation for the GRIT audio synthesis system
+- [GRIT Preset Reference](docs/grit-presets.md) - Complete reference for all 128 GRIT presets organized by category
 
 ## Tech Stack
 

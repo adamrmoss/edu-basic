@@ -17,9 +17,8 @@ export class StructureMemberExpression extends Expression
         throw new Error('StructureMemberExpression.evaluate() not yet implemented');
     }
 
-    public toString(): string
+    public toString(omitOuterParens?: boolean): string
     {
         return `${this.structureExpr.toString()}[${this.memberName}]`;
     }
 }
-

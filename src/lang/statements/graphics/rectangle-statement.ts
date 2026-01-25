@@ -81,4 +81,3 @@ export class RectangleStatement extends Statement
         return result;
     }
 }
-

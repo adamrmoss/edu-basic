@@ -7,7 +7,7 @@ import { RuntimeExecution } from '../../lang/runtime-execution';
 import { GraphicsService } from './graphics.service';
 import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
-import { FileSystemService } from '../filesystem.service';
+import { FileSystemService } from '../files/filesystem.service';
 
 export enum InterpreterState
 {
@@ -75,11 +75,14 @@ export class InterpreterService
         return this.parseResultSubject.value;
     }
 
-    public setProgram(program: Program): void
+    public set program(program: Program | null)
     {
         this.programSubject.next(program);
         this.parseResultSubject.next(null);
-        this.sharedProgram = program; // Update shared program (though we're reusing the same instance now)
+        if (program)
+        {
+            this.sharedProgram = program; // Update shared program (though we're reusing the same instance now)
+        }
     }
 
     public createProgram(): Program
@@ -202,4 +205,3 @@ export class InterpreterService
         return this.runtimeExecution;
     }
 }
-

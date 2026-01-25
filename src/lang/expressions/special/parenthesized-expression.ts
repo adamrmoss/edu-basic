@@ -16,9 +16,8 @@ export class ParenthesizedExpression extends Expression
         return this.innerExpression.evaluate(context);
     }
 
-    public toString(): string
+    public toString(omitOuterParens?: boolean): string
     {
         return `(${this.innerExpression.toString()})`;
     }
 }
-

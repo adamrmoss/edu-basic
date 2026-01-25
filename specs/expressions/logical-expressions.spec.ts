@@ -1,5 +1,6 @@
-import { LogicalExpression, LogicalOperator } from '../../src/lang/expressions/logical/logical-expression';
-import { LiteralExpression } from '../../src/lang/expressions/literals/literal-expression';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../src/lang/expressions/binary-expression';
+import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../src/lang/expressions/unary-expression';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
 import { ExecutionContext } from '../../src/lang/execution-context';
 import { EduBasicType } from '../../src/lang/edu-basic-value';
 
@@ -18,7 +19,7 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 12 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(left, LogicalOperator.And, right);
+            const expr = new BinaryExpression(left, BinaryOperator.And, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -30,7 +31,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const falseVal = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new LogicalExpression(trueVal, LogicalOperator.And, falseVal);
+            const expr = new BinaryExpression(trueVal, BinaryOperator.And, falseVal, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -41,7 +42,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal1 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const trueVal2 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
-            const expr = new LogicalExpression(trueVal1, LogicalOperator.And, trueVal2);
+            const expr = new BinaryExpression(trueVal1, BinaryOperator.And, trueVal2, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -55,7 +56,7 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 12 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(left, LogicalOperator.Or, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Or, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -67,7 +68,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const falseVal = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new LogicalExpression(trueVal, LogicalOperator.Or, falseVal);
+            const expr = new BinaryExpression(trueVal, BinaryOperator.Or, falseVal, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -80,7 +81,7 @@ describe('Logical Expressions', () =>
         it('should perform bitwise NOT', () =>
         {
             const operand = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
-            const expr = new LogicalExpression(null, LogicalOperator.Not, operand);
+            const expr = new UnaryExpression(UnaryOperator.Not, operand, UnaryOperatorCategory.Prefix);
 
             const result = expr.evaluate(context);
 
@@ -91,7 +92,7 @@ describe('Logical Expressions', () =>
         it('should NOT TRUE to give FALSE', () =>
         {
             const trueVal = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
-            const expr = new LogicalExpression(null, LogicalOperator.Not, trueVal);
+            const expr = new UnaryExpression(UnaryOperator.Not, trueVal, UnaryOperatorCategory.Prefix);
 
             const result = expr.evaluate(context);
 
@@ -101,7 +102,7 @@ describe('Logical Expressions', () =>
         it('should NOT FALSE to give TRUE', () =>
         {
             const falseVal = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new LogicalExpression(null, LogicalOperator.Not, falseVal);
+            const expr = new UnaryExpression(UnaryOperator.Not, falseVal, UnaryOperatorCategory.Prefix);
 
             const result = expr.evaluate(context);
 
@@ -111,17 +112,19 @@ describe('Logical Expressions', () =>
         it('should require only right operand', () =>
         {
             const operand = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(null, LogicalOperator.Not, operand);
+            const expr = new UnaryExpression(UnaryOperator.Not, operand, UnaryOperatorCategory.Prefix);
 
             expect(() => expr.evaluate(context)).not.toThrow();
         });
 
-        it('should throw error if used with left operand on other operators', () =>
+        it('should work correctly as unary operator', () =>
         {
             const operand = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(null, LogicalOperator.And, operand);
+            const expr = new UnaryExpression(UnaryOperator.Not, operand, UnaryOperatorCategory.Prefix);
 
-            expect(() => expr.evaluate(context)).toThrow('requires left operand');
+            const result = expr.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(~10);
         });
     });
 
@@ -131,7 +134,7 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 12 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(left, LogicalOperator.Xor, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Xor, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -143,7 +146,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const falseVal = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new LogicalExpression(trueVal, LogicalOperator.Xor, falseVal);
+            const expr = new BinaryExpression(trueVal, BinaryOperator.Xor, falseVal, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -154,7 +157,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal1 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const trueVal2 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
-            const expr = new LogicalExpression(trueVal1, LogicalOperator.Xor, trueVal2);
+            const expr = new BinaryExpression(trueVal1, BinaryOperator.Xor, trueVal2, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -168,7 +171,7 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 12 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(left, LogicalOperator.Nand, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Nand, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -179,7 +182,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const falseVal = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new LogicalExpression(trueVal, LogicalOperator.Nand, falseVal);
+            const expr = new BinaryExpression(trueVal, BinaryOperator.Nand, falseVal, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -190,7 +193,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal1 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const trueVal2 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
-            const expr = new LogicalExpression(trueVal1, LogicalOperator.Nand, trueVal2);
+            const expr = new BinaryExpression(trueVal1, BinaryOperator.Nand, trueVal2, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -204,7 +207,7 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 12 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(left, LogicalOperator.Nor, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Nor, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -215,7 +218,7 @@ describe('Logical Expressions', () =>
         {
             const falseVal1 = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
             const falseVal2 = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new LogicalExpression(falseVal1, LogicalOperator.Nor, falseVal2);
+            const expr = new BinaryExpression(falseVal1, BinaryOperator.Nor, falseVal2, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -229,7 +232,7 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 12 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 10 });
-            const expr = new LogicalExpression(left, LogicalOperator.Xnor, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Xnor, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -240,7 +243,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal1 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const trueVal2 = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
-            const expr = new LogicalExpression(trueVal1, LogicalOperator.Xnor, trueVal2);
+            const expr = new BinaryExpression(trueVal1, BinaryOperator.Xnor, trueVal2, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -254,7 +257,7 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
             const right = new LiteralExpression({ type: EduBasicType.Integer, value: 3 });
-            const expr = new LogicalExpression(left, LogicalOperator.Imp, right);
+            const expr = new BinaryExpression(left, BinaryOperator.Imp, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -265,7 +268,7 @@ describe('Logical Expressions', () =>
         {
             const falseVal = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
             const anyVal = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
-            const expr = new LogicalExpression(falseVal, LogicalOperator.Imp, anyVal);
+            const expr = new BinaryExpression(falseVal, BinaryOperator.Imp, anyVal, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -276,7 +279,7 @@ describe('Logical Expressions', () =>
         {
             const trueVal = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
             const rightVal = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
-            const expr = new LogicalExpression(trueVal, LogicalOperator.Imp, rightVal);
+            const expr = new BinaryExpression(trueVal, BinaryOperator.Imp, rightVal, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
@@ -290,11 +293,86 @@ describe('Logical Expressions', () =>
         {
             const left = new LiteralExpression({ type: EduBasicType.Real, value: 12.7 });
             const right = new LiteralExpression({ type: EduBasicType.Real, value: 10.3 });
-            const expr = new LogicalExpression(left, LogicalOperator.And, right);
+            const expr = new BinaryExpression(left, BinaryOperator.And, right, BinaryOperatorCategory.Logical);
 
             const result = expr.evaluate(context);
 
             expect(result.value).toBe(12 & 10);
+        });
+    });
+
+    describe('Edge Cases', () =>
+    {
+        it('should handle very large integers in bitwise operations', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 0xFFFFFFFF });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 0x0000FFFF });
+            const expr = new BinaryExpression(left, BinaryOperator.And, right, BinaryOperatorCategory.Logical);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(0x0000FFFF);
+        });
+
+        it('should handle all zeros', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const andExpr = new BinaryExpression(left, BinaryOperator.And, right, BinaryOperatorCategory.Logical);
+            const orExpr = new BinaryExpression(left, BinaryOperator.Or, right, BinaryOperatorCategory.Logical);
+            const xorExpr = new BinaryExpression(left, BinaryOperator.Xor, right, BinaryOperatorCategory.Logical);
+
+            expect(andExpr.evaluate(context).value).toBe(0);
+            expect(orExpr.evaluate(context).value).toBe(0);
+            expect(xorExpr.evaluate(context).value).toBe(0);
+        });
+
+        it('should handle all ones (-1)', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
+            const andExpr = new BinaryExpression(left, BinaryOperator.And, right, BinaryOperatorCategory.Logical);
+            const orExpr = new BinaryExpression(left, BinaryOperator.Or, right, BinaryOperatorCategory.Logical);
+            const xorExpr = new BinaryExpression(left, BinaryOperator.Xor, right, BinaryOperatorCategory.Logical);
+
+            expect(andExpr.evaluate(context).value).toBe(-1);
+            expect(orExpr.evaluate(context).value).toBe(-1);
+            expect(xorExpr.evaluate(context).value).toBe(0);
+        });
+
+        it('should handle NOT with zero', () =>
+        {
+            const value = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const expr = new UnaryExpression(UnaryOperator.Not, value, UnaryOperatorCategory.Prefix);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(-1);
+        });
+
+        it('should handle NOT with -1', () =>
+        {
+            const value = new LiteralExpression({ type: EduBasicType.Integer, value: -1 });
+            const expr = new UnaryExpression(UnaryOperator.Not, value, UnaryOperatorCategory.Prefix);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(0);
+        });
+
+        it('should handle IMP with false premise', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const right = new LiteralExpression({ type: EduBasicType.Integer, value: 5 });
+            const expr = new BinaryExpression(left, BinaryOperator.Imp, right, BinaryOperatorCategory.Logical);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(-1);
         });
     });
 });

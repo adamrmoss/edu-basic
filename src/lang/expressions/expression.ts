@@ -5,4 +5,5 @@ import { ExecutionContext } from '../execution-context';
 export abstract class Expression extends RuntimeNode
 {
     public abstract evaluate(context: ExecutionContext): EduBasicValue;
+    public abstract override toString(omitOuterParens?: boolean): string;
 }

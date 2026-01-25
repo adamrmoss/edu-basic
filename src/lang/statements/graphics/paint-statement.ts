@@ -34,4 +34,3 @@ export class PaintStatement extends Statement
         return `PAINT (${this.x.toString()}, ${this.y.toString()}) WITH ${this.color.toString()}`;
     }
 }
-

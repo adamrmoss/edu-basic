@@ -2,7 +2,7 @@ import { ExecutionContext } from '../src/lang/execution-context';
 import { Program } from '../src/lang/program';
 import { RuntimeExecution } from '../src/lang/runtime-execution';
 import { ExecutionResult } from '../src/lang/statements/statement';
-import { EduBasicType } from '../src/lang/edu-basic-value';
+import { EduBasicType, EduBasicValue } from '../src/lang/edu-basic-value';
 
 import { ClsStatement } from '../src/lang/statements/io/cls-statement';
 import { ColorStatement } from '../src/lang/statements/io/color-statement';
@@ -25,16 +25,20 @@ import { VolumeStatement } from '../src/lang/statements/audio/volume-statement';
 import { VoiceStatement } from '../src/lang/statements/audio/voice-statement';
 import { PlayStatement } from '../src/lang/statements/audio/play-statement';
 
-import { LiteralExpression } from '../src/lang/expressions/literals/literal-expression';
+import { LiteralExpression } from '../src/lang/expressions/literal-expression';
+import { PrintStatement } from '../src/lang/statements/io/print-statement';
+import { LetStatement } from '../src/lang/statements/variables/let-statement';
+import { coerceArrayElements } from '../src/lang/edu-basic-value';
 import { Graphics, Color } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
+import { FileSystemService } from '../src/app/files/filesystem.service';
 
 class MockGraphics extends Graphics
 {
     public clearCalled: boolean = false;
     public cursorPosition: { row: number; column: number } | null = null;
-    public foregroundColor: Color | null = null;
-    public backgroundColor: Color | null = null;
+    public trackedForegroundColor: Color | null = null;
+    public trackedBackgroundColor: Color | null = null;
     public pixels: Array<{ x: number; y: number; color?: Color }> = [];
     public lines: Array<{ x1: number; y1: number; x2: number; y2: number; color?: Color }> = [];
     public rectangles: Array<{ x: number; y: number; width: number; height: number; filled: boolean; color?: Color }> = [];
@@ -42,17 +46,19 @@ class MockGraphics extends Graphics
     public circles: Array<{ x: number; y: number; radius: number; filled: boolean; color?: Color }> = [];
     public triangles: Array<{ x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; filled: boolean; color?: Color }> = [];
     public arcs: Array<{ x: number; y: number; radius: number; startAngle: number; endAngle: number; color?: Color }> = [];
+    public printedText: string[] = [];
+    public newLineCount: number = 0;
     
     public override setForegroundColor(color: Color): void
     {
         super.setForegroundColor(color);
-        this.foregroundColor = color;
+        this.trackedForegroundColor = color;
     }
     
     public override setBackgroundColor(color: Color): void
     {
         super.setBackgroundColor(color);
-        this.backgroundColor = color;
+        this.trackedBackgroundColor = color;
     }
     
     public override setCursorPosition(row: number, column: number): void
@@ -100,25 +106,42 @@ class MockGraphics extends Graphics
     {
         this.clearCalled = true;
     }
+    
+    public override printText(text: string): void
+    {
+        this.printedText.push(text);
+        super.printText(text);
+    }
+    
+    public override newLine(): void
+    {
+        this.newLineCount++;
+        super.newLine();
+    }
+    
+    public getPrintedOutput(): string
+    {
+        return this.printedText.join('');
+    }
 }
 
 class MockAudio extends Audio
 {
-    public tempo: number | null = null;
-    public volume: number | null = null;
+    public trackedTempo: number | null = null;
+    public trackedVolume: number | null = null;
     public voice: number | null = null;
     public sequences: string[] = [];
     
     public override setTempo(bpm: number): void
     {
         super.setTempo(bpm);
-        this.tempo = bpm;
+        this.trackedTempo = bpm;
     }
     
     public override setVolume(volume: number): void
     {
         super.setVolume(volume);
-        this.volume = volume;
+        this.trackedVolume = volume;
     }
     
     public override setVoice(voiceIndex: number): void
@@ -148,7 +171,8 @@ describe('Statement Implementations', () =>
         graphics = new MockGraphics();
         audio = new MockAudio();
         program = new Program();
-        runtime = new RuntimeExecution(program, context, graphics, audio);
+        const fileSystem = new FileSystemService();
+        runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
     });
     
     describe('CLS Statement', () =>
@@ -180,8 +204,8 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
-            expect(graphics.backgroundColor).toBeNull();
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedBackgroundColor).toBeNull();
         });
         
         it('should set both foreground and background colors', () =>
@@ -194,8 +218,8 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 255, b: 255, a: 255 });
-            expect(graphics.backgroundColor).toEqual({ r: 0, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 255, b: 255, a: 255 });
+            expect(graphics.trackedBackgroundColor).toEqual({ r: 0, g: 0, b: 0, a: 255 });
         });
         
         it('should extract RGBA components correctly from hex integer', () =>
@@ -206,7 +230,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 0x12, g: 0x34, b: 0x56, a: 0x78 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 0x12, g: 0x34, b: 0x56, a: 0x78 });
         });
         
         it('should accept color name strings for foreground', () =>
@@ -218,7 +242,7 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should accept color name strings for background', () =>
@@ -231,8 +255,8 @@ describe('Statement Implementations', () =>
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
-            expect(graphics.backgroundColor).toEqual({ r: 0, g: 0, b: 255, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedBackgroundColor).toEqual({ r: 0, g: 0, b: 255, a: 255 });
         });
         
         it('should accept color names case-insensitively (uppercase)', () =>
@@ -243,7 +267,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should accept color names case-insensitively (mixed case)', () =>
@@ -254,7 +278,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should accept color names case-insensitively (lowercase)', () =>
@@ -265,7 +289,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            expect(graphics.foregroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
+            expect(graphics.trackedForegroundColor).toEqual({ r: 255, g: 0, b: 0, a: 255 });
         });
         
         it('should handle various CSS color names', () =>
@@ -286,7 +310,7 @@ describe('Statement Implementations', () =>
                 
                 stmt.execute(context, graphics, audio, program, runtime);
                 
-                expect(graphics.foregroundColor).toEqual(testCase.expected);
+                expect(graphics.trackedForegroundColor).toEqual(testCase.expected);
             }
         });
         
@@ -296,13 +320,13 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.String, value: "gray" })
             );
             grayStmt.execute(context, graphics, audio, program, runtime);
-            const grayColor = graphics.foregroundColor;
+            const grayColor = graphics.trackedForegroundColor;
             
             const greyStmt = new ColorStatement(
                 new LiteralExpression({ type: EduBasicType.String, value: "grey" })
             );
             greyStmt.execute(context, graphics, audio, program, runtime);
-            const greyColor = graphics.foregroundColor;
+            const greyColor = graphics.trackedForegroundColor;
             
             expect(grayColor).toEqual(greyColor);
             expect(grayColor).toEqual({ r: 128, g: 128, b: 128, a: 255 });
@@ -314,13 +338,13 @@ describe('Statement Implementations', () =>
                 new LiteralExpression({ type: EduBasicType.String, value: "aqua" })
             );
             aquaStmt.execute(context, graphics, audio, program, runtime);
-            const aquaColor = graphics.foregroundColor;
+            const aquaColor = graphics.trackedForegroundColor;
             
             const cyanStmt = new ColorStatement(
                 new LiteralExpression({ type: EduBasicType.String, value: "cyan" })
             );
             cyanStmt.execute(context, graphics, audio, program, runtime);
-            const cyanColor = graphics.foregroundColor;
+            const cyanColor = graphics.trackedForegroundColor;
             
             expect(aquaColor).toEqual(cyanColor);
             expect(aquaColor).toEqual({ r: 0, g: 255, b: 255, a: 255 });
@@ -902,7 +926,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 3 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
@@ -920,7 +944,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 10 })
                 );
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('PUSH: x% is not an array');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('PUSH: x% is not an array');
             });
         });
         
@@ -935,7 +959,7 @@ describe('Statement Implementations', () =>
                 ], elementType: EduBasicType.Integer });
                 
                 const stmt = new PopStatement('arr%[]', 'result%');
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
@@ -952,7 +976,7 @@ describe('Statement Implementations', () =>
                 ], elementType: EduBasicType.Integer });
                 
                 const stmt = new PopStatement('arr%[]', null);
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
                 const arr = context.getVariable('arr%[]');
                 expect((arr.value as any[]).length).toBe(0);
@@ -964,7 +988,7 @@ describe('Statement Implementations', () =>
                 
                 const stmt = new PopStatement('arr%[]', null);
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('POP: arr%[] is empty');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('POP: arr%[] is empty');
             });
             
             it('should throw error if variable is not an array', () =>
@@ -973,7 +997,7 @@ describe('Statement Implementations', () =>
                 
                 const stmt = new PopStatement('x%', null);
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('POP: x% is not an array');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('POP: x% is not an array');
             });
         });
         
@@ -988,7 +1012,7 @@ describe('Statement Implementations', () =>
                 ], elementType: EduBasicType.String });
                 
                 const stmt = new ShiftStatement('arr$[]', 'result$');
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr$[]');
@@ -1005,7 +1029,7 @@ describe('Statement Implementations', () =>
                 
                 const stmt = new ShiftStatement('arr%[]', null);
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('SHIFT: arr%[] is empty');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('SHIFT: arr%[] is empty');
             });
         });
         
@@ -1023,7 +1047,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 const arr = context.getVariable('arr%[]');
@@ -1040,7 +1064,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 10 })
                 );
                 
-                expect(() => stmt.execute(context, graphics, audio)).toThrow('UNSHIFT: x% is not an array');
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('UNSHIFT: x% is not an array');
             });
         });
     });
@@ -1054,7 +1078,7 @@ describe('Statement Implementations', () =>
                 [new LiteralExpression({ type: EduBasicType.Integer, value: 5 })]
             );
             
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
             const arr = context.getVariable('arr%[]');
@@ -1072,7 +1096,7 @@ describe('Statement Implementations', () =>
                 ]
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('matrix%[]');
             expect((arr.value as any[]).length).toBe(3);
@@ -1090,7 +1114,7 @@ describe('Statement Implementations', () =>
                 ]
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('cube%[]');
             expect((arr.value as any[]).length).toBe(2);
@@ -1105,7 +1129,7 @@ describe('Statement Implementations', () =>
                 [new LiteralExpression({ type: EduBasicType.Integer, value: -5 })]
             );
             
-            expect(() => stmt.execute(context, graphics, audio)).toThrow('DIM: Array dimension cannot be negative');
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('DIM: Array dimension cannot be negative');
         });
         
         it('should floor real number dimensions', () =>
@@ -1115,7 +1139,7 @@ describe('Statement Implementations', () =>
                 [new LiteralExpression({ type: EduBasicType.Real, value: 5.9 })]
             );
             
-            stmt.execute(context, graphics, audio);
+            stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('arr%[]');
             expect((arr.value as any[]).length).toBe(5);
@@ -1127,7 +1151,7 @@ describe('Statement Implementations', () =>
         it('should seed random number generator with explicit seed', () =>
         {
             const stmt = new RandomizeStatement(12345);
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
         });
@@ -1135,7 +1159,7 @@ describe('Statement Implementations', () =>
         it('should seed with current time when no seed provided', () =>
         {
             const stmt = new RandomizeStatement(null);
-            const result = stmt.execute(context, graphics, audio);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
         });
@@ -1160,10 +1184,10 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 120 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
-                expect(audio.tempo).toBe(120);
+                expect(audio.trackedTempo).toBe(120);
             });
             
             it('should handle real number tempo', () =>
@@ -1172,9 +1196,9 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Real, value: 95.5 })
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
-                expect(audio.tempo).toBe(95.5);
+                expect(audio.trackedTempo).toBe(95.5);
             });
         });
         
@@ -1186,10 +1210,10 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Integer, value: 75 })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
-                expect(audio.volume).toBe(75);
+                expect(audio.trackedVolume).toBe(75);
             });
             
             it('should handle real number volume', () =>
@@ -1198,9 +1222,9 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.Real, value: 50.5 })
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
-                expect(audio.volume).toBe(50.5);
+                expect(audio.trackedVolume).toBe(50.5);
             });
         });
         
@@ -1216,7 +1240,7 @@ describe('Statement Implementations', () =>
                     null
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 expect(audio.voice).toBe(2);
@@ -1232,7 +1256,7 @@ describe('Statement Implementations', () =>
                     null
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(audio.voice).toBe(3);
             });
@@ -1247,7 +1271,7 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.String, value: 'CDEFGAB' })
                 );
                 
-                const result = stmt.execute(context, graphics, audio);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(result.result).toBe(ExecutionResult.Continue);
                 expect(audio.sequences).toHaveLength(1);
@@ -1261,10 +1285,640 @@ describe('Statement Implementations', () =>
                     new LiteralExpression({ type: EduBasicType.String, value: 'O4 L4 C D E F G A B O5 C' })
                 );
                 
-                stmt.execute(context, graphics, audio);
+                stmt.execute(context, graphics, audio, program, runtime);
                 
                 expect(audio.sequences[0]).toBe('O4 L4 C D E F G A B O5 C');
             });
+        });
+    });
+    
+    describe('PRINT Statement', () =>
+    {
+        beforeEach(() =>
+        {
+            graphics.printedText = [];
+            graphics.newLineCount = 0;
+        });
+        
+        it('should print single string expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Hello' })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Hello');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print single integer expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 42 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('42');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print single real expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Real, value: 3.14 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('3.14');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print single complex expression', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('3+4i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print multiple expressions with no spacing (comma-separated)', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Name: ' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'Alice' }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Age: ' }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 25 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Name: Alice Age: 25');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print mixed types (string, integer, real, complex)', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Item: ' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'Widget' }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Count: ' }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 10 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Price: ' }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 19.99 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' Complex: ' }),
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Item: Widget Count: 10 Price: 19.99 Complex: 3+4i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should not add newline when semicolon at end', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'Enter name: ' })
+            ], false);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('Enter name: ');
+            expect(graphics.newLineCount).toBe(0);
+        });
+        
+        it('should print empty PRINT as blank line', () =>
+        {
+            const stmt = new PrintStatement([]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should concatenate multiple items with no spacing', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: 'A' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'B' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'C' })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('ABC');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle negative integers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: -42 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('-42');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle negative reals', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Real, value: -3.14 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('-3.14');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle complex with negative imaginary part', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: -4 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('3-4i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle zero values', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' ' }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 0.0 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' ' }),
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('0 0 0+0i');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle large numbers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 123456789 }),
+                new LiteralExpression({ type: EduBasicType.String, value: ' ' }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 123456.789 })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('123456789 123456.789');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should handle empty string', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({ type: EduBasicType.String, value: '' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'test' }),
+                new LiteralExpression({ type: EduBasicType.String, value: '' })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('test');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print array with integers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Integer, value: 1 },
+                        { type: EduBasicType.Integer, value: 2 },
+                        { type: EduBasicType.Integer, value: 3 }
+                    ],
+                    elementType: EduBasicType.Integer
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[1, 2, 3]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print empty array', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [],
+                    elementType: EduBasicType.Integer
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print array with mixed types', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Integer, value: 1 },
+                        { type: EduBasicType.String, value: 'hello' },
+                        { type: EduBasicType.Real, value: 3.14 }
+                    ],
+                    elementType: EduBasicType.Integer
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[1, "hello", 3.14]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print array with complex numbers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } },
+                        { type: EduBasicType.Complex, value: { real: 3, imaginary: -4 } }
+                    ],
+                    elementType: EduBasicType.Complex
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[1+2i, 3-4i]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print empty structure', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Structure,
+                    value: new Map()
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('{ }');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print structure with members', () =>
+        {
+            const members = new Map<string, EduBasicValue>();
+            members.set('name$', { type: EduBasicType.String, value: 'Alice' });
+            members.set('score%', { type: EduBasicType.Integer, value: 100 });
+            members.set('level%', { type: EduBasicType.Integer, value: 5 });
+            
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Structure,
+                    value: members
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('{ name$: "Alice", score%: 100, level%: 5 }');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print structure with nested structures', () =>
+        {
+            const nestedMembers = new Map<string, EduBasicValue>();
+            nestedMembers.set('first$', { type: EduBasicType.String, value: 'John' });
+            nestedMembers.set('last$', { type: EduBasicType.String, value: 'Doe' });
+            
+            const members = new Map<string, EduBasicValue>();
+            members.set('name', { type: EduBasicType.Structure, value: nestedMembers });
+            members.set('age%', { type: EduBasicType.Integer, value: 30 });
+            
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Structure,
+                    value: members
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('{ name: { first$: "John", last$: "Doe" }, age%: 30 }');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print structure with array members', () =>
+        {
+            const members = new Map<string, EduBasicValue>();
+            members.set('name$', { type: EduBasicType.String, value: 'Alice' });
+            members.set('scores%[]', {
+                type: EduBasicType.Array,
+                value: [
+                    { type: EduBasicType.Integer, value: 100 },
+                    { type: EduBasicType.Integer, value: 95 }
+                ],
+                elementType: EduBasicType.Integer
+            });
+            
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Structure,
+                    value: members
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('{ name$: "Alice", scores%[]: [100, 95] }');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print array with string elements', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.String, value: 'hello' },
+                        { type: EduBasicType.String, value: 'world' }
+                    ],
+                    elementType: EduBasicType.String
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('["hello", "world"]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print array with structure elements', () =>
+        {
+            const struct1 = new Map<string, EduBasicValue>();
+            struct1.set('name$', { type: EduBasicType.String, value: 'Alice' });
+            struct1.set('score%', { type: EduBasicType.Integer, value: 100 });
+            
+            const struct2 = new Map<string, EduBasicValue>();
+            struct2.set('name$', { type: EduBasicType.String, value: 'Bob' });
+            struct2.set('score%', { type: EduBasicType.Integer, value: 95 });
+            
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Structure, value: struct1 },
+                        { type: EduBasicType.Structure, value: struct2 }
+                    ],
+                    elementType: EduBasicType.Structure
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[{ name$: "Alice", score%: 100 }, { name$: "Bob", score%: 95 }]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print structure with nested arrays containing strings', () =>
+        {
+            const members = new Map<string, EduBasicValue>();
+            members.set('name$', { type: EduBasicType.String, value: 'Player' });
+            members.set('items$[]', {
+                type: EduBasicType.Array,
+                value: [
+                    { type: EduBasicType.String, value: 'sword' },
+                    { type: EduBasicType.String, value: 'shield' }
+                ],
+                elementType: EduBasicType.String
+            });
+            
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Structure,
+                    value: members
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('{ name$: "Player", items$[]: ["sword", "shield"] }');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print structure with nested structures and arrays', () =>
+        {
+            const nestedStruct = new Map<string, EduBasicValue>();
+            nestedStruct.set('first$', { type: EduBasicType.String, value: 'John' });
+            nestedStruct.set('last$', { type: EduBasicType.String, value: 'Doe' });
+            
+            const members = new Map<string, EduBasicValue>();
+            members.set('name', { type: EduBasicType.Structure, value: nestedStruct });
+            members.set('scores%[]', {
+                type: EduBasicType.Array,
+                value: [
+                    { type: EduBasicType.Integer, value: 85 },
+                    { type: EduBasicType.Integer, value: 90 }
+                ],
+                elementType: EduBasicType.Integer
+            });
+            members.set('tags$[]', {
+                type: EduBasicType.Array,
+                value: [
+                    { type: EduBasicType.String, value: 'student' },
+                    { type: EduBasicType.String, value: 'active' }
+                ],
+                elementType: EduBasicType.String
+            });
+            
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Structure,
+                    value: members
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('{ name: { first$: "John", last$: "Doe" }, scores%[]: [85, 90], tags$[]: ["student", "active"] }');
+            expect(graphics.newLineCount).toBe(2);
+        });
+    });
+    
+    describe('LET Statement', () =>
+    {
+        it('should throw error when assigning complex to real variable', () =>
+        {
+            const complexValue = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const stmt = new LetStatement('x#', complexValue);
+            
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('Cannot assign complex number to REAL variable');
+        });
+
+        it('should throw error when assigning complex to integer variable', () =>
+        {
+            const complexValue = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const stmt = new LetStatement('x%', complexValue);
+            
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('Cannot assign complex number to INTEGER variable');
+        });
+
+        it('should throw error when assigning complex array to real array', () =>
+        {
+            const arrayValue: EduBasicValue = {
+                type: EduBasicType.Array,
+                value: [
+                    { type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } },
+                    { type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } }
+                ],
+                elementType: EduBasicType.Complex
+            };
+            const arrayExpr = new LiteralExpression(arrayValue);
+            const stmt = new LetStatement('numbers#[]', arrayExpr);
+            
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('Cannot assign complex array to REAL array');
+        });
+
+        it('should allow assigning complex to complex variable', () =>
+        {
+            const complexValue = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const stmt = new LetStatement('x&', complexValue);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            const value = context.getVariable('x&');
+            expect(value.type).toBe(EduBasicType.Complex);
+        });
+
+        it('should coerce array literal elements to Real when assigning to Real array', () =>
+        {
+            const arrayValue = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Real, value: 3.14 }
+            ]);
+            const arrayExpr = new LiteralExpression(arrayValue);
+            const stmt = new LetStatement('numbers#[]', arrayExpr);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            const arr = context.getVariable('numbers#[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type === EduBasicType.Array)
+            {
+                expect(arr.elementType).toBe(EduBasicType.Real);
+                expect(arr.value[0].type).toBe(EduBasicType.Real);
+                expect(arr.value[0].value).toBe(1);
+                expect(arr.value[1].type).toBe(EduBasicType.Real);
+                expect(arr.value[1].value).toBe(3.14);
+            }
+        });
+        
+        it('should coerce array literal elements to Complex when assigning to Complex array', () =>
+        {
+            const arrayValue = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Real, value: 3.14 }
+            ]);
+            const arrayExpr = new LiteralExpression(arrayValue);
+            const stmt = new LetStatement('numbers&[]', arrayExpr);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            const arr = context.getVariable('numbers&[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type === EduBasicType.Array)
+            {
+                expect(arr.elementType).toBe(EduBasicType.Complex);
+                expect(arr.value[0].type).toBe(EduBasicType.Complex);
+                if (arr.value[0].type === EduBasicType.Complex)
+                {
+                    expect(arr.value[0].value.real).toBe(1);
+                    expect(arr.value[0].value.imaginary).toBe(0);
+                }
+                expect(arr.value[1].type).toBe(EduBasicType.Complex);
+                if (arr.value[1].type === EduBasicType.Complex)
+                {
+                    expect(arr.value[1].value.real).toBe(3.14);
+                    expect(arr.value[1].value.imaginary).toBe(0);
+                }
+            }
+        });
+        
+        it('should coerce array literal elements to Integer when assigning to Integer array', () =>
+        {
+            const arrayValue = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 5 },
+                { type: EduBasicType.Real, value: 3.7 }
+            ]);
+            const arrayExpr = new LiteralExpression(arrayValue);
+            const stmt = new LetStatement('numbers%[]', arrayExpr);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            const arr = context.getVariable('numbers%[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type === EduBasicType.Array)
+            {
+                expect(arr.elementType).toBe(EduBasicType.Integer);
+                expect(arr.value[0].type).toBe(EduBasicType.Integer);
+                expect(arr.value[0].value).toBe(5);
+                expect(arr.value[1].type).toBe(EduBasicType.Integer);
+                expect(arr.value[1].value).toBe(3);
+            }
         });
     });
 });

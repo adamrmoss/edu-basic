@@ -110,4 +110,3 @@ export class TryStatement extends Statement
         return result;
     }
 }
-

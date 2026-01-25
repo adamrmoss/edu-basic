@@ -35,4 +35,3 @@ export class GetStatement extends Statement
         return `GET ${this.arrayVariable} FROM (${this.x1.toString()}, ${this.y1.toString()}) TO (${this.x2.toString()}, ${this.y2.toString()})`;
     }
 }
-

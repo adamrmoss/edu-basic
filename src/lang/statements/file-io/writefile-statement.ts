@@ -55,4 +55,3 @@ export class WritefileStatement extends Statement
         return `WRITEFILE ${this.content.toString()} TO ${this.filename.toString()}`;
     }
 }
-

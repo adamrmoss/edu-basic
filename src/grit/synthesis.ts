@@ -282,4 +282,3 @@ export function getRingFactor(phase: number): number
     // Sine carrier, bipolar
     return Math.sin(phase * 2 * Math.PI);
 }
-

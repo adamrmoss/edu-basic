@@ -1,6 +1,6 @@
 {
     "name": "edu-basic",
-    "version": "0.0.1",
+    "version": "0.2.1",
     "description": "Education-focused BASIC dialect that runs in web browser",
     "license": "MIT",
     "scripts": {
@@ -14,7 +14,8 @@
         "watch": "npm run build:worklet && ng build --watch --configuration development",
         "test": "jest",
         "test:verbose": "jest --verbose",
-        "test:watch": "jest --watch"
+        "test:watch": "jest --watch",
+        "typecheck": "tsc --noEmit"
     },
     "private": true,
     "dependencies": {
@@ -39,6 +40,7 @@
         "@types/jszip": "3.x.x",
         "esbuild": "0.x.x",
         "jest": "29.x.x",
+        "jest-canvas-mock": "2.x.x",
         "jest-preset-angular": "14.x.x",
         "typescript": "5.x.x"
     }

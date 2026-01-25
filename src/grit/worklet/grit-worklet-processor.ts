@@ -208,7 +208,7 @@ class GritProcessor extends AudioWorkletProcessor
         }
     }
 
-    public process(
+    public override process(
         _inputs: Float32Array[][],
         outputs: Float32Array[][],
         _parameters: Record<string, Float32Array>
@@ -275,7 +275,7 @@ class GritProcessor extends AudioWorkletProcessor
 
         if (voice.fields.aEnabled)
         {
-            let bit = this.getLfsrOutputBit(voice.lfsrA, voice.fields.aPolynomial);
+            let bit = getLfsrOutputBit(voice.lfsrA, voice.fields.aPolynomial);
 
             if (voice.fields.aInverted)
             {
@@ -287,7 +287,7 @@ class GritProcessor extends AudioWorkletProcessor
 
         if (voice.fields.bEnabled)
         {
-            let bit = this.getLfsrOutputBit(voice.lfsrB, voice.fields.bPolynomial);
+            let bit = getLfsrOutputBit(voice.lfsrB, voice.fields.bPolynomial);
 
             if (voice.fields.bInverted)
             {
@@ -299,7 +299,7 @@ class GritProcessor extends AudioWorkletProcessor
 
         if (voice.fields.cEnabled)
         {
-            let bit = this.getLfsrOutputBit(voice.lfsrC, voice.fields.cPolynomial);
+            let bit = getLfsrOutputBit(voice.lfsrC, voice.fields.cPolynomial);
 
             if (voice.fields.cInverted)
             {

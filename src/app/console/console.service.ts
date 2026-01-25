@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ParserService } from '../interpreter/parser.service';
+import { ParserService, ParsedLine } from '../interpreter/parser.service';
 import { InterpreterService } from '../interpreter/interpreter.service';
 import { GraphicsService } from '../interpreter/graphics.service';
 import { AudioService } from '../interpreter/audio.service';
@@ -57,9 +57,21 @@ export class ConsoleService
         return this.currentInputSubject.value;
     }
 
-    public setCurrentInput(input: string): void
+    public set currentInput(input: string)
     {
         this.currentInputSubject.next(input);
+    }
+
+    public parseLine(command: string): ParsedLine | null
+    {
+        try
+        {
+            return this.parserService.parseLine(0, command);
+        }
+        catch (error)
+        {
+            return null;
+        }
     }
 
     public executeCommand(command: string): void

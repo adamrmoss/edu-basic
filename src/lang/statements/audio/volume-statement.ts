@@ -37,4 +37,3 @@ export class VolumeStatement extends Statement
         return `VOLUME ${this.level.toString()}`;
     }
 }
-

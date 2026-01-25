@@ -32,4 +32,3 @@ export class LineInputStatement extends Statement
         return `LINE INPUT ${this.variableName} FROM #${this.fileHandle.toString()}`;
     }
 }
-

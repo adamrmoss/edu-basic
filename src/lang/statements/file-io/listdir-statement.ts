@@ -32,4 +32,3 @@ export class ListdirStatement extends Statement
         return `LISTDIR ${this.arrayVariable} FROM ${this.path.toString()}`;
     }
 }
-

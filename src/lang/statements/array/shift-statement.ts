@@ -58,4 +58,3 @@ export class ShiftStatement extends Statement
         return `SHIFT ${this.arrayVariable}`;
     }
 }
-

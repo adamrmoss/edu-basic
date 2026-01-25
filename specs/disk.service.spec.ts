@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { DiskService } from '../src/app/disk.service';
-import { FileSystemService } from '../src/app/filesystem.service';
+import { DiskService } from '../src/app/disk/disk.service';
+import { FileSystemService } from '../src/app/files/filesystem.service';
 import JSZip from 'jszip';
 
 describe('DiskService', () => {
@@ -40,7 +40,7 @@ describe('DiskService', () => {
 
     describe('Disk Name Management', () => {
         it('should set disk name', () => {
-            service.setDiskName('MyProject');
+            service.diskName = 'MyProject';
 
             expect(service.diskName).toBe('MyProject');
         });
@@ -48,12 +48,12 @@ describe('DiskService', () => {
         it('should update disk name reactively', () => {
             const names: string[] = [];
 
-            service.diskName$.subscribe(name => {
+            service.diskName$.subscribe((name: string) => {
                 names.push(name);
             });
 
-            service.setDiskName('Project1');
-            service.setDiskName('Project2');
+            service.diskName = 'Project1';
+            service.diskName = 'Project2';
 
             expect(names).toContain('Untitled');
             expect(names).toContain('Project1');
@@ -64,7 +64,7 @@ describe('DiskService', () => {
     describe('Program Code Management', () => {
         it('should set program code', () => {
             const code = '10 PRINT "Hello"\n20 END';
-            service.setProgramCode(code);
+            service.programCode = code;
 
             expect(service.programCode).toBe(code);
         });
@@ -72,12 +72,12 @@ describe('DiskService', () => {
         it('should update program code reactively', () => {
             const codes: string[] = [];
 
-            service.programCode$.subscribe(code => {
+            service.programCode$.subscribe((code: string) => {
                 codes.push(code);
             });
 
-            service.setProgramCode('PRINT "A"');
-            service.setProgramCode('PRINT "B"');
+            service.programCode = 'PRINT "A"';
+            service.programCode = 'PRINT "B"';
 
             expect(codes).toContain('');
             expect(codes).toContain('PRINT "A"');
@@ -87,8 +87,8 @@ describe('DiskService', () => {
 
     describe('New Disk', () => {
         it('should create new disk with default name', () => {
-            service.setDiskName('OldName');
-            service.setProgramCode('OLD CODE');
+            service.diskName = 'OldName';
+            service.programCode = 'OLD CODE';
             fileSystemService.writeFile('old.dat', new Uint8Array([1, 2, 3]));
 
             service.newDisk();
@@ -235,8 +235,8 @@ describe('DiskService', () => {
         });
 
         it('should save disk as ZIP with program code', async () => {
-            service.setDiskName('TestDisk');
-            service.setProgramCode('10 PRINT "TEST"');
+            service.diskName = 'TestDisk';
+            service.programCode = '10 PRINT "TEST"';
 
             await service.saveDisk();
 
@@ -244,8 +244,8 @@ describe('DiskService', () => {
         });
 
         it('should include disk metadata in ZIP', async () => {
-            service.setDiskName('MetadataTest');
-            service.setProgramCode('REM Test');
+            service.diskName = 'MetadataTest';
+            service.programCode = 'REM Test';
 
             await service.saveDisk();
 
@@ -253,7 +253,7 @@ describe('DiskService', () => {
         });
 
         it('should include files in ZIP', async () => {
-            service.setDiskName('FilesTest');
+            service.diskName = 'FilesTest';
             fileSystemService.writeFile('data.txt', new TextEncoder().encode('Hello'));
 
             await service.saveDisk();
@@ -262,7 +262,7 @@ describe('DiskService', () => {
         });
 
         it('should trigger download with correct filename', async () => {
-            service.setDiskName('DownloadTest');
+            service.diskName = 'DownloadTest';
 
             await service.saveDisk();
 

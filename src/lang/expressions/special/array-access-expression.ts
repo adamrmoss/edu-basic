@@ -17,9 +17,8 @@ export class ArrayAccessExpression extends Expression
         throw new Error('ArrayAccessExpression.evaluate() not yet implemented');
     }
 
-    public toString(): string
+    public toString(omitOuterParens?: boolean): string
     {
         return `${this.arrayExpr.toString()}[${this.index.toString()}]`;
     }
 }
-

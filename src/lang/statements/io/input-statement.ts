@@ -31,4 +31,3 @@ export class InputStatement extends Statement
         return `INPUT ${this.variableName}`;
     }
 }
-

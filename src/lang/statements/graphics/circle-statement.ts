@@ -73,4 +73,3 @@ export class CircleStatement extends Statement
         return result;
     }
 }
-

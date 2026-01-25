@@ -70,4 +70,3 @@ export class LineStatement extends Statement
         return result;
     }
 }
-
