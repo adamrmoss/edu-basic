@@ -494,7 +494,7 @@ CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF FILLED    ' Yellow filled circle
 **Text Display:**
 - Overlays the graphics canvas
 - Character grid: 80 columns × 30 rows (default)
-- 1-based coordinates (row 1, column 1 is top-left)
+- 0-based coordinates (row 0, column 0 is top-left)
 - Use `LOCATE` to position text cursor
 - Use `COLOR` to set text colors
 
@@ -506,7 +506,7 @@ CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF FILLED    ' Yellow filled circle
 
 **Example:**
 ```basic
-LOCATE 10, 20
+LOCATE 9, 19
 COLOR &HFFFFFFFF    ' White text
 PRINT "Hello, World!"
 PRINT "X: "; x%; " Y: "; y%

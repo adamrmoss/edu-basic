@@ -2396,10 +2396,10 @@ INPUT scores%[]
 PRINT "Scores: ", scores%[]
 
 ' Using LOCATE for formatted input
-LOCATE 10, 1
+LOCATE 9, 0
 PRINT "Name: ";
 INPUT playerName$
-LOCATE 11, 1
+LOCATE 10, 0
 PRINT "Score: ";
 INPUT score%
 ```
@@ -2416,19 +2416,20 @@ LOCATE row%, column%
 ```
 
 **Rules:**
-- Row and column are 1-based (row 1, column 1 is the top-left corner)
-- The text display has a fixed character grid size
+- Row and column are 0-based (row 0, column 0 is the top-left corner)
+- The text display has a fixed character grid size (80 columns × 30 rows)
+- Valid row range: 0 to 29, valid column range: 0 to 79
 - After `LOCATE`, subsequent `PRINT` statements output at the specified position
 
 **Examples:**
 ```
-LOCATE 10, 20
-PRINT "This text appears at row 10, column 20"
+LOCATE 9, 19
+PRINT "This text appears at row 9, column 19"
 
-LOCATE 1, 1
+LOCATE 0, 0
 PRINT "Top-left corner"
 
-FOR row% = 1 TO 10
+FOR row% = 0 TO 9
     LOCATE row%, row%
     PRINT "*"
 NEXT row%
@@ -2573,11 +2574,11 @@ The `SET VOLUME` command sets the global audio volume as a real number between 0
 **Examples:**
 ```
 SET LINE SPACING OFF    ' Use 80×30 character grid (default)
-LOCATE 30, 1
+LOCATE 29, 0
 PRINT "Bottom row"
 
 SET LINE SPACING ON     ' Use 80×24 character grid
-LOCATE 24, 1
+LOCATE 23, 0
 PRINT "Bottom row with spacing"
 
 SET TEXT WRAP OFF       ' Truncate long lines (default)
@@ -5448,11 +5449,11 @@ CLOSE file%
 
 **Type:** Command (Text I/O)  
 **Syntax:** `LOCATE row%, column%`  
-**Description:** Positions the text cursor at a specific row and column in the text display. Row and column are 1-based (row 1, column 1 is the top-left corner).  
+**Description:** Positions the text cursor at a specific row and column in the text display. Row and column are 0-based (row 0, column 0 is the top-left corner). Valid ranges: row 0-29, column 0-79.  
 **Example:**
 ```
-LOCATE 10, 20
-PRINT "This text appears at row 10, column 20"
+LOCATE 9, 19
+PRINT "This text appears at row 9, column 19"
 ```
 
 ---
