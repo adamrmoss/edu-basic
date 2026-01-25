@@ -8,8 +8,8 @@ import { ExpressionParserService } from '../src/app/interpreter/expression-parse
 import { LetStatement } from '../src/lang/statements/variables/let-statement';
 import { PrintStatement } from '../src/lang/statements/io/print-statement';
 import { UnparsableStatement } from '../src/lang/statements/unparsable-statement';
-import { IntegerLiteral } from '../src/lang/expressions/literals/integer-literal';
-import { StringLiteral } from '../src/lang/expressions/literals/string-literal';
+import { LiteralExpression } from '../src/lang/expressions/literals/literal-expression';
+import { EduBasicType } from '../src/lang/edu-basic-value';
 
 describe('ConsoleService', () => {
     let service: ConsoleService;
@@ -61,7 +61,7 @@ describe('ConsoleService', () => {
 
     describe('parseLine', () => {
         it('should parse a valid command and return ParsedLine', () => {
-            const statement = new LetStatement('x', new IntegerLiteral(42));
+            const statement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'LET x = 42',
@@ -88,7 +88,7 @@ describe('ConsoleService', () => {
         });
 
         it('should handle commands with different statement types', () => {
-            const printStatement = new PrintStatement([new StringLiteral('Hello')]);
+            const printStatement = new PrintStatement([new LiteralExpression({ type: EduBasicType.String, value: 'Hello' })]);
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'PRINT "Hello"',

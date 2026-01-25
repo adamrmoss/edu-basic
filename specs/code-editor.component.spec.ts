@@ -7,8 +7,8 @@ import { BehaviorSubject } from 'rxjs';
 import { LetStatement } from '../src/lang/statements/variables/let-statement';
 import { PrintStatement } from '../src/lang/statements/io/print-statement';
 import { UnparsableStatement } from '../src/lang/statements/unparsable-statement';
-import { IntegerLiteral } from '../src/lang/expressions/literals/integer-literal';
-import { StringLiteral } from '../src/lang/expressions/literals/string-literal';
+import { LiteralExpression } from '../src/lang/expressions/literals/literal-expression';
+import { EduBasicType } from '../src/lang/edu-basic-value';
 import { Program } from '../src/lang/program';
 import { ExecutionContext } from '../src/lang/execution-context';
 import { RuntimeExecution } from '../src/lang/runtime-execution';
@@ -122,7 +122,7 @@ describe('CodeEditorComponent', () => {
         });
 
         it('should replace line with canonical representation on Enter', (done) => {
-            const statement = new LetStatement('x', new IntegerLiteral(42));
+            const statement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'let x=42',
@@ -157,7 +157,7 @@ describe('CodeEditorComponent', () => {
         });
 
         it('should preserve indentation when replacing with canonical representation', (done) => {
-            const statement = new PrintStatement([new StringLiteral('Hello')]);
+            const statement = new PrintStatement([new LiteralExpression({ type: EduBasicType.String, value: 'Hello' })]);
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'print "Hello"',
@@ -209,7 +209,7 @@ describe('CodeEditorComponent', () => {
         });
 
         it('should not replace if canonical representation matches original', () => {
-            const statement = new LetStatement('x', new IntegerLiteral(42));
+            const statement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'LET x = 42',
@@ -228,7 +228,7 @@ describe('CodeEditorComponent', () => {
         });
 
         it('should handle multiple lines with mixed valid and invalid', () => {
-            const validStatement = new LetStatement('x', new IntegerLiteral(42));
+            const validStatement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const errorStatement = new UnparsableStatement('INVALID', 'Error');
 
             parserService.parseLine
@@ -278,7 +278,7 @@ describe('CodeEditorComponent', () => {
         });
 
         it('should not track valid lines as errors', () => {
-            const statement = new LetStatement('x', new IntegerLiteral(42));
+            const statement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'LET x = 42',
@@ -296,7 +296,7 @@ describe('CodeEditorComponent', () => {
 
         it('should track multiple error lines', () => {
             const errorStatement = new UnparsableStatement('INVALID1', 'Error');
-            const validStatement = new LetStatement('x', new IntegerLiteral(42));
+            const validStatement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const anotherErrorStatement = new UnparsableStatement('INVALID2', 'Error');
 
             parserService.parseLine
@@ -331,7 +331,7 @@ describe('CodeEditorComponent', () => {
 
         it('should clear error tracking when line is fixed', () => {
             const errorStatement = new UnparsableStatement('INVALID', 'Error');
-            const validStatement = new LetStatement('x', new IntegerLiteral(42));
+            const validStatement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
 
             parserService.parseLine
                 .mockReturnValueOnce({
