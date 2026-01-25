@@ -5,6 +5,7 @@ import { GraphicsService } from '../interpreter/graphics.service';
 
 @Component({
     selector: 'app-output',
+    standalone: true,
     imports: [ CommonModule ],
     templateUrl: './output.component.html',
     styleUrl: './output.component.scss'

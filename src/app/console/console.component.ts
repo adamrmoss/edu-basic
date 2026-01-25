@@ -6,6 +6,7 @@ import { ConsoleService, ConsoleEntry } from './console.service';
 
 @Component({
     selector: 'app-console',
+    standalone: true,
     imports: [ CommonModule, FormsModule ],
     templateUrl: './console.component.html',
     styleUrl: './console.component.scss'

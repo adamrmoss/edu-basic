@@ -14,6 +14,7 @@ interface FileNode
 
 @Component({
     selector: 'app-disk',
+    standalone: true,
     imports: [ CommonModule, FormsModule, IconComponent ],
     templateUrl: './disk.component.html',
     styleUrl: './disk.component.scss'

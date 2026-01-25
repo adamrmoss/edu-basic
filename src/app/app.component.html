@@ -1,16 +1,20 @@
 <luna-window id="main-window" [showClose]="false" [showHelp]="false" [showMaximize]="false" [showMinimize]="false" [title]="title">
-    <luna-tabs #tabsComponent>
-        <luna-tab id="console" label="Console">
-            <app-console></app-console>
-        </luna-tab>
-        <luna-tab id="code" label="Code">
-            <app-code-editor></app-code-editor>
-        </luna-tab>
-        <luna-tab id="disk" label="Disk">
-            <app-disk></app-disk>
-        </luna-tab>
-        <luna-tab id="output" label="Output">
+    <div class="app-layout">
+        <div class="tabs-container">
+            <luna-tabs #tabsComponent>
+                <luna-tab id="console" label="Console">
+                    <app-console></app-console>
+                </luna-tab>
+                <luna-tab id="code" label="Code">
+                    <app-code-editor></app-code-editor>
+                </luna-tab>
+                <luna-tab id="disk" label="Disk">
+                    <app-disk></app-disk>
+                </luna-tab>
+            </luna-tabs>
+        </div>
+        <div class="output-panel">
             <app-output></app-output>
-        </luna-tab>
-    </luna-tabs>
+        </div>
+    </div>
 </luna-window>

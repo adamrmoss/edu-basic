@@ -10,6 +10,7 @@ import { TabSwitchService } from './tab-switch.service';
 
 @Component({
     selector: 'app-root',
+    standalone: true,
     imports: [ 
         CommonModule, 
         WindowComponent, 
@@ -56,6 +57,11 @@ export class AppComponent implements OnInit, OnDestroy
 
     private switchToTab(tabId: string): void
     {
+        if (tabId === 'output')
+        {
+            return;
+        }
+
         if (this.tabsComponent && this.tabs)
         {
             const tabArray = this.tabs.toArray();

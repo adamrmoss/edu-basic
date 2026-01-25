@@ -12,6 +12,7 @@ interface FileNode
 
 @Component({
     selector: 'app-files',
+    standalone: true,
     imports: [ CommonModule, IconComponent ],
     templateUrl: './files.component.html',
     styleUrl: './files.component.scss'

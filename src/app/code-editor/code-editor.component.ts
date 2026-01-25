@@ -9,6 +9,7 @@ import { ExecutionResult } from '../../lang/statements/statement';
 
 @Component({
     selector: 'app-code-editor',
+    standalone: true,
     imports: [ CommonModule ],
     templateUrl: './code-editor.component.html',
     styleUrl: './code-editor.component.scss'
