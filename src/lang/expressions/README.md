@@ -72,16 +72,16 @@ Handles multi-argument function calls.
 
 **Location**: `src/lang/expressions/nullary-expression.ts`
 
-Represents nullary operators (built-in values that take no arguments) that evaluate at runtime.
+Represents nullary operators (built-in values that take no arguments) that evaluate at runtime. Nullary operators can be thought of as "pseudo-variables" or "constants that can change" - they behave like variables in that they can be used anywhere a value is expected, but unlike true constants, some of them (like `RND#`, `DATE$`, `TIME$`, `NOW%`) return different values on each evaluation.
 
-**Built-in Values**:
+**Built-in Nullary Operators**:
 - `PI#`, `E#` - Mathematical constants (unchanging)
 - `RND#` - Random number (evaluated fresh at runtime)
 - `INKEY$` - Keyboard input (evaluated at runtime)
 - `DATE$`, `TIME$`, `NOW%` - Date/time (evaluated fresh at runtime)
 - `TRUE%`, `FALSE%` - Boolean constants (unchanging)
 
-**Evaluation**: Calls `ConstantEvaluator.evaluate()` at runtime, ensuring values like `RND#` and `DATE$` are fresh on each evaluation. This is critical for runtime-dependent values - each evaluation produces a new value.
+**Evaluation**: Calls `ConstantEvaluator.evaluate()` at runtime, ensuring values like `RND#` and `DATE$` are fresh on each evaluation. This is critical for runtime-dependent values - each evaluation produces a new value. The term "nullary operator" emphasizes that these are operators that take zero arguments, distinguishing them from both true constants (which never change) and variables (which are user-defined).
 
 ## Special Expressions
 

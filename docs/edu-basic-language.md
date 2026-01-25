@@ -1090,9 +1090,9 @@ There is no separate boolean data type.
 
 Since there is no separate boolean data type, all boolean operators are **bitwise operators** that work on integers.
 
-**Boolean Constants:**
-- `FALSE%` = `0`
-- `TRUE%` = `-1`
+**Boolean Nullary Operators:**
+- `FALSE%` = `0` (always returns the same value)
+- `TRUE%` = `-1` (always returns the same value)
 
 Any non-zero value is treated as true in conditional expressions, but the canonical `TRUE%` value is `-1`. This is because `-1` in binary representation has all bits set to 1 (two's complement), which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`), while if `TRUE%` were `1`, then `1 AND 1 = 1` would only preserve the least significant bit.
 
@@ -1135,7 +1135,7 @@ IF arr4%[] < arr1%[] THEN PRINT "Shorter is less"    ' TRUE% (shorter array)
 
 EduBASIC follows standard mathematical operator precedence:
 
-1. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
+1. **Nullary Operators**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
 2. Parentheses `()`
 3. **Prefix operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`, `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`, `INT`, `ASC`, `CHR`, `STR`, `VAL`, `HEX`, `BIN`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`, `EOF`, `LOC`, `NOTES`
 4. **Postfix operators**: `!` (factorial), `DEG`, `RAD`
@@ -1159,8 +1159,8 @@ When operators have the same precedence, evaluation proceeds left to right, exce
 
 EduBASIC provides the `RND#` operator to generate random numbers and the `RANDOMIZE` command to seed the random number generator.
 
-**Random Number Operator:**
-- `RND#` - Returns a random real number in the range [0, 1)
+**Random Number Nullary Operator:**
+- `RND#` - Returns a random real number in the range [0, 1). This nullary operator returns a different value on each evaluation.
 
 **Random Number Generator Seed:**
 
@@ -1186,9 +1186,9 @@ RANDOMIZE NOW%    ' Explicitly seed with current timestamp
 ```
 
 
-**Mathematical Constants:**
-- `PI#` - Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793)
-- `E#` - Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045)
+**Mathematical Nullary Operators:**
+- `PI#` - Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793). This nullary operator always returns the same value.
+- `E#` - Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045). This nullary operator always returns the same value.
 
 **Examples:**
 
@@ -2138,9 +2138,9 @@ CATCH error$
 END TRY
 ```
 
-### Date and Time Functions
+### Date and Time Nullary Operators
 
-EduBASIC provides simple date and time operators for educational purposes. These operators return formatted strings or integer timestamps that are easy to display and work with.
+EduBASIC provides simple date and time nullary operators for educational purposes. These nullary operators return formatted strings or integer timestamps that are easy to display and work with. They are evaluated fresh at runtime, so each evaluation returns the current date/time.
 
 **`DATE$` - Current date as string:**
 ```
@@ -2198,11 +2198,12 @@ END IF
 ```
 
 **Design Notes:**
-- `DATE$` and `TIME$` return strings for simplicity and ease of display
-- `NOW%` returns an integer timestamp for calculations
-- All functions use UTC time to avoid timezone complexity in educational contexts
+- `DATE$` and `TIME$` are nullary operators that return strings for simplicity and ease of display
+- `NOW%` is a nullary operator that returns an integer timestamp for calculations
+- All nullary operators use UTC time to avoid timezone complexity in educational contexts
 - The string formats (YYYY-MM-DD and HH:MM:SS) are standard and unambiguous
 - No date parsing or manipulation functions are provided initially—keep it simple for educational use
+- These nullary operators are evaluated fresh at runtime, so each evaluation returns the current date/time
 
 ### Summary: Structured vs. Unstructured Flow Control
 
@@ -2604,9 +2605,9 @@ SET VOLUME -0.5         ' Clamped to 0.0 (silent)
 
 EduBASIC provides non-blocking keyboard input through the `INKEY$` operator, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.
 
-#### INKEY$ Operator
+#### INKEY$ Nullary Operator
 
-The `INKEY$` operator returns the currently pressed key as a string.
+The `INKEY$` nullary operator returns the currently pressed key as a string.
 
 **Key Detection:**
 - `INKEY$` returns the currently pressed key as a string
@@ -4716,9 +4717,9 @@ PRINT root&    ' Prints: 0+1i
 
 ### DATE$
 
-**Type:** Operator (Date/Time)  
+**Type:** Nullary Operator (Date/Time)  
 **Syntax:** `DATE$`  
-**Description:** Returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format).  
+**Description:** Nullary operator that returns the current date as a string in `YYYY-MM-DD` format (ISO 8601 date format). This nullary operator is evaluated fresh at runtime, so each evaluation returns the current date.  
 **Example:**
 ```
 LET today$ = DATE$
@@ -4979,9 +4980,9 @@ PRINT EXPAND -3.1    ' Prints: -4
 
 ### E#
 
-**Type:** Operator (Math Constant)  
+**Type:** Nullary Operator (Math Constant)  
 **Syntax:** `E#`  
-**Description:** Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045).  
+**Description:** Nullary operator that returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045). This nullary operator always returns the same value.  
 **Example:**
 ```
 LET eValue# = E#
@@ -5181,9 +5182,9 @@ LET result% = 5 IMP 3    ' Binary implication
 
 ### INKEY$
 
-**Type:** Operator (Input)  
+**Type:** Nullary Operator (Input)  
 **Syntax:** `INKEY$`  
-**Description:** Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name.  
+**Description:** Nullary operator that returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name. This nullary operator is evaluated fresh at runtime, so each evaluation checks the current keyboard state.  
 **Return Values:**
 - **Empty string (`""`):** No key is currently pressed
 - **Printable characters:** Returns the character as a string (e.g., `"a"`, `"A"`, `"1"`, `" "`)
@@ -5675,9 +5676,9 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 
 ### NOW%
 
-**Type:** Operator (Date/Time)  
+**Type:** Nullary Operator (Date/Time)  
 **Syntax:** `NOW%`  
-**Description:** Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.  
+**Description:** Nullary operator that returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values. This nullary operator is evaluated fresh at runtime, so each evaluation returns the current timestamp.  
 **Example:**
 ```
 LET timestamp% = NOW%
@@ -5768,9 +5769,9 @@ IF notesLeft% > 0 THEN PRINT "Still playing: ", notesLeft%, " notes remaining"
 
 ### PI#
 
-**Type:** Operator (Math Constant)  
+**Type:** Nullary Operator (Math Constant)  
 **Syntax:** `PI#`  
-**Description:** Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793).  
+**Description:** Nullary operator that returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793). This nullary operator always returns the same value.  
 **Example:**
 ```
 LET piValue# = PI#
@@ -6018,9 +6019,9 @@ RMDIR "/Users/name/old_data"
 
 ### RND#
 
-**Type:** Operator (Random)  
+**Type:** Nullary Operator (Random)  
 **Syntax:** `RND#`  
-**Description:** Returns a random real number in the range [0, 1).  
+**Description:** Nullary operator that returns a random real number in the range [0, 1). This nullary operator is evaluated fresh at runtime, so each evaluation returns a different random value.  
 **Example:**
 ```
 LET random# = RND#
@@ -6334,9 +6335,9 @@ PRINT result#    ' Prints: 0.0
 
 ### TIME$
 
-**Type:** Operator (Date/Time)  
+**Type:** Nullary Operator (Date/Time)  
 **Syntax:** `TIME$`  
-**Description:** Returns the current time as a string in `HH:MM:SS` format (24-hour format).  
+**Description:** Nullary operator that returns the current time as a string in `HH:MM:SS` format (24-hour format). This nullary operator is evaluated fresh at runtime, so each evaluation returns the current time.  
 **Example:**
 ```
 LET now$ = TIME$
@@ -6452,9 +6453,9 @@ PRINT TRUNC -3.9     ' Prints: -3
 
 ### TRUE%
 
-**Type:** Operator (Boolean Constant)  
+**Type:** Nullary Operator (Boolean Constant)  
 **Syntax:** `TRUE%`  
-**Description:** Returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`).  
+**Description:** Nullary operator that returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, `TRUE% AND TRUE%` yields `TRUE%` (`-1 AND -1 = -1`). This nullary operator always returns the same value.  
 **Example:**
 ```
 LET flag% = TRUE%
@@ -6469,9 +6470,9 @@ LET check% = (x% > 0) AND TRUE%    ' Bitwise AND with TRUE%
 
 ### FALSE%
 
-**Type:** Operator (Boolean Constant)  
+**Type:** Nullary Operator (Boolean Constant)  
 **Syntax:** `FALSE%`  
-**Description:** Returns the canonical boolean false value as an integer (0).  
+**Description:** Nullary operator that returns the canonical boolean false value as an integer (0). This nullary operator always returns the same value.  
 **Example:**
 ```
 LET flag% = FALSE%
@@ -6944,9 +6945,11 @@ This appendix provides a comprehensive listing of all operators in EduBASIC, org
 | `LOC`     | Get current byte position      | `LOC fileHandle%`    | Integer |
 | `EXISTS`  | Check if file/directory exists | `EXISTS "data.txt"`  | Integer (0 or -1) |
 
-### Constants
+### Nullary Operators
 
-These operators take no arguments and return a value. They use type sigils to indicate their return type.
+Nullary operators are built-in values that take no arguments and return a value. They can be thought of as "pseudo-variables" or "constants that can change" - they behave like variables in that they can be used anywhere a value is expected, but unlike true constants, some of them (like `RND#`, `DATE$`, `TIME$`, `NOW%`) return different values on each evaluation. The term "nullary operator" emphasizes that these are operators that take zero arguments, distinguishing them from both true constants (which never change) and variables (which are user-defined).
+
+All nullary operators use type sigils to indicate their return type.
 
 | Operator  | Description                          | Example      | Returns |
 |-----------|--------------------------------------|--------------|---------|
@@ -6981,7 +6984,7 @@ These operators take no arguments and return a value. They use type sigils to in
 
 ### Operator Precedence Summary
 
-1. **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
+1. **Nullary Operators**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%` (highest precedence)
 2. **Parentheses** `( )`
 3. **Mathematical operators**: `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `SINH`, `COSH`, `TANH`, `ASINH`, `ACOSH`, `ATANH`, `EXP`, `LOG`, `LOG10`, `LOG2`, `SQRT`, `CBRT`, `FLOOR`, `CEIL`, `ROUND`, `TRUNC`, `EXPAND`, `SGN`
 4. **Complex operators**: `REAL`, `IMAG`, `CONJ`, `CABS`, `CARG`, `CSQRT`
@@ -7005,8 +7008,9 @@ These operators take no arguments and return a value. They use type sigils to in
 
 **Notes:**
 - When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative
-- Constants take zero arguments and can appear anywhere in an expression
-- All constants use type sigils in their identifiers to indicate return types
+- Nullary operators take zero arguments and can appear anywhere in an expression
+- All nullary operators use type sigils in their identifiers to indicate return types
+- Some nullary operators (like `RND#`, `DATE$`, `TIME$`, `NOW%`) return different values on each evaluation, while others (like `PI#`, `E#`, `TRUE%`, `FALSE%`) always return the same value
 
 ---
 
