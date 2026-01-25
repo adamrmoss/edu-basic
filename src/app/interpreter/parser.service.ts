@@ -85,6 +85,7 @@ import { LocateStatement } from '../../lang/statements/io/locate-statement';
 import { PrintStatement } from '../../lang/statements/io/print-statement';
 
 // Miscellaneous statements
+import { ConsoleStatement } from '../../lang/statements/misc/console-statement';
 import { HelpStatement } from '../../lang/statements/misc/help-statement';
 import { RandomizeStatement } from '../../lang/statements/misc/randomize-statement';
 import { SetOption, SetStatement } from '../../lang/statements/misc/set-statement';
@@ -232,6 +233,8 @@ export class ParserService
                     return this.parseCls();
                 case 'COLOR':
                     return this.parseColor();
+                case 'CONSOLE':
+                    return this.parseConsole();
                 case 'CONTINUE':
                     return this.parseContinue();
                 case 'COPY':
@@ -1515,9 +1518,18 @@ export class ParserService
     {
         this.consume(TokenType.Keyword, 'HELP');
         
-        const commandKeyword = this.parseExpression();
+        const keyword = this.consume(TokenType.Keyword, 'statement keyword').value;
         
-        return new HelpStatement(commandKeyword);
+        return new HelpStatement(keyword);
+    }
+
+    private parseConsole(): ConsoleStatement
+    {
+        this.consume(TokenType.Keyword, 'CONSOLE');
+        
+        const expression = this.parseExpression();
+        
+        return new ConsoleStatement(expression);
     }
 
     private parseExpression(): Expression

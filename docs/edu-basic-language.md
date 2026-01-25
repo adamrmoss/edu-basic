@@ -4671,6 +4671,21 @@ CLOSE file%
 
 ---
 
+### CONSOLE
+
+**Type:** Statement (Console)  
+**Syntax:** `CONSOLE expression`  
+**Description:** Evaluates an expression and prints the result to the console (not the output tab). Useful for debugging and inspecting values during program execution. Can be used in programs or interactively in the console.  
+**Example:**
+```
+CONSOLE 1 + 2
+CONSOLE x% * y%
+CONSOLE "Value: " + STR value#
+```
+**Note:** In the console, typing just an expression (e.g., `1 + 2`) automatically behaves as if you typed `CONSOLE 1 + 2`. However, `CONSOLE` must be explicitly used in program code.
+
+---
+
 ### COLOR
 
 **Type:** Command (Text/Graphics)  
@@ -5171,16 +5186,16 @@ LET hexStr$ = HEX 4095    ' "FFF"
 
 ### HELP
 
-**Type:** Command (Console)  
-**Syntax:** `HELP commandKeyword`  
-**Description:** Displays help information for a specified command. The command keyword can be provided as a string literal or expression. Prints all valid syntax forms for the command to the console (not the output tab). If the command is not found, displays a message indicating no help is available.  
+**Type:** Statement (Console)  
+**Syntax:** `HELP keyword`  
+**Description:** Displays help information for a specified statement. The keyword is the name of the statement (e.g., `PRINT`, `COLOR`, `FOR`). Prints all valid syntax forms for the statement to the console (not the output tab). If the statement is not found, displays a message indicating no help is available.  
 **Example:**
 ```
 HELP PRINT
-HELP "COLOR"
-HELP cmdName$
+HELP COLOR
+HELP FOR
 ```
-**Output:** Each valid syntax form for the command is printed on a separate line in the console.
+**Output:** Each valid syntax form for the statement is printed on a separate line in the console.
 
 ---
 

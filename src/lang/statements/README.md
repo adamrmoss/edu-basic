@@ -263,8 +263,13 @@ abstract class Statement extends RuntimeNode {
 
 **Location**: `src/lang/statements/misc/`
 
+**ConsoleStatement**:
+- `CONSOLE expression` - Print expression result to console
+- Useful for debugging
+- Can be used in programs or console
+
 **HelpStatement**:
-- `HELP commandKeyword` - Display help for a command
+- `HELP statementKeyword` - Display help for a statement
 - Prints all valid syntax forms to console
 
 **SleepStatement**:

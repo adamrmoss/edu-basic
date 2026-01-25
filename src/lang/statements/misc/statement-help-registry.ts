@@ -4,6 +4,9 @@ export class StatementHelpRegistry
         ['CONSOLE', [
             'CONSOLE expression'
         ]],
+        ['HELP', [
+            'HELP keyword'
+        ]],
         ['PRINT', [
             'PRINT expression1, expression2, ...',
             'PRINT expression1, expression2, ...;',

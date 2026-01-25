@@ -4,7 +4,10 @@ import { ParserService, ParsedLine } from '../interpreter/parser.service';
 import { InterpreterService } from '../interpreter/interpreter.service';
 import { GraphicsService } from '../interpreter/graphics.service';
 import { AudioService } from '../interpreter/audio.service';
+import { ExpressionParserService } from '../interpreter/expression-parser.service';
+import { Expression } from '../../lang/expressions/expression';
 import { Statement } from '../../lang/statements/statement';
+import { ConsoleStatement } from '../../lang/statements/misc/console-statement';
 
 export interface ConsoleEntry
 {
@@ -32,7 +35,8 @@ export class ConsoleService
         private readonly parserService: ParserService,
         private readonly interpreterService: InterpreterService,
         private readonly graphicsService: GraphicsService,
-        private readonly audioService: AudioService
+        private readonly audioService: AudioService,
+        private readonly expressionParserService: ExpressionParserService
     )
     {
     }
@@ -91,16 +95,41 @@ export class ConsoleService
         
         this.historyIndexSubject.next(-1);
 
+        const trimmedCommand = command.trim();
+        
+        let parsedLine: ParsedLine | null = null;
+        
+        const expression = this.tryParseExpression(trimmedCommand);
+        
+        if (expression !== null)
+        {
+            const consoleStatement = new ConsoleStatement(expression);
+            parsedLine = {
+                lineNumber: 0,
+                sourceText: command,
+                statement: consoleStatement,
+                hasError: false
+            };
+        }
+        else
+        {
+            parsedLine = this.tryParseStatement(trimmedCommand);
+        }
+
+        if (parsedLine === null)
+        {
+            this.printError('Parse error');
+            return;
+        }
+
+        if (parsedLine.hasError)
+        {
+            this.printError(parsedLine.errorMessage || 'Parse error');
+            return;
+        }
+
         try
         {
-            const parsedLine = this.parserService.parseLine(0, command);
-
-            if (parsedLine.hasError)
-            {
-                this.printError(parsedLine.errorMessage || 'Parse error');
-                return;
-            }
-
             const statement = parsedLine.statement;
             const context = this.interpreterService.getExecutionContext();
             const program = this.interpreterService.getSharedProgram();
@@ -114,6 +143,30 @@ export class ConsoleService
         {
             console.error('Error executing command:', error);
             this.printError(error instanceof Error ? error.message : String(error));
+        }
+    }
+
+    private tryParseExpression(source: string): Expression | null
+    {
+        try
+        {
+            return this.expressionParserService.parseExpression(source);
+        }
+        catch (error)
+        {
+            return null;
+        }
+    }
+
+    private tryParseStatement(source: string): ParsedLine | null
+    {
+        try
+        {
+            return this.parserService.parseLine(0, source);
+        }
+        catch (error)
+        {
+            return null;
         }
     }
 

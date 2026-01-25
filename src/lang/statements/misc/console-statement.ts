@@ -1,15 +1,16 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
+import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { StatementHelpRegistry } from './statement-help-registry';
+import { valueToString } from '../../edu-basic-value';
 
-export class HelpStatement extends Statement
+export class ConsoleStatement extends Statement
 {
     public constructor(
-        public readonly keyword: string
+        public readonly expression: Expression
     )
     {
         super();
@@ -30,27 +31,16 @@ export class HelpStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        const upperKeyword = this.keyword.toUpperCase();
+        const value = this.expression.evaluate(context);
+        const text = valueToString(value);
 
-        const helpForms = StatementHelpRegistry.getHelpForms(upperKeyword);
-
-        if (helpForms.length === 0)
-        {
-            consoleService.printOutput(`No help available for statement: ${upperKeyword}`);
-        }
-        else
-        {
-            for (const form of helpForms)
-            {
-                consoleService.printOutput(form);
-            }
-        }
+        consoleService.printOutput(text);
 
         return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string
     {
-        return `HELP ${this.keyword}`;
+        return `CONSOLE ${this.expression.toString()}`;
     }
 }
