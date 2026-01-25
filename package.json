@@ -40,6 +40,7 @@
         "@types/jszip": "3.x.x",
         "esbuild": "0.x.x",
         "jest": "29.x.x",
+        "jest-canvas-mock": "2.x.x",
         "jest-preset-angular": "14.x.x",
         "typescript": "5.x.x"
     }

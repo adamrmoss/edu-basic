@@ -110,8 +110,8 @@ describe('ConsoleComponent', () => {
             component.onKeyDown(event);
 
             expect(consoleService.parseLine).toHaveBeenCalledWith('let x=42');
-            expect(component.currentInput).toBe('LET x = 42');
             expect(consoleService.executeCommand).toHaveBeenCalledWith('LET x = 42');
+            expect(component.currentInput).toBe('');
         });
 
         it('should replace PRINT statement with canonical representation', () => {
@@ -130,8 +130,8 @@ describe('ConsoleComponent', () => {
             const event = new KeyboardEvent('keydown', { key: 'Enter' });
             component.onKeyDown(event);
 
-            expect(component.currentInput).toBe('PRINT "Hello"');
             expect(consoleService.executeCommand).toHaveBeenCalledWith('PRINT "Hello"');
+            expect(component.currentInput).toBe('');
         });
 
         it('should not replace input if parsing fails', () => {
