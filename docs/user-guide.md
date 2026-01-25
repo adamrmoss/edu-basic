@@ -193,6 +193,12 @@ Hello
 10
 > PRINT x% * 2
 20
+> HELP PRINT
+PRINT expression1, expression2, ...
+PRINT expression1, expression2, ...;
+PRINT array[]
+PRINT array[];
+PRINT
 ```
 
 ### Running Programs from Console
@@ -433,7 +439,7 @@ Your BASIC programs can access data files using file I/O statements.
 
 **Reading Files:**
 ```basic
-READFILE "data.txt" INTO content$
+READFILE content$ FROM "data.txt"
 PRINT content$
 ```
 
@@ -444,7 +450,7 @@ WRITEFILE "Hello, World!" TO "output.txt"
 
 **Binary File Operations:**
 ```basic
-OPEN "data.bin" FOR WRITE AS file%
+OPEN "data.bin" FOR OVERWRITE AS file%
 WRITE 42 TO file%
 WRITE 3.14 TO file%
 CLOSE file%
@@ -500,8 +506,8 @@ CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF FILLED    ' Yellow filled circle
 
 **PRINT Statement:**
 - Displays text and values
-- Comma (`,`) adds spacing between items
-- Semicolon (`;`) concatenates without spacing
+- Comma (`,`) separates items (concatenated with no spacing)
+- Semicolon (`;`) at end suppresses newline
 - Automatically switches to Output tab
 
 **Example:**
@@ -588,6 +594,7 @@ PRINT "X: "; x%; " Y: "; y%
 - **Enter** - Execute command
 - **Arrow Up** - Previous command in history
 - **Arrow Down** - Next command in history
+- **HELP command** - Get syntax help for any command
 
 **Code Tab:**
 - Standard text editing shortcuts (Ctrl+C, Ctrl+V, etc.)
@@ -600,6 +607,27 @@ PRINT "X: "; x%; " Y: "; y%
 
 ### Getting Help
 
+**HELP Command:**
+- Use the `HELP` command in the Console to get syntax information for any command
+- Type `HELP` followed by the command name (e.g., `HELP PRINT`, `HELP COLOR`)
+- The HELP command displays all valid syntax forms for the specified command
+- Help output appears in the console (not the output tab)
+
+**Example:**
+```
+> HELP PRINT
+PRINT expression1, expression2, ...
+PRINT expression1, expression2, ...;
+PRINT array[]
+PRINT array[];
+PRINT
+
+> HELP COLOR
+COLOR foregroundColor%
+COLOR foregroundColor%, backgroundColor%
+COLOR , backgroundColor%
+```
+
 **Language Reference:**
 - See the [EduBASIC Language Reference](edu-basic-language.md) for complete language documentation
 - All statements, operators, and functions are documented
@@ -610,6 +638,7 @@ PRINT "X: "; x%; " Y: "; y%
 - Try graphics operations
 - Experiment with variables and loops
 - Build up to more complex programs
+- Use `HELP` command to quickly look up command syntax
 
 **Common Tasks:**
 - **Run a program:** Code tab → Run button

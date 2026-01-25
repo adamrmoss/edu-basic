@@ -263,6 +263,10 @@ abstract class Statement extends RuntimeNode {
 
 **Location**: `src/lang/statements/misc/`
 
+**HelpStatement**:
+- `HELP commandKeyword` - Display help for a command
+- Prints all valid syntax forms to console
+
 **SleepStatement**:
 - `SLEEP milliseconds%` - Pause execution
 

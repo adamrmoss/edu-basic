@@ -85,6 +85,7 @@ import { LocateStatement } from '../../lang/statements/io/locate-statement';
 import { PrintStatement } from '../../lang/statements/io/print-statement';
 
 // Miscellaneous statements
+import { HelpStatement } from '../../lang/statements/misc/help-statement';
 import { RandomizeStatement } from '../../lang/statements/misc/randomize-statement';
 import { SetOption, SetStatement } from '../../lang/statements/misc/set-statement';
 import { SleepStatement } from '../../lang/statements/misc/sleep-statement';
@@ -259,6 +260,8 @@ export class ParserService
                     return this.parseGosub();
                 case 'GOTO':
                     return this.parseGoto();
+                case 'HELP':
+                    return this.parseHelp();
                 case 'IF':
                     return this.parseIf();
                 case 'INPUT':
@@ -1506,6 +1509,15 @@ export class ParserService
         }
         
         return new RandomizeStatement(seed);
+    }
+
+    private parseHelp(): HelpStatement
+    {
+        this.consume(TokenType.Keyword, 'HELP');
+        
+        const commandKeyword = this.parseExpression();
+        
+        return new HelpStatement(commandKeyword);
     }
 
     private parseExpression(): Expression

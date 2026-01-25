@@ -5169,6 +5169,21 @@ LET hexStr$ = HEX 4095    ' "FFF"
 
 ---
 
+### HELP
+
+**Type:** Command (Console)  
+**Syntax:** `HELP commandKeyword`  
+**Description:** Displays help information for a specified command. The command keyword can be provided as a string literal or expression. Prints all valid syntax forms for the command to the console (not the output tab). If the command is not found, displays a message indicating no help is available.  
+**Example:**
+```
+HELP PRINT
+HELP "COLOR"
+HELP cmdName$
+```
+**Output:** Each valid syntax form for the command is printed on a separate line in the console.
+
+---
+
 ### IMP
 
 **Type:** Operator (Boolean/Bitwise)  
