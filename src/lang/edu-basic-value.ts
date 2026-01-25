@@ -44,7 +44,7 @@ export function valueToString(value: EduBasicValue): string
         case EduBasicType.String:
             return value.value;
         case EduBasicType.Array:
-            return value.value.map(v => valueToString(v)).join(',');
+            return '[' + value.value.map(v => valueToString(v)).join(', ') + ']';
         case EduBasicType.Structure:
             return '[Structure]';
     }

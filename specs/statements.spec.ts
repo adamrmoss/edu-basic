@@ -1510,6 +1510,85 @@ describe('Statement Implementations', () =>
             expect(graphics.getPrintedOutput()).toBe('test');
             expect(graphics.newLineCount).toBe(1);
         });
+        
+        it('should print array with integers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Integer, value: 1 },
+                        { type: EduBasicType.Integer, value: 2 },
+                        { type: EduBasicType.Integer, value: 3 }
+                    ],
+                    elementType: EduBasicType.Integer
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[1, 2, 3]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print empty array', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [],
+                    elementType: EduBasicType.Integer
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print array with mixed types', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Integer, value: 1 },
+                        { type: EduBasicType.String, value: 'hello' },
+                        { type: EduBasicType.Real, value: 3.14 }
+                    ],
+                    elementType: EduBasicType.Integer
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[1, hello, 3.14]');
+            expect(graphics.newLineCount).toBe(1);
+        });
+        
+        it('should print array with complex numbers', () =>
+        {
+            const stmt = new PrintStatement([
+                new LiteralExpression({
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } },
+                        { type: EduBasicType.Complex, value: { real: 3, imaginary: -4 } }
+                    ],
+                    elementType: EduBasicType.Complex
+                })
+            ]);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            expect(graphics.getPrintedOutput()).toBe('[1+2i, 3-4i]');
+            expect(graphics.newLineCount).toBe(1);
+        });
     });
 });
 
