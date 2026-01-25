@@ -27,6 +27,49 @@ export class LetStatement extends Statement
     {
         let evaluatedValue = this.value.evaluate(context);
         
+        // Check for downcasting errors (complex → real/integer)
+        const existingType = context.getVariableType(this.variableName);
+        if (existingType !== null)
+        {
+            if (evaluatedValue.type === EduBasicType.Complex)
+            {
+                if (existingType === EduBasicType.Integer || existingType === EduBasicType.Real)
+                {
+                    throw new Error(`Cannot assign complex number to ${existingType} variable ${this.variableName}. Use REALPART or IMAGPART to extract parts.`);
+                }
+            }
+        }
+        else
+        {
+            // Infer type from variable name sigil
+            const sigil = this.variableName.charAt(this.variableName.length - 1);
+            let targetType: EduBasicType | null = null;
+            
+            switch (sigil)
+            {
+                case '%':
+                    targetType = EduBasicType.Integer;
+                    break;
+                case '#':
+                    targetType = EduBasicType.Real;
+                    break;
+                case '$':
+                    targetType = EduBasicType.String;
+                    break;
+                case '&':
+                    targetType = EduBasicType.Complex;
+                    break;
+            }
+            
+            if (targetType !== null)
+            {
+                if (evaluatedValue.type === EduBasicType.Complex && (targetType === EduBasicType.Integer || targetType === EduBasicType.Real))
+                {
+                    throw new Error(`Cannot assign complex number to ${targetType} variable ${this.variableName}. Use REALPART or IMAGPART to extract parts.`);
+                }
+            }
+        }
+        
         if (evaluatedValue.type === EduBasicType.Array && this.variableName.endsWith('[]'))
         {
             const sigil = this.variableName.charAt(this.variableName.length - 3);
@@ -50,6 +93,12 @@ export class LetStatement extends Statement
             
             if (targetElementType !== null && evaluatedValue.elementType !== targetElementType)
             {
+                // Check for downcasting in array elements
+                if (evaluatedValue.elementType === EduBasicType.Complex && (targetElementType === EduBasicType.Integer || targetElementType === EduBasicType.Real))
+                {
+                    throw new Error(`Cannot assign complex array to ${targetElementType} array ${this.variableName}. Use REALPART or IMAGPART to extract parts.`);
+                }
+                
                 const coercedElements = evaluatedValue.value.map(el => coerceValue(el, targetElementType!));
                 evaluatedValue = {
                     type: EduBasicType.Array,

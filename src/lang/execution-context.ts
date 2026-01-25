@@ -96,6 +96,17 @@ export class ExecutionContext
         return this.globalVariables.has(lookupKey);
     }
 
+    public getVariableType(name: string): EduBasicType | null
+    {
+        if (!this.hasVariable(name))
+        {
+            return null;
+        }
+
+        const value = this.getVariable(name);
+        return value.type;
+    }
+
     public getCanonicalName(name: string): string
     {
         const lookupKey = name.toUpperCase();

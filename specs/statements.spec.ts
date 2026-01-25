@@ -1797,6 +1797,50 @@ describe('Statement Implementations', () =>
     
     describe('LET Statement', () =>
     {
+        it('should throw error when assigning complex to real variable', () =>
+        {
+            const complexValue = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const stmt = new LetStatement('x#', complexValue);
+            
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('Cannot assign complex number to REAL variable');
+        });
+
+        it('should throw error when assigning complex to integer variable', () =>
+        {
+            const complexValue = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const stmt = new LetStatement('x%', complexValue);
+            
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('Cannot assign complex number to INTEGER variable');
+        });
+
+        it('should throw error when assigning complex array to real array', () =>
+        {
+            const arrayValue = {
+                type: EduBasicType.Array,
+                value: [
+                    { type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } },
+                    { type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } }
+                ],
+                elementType: EduBasicType.Complex
+            };
+            const arrayExpr = new LiteralExpression(arrayValue);
+            const stmt = new LetStatement('numbers#[]', arrayExpr);
+            
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('Cannot assign complex array to REAL array');
+        });
+
+        it('should allow assigning complex to complex variable', () =>
+        {
+            const complexValue = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
+            const stmt = new LetStatement('x&', complexValue);
+            
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            
+            expect(result.result).toBe(ExecutionResult.Continue);
+            const value = context.getVariable('x&');
+            expect(value.type).toBe(EduBasicType.Complex);
+        });
+
         it('should coerce array literal elements to Real when assigning to Real array', () =>
         {
             const arrayValue = coerceArrayElements([

@@ -280,8 +280,8 @@ describe('ExpressionParser', () =>
                 const expr = parser.parseExpression('15 / 3');
                 const result = expr.evaluate(context);
                 
-                expect(result.type).toBe(EduBasicType.Real);
-                expect(result.value).toBeCloseTo(5);
+                expect(result.type).toBe(EduBasicType.Integer);
+                expect(result.value).toBe(5);
             });
 
             it('should handle non-integer results', () =>

@@ -1,184 +1,139 @@
-import { Expression } from '../expression';
 import { EduBasicValue, EduBasicType, ComplexValue } from '../../edu-basic-value';
-import { ExecutionContext } from '../../execution-context';
+import { UnaryOperator } from '../unary-expression';
 
-export enum MathematicalOperator
+export class MathematicalFunctionEvaluator
 {
-    // Trigonometric operators
-    Sin = 'SIN',
-    Cos = 'COS',
-    Tan = 'TAN',
-    Asin = 'ASIN',
-    Acos = 'ACOS',
-    Atan = 'ATAN',
-    
-    // Hyperbolic operators
-    Sinh = 'SINH',
-    Cosh = 'COSH',
-    Tanh = 'TANH',
-    Asinh = 'ASINH',
-    Acosh = 'ACOSH',
-    Atanh = 'ATANH',
-    
-    // Exponential and logarithmic operators
-    Exp = 'EXP',
-    Log = 'LOG',
-    Log10 = 'LOG10',
-    Log2 = 'LOG2',
-    
-    // Root operators
-    Sqrt = 'SQRT',
-    Cbrt = 'CBRT',
-    
-    // Rounding and truncation operators
-    Round = 'ROUND',
-    Floor = 'FLOOR',
-    Ceil = 'CEIL',
-    Trunc = 'TRUNC',
-    
-    // Other mathematical operators
-    Expand = 'EXPAND',
-    Sgn = 'SGN',
-}
-
-export class MathematicalOperatorExpression extends Expression
-{
-    public constructor(
-        public readonly operator: MathematicalOperator,
-        public readonly argument: Expression
-    )
+    public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
-        super();
-    }
-
-    public evaluate(context: ExecutionContext): EduBasicValue
-    {
-        const argValue = this.argument.evaluate(context);
-
-        // Convert argument to appropriate type
         if (argValue.type === EduBasicType.Complex)
         {
-            return this.evaluateComplex(argValue.value);
+            return this.evaluateComplex(operator, argValue.value);
         }
         else if (argValue.type === EduBasicType.Integer || argValue.type === EduBasicType.Real)
         {
             const numValue = argValue.type === EduBasicType.Integer ? argValue.value : argValue.value;
-            return this.evaluateReal(numValue);
+            return this.evaluateReal(operator, numValue);
         }
         else
         {
-            throw new Error(`Mathematical operator ${this.operator} requires numeric operand, got ${argValue.type}`);
+            throw new Error(`Mathematical operator ${operator} requires numeric operand, got ${argValue.type}`);
         }
     }
 
-    private evaluateReal(value: number): EduBasicValue
+    private evaluateReal(operator: UnaryOperator, value: number): EduBasicValue
     {
-        switch (this.operator)
+        // Check if operation requires complex numbers and upcast if needed
+        const needsComplex = this.requiresComplex(operator, value);
+        if (needsComplex)
         {
-            // Trigonometric operators
-            case MathematicalOperator.Sin:
+            return this.evaluateComplex(operator, { real: value, imaginary: 0 });
+        }
+
+        switch (operator)
+        {
+            // Trigonometric
+            case UnaryOperator.Sin:
                 return { type: EduBasicType.Real, value: Math.sin(value) };
-            case MathematicalOperator.Cos:
+            case UnaryOperator.Cos:
                 return { type: EduBasicType.Real, value: Math.cos(value) };
-            case MathematicalOperator.Tan:
+            case UnaryOperator.Tan:
                 return { type: EduBasicType.Real, value: Math.tan(value) };
-            case MathematicalOperator.Asin:
+            case UnaryOperator.Asin:
                 return { type: EduBasicType.Real, value: Math.asin(value) };
-            case MathematicalOperator.Acos:
+            case UnaryOperator.Acos:
                 return { type: EduBasicType.Real, value: Math.acos(value) };
-            case MathematicalOperator.Atan:
+            case UnaryOperator.Atan:
                 return { type: EduBasicType.Real, value: Math.atan(value) };
 
-            // Hyperbolic operators
-            case MathematicalOperator.Sinh:
+            // Hyperbolic
+            case UnaryOperator.Sinh:
                 return { type: EduBasicType.Real, value: Math.sinh(value) };
-            case MathematicalOperator.Cosh:
+            case UnaryOperator.Cosh:
                 return { type: EduBasicType.Real, value: Math.cosh(value) };
-            case MathematicalOperator.Tanh:
+            case UnaryOperator.Tanh:
                 return { type: EduBasicType.Real, value: Math.tanh(value) };
-            case MathematicalOperator.Asinh:
+            case UnaryOperator.Asinh:
                 return { type: EduBasicType.Real, value: Math.asinh(value) };
-            case MathematicalOperator.Acosh:
+            case UnaryOperator.Acosh:
                 return { type: EduBasicType.Real, value: Math.acosh(value) };
-            case MathematicalOperator.Atanh:
+            case UnaryOperator.Atanh:
                 return { type: EduBasicType.Real, value: Math.atanh(value) };
 
-            // Exponential and logarithmic operators
-            case MathematicalOperator.Exp:
+            // Exponential and logarithmic
+            case UnaryOperator.Exp:
                 return { type: EduBasicType.Real, value: Math.exp(value) };
-            case MathematicalOperator.Log:
+            case UnaryOperator.Log:
                 return { type: EduBasicType.Real, value: Math.log(value) };
-            case MathematicalOperator.Log10:
+            case UnaryOperator.Log10:
                 return { type: EduBasicType.Real, value: Math.log10(value) };
-            case MathematicalOperator.Log2:
+            case UnaryOperator.Log2:
                 return { type: EduBasicType.Real, value: Math.log2(value) };
 
-            // Root operators
-            case MathematicalOperator.Sqrt:
+            // Roots
+            case UnaryOperator.Sqrt:
                 return { type: EduBasicType.Real, value: Math.sqrt(value) };
-            case MathematicalOperator.Cbrt:
+            case UnaryOperator.Cbrt:
                 return { type: EduBasicType.Real, value: Math.cbrt(value) };
 
-            // Rounding and truncation operators
-            case MathematicalOperator.Round:
+            // Rounding
+            case UnaryOperator.Round:
                 return { type: EduBasicType.Real, value: Math.round(value) };
-            case MathematicalOperator.Floor:
+            case UnaryOperator.Floor:
                 return { type: EduBasicType.Real, value: Math.floor(value) };
-            case MathematicalOperator.Ceil:
+            case UnaryOperator.Ceil:
                 return { type: EduBasicType.Real, value: Math.ceil(value) };
-            case MathematicalOperator.Trunc:
+            case UnaryOperator.Trunc:
                 return { type: EduBasicType.Real, value: Math.trunc(value) };
-            case MathematicalOperator.Expand:
+            case UnaryOperator.Expand:
                 return { type: EduBasicType.Real, value: value >= 0 ? Math.ceil(value) : Math.floor(value) };
 
-            // Other mathematical operators
-            case MathematicalOperator.Sgn:
+            // Other
+            case UnaryOperator.Sgn:
                 return { type: EduBasicType.Integer, value: value > 0 ? 1 : value < 0 ? -1 : 0 };
+            case UnaryOperator.Abs:
+                return { type: EduBasicType.Real, value: Math.abs(value) };
 
             default:
-                throw new Error(`Unknown mathematical operator: ${this.operator}`);
+                throw new Error(`Unknown mathematical operator: ${operator}`);
         }
     }
 
-    private evaluateComplex(z: ComplexValue): EduBasicValue
+    private evaluateComplex(operator: UnaryOperator, z: ComplexValue): EduBasicValue
     {
-        const { real, imaginary } = z;
-
-        switch (this.operator)
+        switch (operator)
         {
-            // Trigonometric operators - complex extensions
-            case MathematicalOperator.Sin:
+            // Trigonometric - complex extensions
+            case UnaryOperator.Sin:
                 return {
                     type: EduBasicType.Complex,
                     value: {
-                        real: Math.sin(real) * Math.cosh(imaginary),
-                        imaginary: Math.cos(real) * Math.sinh(imaginary)
+                        real: Math.sin(z.real) * Math.cosh(z.imaginary),
+                        imaginary: Math.cos(z.real) * Math.sinh(z.imaginary)
                     }
                 };
-            case MathematicalOperator.Cos:
+            case UnaryOperator.Cos:
                 return {
                     type: EduBasicType.Complex,
                     value: {
-                        real: Math.cos(real) * Math.cosh(imaginary),
-                        imaginary: -Math.sin(real) * Math.sinh(imaginary)
+                        real: Math.cos(z.real) * Math.cosh(z.imaginary),
+                        imaginary: -Math.sin(z.real) * Math.sinh(z.imaginary)
                     }
                 };
-            case MathematicalOperator.Tan:
+            case UnaryOperator.Tan:
             {
                 const sinZ = {
-                    real: Math.sin(real) * Math.cosh(imaginary),
-                    imaginary: Math.cos(real) * Math.sinh(imaginary)
+                    real: Math.sin(z.real) * Math.cosh(z.imaginary),
+                    imaginary: Math.cos(z.real) * Math.sinh(z.imaginary)
                 };
                 const cosZ = {
-                    real: Math.cos(real) * Math.cosh(imaginary),
-                    imaginary: -Math.sin(real) * Math.sinh(imaginary)
+                    real: Math.cos(z.real) * Math.cosh(z.imaginary),
+                    imaginary: -Math.sin(z.real) * Math.sinh(z.imaginary)
                 };
                 return { type: EduBasicType.Complex, value: this.complexDivide(sinZ, cosZ) };
             }
-            case MathematicalOperator.Asin:
+            case UnaryOperator.Asin:
             {
-                // asin(z) = -i * log(i*z + sqrt(1 - z^2))
-                const iz = { real: -imaginary, imaginary: real };
+                const iz = { real: -z.imaginary, imaginary: z.real };
                 const zSquared = this.complexMultiply(z, z);
                 const oneMinusZSquared = this.complexSubtract({ real: 1, imaginary: 0 }, zSquared);
                 const sqrt = this.complexSqrt(oneMinusZSquared);
@@ -189,9 +144,8 @@ export class MathematicalOperatorExpression extends Expression
                     value: { real: logResult.imaginary, imaginary: -logResult.real }
                 };
             }
-            case MathematicalOperator.Acos:
+            case UnaryOperator.Acos:
             {
-                // acos(z) = -i * log(z + i*sqrt(1 - z^2))
                 const zSquared = this.complexMultiply(z, z);
                 const oneMinusZSquared = this.complexSubtract({ real: 1, imaginary: 0 }, zSquared);
                 const sqrt = this.complexSqrt(oneMinusZSquared);
@@ -203,10 +157,9 @@ export class MathematicalOperatorExpression extends Expression
                     value: { real: logResult.imaginary, imaginary: -logResult.real }
                 };
             }
-            case MathematicalOperator.Atan:
+            case UnaryOperator.Atan:
             {
-                // atan(z) = (i/2) * log((1 - i*z) / (1 + i*z))
-                const iz = { real: -imaginary, imaginary: real };
+                const iz = { real: -z.imaginary, imaginary: z.real };
                 const oneMinusIZ = this.complexSubtract({ real: 1, imaginary: 0 }, iz);
                 const onePlusIZ = this.complexAdd({ real: 1, imaginary: 0 }, iz);
                 const quotient = this.complexDivide(oneMinusIZ, onePlusIZ);
@@ -217,56 +170,53 @@ export class MathematicalOperatorExpression extends Expression
                 };
             }
 
-            // Hyperbolic operators - complex extensions
-            case MathematicalOperator.Sinh:
+            // Hyperbolic - complex extensions
+            case UnaryOperator.Sinh:
                 return {
                     type: EduBasicType.Complex,
                     value: {
-                        real: Math.sinh(real) * Math.cos(imaginary),
-                        imaginary: Math.cosh(real) * Math.sin(imaginary)
+                        real: Math.sinh(z.real) * Math.cos(z.imaginary),
+                        imaginary: Math.cosh(z.real) * Math.sin(z.imaginary)
                     }
                 };
-            case MathematicalOperator.Cosh:
+            case UnaryOperator.Cosh:
                 return {
                     type: EduBasicType.Complex,
                     value: {
-                        real: Math.cosh(real) * Math.cos(imaginary),
-                        imaginary: Math.sinh(real) * Math.sin(imaginary)
+                        real: Math.cosh(z.real) * Math.cos(z.imaginary),
+                        imaginary: Math.sinh(z.real) * Math.sin(z.imaginary)
                     }
                 };
-            case MathematicalOperator.Tanh:
+            case UnaryOperator.Tanh:
             {
                 const sinhZ = {
-                    real: Math.sinh(real) * Math.cos(imaginary),
-                    imaginary: Math.cosh(real) * Math.sin(imaginary)
+                    real: Math.sinh(z.real) * Math.cos(z.imaginary),
+                    imaginary: Math.cosh(z.real) * Math.sin(z.imaginary)
                 };
                 const coshZ = {
-                    real: Math.cosh(real) * Math.cos(imaginary),
-                    imaginary: Math.sinh(real) * Math.sin(imaginary)
+                    real: Math.cosh(z.real) * Math.cos(z.imaginary),
+                    imaginary: Math.sinh(z.real) * Math.sin(z.imaginary)
                 };
                 return { type: EduBasicType.Complex, value: this.complexDivide(sinhZ, coshZ) };
             }
-            case MathematicalOperator.Asinh:
+            case UnaryOperator.Asinh:
             {
-                // asinh(z) = log(z + sqrt(z^2 + 1))
                 const zSquared = this.complexMultiply(z, z);
                 const zSquaredPlusOne = this.complexAdd(zSquared, { real: 1, imaginary: 0 });
                 const sqrt = this.complexSqrt(zSquaredPlusOne);
                 const sum = this.complexAdd(z, sqrt);
                 return { type: EduBasicType.Complex, value: this.complexLog(sum) };
             }
-            case MathematicalOperator.Acosh:
+            case UnaryOperator.Acosh:
             {
-                // acosh(z) = log(z + sqrt(z^2 - 1))
                 const zSquared = this.complexMultiply(z, z);
                 const zSquaredMinusOne = this.complexSubtract(zSquared, { real: 1, imaginary: 0 });
                 const sqrt = this.complexSqrt(zSquaredMinusOne);
                 const sum = this.complexAdd(z, sqrt);
                 return { type: EduBasicType.Complex, value: this.complexLog(sum) };
             }
-            case MathematicalOperator.Atanh:
+            case UnaryOperator.Atanh:
             {
-                // atanh(z) = (1/2) * log((1 + z) / (1 - z))
                 const onePlusZ = this.complexAdd({ real: 1, imaginary: 0 }, z);
                 const oneMinusZ = this.complexSubtract({ real: 1, imaginary: 0 }, z);
                 const quotient = this.complexDivide(onePlusZ, oneMinusZ);
@@ -277,22 +227,21 @@ export class MathematicalOperatorExpression extends Expression
                 };
             }
 
-            // Exponential and logarithmic operators - complex extensions
-            case MathematicalOperator.Exp:
+            // Exponential and logarithmic
+            case UnaryOperator.Exp:
             {
-                // exp(z) = exp(real) * (cos(imaginary) + i*sin(imaginary))
-                const expReal = Math.exp(real);
+                const expReal = Math.exp(z.real);
                 return {
                     type: EduBasicType.Complex,
                     value: {
-                        real: expReal * Math.cos(imaginary),
-                        imaginary: expReal * Math.sin(imaginary)
+                        real: expReal * Math.cos(z.imaginary),
+                        imaginary: expReal * Math.sin(z.imaginary)
                     }
                 };
             }
-            case MathematicalOperator.Log:
+            case UnaryOperator.Log:
                 return { type: EduBasicType.Complex, value: this.complexLog(z) };
-            case MathematicalOperator.Log10:
+            case UnaryOperator.Log10:
             {
                 const logResult = this.complexLog(z);
                 const log10 = Math.log(10);
@@ -301,7 +250,7 @@ export class MathematicalOperatorExpression extends Expression
                     value: { real: logResult.real / log10, imaginary: logResult.imaginary / log10 }
                 };
             }
-            case MathematicalOperator.Log2:
+            case UnaryOperator.Log2:
             {
                 const logResult = this.complexLog(z);
                 const log2 = Math.log(2);
@@ -311,31 +260,32 @@ export class MathematicalOperatorExpression extends Expression
                 };
             }
 
-            // Root operators - complex extensions
-            case MathematicalOperator.Sqrt:
+            // Roots
+            case UnaryOperator.Sqrt:
                 return { type: EduBasicType.Complex, value: this.complexSqrt(z) };
-            case MathematicalOperator.Cbrt:
+            case UnaryOperator.Cbrt:
             {
-                // Cube root: cbrt(z) = exp(log(z) / 3)
                 const logResult = this.complexLog(z);
                 const logDiv3 = { real: logResult.real / 3, imaginary: logResult.imaginary / 3 };
                 return { type: EduBasicType.Complex, value: this.complexExp(logDiv3) };
             }
+            case UnaryOperator.Abs:
+            {
+                const magnitude = Math.sqrt(z.real * z.real + z.imaginary * z.imaginary);
+                return { type: EduBasicType.Real, value: magnitude };
+            }
 
-            // Rounding and truncation operators - not applicable to complex numbers
-            case MathematicalOperator.Round:
-            case MathematicalOperator.Floor:
-            case MathematicalOperator.Ceil:
-            case MathematicalOperator.Trunc:
-            case MathematicalOperator.Expand:
-                throw new Error(`Operator ${this.operator} is not applicable to complex numbers`);
-
-            // Other mathematical operators
-            case MathematicalOperator.Sgn:
-                throw new Error(`Operator ${this.operator} is not applicable to complex numbers`);
+            // Not applicable to complex
+            case UnaryOperator.Round:
+            case UnaryOperator.Floor:
+            case UnaryOperator.Ceil:
+            case UnaryOperator.Trunc:
+            case UnaryOperator.Expand:
+            case UnaryOperator.Sgn:
+                throw new Error(`Operator ${operator} is not applicable to complex numbers`);
 
             default:
-                throw new Error(`Unknown mathematical operator: ${this.operator}`);
+                throw new Error(`Unknown mathematical operator: ${operator}`);
         }
     }
 
@@ -397,8 +347,25 @@ export class MathematicalOperatorExpression extends Expression
         };
     }
 
-    public toString(): string
+    private requiresComplex(operator: UnaryOperator, value: number): boolean
     {
-        return `${this.operator}(${this.argument.toString()})`;
+        switch (operator)
+        {
+            case UnaryOperator.Sqrt:
+                return value < 0;
+            case UnaryOperator.Log:
+            case UnaryOperator.Log10:
+            case UnaryOperator.Log2:
+                return value < 0; // log(0) = -Infinity (real), log(negative) = complex
+            case UnaryOperator.Asin:
+            case UnaryOperator.Acos:
+                return value < -1 || value > 1;
+            case UnaryOperator.Acosh:
+                return value < 1;
+            case UnaryOperator.Atanh:
+                return value <= -1 || value >= 1;
+            default:
+                return false;
+        }
     }
 }
