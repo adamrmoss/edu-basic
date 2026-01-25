@@ -49,7 +49,6 @@ Handles all unary operators and single-argument functions.
 - **Complex**: `REAL`, `IMAG`, `REALPART`, `IMAGPART`, `CONJ`, `CABS`, `CARG`, `CSQRT`
 - **String Manipulation**: `ASC`, `CHR`, `UCASE`, `LCASE`, `LTRIM`, `RTRIM`, `TRIM`, `REVERSE`
 - **Type Conversion**: `INT`, `STR`, `VAL`, `HEX`, `BIN`
-- **Constants**: `RND#`, `INKEY$`, `PI#`, `E#`, `DATE$`, `TIME$`, `NOW%`, `TRUE%`, `FALSE%`
 
 **Type Handling**:
 - Mathematical functions automatically upcast to Complex when needed (e.g., `SQRT(-1)`, `LOG(-1)`)
@@ -68,6 +67,21 @@ Handles multi-argument function calls.
 - **Array**: `FIND`, `JOIN`, `INDEXOF`, `INCLUDES`, `SIZE`, `EMPTY`, `LEN`
 
 **Evaluation**: Validates argument count and delegates to helper evaluators.
+
+## Nullary Expressions
+
+**Location**: `src/lang/expressions/nullary-expression.ts`
+
+Represents nullary operators (built-in values that take no arguments) that evaluate at runtime.
+
+**Built-in Values**:
+- `PI#`, `E#` - Mathematical constants (unchanging)
+- `RND#` - Random number (evaluated fresh at runtime)
+- `INKEY$` - Keyboard input (evaluated at runtime)
+- `DATE$`, `TIME$`, `NOW%` - Date/time (evaluated fresh at runtime)
+- `TRUE%`, `FALSE%` - Boolean constants (unchanging)
+
+**Evaluation**: Calls `ConstantEvaluator.evaluate()` at runtime, ensuring values like `RND#` and `DATE$` are fresh on each evaluation. This is critical for runtime-dependent values - each evaluation produces a new value.
 
 ## Special Expressions
 

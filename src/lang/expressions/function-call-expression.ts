@@ -1,5 +1,5 @@
 import { Expression } from './expression';
-import { EduBasicValue, EduBasicType } from '../edu-basic-value';
+import { EduBasicValue, EduBasicType, ComplexValue } from '../edu-basic-value';
 import { ExecutionContext } from '../execution-context';
 
 export enum FunctionName
@@ -325,7 +325,11 @@ export class FunctionCallExpression extends Expression
             case EduBasicType.String:
                 return a.value === b.value;
             case EduBasicType.Complex:
-                return a.value.real === b.value.real && a.value.imaginary === b.value.imaginary;
+            {
+                const complexA = a.value as ComplexValue;
+                const complexB = b.value as ComplexValue;
+                return complexA.real === complexB.real && complexA.imaginary === complexB.imaginary;
+            }
             case EduBasicType.Array:
                 const arrA = a.value as EduBasicValue[];
                 const arrB = b.value as EduBasicValue[];
@@ -360,7 +364,7 @@ export class FunctionCallExpression extends Expression
         }
     }
 
-    public toString(): string
+    public toString(omitOuterParens?: boolean): string
     {
         const argsStr = this.args.map(arg => arg.toString()).join(', ');
         return `${this.functionName}(${argsStr})`;

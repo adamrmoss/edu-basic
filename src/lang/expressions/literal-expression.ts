@@ -16,7 +16,7 @@ export class LiteralExpression extends Expression
         return this.value;
     }
 
-    public toString(): string
+    public toString(omitOuterParens?: boolean): string
     {
         return valueToExpressionString(this.value);
     }

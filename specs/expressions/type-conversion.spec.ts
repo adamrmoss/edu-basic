@@ -259,7 +259,10 @@ describe('Type Conversion Functions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.String);
-            expect(result.value.toUpperCase()).toBe('FF');
+            if (result.type === EduBasicType.String)
+            {
+                expect(result.value.toUpperCase()).toBe('FF');
+            }
         });
 
         it('should handle zero', () =>
@@ -289,7 +292,10 @@ describe('Type Conversion Functions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.String);
-            expect(result.value.toUpperCase()).toBe('FF');
+            if (result.type === EduBasicType.String)
+            {
+                expect(result.value.toUpperCase()).toBe('FF');
+            }
         });
 
         it('should throw error for string input', () =>

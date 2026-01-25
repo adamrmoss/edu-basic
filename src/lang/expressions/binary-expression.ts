@@ -365,8 +365,9 @@ export class BinaryExpression extends Expression
         throw new Error(`Cannot convert ${value.type} to complex number`);
     }
 
-    public toString(): string
+    public toString(omitOuterParens: boolean = false): string
     {
-        return `(${this.left.toString()} ${this.operator} ${this.right.toString()})`;
+        const result = `${this.left.toString()} ${this.operator} ${this.right.toString()}`;
+        return omitOuterParens ? result : `(${result})`;
     }
 }

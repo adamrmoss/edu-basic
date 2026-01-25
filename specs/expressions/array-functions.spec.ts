@@ -1,7 +1,7 @@
 import { FunctionCallExpression, FunctionName } from '../../src/lang/expressions/function-call-expression';
 import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
 import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { EduBasicType, EduBasicValue } from '../../src/lang/edu-basic-value';
 
 describe('Array Functions', () =>
 {
@@ -56,7 +56,7 @@ describe('Array Functions', () =>
             }));
             const arr = new LiteralExpression({
                 type: EduBasicType.Array,
-                value: elements,
+                value: elements as EduBasicValue[],
                 elementType: EduBasicType.Integer
             });
             const expr = new FunctionCallExpression(FunctionName.Size, [arr]);

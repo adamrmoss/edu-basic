@@ -144,7 +144,7 @@ describe('CodeEditorComponent', () => {
                 const mockEvent = {
                     key: 'Enter',
                     target: textarea
-                } as KeyboardEvent;
+                } as unknown as KeyboardEvent;
 
                 component.onTextAreaKeyDown(mockEvent);
 

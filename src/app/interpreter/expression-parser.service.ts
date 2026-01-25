@@ -7,8 +7,9 @@ import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../lan
 import { FunctionCallExpression, FunctionName } from '../../lang/expressions/function-call-expression';
 import { VariableExpression } from '../../lang/expressions/special/variable-expression';
 import { ParenthesizedExpression } from '../../lang/expressions/special/parenthesized-expression';
+import { NullaryExpression } from '../../lang/expressions/nullary-expression';
 import { EduBasicType } from '../../lang/edu-basic-value';
-import { Constant, ConstantEvaluator } from '../../lang/expressions/helpers/constant-evaluator';
+import { Constant } from '../../lang/expressions/helpers/constant-evaluator';
 
 @Injectable({
     providedIn: 'root'
@@ -18,7 +19,6 @@ export class ExpressionParserService
     private tokens: Token[] = [];
     private current: number = 0;
     private tokenizer: Tokenizer = new Tokenizer();
-    private constantEvaluator: ConstantEvaluator = new ConstantEvaluator();
 
     public parseExpression(source: string): Expression
     {
@@ -248,8 +248,7 @@ export class ExpressionParserService
             if (constant !== null)
             {
                 this.advance();
-                const constantValue = this.constantEvaluator.evaluate(constant);
-                return new LiteralExpression(constantValue);
+                return new NullaryExpression(constant);
             }
         }
 
@@ -272,10 +271,19 @@ export class ExpressionParserService
             if (unaryOp !== null)
             {
                 this.advance();
-                this.consume(TokenType.LeftParen, `Expected '(' after ${keyword}`);
-                const argument = this.expression();
-                this.consume(TokenType.RightParen, `Expected ')' after ${keyword} argument`);
-                return new UnaryExpression(unaryOp.operator, argument, unaryOp.category);
+                // Parentheses are optional for unary functions
+                if (this.match(TokenType.LeftParen))
+                {
+                    const argument = this.expression();
+                    this.consume(TokenType.RightParen, `Expected ')' after ${keyword} argument`);
+                    return new UnaryExpression(unaryOp.operator, argument, unaryOp.category);
+                }
+                else
+                {
+                    // No parentheses - parse the next expression as the argument
+                    const argument = this.unaryPlusMinus();
+                    return new UnaryExpression(unaryOp.operator, argument, unaryOp.category);
+                }
             }
         }
 
@@ -297,7 +305,8 @@ export class ExpressionParserService
 
     private parseConstant(name: string): Constant | null
     {
-        switch (name)
+        const upperName = name.toUpperCase();
+        switch (upperName)
         {
             case 'PI#':
             case 'PI':

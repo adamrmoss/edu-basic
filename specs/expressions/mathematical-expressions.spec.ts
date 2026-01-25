@@ -561,7 +561,10 @@ describe('Mathematical Operator Expressions', () =>
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.Real);
-            expect(Math.abs(result.value)).toBeGreaterThan(1e10);
+            if (result.type === EduBasicType.Real)
+            {
+                expect(Math.abs(result.value)).toBeGreaterThan(1e10);
+            }
         });
     });
 });

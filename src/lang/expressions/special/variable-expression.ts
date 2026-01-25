@@ -16,7 +16,7 @@ export class VariableExpression extends Expression
         return context.getVariable(this.name);
     }
 
-    public toString(): string
+    public toString(omitOuterParens?: boolean): string
     {
         return this.name;
     }

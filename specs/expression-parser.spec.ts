@@ -969,6 +969,82 @@ describe('ExpressionParser', () =>
         });
     });
 
+    describe('Constants (Nullary Expressions)', () =>
+    {
+        it('should parse PI# in uppercase', () =>
+        {
+            const expr = parser.parseExpression('PI#');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(Math.PI);
+        });
+
+        it('should parse pi# in lowercase (case-insensitive)', () =>
+        {
+            const expr = parser.parseExpression('pi#');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(Math.PI);
+        });
+
+        it('should parse Pi# in mixed case (case-insensitive)', () =>
+        {
+            const expr = parser.parseExpression('Pi#');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(Math.PI);
+        });
+
+        it('should parse E# in lowercase (case-insensitive)', () =>
+        {
+            const expr = parser.parseExpression('e#');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBe(Math.E);
+        });
+
+        it('should parse RND# in lowercase (case-insensitive)', () =>
+        {
+            const expr = parser.parseExpression('rnd#');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBeGreaterThanOrEqual(0);
+            expect(result.value).toBeLessThan(1);
+        });
+
+        it('should parse DATE$ in lowercase (case-insensitive)', () =>
+        {
+            const expr = parser.parseExpression('date$');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.String);
+            expect(result.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        });
+
+        it('should parse TRUE% in lowercase (case-insensitive)', () =>
+        {
+            const expr = parser.parseExpression('true%');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(-1);
+        });
+
+        it('should parse FALSE% in lowercase (case-insensitive)', () =>
+        {
+            const expr = parser.parseExpression('false%');
+            const result = expr.evaluate(context);
+            
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(0);
+        });
+    });
+
     describe('Complex Expressions', () =>
     {
         it('should parse complex arithmetic expression', () =>

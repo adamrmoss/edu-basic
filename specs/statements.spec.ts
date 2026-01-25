@@ -2,7 +2,7 @@ import { ExecutionContext } from '../src/lang/execution-context';
 import { Program } from '../src/lang/program';
 import { RuntimeExecution } from '../src/lang/runtime-execution';
 import { ExecutionResult } from '../src/lang/statements/statement';
-import { EduBasicType } from '../src/lang/edu-basic-value';
+import { EduBasicType, EduBasicValue } from '../src/lang/edu-basic-value';
 
 import { ClsStatement } from '../src/lang/statements/io/cls-statement';
 import { ColorStatement } from '../src/lang/statements/io/color-statement';
@@ -1815,7 +1815,7 @@ describe('Statement Implementations', () =>
 
         it('should throw error when assigning complex array to real array', () =>
         {
-            const arrayValue = {
+            const arrayValue: EduBasicValue = {
                 type: EduBasicType.Array,
                 value: [
                     { type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } },

@@ -166,13 +166,15 @@ export class UnaryExpression extends Expression
         throw new Error(`Cannot convert ${value.type} to number`);
     }
 
-    public toString(): string
+    public toString(omitOuterParens: boolean = false): string
     {
         if (this.category === UnaryOperatorCategory.Prefix)
         {
             return `${this.operator}${this.operand.toString()}`;
         }
         
-        return `${this.operator}(${this.operand.toString()})`;
+        // For function-like operators, parentheses are optional
+        const argStr = this.operand.toString();
+        return `${this.operator}${argStr}`;
     }
 }
