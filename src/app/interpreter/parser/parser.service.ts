@@ -58,40 +58,14 @@ export class ParserService
         this.currentIndentLevelSubject.next(Math.max(0, level));
     }
 
-    public parseLine(lineNumber: number, sourceText: string): ParsedLine
+    public parseLine(lineNumber: number, sourceText: string): ParsedLine | null
     {
-        try
+        const trimmedText = sourceText.trim();
+        
+        if (!trimmedText || trimmedText.startsWith("'"))
         {
-            const trimmedText = sourceText.trim();
-            
-            if (!trimmedText || trimmedText.startsWith("'"))
-            {
-                const statement = new UnparsableStatement(sourceText, 'Comment or empty line');
-                statement.indentLevel = this.currentIndentLevel;
-                
-                const parsed: ParsedLine = {
-                    lineNumber,
-                    sourceText,
-                    statement,
-                    hasError: false
-                };
-                
-                this.updateParsedLine(lineNumber, parsed);
-                return parsed;
-            }
-
-            this.tokens = this.tokenizer.tokenize(trimmedText);
-            this.current.value = 0;
-
-            const context = new ParserContext(this.tokens, this.current, this.expressionParser);
-            const statement = this.parseStatement(context);
+            const statement = new UnparsableStatement(sourceText, 'Comment or empty line');
             statement.indentLevel = this.currentIndentLevel;
-            
-            const indentAdjustment = statement.getIndentAdjustment();
-            if (indentAdjustment !== 0)
-            {
-                this.currentIndentLevel = this.currentIndentLevel + indentAdjustment;
-            }
             
             const parsed: ParsedLine = {
                 lineNumber,
@@ -103,23 +77,39 @@ export class ParserService
             this.updateParsedLine(lineNumber, parsed);
             return parsed;
         }
-        catch (error)
-        {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const statement = new UnparsableStatement(sourceText, errorMessage);
+
+        this.tokens = this.tokenizer.tokenize(trimmedText);
+        this.current.value = 0;
+
+            const context = new ParserContext(this.tokens, this.current, this.expressionParser);
+            let statement: Statement;
+            
+            try
+            {
+                statement = this.parseStatement(context);
+            }
+            catch (error)
+            {
+                return null;
+            }
+            
             statement.indentLevel = this.currentIndentLevel;
-            
-            const parsed: ParsedLine = {
-                lineNumber,
-                sourceText,
-                statement,
-                hasError: true,
-                errorMessage
-            };
-            
-            this.updateParsedLine(lineNumber, parsed);
-            return parsed;
+        
+        const indentAdjustment = statement.getIndentAdjustment();
+        if (indentAdjustment !== 0)
+        {
+            this.currentIndentLevel = this.currentIndentLevel + indentAdjustment;
         }
+        
+        const parsed: ParsedLine = {
+            lineNumber,
+            sourceText,
+            statement,
+            hasError: false
+        };
+        
+        this.updateParsedLine(lineNumber, parsed);
+        return parsed;
     }
 
     private parseStatement(context: ParserContext): Statement

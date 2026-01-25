@@ -110,6 +110,12 @@ When solving problems, follow this workflow:
 - **File Endings**: Files must end with exactly one newline character after the last content line
   - The last line of content should be followed by a single newline, then EOF
   - Do NOT include two blank lines at the end of files
+- **Error Handling**: Prefer returning null over throwing exceptions for recoverable errors
+  - Parsing methods (e.g., `parseLine`, `parseExpression`) should return `T | null` instead of throwing
+  - Use null returns to indicate failure states that callers can handle gracefully
+  - Avoid try-catch blocks for expected failure cases - check for null instead
+  - Exceptions should be reserved for truly exceptional/unexpected errors
+  - Example: `parseLine()` returns `ParsedLine | null` on parse failure, not a ParsedLine with `hasError: true`
 
 ## Architecture
 - Divide solutions by layers into projects

@@ -99,7 +99,7 @@ export class ConsoleService
         
         let parsedLine: ParsedLine | null = null;
         
-        const expression = this.tryParseExpression(trimmedCommand);
+        const expression = this.expressionParserService.parseExpression(trimmedCommand);
         
         if (expression !== null)
         {
@@ -113,7 +113,7 @@ export class ConsoleService
         }
         else
         {
-            parsedLine = this.tryParseStatement(trimmedCommand);
+            parsedLine = this.parserService.parseLine(0, trimmedCommand);
         }
 
         if (parsedLine === null)
@@ -146,29 +146,6 @@ export class ConsoleService
         }
     }
 
-    private tryParseExpression(source: string): Expression | null
-    {
-        try
-        {
-            return this.expressionParserService.parseExpression(source);
-        }
-        catch (error)
-        {
-            return null;
-        }
-    }
-
-    private tryParseStatement(source: string): ParsedLine | null
-    {
-        try
-        {
-            return this.parserService.parseLine(0, source);
-        }
-        catch (error)
-        {
-            return null;
-        }
-    }
 
     public printOutput(message: string): void
     {

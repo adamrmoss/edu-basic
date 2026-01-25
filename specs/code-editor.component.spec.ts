@@ -365,7 +365,7 @@ describe('CodeEditorComponent', () => {
 
         it('should handle parse exceptions as errors', () => {
             parserService.parseLine.mockImplementation(() => {
-                throw new Error('Parse exception');
+                return null;
             });
 
             component.code = 'INVALID';
@@ -402,6 +402,15 @@ describe('CodeEditorComponent', () => {
         });
 
         it('should update line numbers on input', () => {
+            parserService.parseLine.mockImplementation((lineNumber: number, sourceText: string) => {
+                return {
+                    lineNumber,
+                    sourceText,
+                    statement: new UnparsableStatement(sourceText, 'Comment or empty line'),
+                    hasError: false
+                } as ParsedLine;
+            });
+
             component.code = 'Line 1\nLine 2\nLine 3';
             component.onTextAreaInput({ target: { value: 'Line 1\nLine 2\nLine 3' } } as any);
 

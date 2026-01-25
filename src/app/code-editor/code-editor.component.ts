@@ -149,6 +149,12 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
 
                 const parsed = this.parserService.parseLine(lineIndex, line);
                 
+                if (parsed === null)
+                {
+                    console.error(`Parse error on line ${i + 1}: Unable to parse line`);
+                    return;
+                }
+                
                 if (parsed.hasError)
                 {
                     console.error(`Parse error on line ${i + 1}:`, parsed.errorMessage || 'Unknown parse error');
@@ -274,21 +280,14 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
                 continue;
             }
             
-            try
-            {
-                const parsed = this.parserService.parseLine(lineIndex, line);
-                
-                if (parsed.hasError)
-                {
-                    newErrorLines.add(i);
-                }
-                
-                lineIndex++;
-            }
-            catch (error)
+            const parsed = this.parserService.parseLine(lineIndex, line);
+            
+            if (parsed === null || parsed.hasError)
             {
                 newErrorLines.add(i);
             }
+            
+            lineIndex++;
         }
         
         this.errorLines = newErrorLines;
@@ -333,18 +332,11 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
 
     private getCanonicalRepresentation(line: string): string | null
     {
-        try
+        const parsed = this.parserService.parseLine(0, line);
+        
+        if (parsed !== null && !parsed.hasError)
         {
-            const parsed = this.parserService.parseLine(0, line);
-            
-            if (!parsed.hasError)
-            {
-                return parsed.statement.toString();
-            }
-        }
-        catch (error)
-        {
-            // Ignore parse errors
+            return parsed.statement.toString();
         }
         
         return null;

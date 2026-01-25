@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injector, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { Program } from '../../lang/program';
@@ -50,7 +50,7 @@ export class InterpreterService
         private readonly audioService: AudioService,
         private readonly tabSwitchService: TabSwitchService,
         private readonly fileSystemService: FileSystemService,
-        private readonly consoleService: ConsoleService
+        private readonly injector: Injector
     )
     {
         this.executionContext = new ExecutionContext();
@@ -192,13 +192,15 @@ export class InterpreterService
     {
         if (!this.runtimeExecution)
         {
+            const consoleService = this.injector.get(ConsoleService);
+            
             this.runtimeExecution = new RuntimeExecution(
                 this.sharedProgram,
                 this.executionContext,
                 this.graphicsService.getGraphics(),
                 this.audioService.getAudio(),
                 this.fileSystemService,
-                this.consoleService
+                consoleService
             );
             this.runtimeExecution.setTabSwitchCallback((tabId: string) => {
                 this.tabSwitchService.requestTabSwitch(tabId);

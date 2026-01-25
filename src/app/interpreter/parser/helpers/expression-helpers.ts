@@ -72,15 +72,41 @@ export class ExpressionHelpers
             throw new Error('Expected expression');
         }
 
-        const exprSource = exprTokens.map(t => {
-            if (t.type === TokenType.String)
+        const parts: string[] = [];
+        
+        for (let i = 0; i < exprTokens.length; i++)
+        {
+            const token = exprTokens[i];
+            const prevToken = i > 0 ? exprTokens[i - 1] : null;
+            
+            if (token.type === TokenType.String)
             {
-                return `"${t.value}"`;
+                if (prevToken && this.needsSpace(prevToken, token))
+                {
+                    parts.push(' ');
+                }
+                parts.push(`"${token.value}"`);
             }
-            return t.value;
-        }).join(' ');
+            else
+            {
+                if (prevToken && this.needsSpace(prevToken, token))
+                {
+                    parts.push(' ');
+                }
+                parts.push(token.value);
+            }
+        }
+        
+        const exprSource = parts.join('');
 
-        return expressionParser.parseExpression(exprSource);
+        const expr = expressionParser.parseExpression(exprSource);
+        
+        if (expr === null)
+        {
+            throw new Error('Expected expression');
+        }
+        
+        return expr;
     }
 
     private static isStatementKeyword(keyword: string): boolean
@@ -91,5 +117,25 @@ export class ExpressionHelpers
             'RADII', 'RADIUS', 'READ', 'STEP', 'THEN', 'TO', 'WITH'
         ];
         return statementKeywords.includes(upperKeyword);
+    }
+
+    private static needsSpace(prevToken: Token, currentToken: Token): boolean
+    {
+        if (prevToken.type === TokenType.LeftParen || prevToken.type === TokenType.LeftBracket || prevToken.type === TokenType.LeftBrace)
+        {
+            return false;
+        }
+        
+        if (currentToken.type === TokenType.RightParen || currentToken.type === TokenType.RightBracket || currentToken.type === TokenType.RightBrace)
+        {
+            return false;
+        }
+        
+        if (prevToken.type === TokenType.Comma || prevToken.type === TokenType.Semicolon)
+        {
+            return false;
+        }
+        
+        return true;
     }
 }

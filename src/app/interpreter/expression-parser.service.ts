@@ -20,11 +20,18 @@ export class ExpressionParserService
     private current: number = 0;
     private tokenizer: Tokenizer = new Tokenizer();
 
-    public parseExpression(source: string): Expression
+    public parseExpression(source: string): Expression | null
     {
         this.tokens = this.tokenizer.tokenize(source);
         this.current = 0;
-        return this.expression();
+        const expr = this.expression();
+        
+        if (!this.isAtEnd())
+        {
+            return null;
+        }
+        
+        return expr;
     }
 
     private expression(): Expression
