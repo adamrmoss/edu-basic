@@ -21,10 +21,7 @@ abstract class Expression extends RuntimeNode {
 Represent constant values in source code.
 
 **Types**:
-- `LiteralExpression` - Base for all literals
-- `ArrayLiteralExpression` - Array literals `[1, 2, 3]`
-- `ComplexLiteralExpression` - Complex literals `(1+2i)`
-- `StructureLiteralExpression` - Structure literals `{key: value}`
+- `LiteralExpression` - All literals (Integer, Real, Complex, String, Array, Structure)
 
 **Evaluation**: Returns the literal value directly.
 

@@ -1,11 +1,8 @@
-import { LiteralExpression } from '../../src/lang/expressions/literals/literal-expression';
-import { ComplexLiteralExpression } from '../../src/lang/expressions/literals/complex-literal-expression';
-import { ArrayLiteralExpression } from '../../src/lang/expressions/literals/array-literal-expression';
-import { StructureLiteralExpression } from '../../src/lang/expressions/literals/structure-literal-expression';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
 import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
 import { ParenthesizedExpression } from '../../src/lang/expressions/special/parenthesized-expression';
 import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { EduBasicType, coerceArrayElements } from '../../src/lang/edu-basic-value';
 
 describe('Literal and Special Expressions', () =>
 {
@@ -107,11 +104,11 @@ describe('Literal and Special Expressions', () =>
         });
     });
 
-    describe('ComplexLiteralExpression', () =>
+    describe('Complex Literals', () =>
     {
         it('should create complex value', () =>
         {
-            const expr = new ComplexLiteralExpression(3, 4);
+            const expr = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
 
             const result = expr.evaluate(context);
 
@@ -125,7 +122,7 @@ describe('Literal and Special Expressions', () =>
 
         it('should handle negative imaginary part', () =>
         {
-            const expr = new ComplexLiteralExpression(5, -2);
+            const expr = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 5, imaginary: -2 } });
 
             const result = expr.evaluate(context);
 
@@ -138,7 +135,7 @@ describe('Literal and Special Expressions', () =>
 
         it('should handle zero parts', () =>
         {
-            const expr = new ComplexLiteralExpression(0, 0);
+            const expr = new LiteralExpression({ type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } });
 
             const result = expr.evaluate(context);
 
@@ -150,11 +147,11 @@ describe('Literal and Special Expressions', () =>
         });
     });
 
-    describe('ArrayLiteralExpression', () =>
+    describe('Array Literals', () =>
     {
         it('should create empty array', () =>
         {
-            const expr = new ArrayLiteralExpression([]);
+            const expr = new LiteralExpression({ type: EduBasicType.Array, value: [], elementType: EduBasicType.Integer });
 
             const result = expr.evaluate(context);
 
@@ -168,12 +165,12 @@ describe('Literal and Special Expressions', () =>
 
         it('should create array from literals', () =>
         {
-            const elements = [
-                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                new LiteralExpression({ type: EduBasicType.Integer, value: 3 })
-            ];
-            const expr = new ArrayLiteralExpression(elements);
+            const arrayValue = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Integer, value: 2 },
+                { type: EduBasicType.Integer, value: 3 }
+            ]);
+            const expr = new LiteralExpression(arrayValue);
 
             const result = expr.evaluate(context);
 
@@ -187,51 +184,99 @@ describe('Literal and Special Expressions', () =>
                 expect(result.elementType).toBe(EduBasicType.Integer);
             }
         });
-
-        it('should evaluate expressions in array', () =>
+        
+        it('should coerce Integer and Real to Real', () =>
         {
-            context.setVariable('x%', { type: EduBasicType.Integer, value: 10 });
-            
-            const elements = [
-                new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-                new VariableExpression('x%')
-            ];
-            const expr = new ArrayLiteralExpression(elements);
+            const arrayValue = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 0 },
+                { type: EduBasicType.Real, value: 3.14 }
+            ]);
+            const expr = new LiteralExpression(arrayValue);
 
             const result = expr.evaluate(context);
 
+            expect(result.type).toBe(EduBasicType.Array);
             if (result.type === EduBasicType.Array)
             {
-                expect(result.value[0].value).toBe(5);
-                expect(result.value[1].value).toBe(10);
+                expect(result.elementType).toBe(EduBasicType.Real);
+                expect(result.value[0].type).toBe(EduBasicType.Real);
+                expect(result.value[0].value).toBe(0);
+                expect(result.value[1].type).toBe(EduBasicType.Real);
+                expect(result.value[1].value).toBe(3.14);
             }
         });
-
-        it('should format toString for empty array', () =>
+        
+        it('should coerce Integer, Real, and Complex to Complex', () =>
         {
-            const expr = new ArrayLiteralExpression([]);
+            const arrayValue = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Real, value: 3.14 },
+                { type: EduBasicType.Complex, value: { real: 2, imaginary: 5 } }
+            ]);
+            const expr = new LiteralExpression(arrayValue);
 
-            expect(expr.toString()).toBe('[ ]');
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Array);
+            if (result.type === EduBasicType.Array)
+            {
+                expect(result.elementType).toBe(EduBasicType.Complex);
+                expect(result.value[0].type).toBe(EduBasicType.Complex);
+                if (result.value[0].type === EduBasicType.Complex)
+                {
+                    expect(result.value[0].value.real).toBe(1);
+                    expect(result.value[0].value.imaginary).toBe(0);
+                }
+                expect(result.value[1].type).toBe(EduBasicType.Complex);
+                if (result.value[1].type === EduBasicType.Complex)
+                {
+                    expect(result.value[1].value.real).toBe(3.14);
+                    expect(result.value[1].value.imaginary).toBe(0);
+                }
+                expect(result.value[2].type).toBe(EduBasicType.Complex);
+                if (result.value[2].type === EduBasicType.Complex)
+                {
+                    expect(result.value[2].value.real).toBe(2);
+                    expect(result.value[2].value.imaginary).toBe(5);
+                }
+            }
         });
-
-        it('should format toString for array with elements', () =>
+        
+        it('should throw error for incompatible types (String)', () =>
         {
-            const elements = [
-                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                new LiteralExpression({ type: EduBasicType.Integer, value: 3 })
-            ];
-            const expr = new ArrayLiteralExpression(elements);
+            expect(() => coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.String, value: 'hello' }
+            ])).toThrow('Array literal cannot mix strings with other types');
+        });
+        
+        it('should allow string-only arrays', () =>
+        {
+            const arrayValue = coerceArrayElements([
+                { type: EduBasicType.String, value: 'hello' },
+                { type: EduBasicType.String, value: 'world' }
+            ]);
+            const expr = new LiteralExpression(arrayValue);
 
-            expect(expr.toString()).toBe('[1, 2, 3]');
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Array);
+            if (result.type === EduBasicType.Array)
+            {
+                expect(result.elementType).toBe(EduBasicType.String);
+                expect(result.value[0].type).toBe(EduBasicType.String);
+                expect(result.value[0].value).toBe('hello');
+                expect(result.value[1].type).toBe(EduBasicType.String);
+                expect(result.value[1].value).toBe('world');
+            }
         });
     });
 
-    describe('StructureLiteralExpression', () =>
+    describe('Structure Literals', () =>
     {
         it('should create empty structure', () =>
         {
-            const expr = new StructureLiteralExpression(new Map());
+            const expr = new LiteralExpression({ type: EduBasicType.Structure, value: new Map() });
 
             const result = expr.evaluate(context);
 
@@ -244,11 +289,11 @@ describe('Literal and Special Expressions', () =>
 
         it('should create structure with members', () =>
         {
-            const members = new Map();
-            members.set('name$', new LiteralExpression({ type: EduBasicType.String, value: 'Alice' }));
-            members.set('age%', new LiteralExpression({ type: EduBasicType.Integer, value: 25 }));
+            const structureMembers = new Map();
+            structureMembers.set('name$', { type: EduBasicType.String, value: 'Alice' });
+            structureMembers.set('age%', { type: EduBasicType.Integer, value: 25 });
             
-            const expr = new StructureLiteralExpression(members);
+            const expr = new LiteralExpression({ type: EduBasicType.Structure, value: structureMembers });
 
             const result = expr.evaluate(context);
 
@@ -259,45 +304,6 @@ describe('Literal and Special Expressions', () =>
                 expect(result.value.get('name$')?.value).toBe('Alice');
                 expect(result.value.get('age%')?.value).toBe(25);
             }
-        });
-
-        it('should evaluate expressions in structure members', () =>
-        {
-            context.setVariable('x%', { type: EduBasicType.Integer, value: 100 });
-            
-            const members = new Map();
-            members.set('literal%', new LiteralExpression({ type: EduBasicType.Integer, value: 50 }));
-            members.set('variable%', new VariableExpression('x%'));
-            
-            const expr = new StructureLiteralExpression(members);
-
-            const result = expr.evaluate(context);
-
-            if (result.type === EduBasicType.Structure)
-            {
-                expect(result.value.get('literal%')?.value).toBe(50);
-                expect(result.value.get('variable%')?.value).toBe(100);
-            }
-        });
-
-        it('should format toString for empty structure', () =>
-        {
-            const expr = new StructureLiteralExpression(new Map());
-
-            expect(expr.toString()).toBe('{ }');
-        });
-
-        it('should format toString for structure with members', () =>
-        {
-            const members = new Map();
-            members.set('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 10 }));
-            members.set('y%', new LiteralExpression({ type: EduBasicType.Integer, value: 20 }));
-            
-            const expr = new StructureLiteralExpression(members);
-
-            const result = expr.toString();
-            expect(result).toContain('x%: 10');
-            expect(result).toContain('y%: 20');
         });
     });
 

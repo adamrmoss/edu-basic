@@ -7,7 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 import { LetStatement } from '../src/lang/statements/variables/let-statement';
 import { PrintStatement } from '../src/lang/statements/io/print-statement';
 import { UnparsableStatement } from '../src/lang/statements/unparsable-statement';
-import { LiteralExpression } from '../src/lang/expressions/literals/literal-expression';
+import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { EduBasicType } from '../src/lang/edu-basic-value';
 import { Program } from '../src/lang/program';
 import { ExecutionContext } from '../src/lang/execution-context';

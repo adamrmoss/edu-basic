@@ -1,6 +1,6 @@
-import { Expression } from '../expression';
-import { EduBasicValue, valueToExpressionString } from '../../edu-basic-value';
-import { ExecutionContext } from '../../execution-context';
+import { Expression } from './expression';
+import { EduBasicValue, valueToExpressionString } from '../edu-basic-value';
+import { ExecutionContext } from '../execution-context';
 
 export class LiteralExpression extends Expression
 {

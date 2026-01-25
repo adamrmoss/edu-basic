@@ -11,7 +11,7 @@ import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-s
 import { WendStatement } from '../src/lang/statements/control-flow/wend-statement';
 import { LoopStatement } from '../src/lang/statements/control-flow/loop-statement';
 import { PrintStatement } from '../src/lang/statements/io/print-statement';
-import { LiteralExpression } from '../src/lang/expressions/literals/literal-expression';
+import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { EduBasicType, EduBasicValue } from '../src/lang/edu-basic-value';
 import { ExecutionResult } from '../src/lang/statements/statement';
 

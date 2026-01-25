@@ -35,4 +35,4 @@ export * from './constants';
 export * from './special';
 
 // Literals
-export * from './literals';
+export * from './literal-expression';

@@ -1,5 +1,5 @@
 import { LogicalExpression, LogicalOperator } from '../../src/lang/expressions/logical/logical-expression';
-import { LiteralExpression } from '../../src/lang/expressions/literals/literal-expression';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
 import { ExecutionContext } from '../../src/lang/execution-context';
 import { EduBasicType } from '../../src/lang/edu-basic-value';
 

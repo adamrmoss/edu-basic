@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Token, TokenType, Tokenizer } from './tokenizer.service';
 import { Expression } from '../../lang/expressions/expression';
-import { LiteralExpression } from '../../lang/expressions/literals/literal-expression';
+import { LiteralExpression } from '../../lang/expressions/literal-expression';
 import { ArithmeticExpression, ArithmeticOperator } from '../../lang/expressions/arithmetic/arithmetic-expression';
 import { ComparisonExpression, ComparisonOperator } from '../../lang/expressions/comparison/comparison-expression';
 import { LogicalExpression, LogicalOperator } from '../../lang/expressions/logical/logical-expression';

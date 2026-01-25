@@ -1,6 +1,6 @@
 import { ArithmeticExpression, ArithmeticOperator } from '../../src/lang/expressions/arithmetic/arithmetic-expression';
 import { UnaryOperatorExpression, UnaryOperator } from '../../src/lang/expressions/arithmetic/unary-operator-expression';
-import { LiteralExpression } from '../../src/lang/expressions/literals/literal-expression';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
 import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
 import { ExecutionContext } from '../../src/lang/execution-context';
 import { EduBasicType } from '../../src/lang/edu-basic-value';

@@ -385,18 +385,28 @@ Array literals are written using square brackets with comma-separated values:
 **Rules:**
 - Array literals use square brackets `[]`
 - Elements are separated by commas
-- Elements can be any data type (Integer, Real, Complex, String)
+- Elements can be numeric types (Integer, Real, Complex) or strings, but cannot be mixed
 - Empty array literal `[ ]` creates an array with size 0
 - Array literals create arrays starting at index 1 (one-based)
-- All elements in an array literal must be of compatible types (type coercion applies)
+- For numeric arrays, all elements are coerced to the most specific common type following the hierarchy: **Integer → Real → Complex**
+- String arrays must contain only strings (no coercion)
+- When assigning to a typed array variable, numeric elements are coerced to match the variable's type sigil
 
 **Examples:**
 ```
 LET numbers%[] = [1, 2, 3, 4, 5]              ' Integer array
-LET names$[] = ["Alice", "Bob", "Charlie"]    ' String array
+LET names$[] = ["Alice", "Bob", "Charlie"]    ' String array (string literals only)
 LET mixed#[] = [1.5, 2.7, 3.14]               ' Real array
 LET empty%[] = [ ]                            ' Empty array (size 0)
 LET complex&[] = [1+2i, 3+4i, 5+6i]           ' Complex array
+
+' Type coercion in array literals
+LET reals#[] = [0, 3.14]                      ' [0, 3.14] coerces to Real array
+LET complex&[] = [1, 3.14, 2+5i]              ' All coerced to Complex: [1+0i, 3.14+0i, 2+5i]
+
+' Assignment coercion
+LET x&[] = [1, 3.14]                          ' Coerces to Complex array: [1+0i, 3.14+0i]
+LET y%[] = [5, 3.7]                           ' Coerces to Integer array: [5, 3] (truncated)
 ```
 
 #### Structure Literals
