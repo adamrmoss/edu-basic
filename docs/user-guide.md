@@ -340,7 +340,7 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 - Your BASIC program code (appears in the Code tab and in `program.bas` file)
 - `program.bas` file (appears in the file list)
 - All data files (appear in the file list)
-- Project name and metadata
+- Project name (derived from the filename)
 
 **After loading:**
 - Switch to the Code tab to see your program
@@ -357,11 +357,13 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 **What gets saved:**
 - `program.bas` file (your BASIC program code)
 - All data files (from the Disk tab)
-- Project name and metadata
+- All directories and their contents (preserving the file hierarchy)
 
 **File Format:**
 - Projects are saved as `.disk` files
-- These are ZIP archives containing your code and files
+- These are ZIP archives that directly represent your file system structure
+- The ZIP file contains all files and folders exactly as they appear in the Disk tab
+- No metadata files or wrapper folders - just your files organized in directories
 - You can share `.disk` files with others
 - You can load them on any computer with EduBASIC
 

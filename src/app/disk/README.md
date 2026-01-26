@@ -73,27 +73,20 @@ The disk system allows students to:
 
 ## Disk File Format
 
-Disks are saved as `.disk` files (ZIP archives) with the following structure:
+Disks are saved as `.disk` files (ZIP archives) that directly represent the file system structure:
 
 ```
 project-name.disk
 ├── program.bas          # BASIC program code
-├── disk.json           # Metadata (disk name, timestamps)
-└── files/              # Virtual file system
-    ├── data.txt
-    ├── scores.bin
-    └── ...
+├── data.txt            # Files at root level
+├── scores.bin
+└── folder/             # Nested directories
+    ├── file1.txt
+    └── subfolder/
+        └── file2.txt
 ```
 
-### disk.json Format
-
-```json
-{
-  "name": "ProjectName",
-  "created": "2026-01-12T10:30:00.000Z",
-  "modified": "2026-01-12T15:45:00.000Z"
-}
-```
+The ZIP file structure exactly matches the in-memory file system - all files and directories are stored at their relative paths, with no additional metadata files or wrapper folders.
 
 ## BASIC File I/O Integration
 

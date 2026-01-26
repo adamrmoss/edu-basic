@@ -4,13 +4,6 @@ import JSZip from 'jszip';
 import { FileSystemService } from './filesystem.service';
 import { DirectoryNode } from './filesystem-node';
 
-export interface DiskMetadata
-{
-    name: string;
-    created: string;
-    modified: string;
-}
-
 @Injectable({
     providedIn: 'root'
 })
@@ -66,38 +59,36 @@ export class DiskService
     public async saveDisk(): Promise<void>
     {
         const zip = new JSZip();
-
-        const programFileData = this.fileSystemService.readFile('program.bas');
-        let programCode: string;
-        
-        if (programFileData)
-        {
-            const decoder = new TextDecoder('utf-8');
-            programCode = decoder.decode(programFileData);
-        }
-        else
-        {
-            programCode = this.programCodeSubject.value;
-        }
-        
-        zip.file('program.bas', programCode);
-
-        const metadata: DiskMetadata = {
-            name: this.diskNameSubject.value,
-            created: new Date().toISOString(),
-            modified: new Date().toISOString()
-        };
-        zip.file('disk.json', JSON.stringify(metadata, null, 2));
-
         const files = this.fileSystemService.getAllFiles();
-        const filesFolder = zip.folder('files');
         
-        if (filesFolder)
+        for (const [path, data] of files.entries())
         {
-            for (const [path, data] of files.entries())
+            if (path.includes('/'))
+            {
+                const parts = path.split('/');
+                let currentFolder: JSZip | null = zip;
+                
+                for (let i = 0; i < parts.length - 1; i++)
+                {
+                    const folderName = parts[i];
+                    currentFolder = currentFolder.folder(folderName);
+                    
+                    if (!currentFolder)
+                    {
+                        break;
+                    }
+                }
+                
+                if (currentFolder)
+                {
+                    const buffer = new Uint8Array(data).buffer;
+                    currentFolder.file(parts[parts.length - 1], buffer);
+                }
+            }
+            else
             {
                 const buffer = new Uint8Array(data).buffer;
-                filesFolder.file(path, buffer);
+                zip.file(path, buffer);
             }
         }
 
@@ -114,60 +105,36 @@ export class DiskService
     public async loadDisk(file: File): Promise<void>
     {
         const zip = await JSZip.loadAsync(file);
-
-        const diskJsonFile = zip.file('disk.json');
-        
-        if (diskJsonFile)
-        {
-            const diskJsonText = await diskJsonFile.async('text');
-            const metadata: DiskMetadata = JSON.parse(diskJsonText);
-            this.diskNameSubject.next(metadata.name);
-        }
-        else
-        {
-            const fileName = file.name.replace(/\.disk$/i, '');
-            this.diskNameSubject.next(fileName);
-        }
-
-        const programFile = zip.file('program.bas');
-        let programText = '';
-        
-        if (programFile)
-        {
-            programText = await programFile.async('text');
-            this.programCodeSubject.next(programText);
-        }
-        else
-        {
-            this.programCodeSubject.next('');
-        }
+        const fileName = file.name.replace(/\.disk$/i, '');
+        this.diskNameSubject.next(fileName);
 
         this.fileSystemService.clear();
         
-        const encoder = new TextEncoder();
-        const programData = encoder.encode(programText);
-        this.fileSystemService.writeFile('program.bas', programData);
-
-        const filesFolder = zip.folder('files');
+        const fileEntries: Array<[string, any]> = [];
         
-        if (filesFolder)
-        {
-            const fileEntries: Array<[string, any]> = [];
-            filesFolder.forEach((relativePath, zipEntry) => {
-                if (!zipEntry.dir)
-                {
-                    fileEntries.push([relativePath, zipEntry]);
-                }
-            });
-            
-            for (const [relativePath, zipEntry] of fileEntries)
+        zip.forEach((relativePath, zipEntry) => {
+            if (!zipEntry.dir)
             {
-                const path = relativePath.replace(/^files\//, '');
-                const data = await zipEntry.async('uint8array');
-                this.fileSystemService.writeFile(path, data);
+                fileEntries.push([relativePath, zipEntry]);
             }
+        });
+        
+        for (const [relativePath, zipEntry] of fileEntries)
+        {
+            const data = await zipEntry.async('uint8array');
+            this.fileSystemService.writeFile(relativePath, data);
         }
 
+        const programFileData = this.fileSystemService.readFile('program.bas');
+        let programText = '';
+        
+        if (programFileData)
+        {
+            const decoder = new TextDecoder('utf-8');
+            programText = decoder.decode(programFileData);
+        }
+        
+        this.programCodeSubject.next(programText);
         this.filesChangedSubject.next();
     }
 
