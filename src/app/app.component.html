@@ -13,7 +13,7 @@
                 </luna-tab>
             </luna-tabs>
         </div>
-        <div class="output-panel">
+        <div class="output-panel" *ngIf="!isDiskTabActive()">
             <app-output></app-output>
         </div>
     </div>

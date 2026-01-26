@@ -91,6 +91,11 @@ When solving problems, follow this workflow:
 - Use separate files for templates (.html) and stylesheets (.scss) - NEVER include HTML/SCSS directly in TypeScript components
 - Prefer TypeScript over JavaScript
 - Prefer SCSS over CSS
+- **SCSS Property Ordering**: ALL CSS/SCSS properties MUST be alphabetized within each selector block
+  - Properties should be sorted alphabetically by property name (e.g., `align-items`, `background-color`, `border`, `color`, `display`, `font-size`, etc.)
+  - This applies to all selector blocks, including nested selectors, pseudo-classes (`:hover`, `:active`, etc.), and pseudo-elements (`::placeholder`, etc.)
+  - Example: `{ align-items: center; background-color: $navy; display: flex; }` ✅
+  - Example: `{ display: flex; align-items: center; background-color: $navy; }` ❌
 
 ## C# Code Style
 - Use explicit 'this.' to reference instance members (methods and properties)

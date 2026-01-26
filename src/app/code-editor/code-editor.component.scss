@@ -2,32 +2,34 @@
 
 .code-editor-container
 {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
     background-color: $navy;
     color: $white;
+    display: flex;
+    flex-direction: column;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
+    height: 100%;
 }
 
 .editor-toolbar
 {
-    display: flex;
-    padding: 8px;
+    align-items: center;
     background-color: $navy-darkest;
     border-bottom: 1px solid $blue-steel-dark;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
 }
 
 .run-button
 {
-    padding: 4px 12px;
     background-color: $blue-steel;
-    color: $white;
     border: 1px solid $blue-steel-dark;
+    color: $white;
     cursor: pointer;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
+    padding: 4px 12px;
 
     &:hover
     {
@@ -42,8 +44,8 @@
 
 ::ng-deep app-text-editor
 {
-    flex: 1;
     display: flex;
     flex-direction: column;
+    flex: 1;
     overflow: hidden;
 }

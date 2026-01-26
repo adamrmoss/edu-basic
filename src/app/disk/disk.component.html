@@ -40,10 +40,10 @@
             <div class="section-header">
                 <h3>Files</h3>
                 <div class="header-actions">
-                    <button class="icon-button" (click)="onNewFile()" title="New File">
+                    <button class="icon-button" (click)="onNewFile('')" title="New File at Root">
                         <luna-icon size="16" [svg]="fileIcon"></luna-icon>
                     </button>
-                    <button class="icon-button" (click)="onNewDirectory()" title="New Directory">
+                    <button class="icon-button" (click)="onNewDirectory('')" title="New Directory at Root">
                         <luna-icon size="16" [svg]="folderIcon"></luna-icon>
                     </button>
                 </div>
@@ -54,7 +54,7 @@
                 
                 <div class="no-files" *ngIf="fileTree.length === 0">
                     <p>No files</p>
-                    <p class="hint">Click the file icon to create a file</p>
+                    <p class="hint">Use the buttons above to create files or directories</p>
                 </div>
             </div>
         </div>
@@ -127,16 +127,6 @@
                 <luna-icon class="empty-icon" size="16" [svg]="folderIcon"></luna-icon>
                 <h2>No File Selected</h2>
                 <p class="hint">Select a file from the tree to view or edit its contents</p>
-                <div class="quick-actions">
-                    <button class="quick-action-button" (click)="onNewFile()">
-                        <luna-icon size="16" [svg]="fileIcon"></luna-icon>
-                        <span>New File</span>
-                    </button>
-                    <button class="quick-action-button" (click)="onNewDirectory()">
-                        <luna-icon size="16" [svg]="folderIcon"></luna-icon>
-                        <span>New Directory</span>
-                    </button>
-                </div>
             </div>
         </div>
         
@@ -145,17 +135,7 @@
             <div class="empty-state">
                 <luna-icon class="empty-icon" size="16" [svg]="folderIcon"></luna-icon>
                 <h2>{{ selectedFile.name }}</h2>
-                <p class="hint">Directory selected. Use the toolbar to manage files and subdirectories.</p>
-                <div class="quick-actions">
-                    <button class="quick-action-button" (click)="onNewFile(selectedFile.path)">
-                        <luna-icon size="16" [svg]="fileIcon"></luna-icon>
-                        <span>New File Here</span>
-                    </button>
-                    <button class="quick-action-button" (click)="onNewDirectory(selectedFile.path)">
-                        <luna-icon size="16" [svg]="folderIcon"></luna-icon>
-                        <span>New Directory Here</span>
-                    </button>
-                </div>
+                <p class="hint">Directory selected. Use the toolbar above to manage files and subdirectories.</p>
             </div>
         </div>
     </div>
@@ -172,7 +152,7 @@
             [class.expanded]="node.expanded"
             [style.padding-left.px]="level * 16 + 12"
         >
-            <div class="item-content" (click)="selectFile(node)" (dblclick)="toggleDirectory(node)">
+            <div class="item-content" (click)="selectFile(node)" (dblclick)="toggleDirectory(node)" (contextmenu)="onContextMenu($event, node.path)">
                 <luna-icon 
                     class="icon" 
                     size="16" 

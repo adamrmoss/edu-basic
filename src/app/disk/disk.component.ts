@@ -38,6 +38,7 @@ export class DiskComponent implements OnInit, OnDestroy
     public editorLines: string[] = [''];
     public viewMode: 'text' | 'hex' = 'text';
     public contextMenuPath: string | null = null;
+    public contextMenuClickedPath: string | null = null;
     public contextMenuX: number = 0;
     public contextMenuY: number = 0;
     public showContextMenu: boolean = false;
@@ -287,7 +288,26 @@ export class DiskComponent implements OnInit, OnDestroy
         event.preventDefault();
         event.stopPropagation();
         
-        this.contextMenuPath = path;
+        const node = this.findNodeByPath(this.fileTree, path);
+        
+        this.contextMenuClickedPath = path;
+        
+        if (node)
+        {
+            if (node.type === 'directory')
+            {
+                this.contextMenuPath = node.path;
+            }
+            else
+            {
+                this.contextMenuPath = this.getParentPath(node.path);
+            }
+        }
+        else
+        {
+            this.contextMenuPath = '';
+        }
+        
         this.contextMenuX = event.clientX;
         this.contextMenuY = event.clientY;
         this.showContextMenu = true;
@@ -297,41 +317,28 @@ export class DiskComponent implements OnInit, OnDestroy
     {
         this.showContextMenu = false;
         this.contextMenuPath = null;
+        this.contextMenuClickedPath = null;
     }
 
     public onContextMenuNewFile(): void
     {
-        if (this.contextMenuPath)
-        {
-            this.onNewFile(this.contextMenuPath);
-        }
-        else
-        {
-            this.onNewFile();
-        }
-        
+        const parentPath = this.contextMenuPath !== null ? this.contextMenuPath : '';
+        this.onNewFile(parentPath);
         this.closeContextMenu();
     }
 
     public onContextMenuNewDirectory(): void
     {
-        if (this.contextMenuPath)
-        {
-            this.onNewDirectory(this.contextMenuPath);
-        }
-        else
-        {
-            this.onNewDirectory();
-        }
-        
+        const parentPath = this.contextMenuPath !== null ? this.contextMenuPath : '';
+        this.onNewDirectory(parentPath);
         this.closeContextMenu();
     }
 
     public onContextMenuDelete(): void
     {
-        if (this.contextMenuPath)
+        if (this.contextMenuClickedPath !== null)
         {
-            const node = this.findNodeByPath(this.fileTree, this.contextMenuPath);
+            const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
             
             if (node)
             {
@@ -345,9 +352,9 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public onContextMenuRename(): void
     {
-        if (this.contextMenuPath)
+        if (this.contextMenuClickedPath !== null)
         {
-            const node = this.findNodeByPath(this.fileTree, this.contextMenuPath);
+            const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
             
             if (node)
             {
