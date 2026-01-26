@@ -6,6 +6,7 @@ import { InterpreterService, InterpreterState } from '../interpreter/interpreter
 import { ParserService, ParsedLine } from '../interpreter/parser';
 import { Program } from '../../lang/program';
 import { ExecutionResult } from '../../lang/statements/statement';
+import { ParseResult } from '../interpreter/parser/parse-result';
 
 @Component({
     selector: 'app-code-editor',
@@ -25,6 +26,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
     public code: string = '';
     public lineNumbers: number[] = [];
     public errorLines: Set<number> = new Set<number>();
+    public errorMessages: Map<number, string> = new Map<number, string>();
 
     private readonly destroy$ = new Subject<void>();
     private textareaElement: HTMLTextAreaElement | null = null;
@@ -147,13 +149,15 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
                     continue;
                 }
 
-                const parsed = this.parserService.parseLine(lineIndex, line);
+                const parseResult = this.parserService.parseLine(lineIndex, line);
                 
-                if (parsed === null)
+                if (!parseResult.success)
                 {
-                    console.error(`Parse error on line ${i + 1}: Unable to parse line`);
+                    console.error(`Parse error on line ${i + 1}:`, parseResult.error || 'Unable to parse line');
                     return;
                 }
+                
+                const parsed = parseResult.value;
                 
                 if (parsed.hasError)
                 {
@@ -269,6 +273,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
     {
         const lines = this.code.split('\n');
         const newErrorLines = new Set<number>();
+        const newErrorMessages = new Map<number, string>();
         let lineIndex = 0;
         
         for (let i = 0; i < lines.length; i++)
@@ -280,17 +285,24 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
                 continue;
             }
             
-            const parsed = this.parserService.parseLine(lineIndex, line);
+            const parseResult = this.parserService.parseLine(lineIndex, line);
             
-            if (parsed === null || parsed.hasError)
+            if (!parseResult.success)
             {
                 newErrorLines.add(i);
+                newErrorMessages.set(i, parseResult.error || 'Parse error');
+            }
+            else if (parseResult.value.hasError)
+            {
+                newErrorLines.add(i);
+                newErrorMessages.set(i, parseResult.value.errorMessage || 'Parse error');
             }
             
             lineIndex++;
         }
         
         this.errorLines = newErrorLines;
+        this.errorMessages = newErrorMessages;
     }
 
     private updateLineWithCanonical(lineIndex: number): void
@@ -332,11 +344,11 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
 
     private getCanonicalRepresentation(line: string): string | null
     {
-        const parsed = this.parserService.parseLine(0, line);
+        const parseResult = this.parserService.parseLine(0, line);
         
-        if (parsed !== null && !parsed.hasError)
+        if (parseResult.success && !parseResult.value.hasError)
         {
-            return parsed.statement.toString();
+            return parseResult.value.statement.toString();
         }
         
         return null;
@@ -364,5 +376,10 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
     public isLineError(lineIndex: number): boolean
     {
         return this.errorLines.has(lineIndex);
+    }
+
+    public getLineErrorMessage(lineIndex: number): string | undefined
+    {
+        return this.errorMessages.get(lineIndex);
     }
 }

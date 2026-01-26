@@ -8,6 +8,7 @@ import { ExpressionParserService } from '../interpreter/expression-parser.servic
 import { Expression } from '../../lang/expressions/expression';
 import { Statement } from '../../lang/statements/statement';
 import { ConsoleStatement } from '../../lang/statements/misc';
+import { ParseResult } from '../interpreter/parser/parse-result';
 
 export interface ConsoleEntry
 {
@@ -68,14 +69,14 @@ export class ConsoleService
 
     public parseLine(command: string): ParsedLine | null
     {
-        try
-        {
-            return this.parserService.parseLine(0, command);
-        }
-        catch (error)
+        const parseResult = this.parserService.parseLine(0, command);
+        
+        if (!parseResult.success)
         {
             return null;
         }
+        
+        return parseResult.value;
     }
 
     public executeCommand(command: string): void
@@ -99,11 +100,11 @@ export class ConsoleService
         
         let parsedLine: ParsedLine | null = null;
         
-        const expression = this.expressionParserService.parseExpression(trimmedCommand);
+        const expressionResult = this.expressionParserService.parseExpression(trimmedCommand);
         
-        if (expression !== null)
+        if (expressionResult.success)
         {
-            const consoleStatement = new ConsoleStatement(expression);
+            const consoleStatement = new ConsoleStatement(expressionResult.value);
             parsedLine = {
                 lineNumber: 0,
                 sourceText: command,
@@ -113,7 +114,15 @@ export class ConsoleService
         }
         else
         {
-            parsedLine = this.parserService.parseLine(0, trimmedCommand);
+            const parseResult = this.parserService.parseLine(0, trimmedCommand);
+            
+            if (!parseResult.success)
+            {
+                this.printError(parseResult.error || 'Parse error');
+                return;
+            }
+            
+            parsedLine = parseResult.value;
         }
 
         if (parsedLine === null)

@@ -2,6 +2,7 @@ import { Expression } from '../../../../lang/expressions/expression';
 import { ExpressionParserService } from '../../expression-parser.service';
 import { Token, TokenType } from '../../tokenizer.service';
 import { TokenHelpers } from './token-helpers';
+import { ParseResult, failure, success } from '../parse-result';
 
 export class ExpressionHelpers
 {
@@ -9,7 +10,7 @@ export class ExpressionHelpers
         tokens: Token[],
         current: { value: number },
         expressionParser: ExpressionParserService
-    ): Expression
+    ): ParseResult<Expression>
     {
         const exprTokens: Token[] = [];
         const startPos = current.value;
@@ -69,7 +70,7 @@ export class ExpressionHelpers
 
         if (exprTokens.length === 0)
         {
-            throw new Error('Expected expression');
+            return failure('Expected expression');
         }
 
         const parts: string[] = [];
@@ -99,14 +100,14 @@ export class ExpressionHelpers
         
         const exprSource = parts.join('');
 
-        const expr = expressionParser.parseExpression(exprSource);
+        const exprResult = expressionParser.parseExpression(exprSource);
         
-        if (expr === null)
+        if (!exprResult.success)
         {
-            throw new Error('Expected expression');
+            return exprResult;
         }
         
-        return expr;
+        return success(exprResult.value);
     }
 
     private static isStatementKeyword(keyword: string): boolean

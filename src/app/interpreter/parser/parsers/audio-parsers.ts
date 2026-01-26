@@ -2,32 +2,57 @@ import { Expression } from '../../../../lang/expressions/expression';
 import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../../../../lang/statements/audio';
 import { TokenType } from '../../tokenizer.service';
 import { ParserContext } from './parser-context';
+import { ParseResult, success } from '../parse-result';
 
 export class AudioParsers
 {
-    public static parseTempo(context: ParserContext): TempoStatement
+    public static parseTempo(context: ParserContext): ParseResult<TempoStatement>
     {
-        context.consume(TokenType.Keyword, 'TEMPO');
+        const tempoTokenResult = context.consume(TokenType.Keyword, 'TEMPO');
+        if (!tempoTokenResult.success)
+        {
+            return tempoTokenResult;
+        }
         
-        const bpm = context.parseExpression();
+        const bpmResult = context.parseExpression();
+        if (!bpmResult.success)
+        {
+            return bpmResult;
+        }
         
-        return new TempoStatement(bpm);
+        return success(new TempoStatement(bpmResult.value));
     }
 
-    public static parseVolume(context: ParserContext): VolumeStatement
+    public static parseVolume(context: ParserContext): ParseResult<VolumeStatement>
     {
-        context.consume(TokenType.Keyword, 'VOLUME');
+        const volumeTokenResult = context.consume(TokenType.Keyword, 'VOLUME');
+        if (!volumeTokenResult.success)
+        {
+            return volumeTokenResult;
+        }
         
-        const level = context.parseExpression();
+        const levelResult = context.parseExpression();
+        if (!levelResult.success)
+        {
+            return levelResult;
+        }
         
-        return new VolumeStatement(level);
+        return success(new VolumeStatement(levelResult.value));
     }
 
-    public static parseVoice(context: ParserContext): VoiceStatement
+    public static parseVoice(context: ParserContext): ParseResult<VoiceStatement>
     {
-        context.consume(TokenType.Keyword, 'VOICE');
+        const voiceTokenResult = context.consume(TokenType.Keyword, 'VOICE');
+        if (!voiceTokenResult.success)
+        {
+            return voiceTokenResult;
+        }
         
-        const voiceNumber = context.parseExpression();
+        const voiceNumberResult = context.parseExpression();
+        if (!voiceNumberResult.success)
+        {
+            return voiceNumberResult;
+        }
         
         let preset: Expression | null = null;
         let noiseCode: Expression | null = null;
@@ -36,41 +61,78 @@ export class AudioParsers
         
         if (context.matchKeyword('PRESET'))
         {
-            preset = context.parseExpression();
+            const presetResult = context.parseExpression();
+            if (!presetResult.success)
+            {
+                return presetResult;
+            }
+            preset = presetResult.value;
         }
         else if (context.matchKeyword('WITH'))
         {
-            noiseCode = context.parseExpression();
+            const noiseCodeResult = context.parseExpression();
+            if (!noiseCodeResult.success)
+            {
+                return noiseCodeResult;
+            }
+            noiseCode = noiseCodeResult.value;
         }
         
         if (context.matchKeyword('ADSR'))
         {
             if (context.matchKeyword('PRESET'))
             {
-                adsrPreset = parseInt(context.consume(TokenType.Integer, 'ADSR preset number').value);
+                const presetTokenResult = context.consume(TokenType.Integer, 'ADSR preset number');
+                if (!presetTokenResult.success)
+                {
+                    return presetTokenResult;
+                }
+                adsrPreset = parseInt(presetTokenResult.value.value);
             }
             else
             {
                 adsrCustom = [];
                 for (let i = 0; i < 4; i++)
                 {
-                    adsrCustom.push(context.parseExpression());
+                    const exprResult = context.parseExpression();
+                    if (!exprResult.success)
+                    {
+                        return exprResult;
+                    }
+                    adsrCustom.push(exprResult.value);
                 }
             }
         }
         
-        return new VoiceStatement(voiceNumber, preset, noiseCode, adsrPreset, adsrCustom);
+        return success(new VoiceStatement(voiceNumberResult.value, preset, noiseCode, adsrPreset, adsrCustom));
     }
 
-    public static parsePlay(context: ParserContext): PlayStatement
+    public static parsePlay(context: ParserContext): ParseResult<PlayStatement>
     {
-        context.consume(TokenType.Keyword, 'PLAY');
+        const playTokenResult = context.consume(TokenType.Keyword, 'PLAY');
+        if (!playTokenResult.success)
+        {
+            return playTokenResult;
+        }
         
-        const voiceNumber = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const voiceNumberResult = context.parseExpression();
+        if (!voiceNumberResult.success)
+        {
+            return voiceNumberResult;
+        }
         
-        const mml = context.parseExpression();
+        const commaResult = context.consume(TokenType.Comma, ',');
+        if (!commaResult.success)
+        {
+            return commaResult;
+        }
         
-        return new PlayStatement(voiceNumber, mml);
+        const mmlResult = context.parseExpression();
+        if (!mmlResult.success)
+        {
+            return mmlResult;
+        }
+        
+        return success(new PlayStatement(voiceNumberResult.value, mmlResult.value));
     }
 }

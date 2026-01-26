@@ -16,6 +16,7 @@ import { GraphicsService } from '../src/app/interpreter/graphics.service';
 import { AudioService } from '../src/app/interpreter/audio.service';
 import { TabSwitchService } from '../src/app/tab-switch.service';
 import { FileSystemService } from '../src/app/files/filesystem.service';
+import { success, failure } from '../src/app/interpreter/parser/parse-result';
 
 describe('CodeEditorComponent', () => {
     let component: CodeEditorComponent;
@@ -130,7 +131,7 @@ describe('CodeEditorComponent', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             component.code = 'let x=42';
             component.ngAfterViewInit();
@@ -169,7 +170,7 @@ describe('CodeEditorComponent', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             component.code = '    print "Hello"';
             component.ngAfterViewInit();
@@ -221,7 +222,7 @@ describe('CodeEditorComponent', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             component.code = 'LET x = 42';
             component.ngAfterViewInit();
@@ -236,19 +237,19 @@ describe('CodeEditorComponent', () => {
             const errorStatement = new UnparsableStatement('INVALID', 'Error');
 
             parserService.parseLine
-                .mockReturnValueOnce({
+                .mockReturnValueOnce(success({
                     lineNumber: 0,
                     sourceText: 'LET x = 42',
                     statement: validStatement,
                     hasError: false
-                } as ParsedLine)
-                .mockReturnValueOnce({
+                } as ParsedLine))
+                .mockReturnValueOnce(success({
                     lineNumber: 1,
                     sourceText: 'INVALID',
                     statement: errorStatement,
                     hasError: true,
                     errorMessage: 'Error'
-                } as ParsedLine);
+                } as ParsedLine));
 
             component.code = 'LET x = 42\nINVALID';
             component.onTextAreaInput({ target: { value: 'LET x = 42\nINVALID' } } as any);
@@ -273,7 +274,7 @@ describe('CodeEditorComponent', () => {
                 errorMessage: 'Syntax error'
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             component.code = 'INVALID';
             component.onTextAreaInput({ target: { value: 'INVALID' } } as any);
@@ -290,7 +291,7 @@ describe('CodeEditorComponent', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             component.code = 'LET x = 42';
             component.onTextAreaInput({ target: { value: 'LET x = 42' } } as any);
@@ -304,26 +305,26 @@ describe('CodeEditorComponent', () => {
             const anotherErrorStatement = new UnparsableStatement('INVALID2', 'Error');
 
             parserService.parseLine
-                .mockReturnValueOnce({
+                .mockReturnValueOnce(success({
                     lineNumber: 0,
                     sourceText: 'INVALID1',
                     statement: errorStatement,
                     hasError: true,
                     errorMessage: 'Error'
-                } as ParsedLine)
-                .mockReturnValueOnce({
+                } as ParsedLine))
+                .mockReturnValueOnce(success({
                     lineNumber: 1,
                     sourceText: 'LET x = 42',
                     statement: validStatement,
                     hasError: false
-                } as ParsedLine)
-                .mockReturnValueOnce({
+                } as ParsedLine))
+                .mockReturnValueOnce(success({
                     lineNumber: 2,
                     sourceText: 'INVALID2',
                     statement: anotherErrorStatement,
                     hasError: true,
                     errorMessage: 'Error'
-                } as ParsedLine);
+                } as ParsedLine));
 
             component.code = 'INVALID1\nLET x = 42\nINVALID2';
             component.onTextAreaInput({ target: { value: 'INVALID1\nLET x = 42\nINVALID2' } } as any);
@@ -338,19 +339,19 @@ describe('CodeEditorComponent', () => {
             const validStatement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
 
             parserService.parseLine
-                .mockReturnValueOnce({
+                .mockReturnValueOnce(success({
                     lineNumber: 0,
                     sourceText: 'INVALID',
                     statement: errorStatement,
                     hasError: true,
                     errorMessage: 'Error'
-                } as ParsedLine)
-                .mockReturnValueOnce({
+                } as ParsedLine))
+                .mockReturnValueOnce(success({
                     lineNumber: 0,
                     sourceText: 'LET x = 42',
                     statement: validStatement,
                     hasError: false
-                } as ParsedLine);
+                } as ParsedLine));
 
             component.code = 'INVALID';
             component.onTextAreaInput({ target: { value: 'INVALID' } } as any);
@@ -363,10 +364,8 @@ describe('CodeEditorComponent', () => {
             expect(component.errorLines.has(0)).toBe(false);
         });
 
-        it('should handle parse exceptions as errors', () => {
-            parserService.parseLine.mockImplementation(() => {
-                return null;
-            });
+        it('should handle parse failures as errors', () => {
+            parserService.parseLine.mockReturnValue(failure('Parse error'));
 
             component.code = 'INVALID';
             component.onTextAreaInput({ target: { value: 'INVALID' } } as any);

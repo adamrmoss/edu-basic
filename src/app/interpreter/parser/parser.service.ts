@@ -14,6 +14,7 @@ import { IoParsers } from './parsers/io-parsers';
 import { MiscParsers } from './parsers/misc-parsers';
 import { ParserContext } from './parsers/parser-context';
 import { VariableParsers } from './parsers/variable-parsers';
+import { ParseResult, failure, success } from './parse-result';
 
 export interface ParsedLine
 {
@@ -58,7 +59,7 @@ export class ParserService
         this.currentIndentLevelSubject.next(Math.max(0, level));
     }
 
-    public parseLine(lineNumber: number, sourceText: string): ParsedLine | null
+    public parseLine(lineNumber: number, sourceText: string): ParseResult<ParsedLine>
     {
         const trimmedText = sourceText.trim();
         
@@ -75,25 +76,34 @@ export class ParserService
             };
             
             this.updateParsedLine(lineNumber, parsed);
-            return parsed;
+            return success(parsed);
         }
 
         this.tokens = this.tokenizer.tokenize(trimmedText);
         this.current.value = 0;
 
-            const context = new ParserContext(this.tokens, this.current, this.expressionParser);
-            let statement: Statement;
-            
-            try
-            {
-                statement = this.parseStatement(context);
-            }
-            catch (error)
-            {
-                return null;
-            }
-            
+        const context = new ParserContext(this.tokens, this.current, this.expressionParser);
+        const statementResult = this.parseStatement(context);
+        
+        if (!statementResult.success)
+        {
+            const statement = new UnparsableStatement(sourceText, statementResult.error);
             statement.indentLevel = this.currentIndentLevel;
+            
+            const parsed: ParsedLine = {
+                lineNumber,
+                sourceText,
+                statement,
+                hasError: true,
+                errorMessage: statementResult.error
+            };
+            
+            this.updateParsedLine(lineNumber, parsed);
+            return success(parsed);
+        }
+        
+        const statement = statementResult.value;
+        statement.indentLevel = this.currentIndentLevel;
         
         const indentAdjustment = statement.getIndentAdjustment();
         if (indentAdjustment !== 0)
@@ -109,10 +119,10 @@ export class ParserService
         };
         
         this.updateParsedLine(lineNumber, parsed);
-        return parsed;
+        return success(parsed);
     }
 
-    private parseStatement(context: ParserContext): Statement
+    private parseStatement(context: ParserContext): ParseResult<Statement>
     {
         const token = context.peek();
 
@@ -267,11 +277,11 @@ export class ParserService
                 case 'WRITEFILE':
                     return FileIoParsers.parseWritefile(context);
                 default:
-                    throw new Error(`Unknown keyword: ${keyword}`);
+                    return failure(`Unknown keyword: ${keyword}`);
             }
         }
 
-        throw new Error(`Expected keyword or statement, got: ${token.value}`);
+        return failure(`Expected keyword or statement, got: ${token.value}`);
     }
 
     public removeLine(lineNumber: number): void

@@ -1,4 +1,5 @@
 import { Token, TokenType } from '../../tokenizer.service';
+import { ParseResult, failure, success } from '../parse-result';
 
 export class TokenHelpers
 {
@@ -49,13 +50,16 @@ export class TokenHelpers
         return false;
     }
 
-    public static consume(tokens: Token[], current: { value: number }, type: TokenType, message: string): Token
+    public static consume(tokens: Token[], current: { value: number }, type: TokenType, message: string): ParseResult<Token>
     {
         if (!this.isAtEnd(tokens, current.value) && this.peek(tokens, current.value).type === type)
         {
-            return this.advance(tokens, current);
+            return success(this.advance(tokens, current));
         }
 
-        throw new Error(`Expected ${message}, got: ${this.peek(tokens, current.value).value}`);
+        const actualToken = this.isAtEnd(tokens, current.value) 
+            ? 'end of input' 
+            : this.peek(tokens, current.value).value;
+        return failure(`Expected ${message}, got: ${actualToken}`);
     }
 }

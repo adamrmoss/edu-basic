@@ -35,163 +35,307 @@ import {
 } from '../../../../lang/statements/control-flow';
 import { TokenType } from '../../tokenizer.service';
 import { ParserContext } from './parser-context';
+import { ParseResult, success, failure } from '../parse-result';
 
 export class ControlFlowParsers
 {
-    public static parseIf(context: ParserContext): IfStatement
+    public static parseIf(context: ParserContext): ParseResult<IfStatement>
     {
-        context.consume(TokenType.Keyword, 'IF');
+        const ifTokenResult = context.consume(TokenType.Keyword, 'IF');
+        if (!ifTokenResult.success)
+        {
+            return ifTokenResult;
+        }
         
-        const condition = context.parseExpression();
-        context.consume(TokenType.Keyword, 'THEN');
+        const conditionResult = context.parseExpression();
+        if (!conditionResult.success)
+        {
+            return failure(conditionResult.error || 'Failed to parse condition expression');
+        }
+        const thenTokenResult = context.consume(TokenType.Keyword, 'THEN');
+        if (!thenTokenResult.success)
+        {
+            return thenTokenResult;
+        }
         
-        return new IfStatement(condition, [], [], null);
+        return success(new IfStatement(conditionResult.value, [], [], null));
     }
 
-    public static parseElseIf(context: ParserContext): ElseIfStatement
+    public static parseElseIf(context: ParserContext): ParseResult<ElseIfStatement>
     {
-        context.consume(TokenType.Keyword, 'ELSEIF');
+        const elseifTokenResult = context.consume(TokenType.Keyword, 'ELSEIF');
+        if (!elseifTokenResult.success)
+        {
+            return elseifTokenResult;
+        }
         
-        return new ElseIfStatement();
+        return success(new ElseIfStatement());
     }
 
-    public static parseElse(context: ParserContext): ElseStatement
+    public static parseElse(context: ParserContext): ParseResult<ElseStatement>
     {
-        context.consume(TokenType.Keyword, 'ELSE');
+        const elseTokenResult = context.consume(TokenType.Keyword, 'ELSE');
+        if (!elseTokenResult.success)
+        {
+            return elseTokenResult;
+        }
         
-        return new ElseStatement();
+        return success(new ElseStatement());
     }
 
-    public static parseUnless(context: ParserContext): UnlessStatement
+    public static parseUnless(context: ParserContext): ParseResult<UnlessStatement>
     {
-        context.consume(TokenType.Keyword, 'UNLESS');
+        const unlessTokenResult = context.consume(TokenType.Keyword, 'UNLESS');
+        if (!unlessTokenResult.success)
+        {
+            return unlessTokenResult;
+        }
         
-        const condition = context.parseExpression();
-        context.consume(TokenType.Keyword, 'THEN');
+        const conditionResult = context.parseExpression();
+        if (!conditionResult.success)
+        {
+            return failure(conditionResult.error || 'Failed to parse condition expression');
+        }
+        const thenTokenResult = context.consume(TokenType.Keyword, 'THEN');
+        if (!thenTokenResult.success)
+        {
+            return thenTokenResult;
+        }
         
-        return new UnlessStatement(condition, [], null);
+        return success(new UnlessStatement(conditionResult.value, [], null));
     }
 
-    public static parseSelectCase(context: ParserContext): SelectCaseStatement
+    public static parseSelectCase(context: ParserContext): ParseResult<SelectCaseStatement>
     {
-        context.consume(TokenType.Keyword, 'SELECT');
-        context.consume(TokenType.Keyword, 'CASE');
+        const selectTokenResult = context.consume(TokenType.Keyword, 'SELECT');
+        if (!selectTokenResult.success)
+        {
+            return selectTokenResult;
+        }
+        const caseTokenResult = context.consume(TokenType.Keyword, 'CASE');
+        if (!caseTokenResult.success)
+        {
+            return caseTokenResult;
+        }
         
-        const testExpression = context.parseExpression();
+        const testExpressionResult = context.parseExpression();
+        if (!testExpressionResult.success)
+        {
+            return failure(testExpressionResult.error || 'Failed to parse test expression');
+        }
         
-        return new SelectCaseStatement(testExpression, []);
+        return success(new SelectCaseStatement(testExpressionResult.value, []));
     }
 
-    public static parseCase(context: ParserContext): CaseStatement
+    public static parseCase(context: ParserContext): ParseResult<CaseStatement>
     {
-        context.consume(TokenType.Keyword, 'CASE');
+        const caseTokenResult = context.consume(TokenType.Keyword, 'CASE');
+        if (!caseTokenResult.success)
+        {
+            return caseTokenResult;
+        }
         
-        return new CaseStatement();
+        return success(new CaseStatement());
     }
 
-    public static parseFor(context: ParserContext): ForStatement
+    public static parseFor(context: ParserContext): ParseResult<ForStatement>
     {
-        context.consume(TokenType.Keyword, 'FOR');
+        const forTokenResult = context.consume(TokenType.Keyword, 'FOR');
+        if (!forTokenResult.success)
+        {
+            return forTokenResult;
+        }
         
-        const varName = context.consume(TokenType.Identifier, 'loop variable').value;
-        context.consume(TokenType.Equal, '=');
+        const varNameResult = context.consume(TokenType.Identifier, 'loop variable');
+        if (!varNameResult.success)
+        {
+            return varNameResult;
+        }
+        const varName = varNameResult.value.value;
         
-        const startValue = context.parseExpression();
-        context.consume(TokenType.Keyword, 'TO');
+        const equalResult = context.consume(TokenType.Equal, '=');
+        if (!equalResult.success)
+        {
+            return equalResult;
+        }
         
-        const endValue = context.parseExpression();
+        const startValueResult = context.parseExpression();
+        if (!startValueResult.success)
+        {
+            return failure(startValueResult.error || 'Failed to parse start value expression');
+        }
+        
+        const toResult = context.consume(TokenType.Keyword, 'TO');
+        if (!toResult.success)
+        {
+            return toResult;
+        }
+        
+        const endValueResult = context.parseExpression();
+        if (!endValueResult.success)
+        {
+            return failure(endValueResult.error || 'Failed to parse end value expression');
+        }
         
         let stepValue: Expression | null = null;
         if (context.matchKeyword('STEP'))
         {
-            stepValue = context.parseExpression();
+            const stepValueResult = context.parseExpression();
+            if (!stepValueResult.success)
+            {
+                return failure(stepValueResult.error || 'Failed to parse step value expression');
+            }
+            stepValue = stepValueResult.value;
         }
         
-        return new ForStatement(varName, startValue, endValue, stepValue, []);
+        return success(new ForStatement(varName, startValueResult.value, endValueResult.value, stepValue, []));
     }
 
-    public static parseNext(context: ParserContext): NextStatement
+    public static parseNext(context: ParserContext): ParseResult<NextStatement>
     {
-        context.consume(TokenType.Keyword, 'NEXT');
+        const nextTokenResult = context.consume(TokenType.Keyword, 'NEXT');
+        if (!nextTokenResult.success)
+        {
+            return nextTokenResult;
+        }
         
         let varName: string | null = null;
         if (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
         {
-            varName = context.consume(TokenType.Identifier, 'variable name').value;
+            const varNameResult = context.consume(TokenType.Identifier, 'variable name');
+            if (!varNameResult.success)
+            {
+                return varNameResult;
+            }
+            varName = varNameResult.value.value;
         }
         
-        return new NextStatement(varName);
+        return success(new NextStatement(varName));
     }
 
-    public static parseWhile(context: ParserContext): WhileStatement
+    public static parseWhile(context: ParserContext): ParseResult<WhileStatement>
     {
-        context.consume(TokenType.Keyword, 'WHILE');
+        const whileTokenResult = context.consume(TokenType.Keyword, 'WHILE');
+        if (!whileTokenResult.success)
+        {
+            return whileTokenResult;
+        }
         
-        const condition = context.parseExpression();
+        const conditionResult = context.parseExpression();
+        if (!conditionResult.success)
+        {
+            return failure(conditionResult.error || 'Failed to parse condition expression');
+        }
         
-        return new WhileStatement(condition, []);
+        return success(new WhileStatement(conditionResult.value, []));
     }
 
-    public static parseWend(context: ParserContext): WendStatement
+    public static parseWend(context: ParserContext): ParseResult<WendStatement>
     {
-        context.consume(TokenType.Keyword, 'WEND');
+        const wendTokenResult = context.consume(TokenType.Keyword, 'WEND');
+        if (!wendTokenResult.success)
+        {
+            return wendTokenResult;
+        }
         
-        return new WendStatement();
+        return success(new WendStatement());
     }
 
-    public static parseUntil(context: ParserContext): UntilStatement
+    public static parseUntil(context: ParserContext): ParseResult<UntilStatement>
     {
-        context.consume(TokenType.Keyword, 'UNTIL');
+        const untilTokenResult = context.consume(TokenType.Keyword, 'UNTIL');
+        if (!untilTokenResult.success)
+        {
+            return untilTokenResult;
+        }
         
-        const condition = context.parseExpression();
+        const conditionResult = context.parseExpression();
+        if (!conditionResult.success)
+        {
+            return failure(conditionResult.error || 'Failed to parse condition expression');
+        }
         
-        return new UntilStatement(condition, []);
+        return success(new UntilStatement(conditionResult.value, []));
     }
 
-    public static parseUend(context: ParserContext): UendStatement
+    public static parseUend(context: ParserContext): ParseResult<UendStatement>
     {
-        context.consume(TokenType.Keyword, 'UEND');
+        const uendTokenResult = context.consume(TokenType.Keyword, 'UEND');
+        if (!uendTokenResult.success)
+        {
+            return uendTokenResult;
+        }
         
-        return new UendStatement();
+        return success(new UendStatement());
     }
 
-    public static parseDo(context: ParserContext): DoLoopStatement
+    public static parseDo(context: ParserContext): ParseResult<DoLoopStatement>
     {
-        context.consume(TokenType.Keyword, 'DO');
+        const doTokenResult = context.consume(TokenType.Keyword, 'DO');
+        if (!doTokenResult.success)
+        {
+            return doTokenResult;
+        }
         
         if (context.matchKeyword('WHILE'))
         {
-            const condition = context.parseExpression();
-            return new DoLoopStatement(DoLoopVariant.DoWhile, condition, []);
+            const conditionResult = context.parseExpression();
+            if (!conditionResult.success)
+            {
+                return failure(conditionResult.error || 'Failed to parse WHILE condition expression');
+            }
+            return success(new DoLoopStatement(DoLoopVariant.DoWhile, conditionResult.value, []));
         }
         else if (context.matchKeyword('UNTIL'))
         {
-            const condition = context.parseExpression();
-            return new DoLoopStatement(DoLoopVariant.DoUntil, condition, []);
+            const conditionResult = context.parseExpression();
+            if (!conditionResult.success)
+            {
+                return failure(conditionResult.error || 'Failed to parse UNTIL condition expression');
+            }
+            return success(new DoLoopStatement(DoLoopVariant.DoUntil, conditionResult.value, []));
         }
         
-        return new DoLoopStatement(DoLoopVariant.DoLoop, null, []);
+        return success(new DoLoopStatement(DoLoopVariant.DoLoop, null, []));
     }
 
-    public static parseLoop(context: ParserContext): LoopStatement
+    public static parseLoop(context: ParserContext): ParseResult<LoopStatement>
     {
-        context.consume(TokenType.Keyword, 'LOOP');
+        const loopTokenResult = context.consume(TokenType.Keyword, 'LOOP');
+        if (!loopTokenResult.success)
+        {
+            return loopTokenResult;
+        }
         
-        return new LoopStatement();
+        return success(new LoopStatement());
     }
 
-    public static parseSub(context: ParserContext): SubStatement
+    public static parseSub(context: ParserContext): ParseResult<SubStatement>
     {
-        context.consume(TokenType.Keyword, 'SUB');
+        const subTokenResult = context.consume(TokenType.Keyword, 'SUB');
+        if (!subTokenResult.success)
+        {
+            return subTokenResult;
+        }
         
-        const name = context.consume(TokenType.Identifier, 'subroutine name').value;
+        const nameResult = context.consume(TokenType.Identifier, 'subroutine name');
+        if (!nameResult.success)
+        {
+            return nameResult;
+        }
+        const name = nameResult.value.value;
         
         const parameters: SubParameter[] = [];
         
         while (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
         {
             const byRef = context.matchKeyword('BYREF');
-            const paramName = context.consume(TokenType.Identifier, 'parameter name').value;
+            const paramNameResult = context.consume(TokenType.Identifier, 'parameter name');
+            if (!paramNameResult.success)
+            {
+                return paramNameResult;
+            }
+            const paramName = paramNameResult.value.value;
             
             parameters.push({ name: paramName, byRef });
             
@@ -201,20 +345,34 @@ export class ControlFlowParsers
             }
         }
         
-        return new SubStatement(name, parameters, []);
+        return success(new SubStatement(name, parameters, []));
     }
 
-    public static parseCall(context: ParserContext): CallStatement
+    public static parseCall(context: ParserContext): ParseResult<CallStatement>
     {
-        context.consume(TokenType.Keyword, 'CALL');
+        const callTokenResult = context.consume(TokenType.Keyword, 'CALL');
+        if (!callTokenResult.success)
+        {
+            return callTokenResult;
+        }
         
-        const subName = context.consume(TokenType.Identifier, 'subroutine name').value;
+        const subNameResult = context.consume(TokenType.Identifier, 'subroutine name');
+        if (!subNameResult.success)
+        {
+            return subNameResult;
+        }
+        const subName = subNameResult.value.value;
         
         const args: Expression[] = [];
         
         while (!context.isAtEnd() && context.peek().type !== TokenType.EOF)
         {
-            args.push(context.parseExpression());
+            const argResult = context.parseExpression();
+            if (!argResult.success)
+            {
+                return failure(argResult.error || 'Failed to parse argument expression');
+            }
+            args.push(argResult.value);
             
             if (!context.match(TokenType.Comma))
             {
@@ -222,67 +380,114 @@ export class ControlFlowParsers
             }
         }
         
-        return new CallStatement(subName, args);
+        return success(new CallStatement(subName, args));
     }
 
-    public static parseTry(context: ParserContext): TryStatement
+    public static parseTry(context: ParserContext): ParseResult<TryStatement>
     {
-        context.consume(TokenType.Keyword, 'TRY');
+        const tryTokenResult = context.consume(TokenType.Keyword, 'TRY');
+        if (!tryTokenResult.success)
+        {
+            return tryTokenResult;
+        }
         
-        return new TryStatement([], [], null);
+        return success(new TryStatement([], [], null));
     }
 
-    public static parseCatch(context: ParserContext): CatchStatement
+    public static parseCatch(context: ParserContext): ParseResult<CatchStatement>
     {
-        context.consume(TokenType.Keyword, 'CATCH');
+        const catchTokenResult = context.consume(TokenType.Keyword, 'CATCH');
+        if (!catchTokenResult.success)
+        {
+            return catchTokenResult;
+        }
         
-        return new CatchStatement();
+        return success(new CatchStatement());
     }
 
-    public static parseFinally(context: ParserContext): FinallyStatement
+    public static parseFinally(context: ParserContext): ParseResult<FinallyStatement>
     {
-        context.consume(TokenType.Keyword, 'FINALLY');
+        const finallyTokenResult = context.consume(TokenType.Keyword, 'FINALLY');
+        if (!finallyTokenResult.success)
+        {
+            return finallyTokenResult;
+        }
         
-        return new FinallyStatement();
+        return success(new FinallyStatement());
     }
 
-    public static parseGoto(context: ParserContext): GotoStatement
+    public static parseGoto(context: ParserContext): ParseResult<GotoStatement>
     {
-        context.consume(TokenType.Keyword, 'GOTO');
+        const gotoTokenResult = context.consume(TokenType.Keyword, 'GOTO');
+        if (!gotoTokenResult.success)
+        {
+            return gotoTokenResult;
+        }
         
-        const labelName = context.consume(TokenType.Identifier, 'label name').value;
+        const labelNameResult = context.consume(TokenType.Identifier, 'label name');
+        if (!labelNameResult.success)
+        {
+            return labelNameResult;
+        }
+        const labelName = labelNameResult.value.value;
         
-        return new GotoStatement(labelName);
+        return success(new GotoStatement(labelName));
     }
 
-    public static parseGosub(context: ParserContext): GosubStatement
+    public static parseGosub(context: ParserContext): ParseResult<GosubStatement>
     {
-        context.consume(TokenType.Keyword, 'GOSUB');
+        const gosubTokenResult = context.consume(TokenType.Keyword, 'GOSUB');
+        if (!gosubTokenResult.success)
+        {
+            return gosubTokenResult;
+        }
         
-        const labelName = context.consume(TokenType.Identifier, 'label name').value;
+        const labelNameResult = context.consume(TokenType.Identifier, 'label name');
+        if (!labelNameResult.success)
+        {
+            return labelNameResult;
+        }
+        const labelName = labelNameResult.value.value;
         
-        return new GosubStatement(labelName);
+        return success(new GosubStatement(labelName));
     }
 
-    public static parseReturn(context: ParserContext): ReturnStatement
+    public static parseReturn(context: ParserContext): ParseResult<ReturnStatement>
     {
-        context.consume(TokenType.Keyword, 'RETURN');
+        const returnTokenResult = context.consume(TokenType.Keyword, 'RETURN');
+        if (!returnTokenResult.success)
+        {
+            return returnTokenResult;
+        }
         
-        return new ReturnStatement();
+        return success(new ReturnStatement());
     }
 
-    public static parseLabel(context: ParserContext): LabelStatement
+    public static parseLabel(context: ParserContext): ParseResult<LabelStatement>
     {
-        context.consume(TokenType.Keyword, 'LABEL');
+        const labelTokenResult = context.consume(TokenType.Keyword, 'LABEL');
+        if (!labelTokenResult.success)
+        {
+            return labelTokenResult;
+        }
         
-        const labelName = context.consume(TokenType.Identifier, 'label name').value;
+        const labelNameResult = context.consume(TokenType.Identifier, 'label name');
+        if (!labelNameResult.success)
+        {
+            return labelNameResult;
+        }
+        const labelName = labelNameResult.value.value;
         
-        return new LabelStatement(labelName);
+        return success(new LabelStatement(labelName));
     }
 
-    public static parseEnd(context: ParserContext): EndStatement
+    public static parseEnd(context: ParserContext): ParseResult<EndStatement>
     {
-        context.consume(TokenType.Keyword, 'END');
+        const endTokenResult = context.consume(TokenType.Keyword, 'END');
+        if (!endTokenResult.success)
+        {
+            return endTokenResult;
+        }
         
         if (!context.isAtEnd() && context.peek().type === TokenType.Keyword)
         {
@@ -292,75 +497,91 @@ export class ControlFlowParsers
             {
                 case 'IF':
                     context.advance();
-                    return new EndStatement(EndType.If);
+                    return success(new EndStatement(EndType.If));
                 case 'UNLESS':
                     context.advance();
-                    return new EndStatement(EndType.Unless);
+                    return success(new EndStatement(EndType.Unless));
                 case 'SELECT':
                     context.advance();
-                    return new EndStatement(EndType.Select);
+                    return success(new EndStatement(EndType.Select));
                 case 'SUB':
                     context.advance();
-                    return new EndStatement(EndType.Sub);
+                    return success(new EndStatement(EndType.Sub));
                 case 'TRY':
                     context.advance();
-                    return new EndStatement(EndType.Try);
+                    return success(new EndStatement(EndType.Try));
             }
         }
         
-        return new EndStatement(EndType.Program);
+        return success(new EndStatement(EndType.Program));
     }
 
-    public static parseExit(context: ParserContext): ExitStatement
+    public static parseExit(context: ParserContext): ParseResult<ExitStatement>
     {
-        context.consume(TokenType.Keyword, 'EXIT');
+        const exitTokenResult = context.consume(TokenType.Keyword, 'EXIT');
+        if (!exitTokenResult.success)
+        {
+            return exitTokenResult;
+        }
         
         if (context.matchKeyword('FOR'))
         {
-            return new ExitStatement(ExitTarget.For);
+            return success(new ExitStatement(ExitTarget.For));
         }
         else if (context.matchKeyword('WHILE'))
         {
-            return new ExitStatement(ExitTarget.While);
+            return success(new ExitStatement(ExitTarget.While));
         }
         else if (context.matchKeyword('DO'))
         {
-            return new ExitStatement(ExitTarget.Do);
+            return success(new ExitStatement(ExitTarget.Do));
         }
         else if (context.matchKeyword('SUB'))
         {
-            return new ExitStatement(ExitTarget.Sub);
+            return success(new ExitStatement(ExitTarget.Sub));
         }
         
-        throw new Error('EXIT must specify target: FOR, WHILE, DO, or SUB');
+        return failure('EXIT must specify target: FOR, WHILE, DO, or SUB');
     }
 
-    public static parseContinue(context: ParserContext): ContinueStatement
+    public static parseContinue(context: ParserContext): ParseResult<ContinueStatement>
     {
-        context.consume(TokenType.Keyword, 'CONTINUE');
+        const continueTokenResult = context.consume(TokenType.Keyword, 'CONTINUE');
+        if (!continueTokenResult.success)
+        {
+            return continueTokenResult;
+        }
         
         if (context.matchKeyword('FOR'))
         {
-            return new ContinueStatement(ContinueTarget.For);
+            return success(new ContinueStatement(ContinueTarget.For));
         }
         else if (context.matchKeyword('WHILE'))
         {
-            return new ContinueStatement(ContinueTarget.While);
+            return success(new ContinueStatement(ContinueTarget.While));
         }
         else if (context.matchKeyword('DO'))
         {
-            return new ContinueStatement(ContinueTarget.Do);
+            return success(new ContinueStatement(ContinueTarget.Do));
         }
         
-        throw new Error('CONTINUE must specify target: FOR, WHILE, or DO');
+        return failure('CONTINUE must specify target: FOR, WHILE, or DO');
     }
 
-    public static parseThrow(context: ParserContext): ThrowStatement
+    public static parseThrow(context: ParserContext): ParseResult<ThrowStatement>
     {
-        context.consume(TokenType.Keyword, 'THROW');
+        const throwTokenResult = context.consume(TokenType.Keyword, 'THROW');
+        if (!throwTokenResult.success)
+        {
+            return throwTokenResult;
+        }
         
-        const message = context.parseExpression();
+        const messageResult = context.parseExpression();
+        if (!messageResult.success)
+        {
+            return failure(messageResult.error || 'Failed to parse throw message expression');
+        }
         
-        return new ThrowStatement(message);
+        return success(new ThrowStatement(messageResult.value));
     }
 }

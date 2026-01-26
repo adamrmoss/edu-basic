@@ -2,19 +2,29 @@ import { Expression } from '../../../../lang/expressions/expression';
 import { ClsStatement, ColorStatement, InputStatement, LocateStatement, PrintStatement } from '../../../../lang/statements/io';
 import { TokenType } from '../../tokenizer.service';
 import { ParserContext } from './parser-context';
+import { ParseResult, success, failure } from '../parse-result';
 
 export class IoParsers
 {
-    public static parsePrint(context: ParserContext): PrintStatement
+    public static parsePrint(context: ParserContext): ParseResult<PrintStatement>
     {
-        context.consume(TokenType.Keyword, 'PRINT');
+        const printTokenResult = context.consume(TokenType.Keyword, 'PRINT');
+        if (!printTokenResult.success)
+        {
+            return printTokenResult;
+        }
         
         const expressions: Expression[] = [];
         let hasNewline = true;
         
         while (!context.isAtEnd() && context.peek().type !== TokenType.EOF)
         {
-            expressions.push(context.parseExpression());
+            const exprResult = context.parseExpression();
+            if (!exprResult.success)
+            {
+                return exprResult;
+            }
+            expressions.push(exprResult.value);
             
             if (context.match(TokenType.Semicolon))
             {
@@ -34,58 +44,110 @@ export class IoParsers
             }
         }
         
-        return new PrintStatement(expressions, hasNewline);
+        return success(new PrintStatement(expressions, hasNewline));
     }
 
-    public static parseInput(context: ParserContext): InputStatement
+    public static parseInput(context: ParserContext): ParseResult<InputStatement>
     {
-        context.consume(TokenType.Keyword, 'INPUT');
+        const inputTokenResult = context.consume(TokenType.Keyword, 'INPUT');
+        if (!inputTokenResult.success)
+        {
+            return inputTokenResult;
+        }
         
-        const varName = context.consume(TokenType.Identifier, 'variable name').value;
+        const varNameTokenResult = context.consume(TokenType.Identifier, 'variable name');
+        if (!varNameTokenResult.success)
+        {
+            return varNameTokenResult;
+        }
         
-        return new InputStatement(varName);
+        return success(new InputStatement(varNameTokenResult.value.value));
     }
 
-    public static parseColor(context: ParserContext): ColorStatement
+    public static parseColor(context: ParserContext): ParseResult<ColorStatement>
     {
-        context.consume(TokenType.Keyword, 'COLOR');
+        const colorTokenResult = context.consume(TokenType.Keyword, 'COLOR');
+        if (!colorTokenResult.success)
+        {
+            return colorTokenResult;
+        }
         
         let foreground: Expression | null = null;
         let background: Expression | null = null;
         
         if (context.match(TokenType.Comma))
         {
-            background = context.parseExpression();
+            const backgroundResult = context.parseExpression();
+            if (!backgroundResult.success)
+            {
+                return backgroundResult;
+            }
+            background = backgroundResult.value;
         }
         else
         {
-            foreground = context.parseExpression();
+            const foregroundResult = context.parseExpression();
+            if (!foregroundResult.success)
+            {
+                return foregroundResult;
+            }
+            foreground = foregroundResult.value;
             
             if (context.match(TokenType.Comma))
             {
-                background = context.parseExpression();
+                const backgroundResult = context.parseExpression();
+                if (!backgroundResult.success)
+                {
+                    return backgroundResult;
+                }
+                background = backgroundResult.value;
             }
         }
         
-        return new ColorStatement(foreground!, background);
+        if (foreground === null)
+        {
+            return failure('COLOR requires at least a foreground color');
+        }
+        
+        return success(new ColorStatement(foreground, background));
     }
 
-    public static parseLocate(context: ParserContext): LocateStatement
+    public static parseLocate(context: ParserContext): ParseResult<LocateStatement>
     {
-        context.consume(TokenType.Keyword, 'LOCATE');
+        const locateTokenResult = context.consume(TokenType.Keyword, 'LOCATE');
+        if (!locateTokenResult.success)
+        {
+            return locateTokenResult;
+        }
         
-        const row = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const rowResult = context.parseExpression();
+        if (!rowResult.success)
+        {
+            return rowResult;
+        }
+        const commaResult = context.consume(TokenType.Comma, ',');
+        if (!commaResult.success)
+        {
+            return commaResult;
+        }
         
-        const column = context.parseExpression();
+        const columnResult = context.parseExpression();
+        if (!columnResult.success)
+        {
+            return columnResult;
+        }
         
-        return new LocateStatement(row, column);
+        return success(new LocateStatement(rowResult.value, columnResult.value));
     }
 
-    public static parseCls(context: ParserContext): ClsStatement
+    public static parseCls(context: ParserContext): ParseResult<ClsStatement>
     {
-        context.consume(TokenType.Keyword, 'CLS');
+        const clsTokenResult = context.consume(TokenType.Keyword, 'CLS');
+        if (!clsTokenResult.success)
+        {
+            return clsTokenResult;
+        }
         
-        return new ClsStatement();
+        return success(new ClsStatement());
     }
 }

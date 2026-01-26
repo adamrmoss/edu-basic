@@ -10,6 +10,7 @@ import { ParenthesizedExpression } from '../../lang/expressions/special/parenthe
 import { NullaryExpression } from '../../lang/expressions/nullary-expression';
 import { EduBasicType } from '../../lang/edu-basic-value';
 import { Constant } from '../../lang/expressions/helpers/constant-evaluator';
+import { ParseResult, success, failure } from './parser/parse-result';
 
 @Injectable({
     providedIn: 'root'
@@ -20,94 +21,155 @@ export class ExpressionParserService
     private current: number = 0;
     private tokenizer: Tokenizer = new Tokenizer();
 
-    public parseExpression(source: string): Expression | null
+    public parseExpression(source: string): ParseResult<Expression>
     {
         this.tokens = this.tokenizer.tokenize(source);
         this.current = 0;
-        const expr = this.expression();
+        const exprResult = this.expression();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
         
         if (!this.isAtEnd())
         {
-            return null;
+            const unexpectedToken = this.peek();
+            return failure(`Unexpected token: ${unexpectedToken.value} at line ${unexpectedToken.line}`);
         }
         
-        return expr;
+        return success(exprResult.value);
     }
 
-    private expression(): Expression
+    private expression(): ParseResult<Expression>
     {
         return this.imp();
     }
 
-    private imp(): Expression
+    private imp(): ParseResult<Expression>
     {
-        let expr = this.xorXnor();
+        const exprResult = this.xorXnor();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         while (this.matchKeyword('IMP'))
         {
-            const right = this.xorXnor();
-            expr = new BinaryExpression(expr, BinaryOperator.Imp, right, BinaryOperatorCategory.Logical);
+            const rightResult = this.xorXnor();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, BinaryOperator.Imp, rightResult.value, BinaryOperatorCategory.Logical);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private xorXnor(): Expression
+    private xorXnor(): ParseResult<Expression>
     {
-        let expr = this.orNor();
+        const exprResult = this.orNor();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         while (this.matchKeyword('XOR') || this.matchKeyword('XNOR'))
         {
             const operator = this.previous().value === 'XOR' ? BinaryOperator.Xor : BinaryOperator.Xnor;
-            const right = this.orNor();
-            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Logical);
+            const rightResult = this.orNor();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Logical);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private orNor(): Expression
+    private orNor(): ParseResult<Expression>
     {
-        let expr = this.andNand();
+        const exprResult = this.andNand();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         while (this.matchKeyword('OR') || this.matchKeyword('NOR'))
         {
             const operator = this.previous().value === 'OR' ? BinaryOperator.Or : BinaryOperator.Nor;
-            const right = this.andNand();
-            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Logical);
+            const rightResult = this.andNand();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Logical);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private andNand(): Expression
+    private andNand(): ParseResult<Expression>
     {
-        let expr = this.not();
+        const exprResult = this.not();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         while (this.matchKeyword('AND') || this.matchKeyword('NAND'))
         {
             const operator = this.previous().value === 'AND' ? BinaryOperator.And : BinaryOperator.Nand;
-            const right = this.not();
-            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Logical);
+            const rightResult = this.not();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Logical);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private not(): Expression
+    private not(): ParseResult<Expression>
     {
         if (this.matchKeyword('NOT'))
         {
-            const operand = this.not();
-            return new UnaryExpression(UnaryOperator.Not, operand, UnaryOperatorCategory.Prefix);
+            const operandResult = this.not();
+            if (!operandResult.success)
+            {
+                return operandResult;
+            }
+            return success(new UnaryExpression(UnaryOperator.Not, operandResult.value, UnaryOperatorCategory.Prefix));
         }
 
         return this.comparison();
     }
 
-    private comparison(): Expression
+    private comparison(): ParseResult<Expression>
     {
-        let expr = this.addSub();
+        const exprResult = this.addSub();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         while (this.match(TokenType.Equal, TokenType.NotEqual, TokenType.Less, 
                          TokenType.Greater, TokenType.LessEqual, TokenType.GreaterEqual))
@@ -136,34 +198,56 @@ export class ExpressionParserService
                     operator = BinaryOperator.GreaterThanOrEqual;
                     break;
                 default:
-                    throw new Error(`Unknown comparison operator: ${operatorToken}`);
+                    return failure(`Unknown comparison operator: ${operatorToken}`);
             }
 
-            const right = this.addSub();
-            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Comparison);
+            const rightResult = this.addSub();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Comparison);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private addSub(): Expression
+    private addSub(): ParseResult<Expression>
     {
-        let expr = this.mulDiv();
+        const exprResult = this.mulDiv();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         while (this.match(TokenType.Plus, TokenType.Minus))
         {
             const operatorToken = this.previous().value;
             const operator = operatorToken === '+' ? BinaryOperator.Add : BinaryOperator.Subtract;
-            const right = this.mulDiv();
-            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Arithmetic);
+            const rightResult = this.mulDiv();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Arithmetic);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private mulDiv(): Expression
+    private mulDiv(): ParseResult<Expression>
     {
-        let expr = this.unaryPlusMinus();
+        const exprResult = this.unaryPlusMinus();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         while (this.match(TokenType.Star, TokenType.Slash) || this.matchKeyword('MOD'))
         {
@@ -182,69 +266,92 @@ export class ExpressionParserService
                     operator = BinaryOperator.Modulo;
                     break;
                 default:
-                    throw new Error(`Unknown operator: ${operatorToken}`);
+                    return failure(`Unknown operator: ${operatorToken}`);
             }
 
-            const right = this.unaryPlusMinus();
-            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Arithmetic);
+            const rightResult = this.unaryPlusMinus();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Arithmetic);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private unaryPlusMinus(): Expression
+    private unaryPlusMinus(): ParseResult<Expression>
     {
         if (this.match(TokenType.Plus, TokenType.Minus))
         {
             const operatorToken = this.previous().value;
             const operator = operatorToken === '+' ? UnaryOperator.Plus : UnaryOperator.Minus;
-            const operand = this.unaryPlusMinus();
-            return new UnaryExpression(operator, operand, UnaryOperatorCategory.Prefix);
+            const operandResult = this.unaryPlusMinus();
+            if (!operandResult.success)
+            {
+                return operandResult;
+            }
+            return success(new UnaryExpression(operator, operandResult.value, UnaryOperatorCategory.Prefix));
         }
 
         return this.exponentiation();
     }
 
-    private exponentiation(): Expression
+    private exponentiation(): ParseResult<Expression>
     {
-        let expr = this.primary();
+        const exprResult = this.primary();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
 
         if (this.match(TokenType.Caret, TokenType.StarStar))
         {
             const operatorToken = this.previous().value;
             const operator = operatorToken === '^' ? BinaryOperator.Power : BinaryOperator.PowerAlt;
-            const right = this.exponentiation();
-            expr = new BinaryExpression(expr, operator, right, BinaryOperatorCategory.Arithmetic);
+            const rightResult = this.exponentiation();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+            expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Arithmetic);
         }
 
-        return expr;
+        return success(expr);
     }
 
-    private primary(): Expression
+    private primary(): ParseResult<Expression>
     {
         if (this.match(TokenType.Integer))
         {
             const value = parseInt(this.previous().value);
-            return new LiteralExpression({ type: EduBasicType.Integer, value });
+            return success(new LiteralExpression({ type: EduBasicType.Integer, value }));
         }
 
         if (this.match(TokenType.Real))
         {
             const value = parseFloat(this.previous().value);
-            return new LiteralExpression({ type: EduBasicType.Real, value });
+            return success(new LiteralExpression({ type: EduBasicType.Real, value }));
         }
 
         if (this.match(TokenType.Complex))
         {
             const text = this.previous().value;
             const complexValue = this.parseComplexLiteral(text);
-            return new LiteralExpression({ type: EduBasicType.Complex, value: complexValue });
+            if (complexValue === null)
+            {
+                return failure(`Invalid complex literal: ${text}`);
+            }
+            return success(new LiteralExpression({ type: EduBasicType.Complex, value: complexValue }));
         }
 
         if (this.match(TokenType.String))
         {
             const value = this.previous().value;
-            return new LiteralExpression({ type: EduBasicType.String, value });
+            return success(new LiteralExpression({ type: EduBasicType.String, value }));
         }
 
         // Check for constants
@@ -255,7 +362,7 @@ export class ExpressionParserService
             if (constant !== null)
             {
                 this.advance();
-                return new NullaryExpression(constant);
+                return success(new NullaryExpression(constant));
             }
         }
 
@@ -266,7 +373,7 @@ export class ExpressionParserService
             const parsedFunction = this.parseFunctionCall(functionName);
             if (parsedFunction !== null)
             {
-                return parsedFunction;
+                return success(parsedFunction);
             }
         }
 
@@ -281,15 +388,27 @@ export class ExpressionParserService
                 // Parentheses are optional for unary functions
                 if (this.match(TokenType.LeftParen))
                 {
-                    const argument = this.expression();
-                    this.consume(TokenType.RightParen, `Expected ')' after ${keyword} argument`);
-                    return new UnaryExpression(unaryOp.operator, argument, unaryOp.category);
+                    const argumentResult = this.expression();
+                    if (!argumentResult.success)
+                    {
+                        return argumentResult;
+                    }
+                    const rightParenResult = this.consume(TokenType.RightParen, `Expected ')' after ${keyword} argument`);
+                    if (!rightParenResult.success)
+                    {
+                        return rightParenResult;
+                    }
+                    return success(new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category));
                 }
                 else
                 {
                     // No parentheses - parse the next expression as the argument
-                    const argument = this.unaryPlusMinus();
-                    return new UnaryExpression(unaryOp.operator, argument, unaryOp.category);
+                    const argumentResult = this.unaryPlusMinus();
+                    if (!argumentResult.success)
+                    {
+                        return argumentResult;
+                    }
+                    return success(new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category));
                 }
             }
         }
@@ -297,17 +416,26 @@ export class ExpressionParserService
         if (this.match(TokenType.Identifier))
         {
             const name = this.previous().value;
-            return new VariableExpression(name);
+            return success(new VariableExpression(name));
         }
 
         if (this.match(TokenType.LeftParen))
         {
-            const expr = this.expression();
-            this.consume(TokenType.RightParen, "Expected ')' after expression");
-            return new ParenthesizedExpression(expr);
+            const exprResult = this.expression();
+            if (!exprResult.success)
+            {
+                return exprResult;
+            }
+            const rightParenResult = this.consume(TokenType.RightParen, "Expected ')' after expression");
+            if (!rightParenResult.success)
+            {
+                return rightParenResult;
+            }
+            return success(new ParenthesizedExpression(exprResult.value));
         }
 
-        throw new Error(`Unexpected token: ${this.peek().value} at line ${this.peek().line}`);
+        const token = this.peek();
+        return failure(`Unexpected token: ${token.value} at line ${token.line}`);
     }
 
     private parseConstant(name: string): Constant | null
@@ -434,7 +562,12 @@ export class ExpressionParserService
         {
             do
             {
-                args.push(this.expression());
+                const argResult = this.expression();
+                if (!argResult.success)
+                {
+                    return failure(argResult.error || 'Failed to parse function argument expression');
+                }
+                args.push(argResult.value);
             }
             while (this.match(TokenType.Comma));
         }
@@ -567,7 +700,7 @@ export class ExpressionParserService
         }
     }
 
-    private parseComplexLiteral(text: string): { real: number; imaginary: number }
+    private parseComplexLiteral(text: string): { real: number; imaginary: number } | null
     {
         const imagOnly = /^([+-]?[\d.]+(?:[eE][+-]?\d+)?)[iI]$/;
         const fullComplex = /^([+-]?[\d.]+(?:[eE][+-]?\d+)?)([+-][\d.]+(?:[eE][+-]?\d+)?)[iI]$/;
@@ -586,7 +719,7 @@ export class ExpressionParserService
             return { real: parseFloat(match[1]), imaginary: parseFloat(match[2]) };
         }
 
-        throw new Error(`Invalid complex literal: ${text}`);
+        return null;
     }
 
     private match(...types: TokenType[]): boolean
@@ -649,13 +782,16 @@ export class ExpressionParserService
         return this.tokens[this.current - 1];
     }
 
-    private consume(type: TokenType, message: string): Token
+    private consume(type: TokenType, message: string): ParseResult<Token>
     {
         if (this.check(type))
         {
-            return this.advance();
+            return success(this.advance());
         }
 
-        throw new Error(message);
+        const actualToken = this.isAtEnd() 
+            ? 'end of input' 
+            : this.peek().value;
+        return failure(`Expected ${message}, got: ${actualToken}`);
     }
 }

@@ -6,7 +6,9 @@
         <div #lineNumbersDiv class="line-numbers">
             <div *ngFor="let lineNum of lineNumbers; let i = index" class="line-number" [class.error]="lineNum > 0 && isLineError(lineNum - 1)">
                 <span *ngIf="lineNum > 0">{{ lineNum }}</span>
-                <span *ngIf="lineNum > 0 && isLineError(lineNum - 1)" class="error-indicator">⚠</span>
+                <span *ngIf="lineNum > 0 && isLineError(lineNum - 1)" 
+                      class="error-indicator" 
+                      [title]="getLineErrorMessage(lineNum - 1) || 'Parse error'">⚠</span>
                 <span *ngIf="lineNum <= 0">&nbsp;</span>
             </div>
     </div>

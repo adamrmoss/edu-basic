@@ -2,6 +2,7 @@ import { ExpressionParserService } from '../../expression-parser.service';
 import { Token } from '../../tokenizer.service';
 import { ExpressionHelpers } from '../helpers/expression-helpers';
 import { TokenHelpers } from '../helpers/token-helpers';
+import { ParseResult } from '../parse-result';
 
 export class ParserContext
 {
@@ -38,12 +39,12 @@ export class ParserContext
         return TokenHelpers.matchKeyword(this.tokens, this.current, keyword);
     }
 
-    public consume(type: any, message: string): Token
+    public consume(type: any, message: string): ParseResult<Token>
     {
         return TokenHelpers.consume(this.tokens, this.current, type, message);
     }
 
-    public parseExpression(): any
+    public parseExpression(): ParseResult<any>
     {
         return ExpressionHelpers.parseExpression(this.tokens, this.current, this.expressionParser);
     }

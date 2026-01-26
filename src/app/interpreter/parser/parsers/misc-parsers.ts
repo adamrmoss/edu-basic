@@ -1,84 +1,148 @@
 import { ConsoleStatement, HelpStatement, RandomizeStatement, SetOption, SetStatement, SleepStatement } from '../../../../lang/statements/misc';
 import { TokenType } from '../../tokenizer.service';
 import { ParserContext } from './parser-context';
+import { ParseResult, success, failure } from '../parse-result';
+import { Statement } from '../../../../lang/statements/statement';
 
 export class MiscParsers
 {
-    public static parseSleep(context: ParserContext): SleepStatement
+    public static parseSleep(context: ParserContext): ParseResult<SleepStatement>
     {
-        context.consume(TokenType.Keyword, 'SLEEP');
+        const sleepTokenResult = context.consume(TokenType.Keyword, 'SLEEP');
+        if (!sleepTokenResult.success)
+        {
+            return sleepTokenResult;
+        }
         
-        const milliseconds = context.parseExpression();
+        const millisecondsResult = context.parseExpression();
+        if (!millisecondsResult.success)
+        {
+            return millisecondsResult;
+        }
         
-        return new SleepStatement(milliseconds);
+        return success(new SleepStatement(millisecondsResult.value));
     }
 
-    public static parseSet(context: ParserContext): SetStatement
+    public static parseSet(context: ParserContext): ParseResult<SetStatement>
     {
-        context.consume(TokenType.Keyword, 'SET');
+        const setTokenResult = context.consume(TokenType.Keyword, 'SET');
+        if (!setTokenResult.success)
+        {
+            return setTokenResult;
+        }
         
-        const token = context.consume(TokenType.Keyword, 'SET option');
-        const option1 = token.value.toUpperCase();
+        const tokenResult = context.consume(TokenType.Keyword, 'SET option');
+        if (!tokenResult.success)
+        {
+            return tokenResult;
+        }
+        const option1 = tokenResult.value.value.toUpperCase();
         
         if (option1 === 'LINE')
         {
-            context.consume(TokenType.Keyword, 'SPACING');
-            const onOff = context.consume(TokenType.Keyword, 'ON or OFF').value.toUpperCase();
+            const spacingTokenResult = context.consume(TokenType.Keyword, 'SPACING');
+            if (!spacingTokenResult.success)
+            {
+                return spacingTokenResult;
+            }
+            const onOffTokenResult = context.consume(TokenType.Keyword, 'ON or OFF');
+            if (!onOffTokenResult.success)
+            {
+                return onOffTokenResult;
+            }
+            const onOff = onOffTokenResult.value.value.toUpperCase();
             
-            return new SetStatement(
+            return success(new SetStatement(
                 onOff === 'ON' ? SetOption.LineSpacingOn : SetOption.LineSpacingOff
-            );
+            ));
         }
         else if (option1 === 'TEXT')
         {
-            context.consume(TokenType.Keyword, 'WRAP');
-            const onOff = context.consume(TokenType.Keyword, 'ON or OFF').value.toUpperCase();
+            const wrapTokenResult = context.consume(TokenType.Keyword, 'WRAP');
+            if (!wrapTokenResult.success)
+            {
+                return wrapTokenResult;
+            }
+            const onOffTokenResult = context.consume(TokenType.Keyword, 'ON or OFF');
+            if (!onOffTokenResult.success)
+            {
+                return onOffTokenResult;
+            }
+            const onOff = onOffTokenResult.value.value.toUpperCase();
             
-            return new SetStatement(
+            return success(new SetStatement(
                 onOff === 'ON' ? SetOption.TextWrapOn : SetOption.TextWrapOff
-            );
+            ));
         }
         else if (option1 === 'AUDIO')
         {
-            const onOff = context.consume(TokenType.Keyword, 'ON or OFF').value.toUpperCase();
+            const onOffTokenResult = context.consume(TokenType.Keyword, 'ON or OFF');
+            if (!onOffTokenResult.success)
+            {
+                return onOffTokenResult;
+            }
+            const onOff = onOffTokenResult.value.value.toUpperCase();
             
-            return new SetStatement(
+            return success(new SetStatement(
                 onOff === 'ON' ? SetOption.AudioOn : SetOption.AudioOff
-            );
+            ));
         }
         
-        throw new Error(`Unknown SET option: ${option1}`);
+        return failure(`Unknown SET option: ${option1}`);
     }
 
-    public static parseRandomize(context: ParserContext): RandomizeStatement
+    public static parseRandomize(context: ParserContext): ParseResult<RandomizeStatement>
     {
-        context.consume(TokenType.Keyword, 'RANDOMIZE');
+        const randomizeTokenResult = context.consume(TokenType.Keyword, 'RANDOMIZE');
+        if (!randomizeTokenResult.success)
+        {
+            return randomizeTokenResult;
+        }
         
         let seed: number | null = null;
         if (!context.isAtEnd() && context.peek().type !== TokenType.EOF)
         {
-            const expr = context.parseExpression();
-            seed = 0;
+            const exprResult = context.parseExpression();
+            if (exprResult.success)
+            {
+                seed = 0;
+            }
         }
         
-        return new RandomizeStatement(seed);
+        return success(new RandomizeStatement(seed));
     }
 
-    public static parseHelp(context: ParserContext): HelpStatement
+    public static parseHelp(context: ParserContext): ParseResult<HelpStatement>
     {
-        context.consume(TokenType.Keyword, 'HELP');
+        const helpTokenResult = context.consume(TokenType.Keyword, 'HELP');
+        if (!helpTokenResult.success)
+        {
+            return helpTokenResult;
+        }
         
-        const keyword = context.consume(TokenType.Keyword, 'statement keyword').value;
+        const keywordTokenResult = context.consume(TokenType.Keyword, 'statement keyword');
+        if (!keywordTokenResult.success)
+        {
+            return keywordTokenResult;
+        }
         
-        return new HelpStatement(keyword);
+        return success(new HelpStatement(keywordTokenResult.value.value));
     }
 
-    public static parseConsole(context: ParserContext): ConsoleStatement
+    public static parseConsole(context: ParserContext): ParseResult<ConsoleStatement>
     {
-        context.consume(TokenType.Keyword, 'CONSOLE');
+        const consoleTokenResult = context.consume(TokenType.Keyword, 'CONSOLE');
+        if (!consoleTokenResult.success)
+        {
+            return consoleTokenResult;
+        }
         
-        const expression = context.parseExpression();
+        const expressionResult = context.parseExpression();
+        if (!expressionResult.success)
+        {
+            return expressionResult;
+        }
         
-        return new ConsoleStatement(expression);
+        return success(new ConsoleStatement(expressionResult.value));
     }
 }

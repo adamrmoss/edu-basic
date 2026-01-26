@@ -16,303 +16,807 @@ import { LineInputStatement } from '../../../../lang/statements/file-io';
 import { Statement } from '../../../../lang/statements/statement';
 import { TokenType } from '../../tokenizer.service';
 import { ParserContext } from './parser-context';
+import { ParseResult, success, failure } from '../parse-result';
 
 export class GraphicsParsers
 {
-    public static parsePset(context: ParserContext): PsetStatement
+    public static parsePset(context: ParserContext): ParseResult<PsetStatement>
     {
-        context.consume(TokenType.Keyword, 'PSET');
-        context.consume(TokenType.LeftParen, '(');
-        
-        const x = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
-        
-        const y = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        
-        let color: Expression | null = null;
-        if (context.matchKeyword('WITH'))
+        const psetTokenResult = context.consume(TokenType.Keyword, 'PSET');
+        if (!psetTokenResult.success)
         {
-            color = context.parseExpression();
+            return psetTokenResult;
+        }
+        const leftParenResult = context.consume(TokenType.LeftParen, '(');
+        if (!leftParenResult.success)
+        {
+            return leftParenResult;
         }
         
-        return new PsetStatement(x, y, color);
-    }
-
-    public static parseRectangle(context: ParserContext): RectangleStatement
-    {
-        context.consume(TokenType.Keyword, 'RECTANGLE');
-        context.consume(TokenType.Keyword, 'FROM');
-        context.consume(TokenType.LeftParen, '(');
-        
-        const x1 = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
-        
-        const y1 = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        
-        context.consume(TokenType.Keyword, 'TO');
-        context.consume(TokenType.LeftParen, '(');
-        
-        const x2 = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
-        
-        const y2 = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        
-        let color: Expression | null = null;
-        if (context.matchKeyword('WITH'))
+        const xResult = context.parseExpression();
+        if (!xResult.success)
         {
-            color = context.parseExpression();
+            return xResult;
+        }
+        const commaResult = context.consume(TokenType.Comma, ',');
+        if (!commaResult.success)
+        {
+            return commaResult;
         }
         
-        const filled = context.matchKeyword('FILLED');
-        
-        return new RectangleStatement(x1, y1, x2, y2, color, filled);
-    }
-
-    public static parseOval(context: ParserContext): OvalStatement
-    {
-        context.consume(TokenType.Keyword, 'OVAL');
-        context.consume(TokenType.Keyword, 'AT');
-        context.consume(TokenType.LeftParen, '(');
-        
-        const centerX = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
-        
-        const centerY = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        
-        context.consume(TokenType.Keyword, 'RADII');
-        context.consume(TokenType.LeftParen, '(');
-        
-        const radiusX = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
-        
-        const radiusY = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        
-        let color: Expression | null = null;
-        if (context.matchKeyword('WITH'))
+        const yResult = context.parseExpression();
+        if (!yResult.success)
         {
-            color = context.parseExpression();
+            return yResult;
+        }
+        const rightParenResult = context.consume(TokenType.RightParen, ')');
+        if (!rightParenResult.success)
+        {
+            return rightParenResult;
         }
         
-        const filled = context.matchKeyword('FILLED');
-        
-        return new OvalStatement(centerX, centerY, radiusX, radiusY, color, filled);
-    }
-
-    public static parseCircle(context: ParserContext): CircleStatement
-    {
-        context.consume(TokenType.Keyword, 'CIRCLE');
-        context.consume(TokenType.Keyword, 'AT');
-        context.consume(TokenType.LeftParen, '(');
-        
-        const centerX = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
-        
-        const centerY = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        
-        context.consume(TokenType.Keyword, 'RADIUS');
-        
-        const radius = context.parseExpression();
-        
         let color: Expression | null = null;
         if (context.matchKeyword('WITH'))
         {
-            color = context.parseExpression();
+            const colorResult = context.parseExpression();
+            if (!colorResult.success)
+            {
+                return colorResult;
+            }
+            color = colorResult.value;
         }
         
-        const filled = context.matchKeyword('FILLED');
-        
-        return new CircleStatement(centerX, centerY, radius, color, filled);
+        return success(new PsetStatement(xResult.value, yResult.value, color));
     }
 
-    public static parseTriangle(context: ParserContext): TriangleStatement
+    public static parseRectangle(context: ParserContext): ParseResult<RectangleStatement>
     {
-        context.consume(TokenType.Keyword, 'TRIANGLE');
-        context.consume(TokenType.LeftParen, '(');
+        const rectTokenResult = context.consume(TokenType.Keyword, 'RECTANGLE');
+        if (!rectTokenResult.success)
+        {
+            return rectTokenResult;
+        }
+        const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+        if (!fromTokenResult.success)
+        {
+            return fromTokenResult;
+        }
+        const leftParen1Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen1Result.success)
+        {
+            return leftParen1Result;
+        }
         
-        const x1 = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const x1Result = context.parseExpression();
+        if (!x1Result.success)
+        {
+            return x1Result;
+        }
+        const comma1Result = context.consume(TokenType.Comma, ',');
+        if (!comma1Result.success)
+        {
+            return comma1Result;
+        }
         
-        const y1 = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        context.consume(TokenType.LeftParen, '(');
+        const y1Result = context.parseExpression();
+        if (!y1Result.success)
+        {
+            return y1Result;
+        }
+        const rightParen1Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen1Result.success)
+        {
+            return rightParen1Result;
+        }
         
-        const x2 = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+        if (!toTokenResult.success)
+        {
+            return toTokenResult;
+        }
+        const leftParen2Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen2Result.success)
+        {
+            return leftParen2Result;
+        }
         
-        const y2 = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
-        context.consume(TokenType.LeftParen, '(');
+        const x2Result = context.parseExpression();
+        if (!x2Result.success)
+        {
+            return x2Result;
+        }
+        const comma2Result = context.consume(TokenType.Comma, ',');
+        if (!comma2Result.success)
+        {
+            return comma2Result;
+        }
         
-        const x3 = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
-        
-        const y3 = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
+        const y2Result = context.parseExpression();
+        if (!y2Result.success)
+        {
+            return y2Result;
+        }
+        const rightParen2Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen2Result.success)
+        {
+            return rightParen2Result;
+        }
         
         let color: Expression | null = null;
         if (context.matchKeyword('WITH'))
         {
-            color = context.parseExpression();
+            const colorResult = context.parseExpression();
+            if (!colorResult.success)
+            {
+                return colorResult;
+            }
+            color = colorResult.value;
         }
         
         const filled = context.matchKeyword('FILLED');
         
-        return new TriangleStatement(x1, y1, x2, y2, x3, y3, color, filled);
+        return success(new RectangleStatement(x1Result.value, y1Result.value, x2Result.value, y2Result.value, color, filled));
     }
 
-    public static parseArc(context: ParserContext): ArcStatement
+    public static parseOval(context: ParserContext): ParseResult<OvalStatement>
     {
-        context.consume(TokenType.Keyword, 'ARC');
-        context.consume(TokenType.Keyword, 'AT');
-        context.consume(TokenType.LeftParen, '(');
+        const ovalTokenResult = context.consume(TokenType.Keyword, 'OVAL');
+        if (!ovalTokenResult.success)
+        {
+            return ovalTokenResult;
+        }
+        const atTokenResult = context.consume(TokenType.Keyword, 'AT');
+        if (!atTokenResult.success)
+        {
+            return atTokenResult;
+        }
+        const leftParen1Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen1Result.success)
+        {
+            return leftParen1Result;
+        }
         
-        const centerX = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const centerXResult = context.parseExpression();
+        if (!centerXResult.success)
+        {
+            return centerXResult;
+        }
+        const comma1Result = context.consume(TokenType.Comma, ',');
+        if (!comma1Result.success)
+        {
+            return comma1Result;
+        }
         
-        const centerY = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
+        const centerYResult = context.parseExpression();
+        if (!centerYResult.success)
+        {
+            return centerYResult;
+        }
+        const rightParen1Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen1Result.success)
+        {
+            return rightParen1Result;
+        }
         
-        context.consume(TokenType.Keyword, 'RADIUS');
+        const radiiTokenResult = context.consume(TokenType.Keyword, 'RADII');
+        if (!radiiTokenResult.success)
+        {
+            return radiiTokenResult;
+        }
+        const leftParen2Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen2Result.success)
+        {
+            return leftParen2Result;
+        }
         
-        const radius = context.parseExpression();
+        const radiusXResult = context.parseExpression();
+        if (!radiusXResult.success)
+        {
+            return radiusXResult;
+        }
+        const comma2Result = context.consume(TokenType.Comma, ',');
+        if (!comma2Result.success)
+        {
+            return comma2Result;
+        }
         
-        context.consume(TokenType.Keyword, 'FROM');
-        
-        const startAngle = context.parseExpression();
-        
-        context.consume(TokenType.Keyword, 'TO');
-        
-        const endAngle = context.parseExpression();
+        const radiusYResult = context.parseExpression();
+        if (!radiusYResult.success)
+        {
+            return radiusYResult;
+        }
+        const rightParen2Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen2Result.success)
+        {
+            return rightParen2Result;
+        }
         
         let color: Expression | null = null;
         if (context.matchKeyword('WITH'))
         {
-            color = context.parseExpression();
+            const colorResult = context.parseExpression();
+            if (!colorResult.success)
+            {
+                return colorResult;
+            }
+            color = colorResult.value;
         }
         
-        return new ArcStatement(centerX, centerY, radius, startAngle, endAngle, color);
+        const filled = context.matchKeyword('FILLED');
+        
+        return success(new OvalStatement(centerXResult.value, centerYResult.value, radiusXResult.value, radiusYResult.value, color, filled));
     }
 
-    public static parsePaint(context: ParserContext): PaintStatement
+    public static parseCircle(context: ParserContext): ParseResult<CircleStatement>
     {
-        context.consume(TokenType.Keyword, 'PAINT');
-        context.consume(TokenType.LeftParen, '(');
+        const circleTokenResult = context.consume(TokenType.Keyword, 'CIRCLE');
+        if (!circleTokenResult.success)
+        {
+            return circleTokenResult;
+        }
+        const atTokenResult = context.consume(TokenType.Keyword, 'AT');
+        if (!atTokenResult.success)
+        {
+            return atTokenResult;
+        }
+        const leftParenResult = context.consume(TokenType.LeftParen, '(');
+        if (!leftParenResult.success)
+        {
+            return leftParenResult;
+        }
         
-        const x = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const centerXResult = context.parseExpression();
+        if (!centerXResult.success)
+        {
+            return centerXResult;
+        }
+        const commaResult = context.consume(TokenType.Comma, ',');
+        if (!commaResult.success)
+        {
+            return commaResult;
+        }
         
-        const y = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
+        const centerYResult = context.parseExpression();
+        if (!centerYResult.success)
+        {
+            return centerYResult;
+        }
+        const rightParenResult = context.consume(TokenType.RightParen, ')');
+        if (!rightParenResult.success)
+        {
+            return rightParenResult;
+        }
         
-        context.consume(TokenType.Keyword, 'WITH');
+        const radiusTokenResult = context.consume(TokenType.Keyword, 'RADIUS');
+        if (!radiusTokenResult.success)
+        {
+            return radiusTokenResult;
+        }
         
-        const color = context.parseExpression();
+        const radiusResult = context.parseExpression();
+        if (!radiusResult.success)
+        {
+            return radiusResult;
+        }
         
-        return new PaintStatement(x, y, color);
+        let color: Expression | null = null;
+        if (context.matchKeyword('WITH'))
+        {
+            const colorResult = context.parseExpression();
+            if (!colorResult.success)
+            {
+                return colorResult;
+            }
+            color = colorResult.value;
+        }
+        
+        const filled = context.matchKeyword('FILLED');
+        
+        return success(new CircleStatement(centerXResult.value, centerYResult.value, radiusResult.value, color, filled));
     }
 
-    public static parseGet(context: ParserContext): GetStatement
+    public static parseTriangle(context: ParserContext): ParseResult<TriangleStatement>
     {
-        context.consume(TokenType.Keyword, 'GET');
+        const triangleTokenResult = context.consume(TokenType.Keyword, 'TRIANGLE');
+        if (!triangleTokenResult.success)
+        {
+            return triangleTokenResult;
+        }
+        const leftParen1Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen1Result.success)
+        {
+            return leftParen1Result;
+        }
         
-        const arrayVar = context.consume(TokenType.Identifier, 'array variable').value;
+        const x1Result = context.parseExpression();
+        if (!x1Result.success)
+        {
+            return x1Result;
+        }
+        const comma1Result = context.consume(TokenType.Comma, ',');
+        if (!comma1Result.success)
+        {
+            return comma1Result;
+        }
         
-        context.consume(TokenType.Keyword, 'FROM');
-        context.consume(TokenType.LeftParen, '(');
+        const y1Result = context.parseExpression();
+        if (!y1Result.success)
+        {
+            return y1Result;
+        }
+        const rightParen1Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen1Result.success)
+        {
+            return rightParen1Result;
+        }
+        const leftParen2Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen2Result.success)
+        {
+            return leftParen2Result;
+        }
         
-        const x1 = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const x2Result = context.parseExpression();
+        if (!x2Result.success)
+        {
+            return x2Result;
+        }
+        const comma2Result = context.consume(TokenType.Comma, ',');
+        if (!comma2Result.success)
+        {
+            return comma2Result;
+        }
         
-        const y1 = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
+        const y2Result = context.parseExpression();
+        if (!y2Result.success)
+        {
+            return y2Result;
+        }
+        const rightParen2Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen2Result.success)
+        {
+            return rightParen2Result;
+        }
+        const leftParen3Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen3Result.success)
+        {
+            return leftParen3Result;
+        }
         
-        context.consume(TokenType.Keyword, 'TO');
-        context.consume(TokenType.LeftParen, '(');
+        const x3Result = context.parseExpression();
+        if (!x3Result.success)
+        {
+            return x3Result;
+        }
+        const comma3Result = context.consume(TokenType.Comma, ',');
+        if (!comma3Result.success)
+        {
+            return comma3Result;
+        }
         
-        const x2 = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const y3Result = context.parseExpression();
+        if (!y3Result.success)
+        {
+            return y3Result;
+        }
+        const rightParen3Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen3Result.success)
+        {
+            return rightParen3Result;
+        }
         
-        const y2 = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
+        let color: Expression | null = null;
+        if (context.matchKeyword('WITH'))
+        {
+            const colorResult = context.parseExpression();
+            if (!colorResult.success)
+            {
+                return colorResult;
+            }
+            color = colorResult.value;
+        }
         
-        return new GetStatement(arrayVar, x1, y1, x2, y2);
+        const filled = context.matchKeyword('FILLED');
+        
+        return success(new TriangleStatement(x1Result.value, y1Result.value, x2Result.value, y2Result.value, x3Result.value, y3Result.value, color, filled));
     }
 
-    public static parsePut(context: ParserContext): PutStatement
+    public static parseArc(context: ParserContext): ParseResult<ArcStatement>
     {
-        context.consume(TokenType.Keyword, 'PUT');
+        const arcTokenResult = context.consume(TokenType.Keyword, 'ARC');
+        if (!arcTokenResult.success)
+        {
+            return arcTokenResult;
+        }
+        const atTokenResult = context.consume(TokenType.Keyword, 'AT');
+        if (!atTokenResult.success)
+        {
+            return atTokenResult;
+        }
+        const leftParenResult = context.consume(TokenType.LeftParen, '(');
+        if (!leftParenResult.success)
+        {
+            return leftParenResult;
+        }
         
-        const arrayVar = context.consume(TokenType.Identifier, 'array variable').value;
+        const centerXResult = context.parseExpression();
+        if (!centerXResult.success)
+        {
+            return centerXResult;
+        }
+        const commaResult = context.consume(TokenType.Comma, ',');
+        if (!commaResult.success)
+        {
+            return commaResult;
+        }
         
-        context.consume(TokenType.Keyword, 'AT');
-        context.consume(TokenType.LeftParen, '(');
+        const centerYResult = context.parseExpression();
+        if (!centerYResult.success)
+        {
+            return centerYResult;
+        }
+        const rightParenResult = context.consume(TokenType.RightParen, ')');
+        if (!rightParenResult.success)
+        {
+            return rightParenResult;
+        }
         
-        const x = context.parseExpression();
-        context.consume(TokenType.Comma, ',');
+        const radiusTokenResult = context.consume(TokenType.Keyword, 'RADIUS');
+        if (!radiusTokenResult.success)
+        {
+            return radiusTokenResult;
+        }
         
-        const y = context.parseExpression();
-        context.consume(TokenType.RightParen, ')');
+        const radiusResult = context.parseExpression();
+        if (!radiusResult.success)
+        {
+            return radiusResult;
+        }
         
-        return new PutStatement(arrayVar, x, y);
+        const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+        if (!fromTokenResult.success)
+        {
+            return fromTokenResult;
+        }
+        
+        const startAngleResult = context.parseExpression();
+        if (!startAngleResult.success)
+        {
+            return startAngleResult;
+        }
+        
+        const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+        if (!toTokenResult.success)
+        {
+            return toTokenResult;
+        }
+        
+        const endAngleResult = context.parseExpression();
+        if (!endAngleResult.success)
+        {
+            return endAngleResult;
+        }
+        
+        let color: Expression | null = null;
+        if (context.matchKeyword('WITH'))
+        {
+            const colorResult = context.parseExpression();
+            if (!colorResult.success)
+            {
+                return colorResult;
+            }
+            color = colorResult.value;
+        }
+        
+        return success(new ArcStatement(centerXResult.value, centerYResult.value, radiusResult.value, startAngleResult.value, endAngleResult.value, color));
     }
 
-    public static parseTurtle(context: ParserContext): TurtleStatement
+    public static parsePaint(context: ParserContext): ParseResult<PaintStatement>
     {
-        context.consume(TokenType.Keyword, 'TURTLE');
+        const paintTokenResult = context.consume(TokenType.Keyword, 'PAINT');
+        if (!paintTokenResult.success)
+        {
+            return paintTokenResult;
+        }
+        const leftParenResult = context.consume(TokenType.LeftParen, '(');
+        if (!leftParenResult.success)
+        {
+            return leftParenResult;
+        }
         
-        const commands = context.parseExpression();
+        const xResult = context.parseExpression();
+        if (!xResult.success)
+        {
+            return xResult;
+        }
+        const commaResult = context.consume(TokenType.Comma, ',');
+        if (!commaResult.success)
+        {
+            return commaResult;
+        }
         
-        return new TurtleStatement(commands);
+        const yResult = context.parseExpression();
+        if (!yResult.success)
+        {
+            return yResult;
+        }
+        const rightParenResult = context.consume(TokenType.RightParen, ')');
+        if (!rightParenResult.success)
+        {
+            return rightParenResult;
+        }
+        
+        const withTokenResult = context.consume(TokenType.Keyword, 'WITH');
+        if (!withTokenResult.success)
+        {
+            return withTokenResult;
+        }
+        
+        const colorResult = context.parseExpression();
+        if (!colorResult.success)
+        {
+            return colorResult;
+        }
+        
+        return success(new PaintStatement(xResult.value, yResult.value, colorResult.value));
     }
 
-    public static parseLineInputOrGraphics(context: ParserContext): Statement
+    public static parseGet(context: ParserContext): ParseResult<GetStatement>
     {
-        context.consume(TokenType.Keyword, 'LINE');
+        const getTokenResult = context.consume(TokenType.Keyword, 'GET');
+        if (!getTokenResult.success)
+        {
+            return getTokenResult;
+        }
+        
+        const arrayVarTokenResult = context.consume(TokenType.Identifier, 'array variable');
+        if (!arrayVarTokenResult.success)
+        {
+            return arrayVarTokenResult;
+        }
+        
+        const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+        if (!fromTokenResult.success)
+        {
+            return fromTokenResult;
+        }
+        const leftParen1Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen1Result.success)
+        {
+            return leftParen1Result;
+        }
+        
+        const x1Result = context.parseExpression();
+        if (!x1Result.success)
+        {
+            return x1Result;
+        }
+        const comma1Result = context.consume(TokenType.Comma, ',');
+        if (!comma1Result.success)
+        {
+            return comma1Result;
+        }
+        
+        const y1Result = context.parseExpression();
+        if (!y1Result.success)
+        {
+            return y1Result;
+        }
+        const rightParen1Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen1Result.success)
+        {
+            return rightParen1Result;
+        }
+        
+        const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+        if (!toTokenResult.success)
+        {
+            return toTokenResult;
+        }
+        const leftParen2Result = context.consume(TokenType.LeftParen, '(');
+        if (!leftParen2Result.success)
+        {
+            return leftParen2Result;
+        }
+        
+        const x2Result = context.parseExpression();
+        if (!x2Result.success)
+        {
+            return x2Result;
+        }
+        const comma2Result = context.consume(TokenType.Comma, ',');
+        if (!comma2Result.success)
+        {
+            return comma2Result;
+        }
+        
+        const y2Result = context.parseExpression();
+        if (!y2Result.success)
+        {
+            return y2Result;
+        }
+        const rightParen2Result = context.consume(TokenType.RightParen, ')');
+        if (!rightParen2Result.success)
+        {
+            return rightParen2Result;
+        }
+        
+        return success(new GetStatement(arrayVarTokenResult.value.value, x1Result.value, y1Result.value, x2Result.value, y2Result.value));
+    }
+
+    public static parsePut(context: ParserContext): ParseResult<PutStatement>
+    {
+        const putTokenResult = context.consume(TokenType.Keyword, 'PUT');
+        if (!putTokenResult.success)
+        {
+            return putTokenResult;
+        }
+        
+        const arrayVarTokenResult = context.consume(TokenType.Identifier, 'array variable');
+        if (!arrayVarTokenResult.success)
+        {
+            return arrayVarTokenResult;
+        }
+        
+        const atTokenResult = context.consume(TokenType.Keyword, 'AT');
+        if (!atTokenResult.success)
+        {
+            return atTokenResult;
+        }
+        const leftParenResult = context.consume(TokenType.LeftParen, '(');
+        if (!leftParenResult.success)
+        {
+            return leftParenResult;
+        }
+        
+        const xResult = context.parseExpression();
+        if (!xResult.success)
+        {
+            return xResult;
+        }
+        const commaResult = context.consume(TokenType.Comma, ',');
+        if (!commaResult.success)
+        {
+            return commaResult;
+        }
+        
+        const yResult = context.parseExpression();
+        if (!yResult.success)
+        {
+            return yResult;
+        }
+        const rightParenResult = context.consume(TokenType.RightParen, ')');
+        if (!rightParenResult.success)
+        {
+            return rightParenResult;
+        }
+        
+        return success(new PutStatement(arrayVarTokenResult.value.value, xResult.value, yResult.value));
+    }
+
+    public static parseTurtle(context: ParserContext): ParseResult<TurtleStatement>
+    {
+        const turtleTokenResult = context.consume(TokenType.Keyword, 'TURTLE');
+        if (!turtleTokenResult.success)
+        {
+            return turtleTokenResult;
+        }
+        
+        const commandsResult = context.parseExpression();
+        if (!commandsResult.success)
+        {
+            return commandsResult;
+        }
+        
+        return success(new TurtleStatement(commandsResult.value));
+    }
+
+    public static parseLineInputOrGraphics(context: ParserContext): ParseResult<Statement>
+    {
+        const lineTokenResult = context.consume(TokenType.Keyword, 'LINE');
+        if (!lineTokenResult.success)
+        {
+            return lineTokenResult;
+        }
         
         if (context.matchKeyword('INPUT'))
         {
-            const varName = context.consume(TokenType.Identifier, 'variable name').value;
+            const varNameTokenResult = context.consume(TokenType.Identifier, 'variable name');
+            if (!varNameTokenResult.success)
+            {
+                return varNameTokenResult;
+            }
             
-            context.consume(TokenType.Keyword, 'FROM');
+            const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+            if (!fromTokenResult.success)
+            {
+                return fromTokenResult;
+            }
             
-            const fileHandle = context.parseExpression();
+            const fileHandleResult = context.parseExpression();
+            if (!fileHandleResult.success)
+            {
+                return fileHandleResult;
+            }
             
-            return new LineInputStatement(varName, fileHandle);
+            return success(new LineInputStatement(varNameTokenResult.value.value, fileHandleResult.value));
         }
         else if (context.matchKeyword('FROM'))
         {
-            context.consume(TokenType.LeftParen, '(');
+            const leftParen1Result = context.consume(TokenType.LeftParen, '(');
+            if (!leftParen1Result.success)
+            {
+                return leftParen1Result;
+            }
             
-            const x1 = context.parseExpression();
-            context.consume(TokenType.Comma, ',');
+            const x1Result = context.parseExpression();
+            if (!x1Result.success)
+            {
+                return x1Result;
+            }
+            const comma1Result = context.consume(TokenType.Comma, ',');
+            if (!comma1Result.success)
+            {
+                return comma1Result;
+            }
             
-            const y1 = context.parseExpression();
-            context.consume(TokenType.RightParen, ')');
+            const y1Result = context.parseExpression();
+            if (!y1Result.success)
+            {
+                return y1Result;
+            }
+            const rightParen1Result = context.consume(TokenType.RightParen, ')');
+            if (!rightParen1Result.success)
+            {
+                return rightParen1Result;
+            }
             
-            context.consume(TokenType.Keyword, 'TO');
-            context.consume(TokenType.LeftParen, '(');
+            const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+            if (!toTokenResult.success)
+            {
+                return toTokenResult;
+            }
+            const leftParen2Result = context.consume(TokenType.LeftParen, '(');
+            if (!leftParen2Result.success)
+            {
+                return leftParen2Result;
+            }
             
-            const x2 = context.parseExpression();
-            context.consume(TokenType.Comma, ',');
+            const x2Result = context.parseExpression();
+            if (!x2Result.success)
+            {
+                return x2Result;
+            }
+            const comma2Result = context.consume(TokenType.Comma, ',');
+            if (!comma2Result.success)
+            {
+                return comma2Result;
+            }
             
-            const y2 = context.parseExpression();
-            context.consume(TokenType.RightParen, ')');
+            const y2Result = context.parseExpression();
+            if (!y2Result.success)
+            {
+                return y2Result;
+            }
+            const rightParen2Result = context.consume(TokenType.RightParen, ')');
+            if (!rightParen2Result.success)
+            {
+                return rightParen2Result;
+            }
             
             let color: Expression | null = null;
             if (context.matchKeyword('WITH'))
             {
-                color = context.parseExpression();
+                const colorResult = context.parseExpression();
+                if (!colorResult.success)
+                {
+                    return colorResult;
+                }
+                color = colorResult.value;
             }
             
-            return new LineStatement(x1, y1, x2, y2, color);
+            return success(new LineStatement(x1Result.value, y1Result.value, x2Result.value, y2Result.value, color));
         }
         
-        throw new Error('Expected INPUT or FROM after LINE');
+        return failure('Expected INPUT or FROM after LINE');
     }
 }

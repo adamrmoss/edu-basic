@@ -2,52 +2,106 @@ import { Expression } from '../../../../lang/expressions/expression';
 import { DimStatement, LetStatement, LocalStatement } from '../../../../lang/statements/variables';
 import { TokenType } from '../../tokenizer.service';
 import { ParserContext } from './parser-context';
+import { ParseResult, success } from '../parse-result';
 
 export class VariableParsers
 {
-    public static parseLet(context: ParserContext): LetStatement
+    public static parseLet(context: ParserContext): ParseResult<LetStatement>
     {
-        context.consume(TokenType.Keyword, 'LET');
+        const letTokenResult = context.consume(TokenType.Keyword, 'LET');
+        if (!letTokenResult.success)
+        {
+            return letTokenResult;
+        }
         
-        const varName = context.consume(TokenType.Identifier, 'variable name').value;
-        context.consume(TokenType.Equal, '=');
+        const varNameTokenResult = context.consume(TokenType.Identifier, 'variable name');
+        if (!varNameTokenResult.success)
+        {
+            return varNameTokenResult;
+        }
+        const equalResult = context.consume(TokenType.Equal, '=');
+        if (!equalResult.success)
+        {
+            return equalResult;
+        }
         
-        const expr = context.parseExpression();
+        const exprResult = context.parseExpression();
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
         
-        return new LetStatement(varName, expr);
+        return success(new LetStatement(varNameTokenResult.value.value, exprResult.value));
     }
 
-    public static parseLocal(context: ParserContext): LocalStatement
+    public static parseLocal(context: ParserContext): ParseResult<LocalStatement>
     {
-        context.consume(TokenType.Keyword, 'LOCAL');
+        const localTokenResult = context.consume(TokenType.Keyword, 'LOCAL');
+        if (!localTokenResult.success)
+        {
+            return localTokenResult;
+        }
         
-        const varName = context.consume(TokenType.Identifier, 'variable name').value;
-        context.consume(TokenType.Equal, '=');
+        const varNameTokenResult = context.consume(TokenType.Identifier, 'variable name');
+        if (!varNameTokenResult.success)
+        {
+            return varNameTokenResult;
+        }
+        const equalResult = context.consume(TokenType.Equal, '=');
+        if (!equalResult.success)
+        {
+            return equalResult;
+        }
         
-        const expr = context.parseExpression();
+        const exprResult = context.parseExpression();
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
         
-        return new LocalStatement(varName, expr);
+        return success(new LocalStatement(varNameTokenResult.value.value, exprResult.value));
     }
 
-    public static parseDim(context: ParserContext): DimStatement
+    public static parseDim(context: ParserContext): ParseResult<DimStatement>
     {
-        context.consume(TokenType.Keyword, 'DIM');
+        const dimTokenResult = context.consume(TokenType.Keyword, 'DIM');
+        if (!dimTokenResult.success)
+        {
+            return dimTokenResult;
+        }
         
-        const varName = context.consume(TokenType.Identifier, 'array name').value;
-        context.consume(TokenType.LeftBracket, '[');
+        const varNameTokenResult = context.consume(TokenType.Identifier, 'array name');
+        if (!varNameTokenResult.success)
+        {
+            return varNameTokenResult;
+        }
+        const leftBracketResult = context.consume(TokenType.LeftBracket, '[');
+        if (!leftBracketResult.success)
+        {
+            return leftBracketResult;
+        }
         
         const dimensions: Expression[] = [];
         
         do
         {
-            dimensions.push(context.parseExpression());
+            const dimResult = context.parseExpression();
+            if (!dimResult.success)
+            {
+                return dimResult;
+            }
+            dimensions.push(dimResult.value);
         }
         while (context.match(TokenType.Comma));
         
-        context.consume(TokenType.RightBracket, ']');
+        const rightBracketResult = context.consume(TokenType.RightBracket, ']');
+        if (!rightBracketResult.success)
+        {
+            return rightBracketResult;
+        }
         
-        const arrayName = varName + '[]';
+        const arrayName = varNameTokenResult.value.value + '[]';
         
-        return new DimStatement(arrayName, dimensions);
+        return success(new DimStatement(arrayName, dimensions));
     }
 }

@@ -10,6 +10,7 @@ import { PrintStatement } from '../src/lang/statements/io';
 import { UnparsableStatement } from '../src/lang/statements/unparsable-statement';
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { EduBasicType } from '../src/lang/edu-basic-value';
+import { success } from '../src/app/interpreter/parser/parse-result';
 
 describe('ConsoleService', () => {
     let service: ConsoleService;
@@ -69,7 +70,7 @@ describe('ConsoleService', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             const result = service.parseLine('LET x = 42');
 
@@ -77,10 +78,8 @@ describe('ConsoleService', () => {
             expect(parserService.parseLine).toHaveBeenCalledWith(0, 'LET x = 42');
         });
 
-        it('should return null when parsing throws an error', () => {
-            parserService.parseLine.mockImplementation(() => {
-                throw new Error('Parse error');
-            });
+        it('should return null when parsing fails', () => {
+            parserService.parseLine.mockReturnValue({ success: false, error: 'Parse error' });
 
             const result = service.parseLine('INVALID COMMAND');
 
@@ -96,7 +95,7 @@ describe('ConsoleService', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             const result = service.parseLine('PRINT "Hello"');
 
@@ -113,7 +112,7 @@ describe('ConsoleService', () => {
                 errorMessage: 'Syntax error'
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             const result = service.parseLine('INVALID');
 

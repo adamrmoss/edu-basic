@@ -474,26 +474,53 @@ export class Tokenizer
     private isKeyword(word: string): boolean
     {
         const keywords = new Set([
-            'LET', 'DIM', 'LOCAL', 'IF', 'THEN', 'ELSE', 'ELSEIF', 'END', 'FOR', 'TO', 'STEP', 'NEXT',
-            'WHILE', 'WEND', 'DO', 'LOOP', 'UNTIL', 'UEND', 'UNLESS', 'SELECT', 'CASE', 'GOSUB', 'RETURN',
-            'GOTO', 'LABEL', 'CALL', 'PRINT', 'INPUT', 'READ', 'DATA', 'RESTORE', 'CLS', 'COLOR', 'LOCATE',
-            'PSET', 'LINE', 'CIRCLE', 'RECTANGLE', 'OVAL', 'TRIANGLE', 'PAINT', 'GET', 'PUT',
-            'OPEN', 'CLOSE', 'WRITE', 'SEEK', 'EOF', 'LOC', 'EXISTS',
-            'PLAY', 'TEMPO', 'VOLUME', 'VOICE', 'ATTACK', 'DECAY', 'SUSTAIN', 'RELEASE',
-            'SLEEP', 'RANDOMIZE', 'EXIT', 'CONTINUE', 'SUB', 'TRY', 'CATCH', 'FINALLY', 'THROW',
+            // Variable statements
+            'LET', 'DIM', 'LOCAL',
+            // Control flow statements
+            'IF', 'THEN', 'ELSE', 'ELSEIF', 'END', 'FOR', 'TO', 'STEP', 'NEXT',
+            'WHILE', 'WEND', 'DO', 'LOOP', 'UNTIL', 'UEND', 'UNLESS', 'SELECT', 'CASE',
+            'GOSUB', 'RETURN', 'GOTO', 'LABEL', 'CALL',
+            'EXIT', 'CONTINUE', 'SUB', 'TRY', 'CATCH', 'FINALLY', 'THROW',
+            // I/O statements
+            'PRINT', 'INPUT', 'CLS', 'COLOR', 'LOCATE',
+            // Graphics statements
+            'PSET', 'LINE', 'CIRCLE', 'RECTANGLE', 'OVAL', 'TRIANGLE', 'PAINT', 'GET', 'PUT', 'ARC', 'TURTLE',
+            // File I/O statements
+            'OPEN', 'CLOSE', 'READ', 'WRITE', 'SEEK', 'READFILE', 'WRITEFILE',
+            'LISTDIR', 'MKDIR', 'RMDIR', 'COPY', 'MOVE', 'DELETE',
+            // Audio statements
+            'PLAY', 'TEMPO', 'VOLUME', 'VOICE',
+            // Array statements
+            'PUSH', 'POP', 'SHIFT', 'UNSHIFT',
+            // Miscellaneous statements
+            'SLEEP', 'RANDOMIZE', 'SET', 'HELP', 'CONSOLE',
+            // File I/O keywords (used in statements)
+            'EOF', 'LOC', 'EXISTS', 'APPEND', 'OVERWRITE',
+            // Graphics keywords (used in statements)
+            'FROM', 'WITH', 'AS', 'AT', 'RADIUS', 'RADII', 'FILLED', 'PRESET',
+            // Audio keywords (used in statements)
+            'ATTACK', 'DECAY', 'SUSTAIN', 'RELEASE',
+            // Data keywords (used in statements)
+            'DATA', 'RESTORE',
+            // Parameter keywords
+            'BYREF',
+            // Logical operators
             'AND', 'OR', 'NOT', 'XOR', 'NAND', 'NOR', 'XNOR', 'IMP', 'MOD',
+            // Mathematical function operators
             'SIN', 'COS', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'SINH', 'COSH', 'TANH',
             'ASINH', 'ACOSH', 'ATANH', 'EXP', 'LOG', 'LOG10', 'LOG2', 'SQRT', 'CBRT',
             'FLOOR', 'CEIL', 'ROUND', 'TRUNC', 'ABS', 'SGN', 'INT',
+            // Complex function operators
             'REAL', 'IMAG', 'CONJ', 'CABS', 'CARG', 'CSQRT',
+            // String function operators
             'ASC', 'CHR', 'STR', 'VAL', 'HEX', 'BIN', 'UCASE', 'LCASE',
             'LTRIM', 'RTRIM', 'TRIM', 'REVERSE', 'LEN', 'LEFT', 'RIGHT', 'MID',
             'INSTR', 'JOIN', 'REPLACE', 'FIND', 'INDEXOF', 'INCLUDES',
+            'STARTSWITH', 'ENDSWITH',
+            // Constants
             'RND', 'PI', 'E', 'TRUE', 'FALSE', 'INKEY', 'DATE', 'TIME', 'NOW',
-            'DEG', 'RAD', 'EXPAND', 'NOTES', 'TURTLE', 'ARC', 'READFILE', 'WRITEFILE',
-            'LISTDIR', 'MKDIR', 'RMDIR', 'COPY', 'MOVE', 'DELETE', 'SET', 'STARTSWITH', 'ENDSWITH',
-            'PUSH', 'POP', 'SHIFT', 'UNSHIFT', 'FROM', 'WITH', 'AS', 'FOR', 'BYREF', 'APPEND', 'OVERWRITE',
-            'AT', 'RADIUS', 'RADII', 'FILLED', 'PRESET'
+            // Other operators
+            'DEG', 'RAD', 'EXPAND', 'NOTES'
         ]);
 
         return keywords.has(word);
