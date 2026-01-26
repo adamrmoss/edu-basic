@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IconComponent, Folder, File } from 'ng-luna';
+import { IconComponent, Folder, File, Plus, Save, FolderOpen, Edit, Trash } from 'ng-luna';
 import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from './disk.service';
 import { TextEditorComponent } from '../text-editor/text-editor.component';
@@ -26,6 +26,11 @@ export class DiskComponent implements OnInit, OnDestroy
 {
     public readonly folderIcon = Folder;
     public readonly fileIcon = File;
+    public readonly plusIcon = Plus;
+    public readonly saveIcon = Save;
+    public readonly folderOpenIcon = FolderOpen;
+    public readonly editIcon = Edit;
+    public readonly trashIcon = Trash;
 
     public diskName: string = 'Untitled';
     public fileTree: FileNode[] = [];
@@ -198,14 +203,10 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public selectFile(file: FileNode): void
     {
-        if (file.type === 'directory')
+        this.selectedFile = file;
+        
+        if (file.type === 'file')
         {
-            file.expanded = !file.expanded;
-        }
-        else
-        {
-            this.selectedFile = file;
-            
             const data = this.diskService.getFile(file.path);
             
             if (data)
@@ -223,6 +224,14 @@ export class DiskComponent implements OnInit, OnDestroy
             {
                 this.editorLines = [''];
             }
+        }
+    }
+
+    public toggleDirectory(file: FileNode): void
+    {
+        if (file.type === 'directory')
+        {
+            file.expanded = !file.expanded;
         }
     }
 

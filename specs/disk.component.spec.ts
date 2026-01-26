@@ -279,12 +279,25 @@ describe('DiskComponent', () => {
             expect(component.editorLines).toEqual(['Line 1', 'Line 2', 'Line 3']);
         });
 
-        it('should toggle directory expansion', () => {
+        it('should select directory without toggling expansion', () => {
             const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
 
             component.selectFile(dirNode);
 
+            expect(component.selectedFile).toBe(dirNode);
+            expect(dirNode.expanded).toBe(false);
+        });
+
+        it('should toggle directory expansion', () => {
+            const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
+
+            component.toggleDirectory(dirNode);
+
             expect(dirNode.expanded).toBe(true);
+
+            component.toggleDirectory(dirNode);
+
+            expect(dirNode.expanded).toBe(false);
         });
     });
 
