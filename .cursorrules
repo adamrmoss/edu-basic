@@ -91,6 +91,9 @@ When solving problems, follow this workflow:
 - Use separate files for templates (.html) and stylesheets (.scss) - NEVER include HTML/SCSS directly in TypeScript components
 - Prefer TypeScript over JavaScript
 - Prefer SCSS over CSS
+- **ALWAYS use IconComponent from ng-luna** - NEVER create custom SVG icons or invent your own icon rendering
+  - Use `<luna-icon>` component with the appropriate icon from ng-luna (e.g., `Folder`, `File`, `Edit`, `Trash`)
+  - For drag images or other DOM manipulation, clone the actual DOM elements that use IconComponent, never create facsimiles
 - **SCSS Property Ordering**: ALL CSS/SCSS properties MUST be alphabetized within each selector block
   - Properties should be sorted alphabetically by property name (e.g., `align-items`, `background-color`, `border`, `color`, `display`, `font-size`, etc.)
   - This applies to all selector blocks, including nested selectors, pseudo-classes (`:hover`, `:active`, etc.), and pseudo-elements (`::placeholder`, etc.)

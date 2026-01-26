@@ -153,7 +153,14 @@
 
 <!-- File Tree Template -->
 <ng-template #fileTreeTemplate let-nodes="nodes" let-level="level" let-parentPath="parentPath">
-    <div *ngFor="let node of nodes">
+    <div 
+        *ngFor="let node of nodes"
+        [draggable]="!isProgramBas(node) && node.type === 'directory'"
+        (dragstart)="onDragStart($event, node)"
+        (dragover)="onDragOver($event, node)"
+        (drop)="onDrop($event, node)"
+        (dragend)="onDragEnd()"
+    >
         <div 
             class="file-tree-item"
             [class.directory]="node.type === 'directory'"
@@ -163,7 +170,7 @@
             [class.dragging]="isNodeBeingDragged(node)"
             [class.in-dragged-subtree]="isNodeInDraggedSubtree(node)"
             [style.padding-left.px]="level * 16 + 12"
-            [draggable]="!isProgramBas(node)"
+            [draggable]="!isProgramBas(node) && node.type === 'file'"
             (dragstart)="onDragStart($event, node)"
             (dragover)="onDragOver($event, node)"
             (drop)="onDrop($event, node)"

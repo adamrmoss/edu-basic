@@ -529,13 +529,6 @@ export class DiskComponent implements OnInit, OnDestroy
         this.draggedNode = node;
         event.dataTransfer!.effectAllowed = 'move';
         event.dataTransfer!.setData('text/plain', node.path);
-
-        if (node.type === 'directory')
-        {
-            const itemCount = this.countSubtreeItems(node);
-            const dragImage = this.createDragImage(node.name, itemCount);
-            event.dataTransfer!.setDragImage(dragImage, 0, 0);
-        }
     }
 
     public onDragOver(event: DragEvent, node: FileNode): void
@@ -639,41 +632,4 @@ export class DiskComponent implements OnInit, OnDestroy
         return descendantPath.startsWith(ancestorPath + '/');
     }
 
-    private countSubtreeItems(node: FileNode): number
-    {
-        let count = 1;
-
-        if (node.children)
-        {
-            for (const child of node.children)
-            {
-                count += this.countSubtreeItems(child);
-            }
-        }
-
-        return count;
-    }
-
-    private createDragImage(name: string, itemCount: number): HTMLElement
-    {
-        const dragImage = document.createElement('div');
-        dragImage.style.position = 'absolute';
-        dragImage.style.top = '-1000px';
-        dragImage.style.left = '-1000px';
-        dragImage.style.padding = '8px 12px';
-        dragImage.style.backgroundColor = 'rgba(30, 60, 90, 0.95)';
-        dragImage.style.border = '1px solid rgba(100, 150, 200, 0.8)';
-        dragImage.style.borderRadius = '4px';
-        dragImage.style.color = '#ffffff';
-        dragImage.style.fontFamily = "'IBM Plex Mono', monospace";
-        dragImage.style.fontSize = '13px';
-        dragImage.style.whiteSpace = 'nowrap';
-        dragImage.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-        dragImage.textContent = `${name} (${itemCount} item${itemCount !== 1 ? 's' : ''})`;
-        document.body.appendChild(dragImage);
-        
-        setTimeout(() => document.body.removeChild(dragImage), 0);
-        
-        return dragImage;
-    }
 }
