@@ -63,33 +63,8 @@ export class DiskService
         
         for (const [path, data] of files.entries())
         {
-            if (path.includes('/'))
-            {
-                const parts = path.split('/');
-                let currentFolder: JSZip | null = zip;
-                
-                for (let i = 0; i < parts.length - 1; i++)
-                {
-                    const folderName = parts[i];
-                    currentFolder = currentFolder.folder(folderName);
-                    
-                    if (!currentFolder)
-                    {
-                        break;
-                    }
-                }
-                
-                if (currentFolder)
-                {
-                    const buffer = new Uint8Array(data).buffer;
-                    currentFolder.file(parts[parts.length - 1], buffer);
-                }
-            }
-            else
-            {
-                const buffer = new Uint8Array(data).buffer;
-                zip.file(path, buffer);
-            }
+            const buffer = new Uint8Array(data).buffer;
+            zip.file(path, buffer);
         }
 
         const blob = await zip.generateAsync({ type: 'blob' });
