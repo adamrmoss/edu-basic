@@ -15,7 +15,7 @@ import { RuntimeExecution } from '../src/lang/runtime-execution';
 import { GraphicsService } from '../src/app/interpreter/graphics.service';
 import { AudioService } from '../src/app/interpreter/audio.service';
 import { TabSwitchService } from '../src/app/tab-switch.service';
-import { FileSystemService } from '../src/app/files/filesystem.service';
+import { FileSystemService } from '../src/app/disk/filesystem.service';
 import { success, failure } from '../src/app/interpreter/parser/parse-result';
 
 describe('CodeEditorComponent', () => {

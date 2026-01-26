@@ -3,7 +3,7 @@ import { Program } from '../src/lang/program';
 import { ExecutionContext } from '../src/lang/execution-context';
 import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/files/filesystem.service';
+import { FileSystemService } from '../src/app/disk/filesystem.service';
 import {
     DoLoopStatement,
     DoLoopVariant,

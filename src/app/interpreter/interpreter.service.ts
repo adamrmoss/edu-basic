@@ -7,7 +7,7 @@ import { RuntimeExecution } from '../../lang/runtime-execution';
 import { GraphicsService } from './graphics.service';
 import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
-import { FileSystemService } from '../files/filesystem.service';
+import { FileSystemService } from '../disk/filesystem.service';
 import { ConsoleService } from '../console/console.service';
 
 export enum InterpreterState

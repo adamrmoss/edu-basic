@@ -4,18 +4,21 @@ import { FormsModule } from '@angular/forms';
 import { IconComponent, Folder, File } from 'ng-luna';
 import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from './disk.service';
+import { TextEditorComponent } from '../text-editor/text-editor.component';
 
-interface FileNode
+export interface FileNode
 {
     name: string;
     path: string;
-    type: 'file';
+    type: 'file' | 'directory';
+    children?: FileNode[];
+    expanded?: boolean;
 }
 
 @Component({
     selector: 'app-disk',
     standalone: true,
-    imports: [ CommonModule, FormsModule, IconComponent ],
+    imports: [ CommonModule, FormsModule, IconComponent, TextEditorComponent ],
     templateUrl: './disk.component.html',
     styleUrl: './disk.component.scss'
 })
@@ -25,11 +28,16 @@ export class DiskComponent implements OnInit, OnDestroy
     public readonly fileIcon = File;
 
     public diskName: string = 'Untitled';
-    public fileList: FileNode[] = [];
+    public fileTree: FileNode[] = [];
     public selectedFile: FileNode | null = null;
-    public fileContent: string = '';
-    public viewMode: 'text' | 'hex' = 'text';
     public editorLines: string[] = [''];
+    public viewMode: 'text' | 'hex' = 'text';
+    public contextMenuPath: string | null = null;
+    public contextMenuX: number = 0;
+    public contextMenuY: number = 0;
+    public showContextMenu: boolean = false;
+    public readonly emptyErrorLines: Set<number> = new Set();
+    public readonly emptyErrorMessages: Map<number, string> = new Map();
 
     private readonly destroy$ = new Subject<void>();
 
@@ -48,10 +56,10 @@ export class DiskComponent implements OnInit, OnDestroy
         this.diskService.filesChanged$
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
-                this.refreshFileList();
+                this.refreshFileTree();
             });
 
-        this.refreshFileList();
+        this.refreshFileTree();
     }
 
     public ngOnDestroy(): void
@@ -73,7 +81,6 @@ export class DiskComponent implements OnInit, OnDestroy
         {
             this.diskService.newDisk(name);
             this.selectedFile = null;
-            this.fileContent = '';
             this.editorLines = [''];
         }
     }
@@ -94,7 +101,6 @@ export class DiskComponent implements OnInit, OnDestroy
                 {
                     await this.diskService.loadDisk(file);
                     this.selectedFile = null;
-                    this.fileContent = '';
                     this.editorLines = [''];
                 }
                 catch (error)
@@ -119,13 +125,25 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
-    public onNewFile(): void
+    public onNewFile(parentPath: string = ''): void
     {
         const fileName = prompt('Enter file name:');
         
         if (fileName)
         {
-            this.diskService.createFile(fileName);
+            const fullPath = parentPath ? `${parentPath}/${fileName}` : fileName;
+            this.diskService.createFile(fullPath);
+        }
+    }
+
+    public onNewDirectory(parentPath: string = ''): void
+    {
+        const dirName = prompt('Enter directory name:');
+        
+        if (dirName)
+        {
+            const fullPath = parentPath ? `${parentPath}/${dirName}` : dirName;
+            this.diskService.createDirectory(fullPath);
         }
     }
 
@@ -137,9 +155,42 @@ export class DiskComponent implements OnInit, OnDestroy
             
             if (confirmed)
             {
-                this.diskService.deleteFile(this.selectedFile.path);
+                if (this.selectedFile.type === 'directory')
+                {
+                    this.diskService.deleteDirectory(this.selectedFile.path);
+                }
+                else
+                {
+                    this.diskService.deleteFile(this.selectedFile.path);
+                }
+                
                 this.selectedFile = null;
-                this.fileContent = '';
+                this.editorLines = [''];
+            }
+        }
+    }
+
+    public onRenameFile(): void
+    {
+        if (this.selectedFile)
+        {
+            const newName = prompt('Enter new name:', this.selectedFile.name);
+            
+            if (newName && newName !== this.selectedFile.name)
+            {
+                const parentPath = this.getParentPath(this.selectedFile.path);
+                const newPath = parentPath ? `${parentPath}/${newName}` : newName;
+                
+                if (this.selectedFile.type === 'directory')
+                {
+                    this.diskService.renameDirectory(this.selectedFile.path, newPath);
+                }
+                else
+                {
+                    this.diskService.renameFile(this.selectedFile.path, newPath);
+                }
+                
+                this.selectedFile = null;
                 this.editorLines = [''];
             }
         }
@@ -147,55 +198,44 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public selectFile(file: FileNode): void
     {
-        this.selectedFile = file;
-        
-        const data = this.diskService.getFile(file.path);
-        
-        if (data)
+        if (file.type === 'directory')
         {
-            const decoder = new TextDecoder('utf-8');
-            this.fileContent = decoder.decode(data);
-            this.editorLines = this.fileContent.split('\n');
+            file.expanded = !file.expanded;
+        }
+        else
+        {
+            this.selectedFile = file;
             
-            if (this.editorLines.length === 0)
+            const data = this.diskService.getFile(file.path);
+            
+            if (data)
+            {
+                const decoder = new TextDecoder('utf-8');
+                const content = decoder.decode(data);
+                this.editorLines = content.split('\n');
+                
+                if (this.editorLines.length === 0)
+                {
+                    this.editorLines = [''];
+                }
+            }
+            else
             {
                 this.editorLines = [''];
             }
         }
-        else
-        {
-            this.fileContent = '';
-            this.editorLines = [''];
-        }
     }
 
-    public getLineNumbers(): number[]
+    public onLinesChange(lines: string[]): void
     {
-        return Array.from({ length: this.editorLines.length }, (_, i) => i + 1);
-    }
-
-    public onTextAreaInput(event: Event): void
-    {
-        const textarea = event.target as HTMLTextAreaElement;
-        this.fileContent = textarea.value;
-        this.editorLines = this.fileContent.split('\n');
+        this.editorLines = lines;
         
-        if (this.selectedFile)
+        if (this.selectedFile && this.selectedFile.type === 'file')
         {
+            const content = lines.join('\n');
             const encoder = new TextEncoder();
-            const data = encoder.encode(this.fileContent);
+            const data = encoder.encode(content);
             this.diskService.saveFile(this.selectedFile.path, data);
-        }
-    }
-
-    public onTextAreaScroll(event: Event): void
-    {
-        const textarea = event.target as HTMLTextAreaElement;
-        const lineNumbers = document.querySelector('.file-line-numbers') as HTMLElement;
-        
-        if (lineNumbers)
-        {
-            lineNumbers.scrollTop = textarea.scrollTop;
         }
     }
 
@@ -206,18 +246,24 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public getHexContent(): string
     {
-        if (!this.fileContent)
+        if (!this.selectedFile || this.selectedFile.type !== 'file')
         {
             return '';
         }
 
-        const bytes = new TextEncoder().encode(this.fileContent);
+        const data = this.diskService.getFile(this.selectedFile.path);
+        
+        if (!data)
+        {
+            return '';
+        }
+
         let hex = '';
         
-        for (let i = 0; i < bytes.length; i += 16)
+        for (let i = 0; i < data.length; i += 16)
         {
             const offset = i.toString(16).padStart(8, '0').toUpperCase();
-            const chunk = bytes.slice(i, i + 16);
+            const chunk = data.slice(i, i + 16);
             const hexBytes = Array.from(chunk).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
             const ascii = Array.from(chunk).map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '.').join('');
             
@@ -227,13 +273,209 @@ export class DiskComponent implements OnInit, OnDestroy
         return hex;
     }
 
-    private refreshFileList(): void
+    public onContextMenu(event: MouseEvent, path: string): void
+    {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        this.contextMenuPath = path;
+        this.contextMenuX = event.clientX;
+        this.contextMenuY = event.clientY;
+        this.showContextMenu = true;
+    }
+
+    public closeContextMenu(): void
+    {
+        this.showContextMenu = false;
+        this.contextMenuPath = null;
+    }
+
+    public onContextMenuNewFile(): void
+    {
+        if (this.contextMenuPath)
+        {
+            this.onNewFile(this.contextMenuPath);
+        }
+        else
+        {
+            this.onNewFile();
+        }
+        
+        this.closeContextMenu();
+    }
+
+    public onContextMenuNewDirectory(): void
+    {
+        if (this.contextMenuPath)
+        {
+            this.onNewDirectory(this.contextMenuPath);
+        }
+        else
+        {
+            this.onNewDirectory();
+        }
+        
+        this.closeContextMenu();
+    }
+
+    public onContextMenuDelete(): void
+    {
+        if (this.contextMenuPath)
+        {
+            const node = this.findNodeByPath(this.fileTree, this.contextMenuPath);
+            
+            if (node)
+            {
+                this.selectedFile = node;
+                this.onDeleteFile();
+            }
+        }
+        
+        this.closeContextMenu();
+    }
+
+    public onContextMenuRename(): void
+    {
+        if (this.contextMenuPath)
+        {
+            const node = this.findNodeByPath(this.fileTree, this.contextMenuPath);
+            
+            if (node)
+            {
+                this.selectedFile = node;
+                this.onRenameFile();
+            }
+        }
+        
+        this.closeContextMenu();
+    }
+
+    private refreshFileTree(): void
     {
         const paths = this.diskService.getFileList();
-        this.fileList = paths.map((path: string) => ({
-            name: path,
-            path: path,
-            type: 'file' as const
-        }));
+        const tree = this.buildTree(paths);
+        this.fileTree = tree;
+    }
+
+    private buildTree(paths: string[]): FileNode[]
+    {
+        interface TreeNode
+        {
+            node: FileNode;
+            children: Map<string, TreeNode>;
+        }
+        
+        const root: Map<string, TreeNode> = new Map();
+        
+        for (const path of paths)
+        {
+            if (path.endsWith('.dir'))
+            {
+                continue;
+            }
+            
+            const parts = path.split('/');
+            let currentMap = root;
+            let currentPath = '';
+            
+            for (let i = 0; i < parts.length; i++)
+            {
+                const part = parts[i];
+                const isLast = i === parts.length - 1;
+                currentPath = currentPath ? `${currentPath}/${part}` : part;
+                
+                if (!currentMap.has(part))
+                {
+                    const node: FileNode = {
+                        name: part,
+                        path: currentPath,
+                        type: isLast ? 'file' : 'directory',
+                        children: undefined,
+                        expanded: false
+                    };
+                    
+                    const treeNode: TreeNode = {
+                        node,
+                        children: isLast ? new Map() : new Map<string, TreeNode>()
+                    };
+                    
+                    currentMap.set(part, treeNode);
+                }
+                
+                const treeNode = currentMap.get(part)!;
+                
+                if (!isLast)
+                {
+                    currentMap = treeNode.children;
+                }
+            }
+        }
+        
+        const convertToFileNodes = (map: Map<string, TreeNode>): FileNode[] =>
+        {
+            const result: FileNode[] = [];
+            
+            for (const treeNode of map.values())
+            {
+                const node = treeNode.node;
+                
+                if (treeNode.children.size > 0)
+                {
+                    node.children = convertToFileNodes(treeNode.children);
+                }
+                else if (node.type === 'directory')
+                {
+                    node.children = [];
+                }
+                
+                result.push(node);
+            }
+            
+            return result.sort((a, b) => {
+                if (a.type !== b.type)
+                {
+                    return a.type === 'directory' ? -1 : 1;
+                }
+                
+                return a.name.localeCompare(b.name);
+            });
+        };
+        
+        return convertToFileNodes(root);
+    }
+
+    private getParentPath(path: string): string
+    {
+        const lastSlash = path.lastIndexOf('/');
+        
+        if (lastSlash === -1)
+        {
+            return '';
+        }
+        
+        return path.substring(0, lastSlash);
+    }
+
+    private findNodeByPath(nodes: FileNode[], path: string): FileNode | null
+    {
+        for (const node of nodes)
+        {
+            if (node.path === path)
+            {
+                return node;
+            }
+            
+            if (node.children)
+            {
+                const found = this.findNodeByPath(node.children, path);
+                
+                if (found)
+                {
+                    return found;
+                }
+            }
+        }
+        
+        return null;
     }
 }

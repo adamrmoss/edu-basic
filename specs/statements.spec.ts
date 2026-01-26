@@ -23,7 +23,7 @@ import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { coerceArrayElements } from '../src/lang/edu-basic-value';
 import { Graphics, Color } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/files/filesystem.service';
+import { FileSystemService } from '../src/app/disk/filesystem.service';
 
 class MockGraphics extends Graphics
 {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import JSZip from 'jszip';
-import { FileSystemService } from '../files/filesystem.service';
+import { FileSystemService } from './filesystem.service';
 
 export interface DiskMetadata
 {
@@ -172,5 +172,103 @@ export class DiskService
     {
         this.fileSystemService.writeFile(path, new Uint8Array(0));
         this.filesChangedSubject.next();
+    }
+
+    public createDirectory(path: string): void
+    {
+        const normalizedPath = path.endsWith('/') ? path : path + '/';
+        const markerFile = normalizedPath + '.dir';
+        this.fileSystemService.writeFile(markerFile, new Uint8Array(0));
+        this.filesChangedSubject.next();
+    }
+
+    public deleteDirectory(path: string): boolean
+    {
+        const normalizedPath = path.endsWith('/') ? path : path + '/';
+        const allFiles = this.fileSystemService.getAllFiles();
+        const filesToDelete: string[] = [];
+        
+        for (const filePath of allFiles.keys())
+        {
+            if (filePath.startsWith(normalizedPath))
+            {
+                filesToDelete.push(filePath);
+            }
+        }
+        
+        let deleted = false;
+        for (const filePath of filesToDelete)
+        {
+            if (this.fileSystemService.deleteFile(filePath))
+            {
+                deleted = true;
+            }
+        }
+        
+        if (deleted)
+        {
+            this.filesChangedSubject.next();
+        }
+        
+        return deleted;
+    }
+
+    public renameFile(oldPath: string, newPath: string): boolean
+    {
+        const data = this.fileSystemService.readFile(oldPath);
+        
+        if (!data)
+        {
+            return false;
+        }
+        
+        this.fileSystemService.writeFile(newPath, data);
+        this.fileSystemService.deleteFile(oldPath);
+        this.filesChangedSubject.next();
+        return true;
+    }
+
+    public renameDirectory(oldPath: string, newPath: string): boolean
+    {
+        const normalizedOldPath = oldPath.endsWith('/') ? oldPath : oldPath + '/';
+        const normalizedNewPath = newPath.endsWith('/') ? newPath : newPath + '/';
+        const allFiles = this.fileSystemService.getAllFiles();
+        const filesToRename: Array<[string, string]> = [];
+        
+        for (const filePath of allFiles.keys())
+        {
+            if (filePath.startsWith(normalizedOldPath))
+            {
+                const relativePath = filePath.substring(normalizedOldPath.length);
+                const newFilePath = normalizedNewPath + relativePath;
+                filesToRename.push([filePath, newFilePath]);
+            }
+        }
+        
+        if (filesToRename.length === 0)
+        {
+            return false;
+        }
+        
+        for (const [oldFilePath, newFilePath] of filesToRename)
+        {
+            const data = this.fileSystemService.readFile(oldFilePath);
+            
+            if (data)
+            {
+                this.fileSystemService.writeFile(newFilePath, data);
+                this.fileSystemService.deleteFile(oldFilePath);
+            }
+        }
+        
+        this.filesChangedSubject.next();
+        return true;
+    }
+
+    public isDirectory(path: string): boolean
+    {
+        const normalizedPath = path.endsWith('/') ? path : path + '/';
+        const markerFile = normalizedPath + '.dir';
+        return this.fileSystemService.fileExists(markerFile);
     }
 }

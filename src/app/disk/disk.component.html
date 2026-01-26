@@ -1,4 +1,4 @@
-<div class="disk-container">
+<div class="disk-container" (click)="closeContextMenu()">
     <div class="disk-sidebar">
         <div class="disk-controls">
             <div class="disk-name-section">
@@ -20,64 +20,90 @@
         </div>
         
         <div class="file-tree-header">
-            <span>Data Files</span>
-            <button class="new-file-button" (click)="onNewFile()" title="New File">+</button>
+            <span>Files</span>
+            <div class="header-buttons">
+                <button class="header-button" (click)="onNewFile()" title="New File">📄</button>
+                <button class="header-button" (click)="onNewDirectory()" title="New Directory">📁</button>
+            </div>
         </div>
         
         <div class="file-tree">
-            <div 
-                *ngFor="let file of fileList"
-                class="file-tree-item"
-                [class.selected]="selectedFile === file"
-                (click)="selectFile(file)"
-            >
-                <luna-icon 
-                    class="icon" 
-                    size="16" 
-                    [svg]="fileIcon"
-                ></luna-icon>
-                <span class="name">{{ file.name }}</span>
-            </div>
+            <ng-container *ngTemplateOutlet="fileTreeTemplate; context: { nodes: fileTree, level: 0, parentPath: '' }"></ng-container>
             
-            <div class="no-files" *ngIf="fileList.length === 0">
-                No data files
+            <div class="no-files" *ngIf="fileTree.length === 0">
+                No files
             </div>
         </div>
     </div>
     
     <div class="file-editor-pane">
-        <div class="editor-toolbar" *ngIf="selectedFile">
-            <span class="current-file-name">{{ selectedFile.name }}</span>
+        <div class="editor-toolbar" *ngIf="selectedFile && selectedFile.type === 'file'">
+            <span class="current-file-name">{{ selectedFile.path }}</span>
             <div class="toolbar-buttons">
                 <button class="toolbar-button" (click)="toggleViewMode()">
                     {{ viewMode === 'text' ? 'Hex' : 'Text' }}
                 </button>
+                <button class="toolbar-button" (click)="onRenameFile()">Rename</button>
                 <button class="toolbar-button delete" (click)="onDeleteFile()">Delete</button>
             </div>
         </div>
         
-        <div class="file-editor" *ngIf="selectedFile">
-            <div *ngIf="viewMode === 'text'" class="text-editor">
-                <div class="file-line-numbers">
-                    <div *ngFor="let lineNum of getLineNumbers()" class="line-number">{{ lineNum }}</div>
-                </div>
-                <textarea 
-                    class="file-textarea"
-                    spellcheck="false"
-                    [value]="fileContent"
-                    (input)="onTextAreaInput($event)"
-                    (scroll)="onTextAreaScroll($event)"
-                ></textarea>
-            </div>
+        <div class="file-editor" *ngIf="selectedFile && selectedFile.type === 'file'">
+            <app-text-editor
+                *ngIf="viewMode === 'text'"
+                [lines]="editorLines"
+                [errorLines]="emptyErrorLines"
+                [errorMessages]="emptyErrorMessages"
+                (linesChange)="onLinesChange($event)"
+            ></app-text-editor>
             
             <div *ngIf="viewMode === 'hex'" class="hex-editor">
                 <pre class="hex-content">{{ getHexContent() }}</pre>
             </div>
         </div>
         
-        <div class="no-file-selected" *ngIf="!selectedFile">
-            <p>No file selected</p>
+        <div class="no-file-selected" *ngIf="!selectedFile || selectedFile.type !== 'file'">
+            <p *ngIf="!selectedFile">No file selected</p>
+            <p *ngIf="selectedFile && selectedFile.type === 'directory'">Directory selected</p>
             <p class="hint">Data files are accessible from BASIC programs using file I/O statements</p>
         </div>
     </div>
+</div>
+
+<ng-template #fileTreeTemplate let-nodes="nodes" let-level="level" let-parentPath="parentPath">
+    <div *ngFor="let node of nodes">
+        <div 
+            class="file-tree-item"
+            [class.directory]="node.type === 'directory'"
+            [class.file]="node.type === 'file'"
+            [class.selected]="selectedFile === node"
+            [class.expanded]="node.expanded"
+            [style.padding-left.px]="level * 16 + 12"
+            (click)="selectFile(node)"
+            (contextmenu)="onContextMenu($event, node.path)"
+        >
+            <luna-icon 
+                class="icon" 
+                size="16" 
+                [svg]="node.type === 'directory' ? folderIcon : fileIcon"
+            ></luna-icon>
+            <span class="name">{{ node.name }}</span>
+        </div>
+        <ng-container *ngIf="node.children && node.expanded">
+            <ng-container *ngTemplateOutlet="fileTreeTemplate; context: { nodes: node.children, level: level + 1, parentPath: node.path }"></ng-container>
+        </ng-container>
+    </div>
+</ng-template>
+
+<div 
+    class="context-menu" 
+    *ngIf="showContextMenu"
+    [style.left.px]="contextMenuX"
+    [style.top.px]="contextMenuY"
+    (click)="$event.stopPropagation()"
+>
+    <button class="context-menu-item" (click)="onContextMenuNewFile()">New File</button>
+    <button class="context-menu-item" (click)="onContextMenuNewDirectory()">New Directory</button>
+    <button class="context-menu-item" (click)="onContextMenuRename()">Rename</button>
+    <button class="context-menu-item delete" (click)="onContextMenuDelete()">Delete</button>
 </div>

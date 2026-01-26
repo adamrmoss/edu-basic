@@ -5,7 +5,7 @@ import { Graphics } from './graphics';
 import { Audio } from './audio';
 import { DoLoopStatement, ForStatement, GotoStatement, IfStatement, WhileStatement } from './statements/control-flow';
 import { EduBasicType } from './edu-basic-value';
-import { FileSystemService } from '../app/files/filesystem.service';
+import { FileSystemService } from '../app/disk/filesystem.service';
 import { ConsoleService } from '../app/console/console.service';
 
 interface ControlStructureFrame
