@@ -31,7 +31,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'LET x% = 42');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(LetStatement);
@@ -44,7 +47,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'LOCAL temp# = 3.14');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(LocalStatement);
@@ -57,7 +63,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'DIM numbers%[10]');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(DimStatement);
@@ -71,7 +80,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'DIM matrix#[5, 10]');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(DimStatement);
@@ -87,7 +99,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'IF x% > 0 THEN');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(IfStatement);
@@ -97,7 +112,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'GOTO MainLoop');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(GotoStatement);
@@ -110,7 +128,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'LABEL MainLoop');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(LabelStatement);
@@ -123,7 +144,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'FOR i% = 1 TO 10');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ForStatement);
@@ -136,7 +160,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'FOR i% = 0 TO 100 STEP 10');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ForStatement);
@@ -149,7 +176,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'WHILE count% < 10');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(WhileStatement);
@@ -159,7 +189,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'END');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(EndStatement);
@@ -172,7 +205,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'END IF');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(EndStatement);
@@ -185,7 +221,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'END UNLESS');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(EndStatement);
@@ -198,7 +237,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'END SELECT');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(EndStatement);
@@ -211,7 +253,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'END SUB');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(EndStatement);
@@ -224,7 +269,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'END TRY');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(EndStatement);
@@ -240,7 +288,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PRINT 42');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PrintStatement);
@@ -254,7 +305,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PRINT "Value:", x%, "Result:", y%');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PrintStatement);
@@ -267,7 +321,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PRINT "Hello";');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PrintStatement);
@@ -280,7 +337,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PRINT (1 + 2)');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PrintStatement);
@@ -294,7 +354,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PRINT ((1 + 2) * 3)');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PrintStatement);
@@ -307,7 +370,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PRINT (1 + 2), (3 * 4), (5 - 6)');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PrintStatement);
@@ -320,7 +386,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PRINT (a% + b%) * (c% - d%)');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PrintStatement);
@@ -333,7 +402,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'COLOR &HFF0000FF');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ColorStatement);
@@ -343,7 +415,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'COLOR &HFF0000FF, &H000000FF');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ColorStatement);
@@ -353,7 +428,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'COLOR "green"');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ColorStatement);
@@ -363,7 +441,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'COLOR "blue", "white"');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ColorStatement);
@@ -373,17 +454,24 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'COLOR , "black"');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
-            expect(result.value.hasError).toBe(false);
-            expect(result.value.statement).toBeInstanceOf(ColorStatement);
+            // COLOR requires at least a foreground color, so this should have an error
+            expect(result.value.hasError).toBe(true);
+            expect(result.value.errorMessage).toBeDefined();
         });
         
         it('should parse COLOR with mixed integer and color name', () =>
         {
             const result = parser.parseLine(1, 'COLOR &HFF0000FF, "blue"');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ColorStatement);
@@ -393,7 +481,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'COLOR "red", &H000000FF');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(ColorStatement);
@@ -406,7 +497,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PSET (100, 200)');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PsetStatement);
@@ -416,7 +510,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PSET (100, 200) WITH &HFFFFFFFF');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PsetStatement);
@@ -428,7 +525,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'PSET (100, 200) WITH "red"');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(PsetStatement);
@@ -441,7 +541,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'LINE FROM (0, 0) TO (100, 100)');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(LineStatement);
@@ -451,7 +554,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'LINE FROM (0, 0) TO (100, 100) WITH &HFF0000FF');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(LineStatement);
@@ -464,7 +570,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'LINE FROM (0, 0) TO (100, 100) WITH "cornflowerblue"');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(LineStatement);
@@ -477,7 +586,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'LINE FROM (0, 0) TO (100, 100) WITH "cornflowerblue"');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(LineStatement);
@@ -493,7 +605,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'OPEN "data.txt" FOR READ AS file%');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(OpenStatement);
@@ -507,7 +622,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'OPEN "log.txt" FOR APPEND AS log%');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(OpenStatement);
@@ -520,7 +638,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'OPEN "out.txt" FOR OVERWRITE AS out%');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(OpenStatement);
@@ -533,7 +654,10 @@ describe('ParserService', () =>
         {
             const result = parser.parseLine(1, 'CLOSE file%');
             expect(result.success).toBe(true);
-            if (!result.success) return;
+            if (!result.success)
+            {
+                return;
+            }
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(CloseStatement);
@@ -547,7 +671,12 @@ describe('ParserService', () =>
             const result = parser.parseLine(1, '');
             expect(result.success).toBe(true);
             
-            expect(result.value!.hasError).toBe(false);
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
         });
 
         it('should handle comment lines', () =>
@@ -555,7 +684,12 @@ describe('ParserService', () =>
             const result = parser.parseLine(1, "' This is a comment");
             expect(result.success).toBe(true);
             
-            expect(result.value!.hasError).toBe(false);
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
         });
 
         it('should handle whitespace-only lines', () =>
@@ -563,7 +697,12 @@ describe('ParserService', () =>
             const result = parser.parseLine(1, '    ');
             expect(result.success).toBe(true);
             
-            expect(result.value!.hasError).toBe(false);
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
         });
     });
 
@@ -572,25 +711,37 @@ describe('ParserService', () =>
         it('should report error for unknown keyword', () =>
         {
             const result = parser.parseLine(1, 'UNKNOWNKEYWORD x% = 5');
-            expect(result.success).toBe(false);
-            if (result.success) return;
-            expect(result.error).toBeDefined();
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(true);
+            expect(result.value.errorMessage).toBeDefined();
         });
 
         it('should report error for malformed statement', () =>
         {
             const result = parser.parseLine(1, 'LET = 5');
-            expect(result.success).toBe(false);
-            if (result.success) return;
-            expect(result.error).toBeDefined();
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(true);
+            expect(result.value.errorMessage).toBeDefined();
         });
 
         it('should report error for missing expression', () =>
         {
             const result = parser.parseLine(1, 'LET x% =');
-            expect(result.success).toBe(false);
-            if (result.success) return;
-            expect(result.error).toBeDefined();
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(true);
+            expect(result.value.errorMessage).toBeDefined();
         });
     });
 

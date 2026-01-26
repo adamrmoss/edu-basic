@@ -402,12 +402,12 @@ describe('CodeEditorComponent', () => {
 
         it('should update line numbers on input', () => {
             parserService.parseLine.mockImplementation((lineNumber: number, sourceText: string) => {
-                return {
+                return success({
                     lineNumber,
                     sourceText,
                     statement: new UnparsableStatement(sourceText, 'Comment or empty line'),
                     hasError: false
-                } as ParsedLine;
+                } as ParsedLine);
             });
 
             component.code = 'Line 1\nLine 2\nLine 3';

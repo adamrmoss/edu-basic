@@ -129,7 +129,7 @@ describe('ConsoleService', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             const result = service.parseLine('');
 
@@ -145,7 +145,7 @@ describe('ConsoleService', () => {
                 hasError: false
             };
 
-            parserService.parseLine.mockReturnValue(parsedLine);
+            parserService.parseLine.mockReturnValue(success(parsedLine));
 
             const result = service.parseLine('   ');
 

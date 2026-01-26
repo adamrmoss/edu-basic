@@ -565,7 +565,7 @@ export class ExpressionParserService
                 const argResult = this.expression();
                 if (!argResult.success)
                 {
-                    return failure(argResult.error || 'Failed to parse function argument expression');
+                    return null;
                 }
                 args.push(argResult.value);
             }

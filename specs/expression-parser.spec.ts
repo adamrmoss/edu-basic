@@ -433,7 +433,10 @@ describe('ExpressionParser', () =>
             {
                 const exprResult = parser.parseExpression('2 ^ (-2)');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
                 
                 expect(result.value).toBeCloseTo(0.25);
@@ -457,7 +460,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('+42');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(42);
@@ -467,7 +473,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('-42');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(-42);
@@ -477,7 +486,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('--42');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(42);
@@ -487,7 +499,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('-(3 + 4)');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(-7);
@@ -497,7 +512,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('-2 * 3');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(-6);
@@ -1036,7 +1054,10 @@ describe('ExpressionParser', () =>
             {
                 const exprResult = parser.parseExpression('(2 + 3) * 4');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
                 
                 expect(result.value).toBe(20);
@@ -1046,7 +1067,10 @@ describe('ExpressionParser', () =>
             {
                 const exprResult = parser.parseExpression('((2 + 3) * 4) - 5');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
                 
                 expect(result.value).toBe(15);
@@ -1056,7 +1080,10 @@ describe('ExpressionParser', () =>
             {
                 const exprResult = parser.parseExpression('(2 + 3) * (4 + 5)');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
                 
                 expect(result.value).toBe(45);
@@ -1066,7 +1093,10 @@ describe('ExpressionParser', () =>
             {
                 const exprResult = parser.parseExpression('(((2)))');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
                 
                 expect(result.value).toBe(2);
@@ -1148,7 +1178,10 @@ describe('ExpressionParser', () =>
                 context.setVariable('b%', { type: EduBasicType.Integer, value: 3 });
                 const exprResult = parser.parseExpression('(a% + b%) * 2');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
                 
                 expect(result.value).toBe(16);
@@ -1173,7 +1206,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('PI#');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Real);
@@ -1184,7 +1220,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('pi#');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Real);
@@ -1195,7 +1234,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('Pi#');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Real);
@@ -1206,7 +1248,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('e#');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Real);
@@ -1217,7 +1262,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('rnd#');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Real);
@@ -1229,7 +1277,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('date$');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.String);
@@ -1240,7 +1291,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('true%');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Integer);
@@ -1251,7 +1305,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('false%');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Integer);
@@ -1265,7 +1322,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('2 + 3 * 4 - 5 / 2');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBeCloseTo(11.5);
@@ -1275,7 +1335,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('10 + 5 * 2 - 8 / 4 ^ 2');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBeCloseTo(19.5);
@@ -1285,7 +1348,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('(5 > 3) AND (2 < 4)');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(-1);
@@ -1295,7 +1361,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('((2 + 3) * (4 - 1)) / (5 + 2)');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBeCloseTo(15 / 7);
@@ -1307,7 +1376,10 @@ describe('ExpressionParser', () =>
             context.setVariable('y%', { type: EduBasicType.Integer, value: 3 });
             const exprResult = parser.parseExpression('x% MOD y% + 2 * y%');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(7);
@@ -1317,7 +1389,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('("A" < "B") AND ("X" > "W")');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(-1);
@@ -1330,7 +1405,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('42');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(42);
@@ -1340,7 +1418,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('---5');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(-5);
@@ -1350,7 +1431,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('0 + 0 * 0');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(0);
@@ -1360,7 +1444,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('1000000 + 2000000');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBe(3000000);
@@ -1370,7 +1457,10 @@ describe('ExpressionParser', () =>
         {
             const exprResult = parser.parseExpression('0.0001 + 0.0002');
                 expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.value).toBeCloseTo(0.0003);
@@ -1379,14 +1469,16 @@ describe('ExpressionParser', () =>
 
     describe('Error Handling', () =>
     {
-        it('should throw on empty expression', () =>
+        it('should return failure on empty expression', () =>
         {
-            expect(() => parser.parseExpression('')).toThrow();
+            const exprResult = parser.parseExpression('');
+            expect(exprResult.success).toBe(false);
         });
 
-        it('should throw on unmatched left parenthesis', () =>
+        it('should return failure on unmatched left parenthesis', () =>
         {
-            expect(() => parser.parseExpression('(2 + 3')).toThrow();
+            const exprResult = parser.parseExpression('(2 + 3');
+            expect(exprResult.success).toBe(false);
         });
 
         it('should parse expression with trailing parenthesis', () =>
@@ -1395,21 +1487,26 @@ describe('ExpressionParser', () =>
             expect(exprResult.success).toBe(false);
         });
 
-        it('should throw on missing operand', () =>
+        it('should return failure on missing operand', () =>
         {
-            expect(() => parser.parseExpression('2 +')).toThrow();
+            const exprResult = parser.parseExpression('2 +');
+            expect(exprResult.success).toBe(false);
         });
 
-        it('should throw on invalid operator sequence', () =>
+        it('should return failure on invalid operator sequence', () =>
         {
-            expect(() => parser.parseExpression('2 * * 3')).toThrow();
+            const exprResult = parser.parseExpression('2 * * 3');
+            expect(exprResult.success).toBe(false);
         });
 
         it('should return default value for undefined variable', () =>
         {
             const exprResult = parser.parseExpression('undefined_var%');
             expect(exprResult.success).toBe(true);
-            if (!exprResult.success) return;
+            if (!exprResult.success)
+            {
+                return;
+            }
             const result = exprResult.value.evaluate(context);
             
             expect(result.type).toBe(EduBasicType.Integer);
