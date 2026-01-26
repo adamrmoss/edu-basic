@@ -40,65 +40,10 @@
     }
 }
 
-.editor-content
+::ng-deep app-text-editor
 {
-    display: flex;
     flex: 1;
-    overflow: hidden;
-}
-
-.line-numbers
-{
     display: flex;
     flex-direction: column;
-    background-color: $navy-darkest;
-    color: $silver;
-    padding: 8px 12px;
-    text-align: right;
-    user-select: none;
     overflow: hidden;
-    border-right: 1px solid $blue-steel-dark;
-    min-width: 60px;
-}
-
-.line-number
-{
-    line-height: 20px;
-    min-height: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-right: 4px;
-
-    &.error
-    {
-        color: $orange;
-        background-color: rgba($orange, 0.1);
-    }
-}
-
-.error-indicator
-{
-    color: $orange;
-    font-size: 12px;
-    margin-left: 4px;
-}
-
-.code-textarea
-{
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: $white;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px;
-    padding: 8px;
-    resize: none;
-    line-height: 20px;
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-    overflow-y: auto;
-    overflow-x: hidden;
 }

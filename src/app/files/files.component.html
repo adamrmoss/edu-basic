@@ -15,18 +15,13 @@
         </div>
         
         <div class="file-editor" *ngIf="selectedFile">
-            <div *ngIf="viewMode === 'text'" class="text-editor">
-                <div class="file-line-numbers">
-                    <div *ngFor="let lineNum of getLineNumbers()" class="line-number">{{ lineNum }}</div>
-                </div>
-                <textarea 
-                    class="file-textarea"
-                    spellcheck="false"
-                    [value]="selectedFile.content"
-                    (input)="onTextAreaInput($event)"
-                    (scroll)="onTextAreaScroll($event)"
-                ></textarea>
-            </div>
+            <app-text-editor
+                *ngIf="viewMode === 'text'"
+                [lines]="editorLines"
+                [errorLines]="new Set()"
+                [errorMessages]="new Map()"
+                (linesChange)="onLinesChange($event)"
+            ></app-text-editor>
             
             <div *ngIf="viewMode === 'hex'" class="hex-editor">
                 <pre class="hex-content">{{ getHexContent() }}</pre>

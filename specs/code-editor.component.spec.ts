@@ -100,7 +100,7 @@ describe('CodeEditorComponent', () => {
 
         it('should initialize with empty code', () => {
             fixture.detectChanges();
-            expect(component.code).toBe('');
+            expect(component.lines).toEqual(['']);
         });
 
         it('should subscribe to program code changes', () => {
@@ -108,7 +108,7 @@ describe('CodeEditorComponent', () => {
 
             programCodeSubject.next('PRINT "Hello"');
 
-            expect(component.code).toBe('PRINT "Hello"');
+            expect(component.lines).toEqual(['PRINT "Hello"']);
         });
 
         it('should initialize with empty error lines', () => {
@@ -133,10 +133,10 @@ describe('CodeEditorComponent', () => {
 
             parserService.parseLine.mockReturnValue(success(parsedLine));
 
-            component.code = 'let x=42';
-            component.ngAfterViewInit();
+            component.lines = ['let x=42'];
+            fixture.detectChanges();
 
-            const textarea = component['textareaElement'];
+            const textarea = component.textEditorRef?.codeTextareaRef?.nativeElement;
             if (textarea)
             {
                 textarea.value = 'let x=42';
@@ -147,10 +147,10 @@ describe('CodeEditorComponent', () => {
                     target: textarea
                 } as unknown as KeyboardEvent;
 
-                component.onTextAreaKeyDown(mockEvent);
+                component.onKeyDown(mockEvent);
 
                 setTimeout(() => {
-                    expect(component.code).toBe('LET x = 42');
+                    expect(component.lines).toEqual(['LET x = 42']);
                     expect(diskService.programCode).toBe('LET x = 42');
                     done();
                 }, 10);
@@ -172,19 +172,19 @@ describe('CodeEditorComponent', () => {
 
             parserService.parseLine.mockReturnValue(success(parsedLine));
 
-            component.code = '    print "Hello"';
-            component.ngAfterViewInit();
+            component.lines = ['    print "Hello"'];
+            fixture.detectChanges();
 
-            const textarea = component['textareaElement'];
+            const textarea = component.textEditorRef?.codeTextareaRef?.nativeElement;
             if (textarea)
             {
                 textarea.value = '    print "Hello"';
                 textarea.setSelectionRange(18, 18);
 
-                component.onTextAreaBlur();
+                component.onBlur();
 
                 setTimeout(() => {
-                    expect(component.code).toBe('    PRINT "Hello"');
+                    expect(component.lines).toEqual(['    PRINT "Hello"']);
                     expect(diskService.programCode).toBe('    PRINT "Hello"');
                     done();
                 }, 10);
@@ -196,19 +196,19 @@ describe('CodeEditorComponent', () => {
         });
 
         it('should not replace empty lines', () => {
-            component.code = '';
-            component.ngAfterViewInit();
+            component.lines = [''];
+            fixture.detectChanges();
 
-            component.onTextAreaBlur();
+            component.onBlur();
 
             expect(parserService.parseLine).not.toHaveBeenCalled();
         });
 
         it('should not replace comment lines', () => {
-            component.code = "' This is a comment";
-            component.ngAfterViewInit();
+            component.lines = ["' This is a comment"];
+            fixture.detectChanges();
 
-            component.onTextAreaBlur();
+            component.onBlur();
 
             expect(parserService.parseLine).not.toHaveBeenCalled();
         });
@@ -224,12 +224,12 @@ describe('CodeEditorComponent', () => {
 
             parserService.parseLine.mockReturnValue(success(parsedLine));
 
-            component.code = 'LET x = 42';
-            component.ngAfterViewInit();
+            component.lines = ['LET x = 42'];
+            fixture.detectChanges();
 
-            component.onTextAreaBlur();
+            component.onBlur();
 
-            expect(component.code).toBe('LET x = 42');
+            expect(component.lines).toEqual(['LET x = 42']);
         });
 
         it('should handle multiple lines with mixed valid and invalid', () => {
@@ -251,8 +251,8 @@ describe('CodeEditorComponent', () => {
                     errorMessage: 'Error'
                 } as ParsedLine));
 
-            component.code = 'LET x = 42\nINVALID';
-            component.onTextAreaInput({ target: { value: 'LET x = 42\nINVALID' } } as any);
+            component.lines = ['LET x = 42', 'INVALID'];
+            component.onLinesChange(['LET x = 42', 'INVALID']);
 
             expect(component.errorLines.has(0)).toBe(false);
             expect(component.errorLines.has(1)).toBe(true);
@@ -276,8 +276,8 @@ describe('CodeEditorComponent', () => {
 
             parserService.parseLine.mockReturnValue(success(parsedLine));
 
-            component.code = 'INVALID';
-            component.onTextAreaInput({ target: { value: 'INVALID' } } as any);
+            component.lines = ['INVALID'];
+            component.onLinesChange(['INVALID']);
 
             expect(component.errorLines.has(0)).toBe(true);
         });
@@ -293,8 +293,8 @@ describe('CodeEditorComponent', () => {
 
             parserService.parseLine.mockReturnValue(success(parsedLine));
 
-            component.code = 'LET x = 42';
-            component.onTextAreaInput({ target: { value: 'LET x = 42' } } as any);
+            component.lines = ['LET x = 42'];
+            component.onLinesChange(['LET x = 42']);
 
             expect(component.errorLines.has(0)).toBe(false);
         });
@@ -326,8 +326,8 @@ describe('CodeEditorComponent', () => {
                     errorMessage: 'Error'
                 } as ParsedLine));
 
-            component.code = 'INVALID1\nLET x = 42\nINVALID2';
-            component.onTextAreaInput({ target: { value: 'INVALID1\nLET x = 42\nINVALID2' } } as any);
+            component.lines = ['INVALID1', 'LET x = 42', 'INVALID2'];
+            component.onLinesChange(['INVALID1', 'LET x = 42', 'INVALID2']);
 
             expect(component.errorLines.has(0)).toBe(true);
             expect(component.errorLines.has(1)).toBe(false);
@@ -353,13 +353,13 @@ describe('CodeEditorComponent', () => {
                     hasError: false
                 } as ParsedLine));
 
-            component.code = 'INVALID';
-            component.onTextAreaInput({ target: { value: 'INVALID' } } as any);
+            component.lines = ['INVALID'];
+            component.onLinesChange(['INVALID']);
 
             expect(component.errorLines.has(0)).toBe(true);
 
-            component.code = 'LET x = 42';
-            component.onTextAreaInput({ target: { value: 'LET x = 42' } } as any);
+            component.lines = ['LET x = 42'];
+            component.onLinesChange(['LET x = 42']);
 
             expect(component.errorLines.has(0)).toBe(false);
         });
@@ -367,8 +367,8 @@ describe('CodeEditorComponent', () => {
         it('should handle parse failures as errors', () => {
             parserService.parseLine.mockReturnValue(failure('Parse error'));
 
-            component.code = 'INVALID';
-            component.onTextAreaInput({ target: { value: 'INVALID' } } as any);
+            component.lines = ['INVALID'];
+            component.onLinesChange(['INVALID']);
 
             expect(component.errorLines.has(0)).toBe(true);
         });
@@ -383,15 +383,15 @@ describe('CodeEditorComponent', () => {
             component.errorLines.add(0);
             component.errorLines.add(2);
 
-            expect(component.isLineError(0)).toBe(true);
-            expect(component.isLineError(2)).toBe(true);
+            expect(component.errorLines.has(0)).toBe(true);
+            expect(component.errorLines.has(2)).toBe(true);
         });
 
         it('should return false for non-error lines', () => {
             component.errorLines.add(0);
 
-            expect(component.isLineError(1)).toBe(false);
-            expect(component.isLineError(2)).toBe(false);
+            expect(component.errorLines.has(1)).toBe(false);
+            expect(component.errorLines.has(2)).toBe(false);
         });
     });
 
@@ -410,32 +410,23 @@ describe('CodeEditorComponent', () => {
                 } as ParsedLine);
             });
 
-            component.code = 'Line 1\nLine 2\nLine 3';
-            component.onTextAreaInput({ target: { value: 'Line 1\nLine 2\nLine 3' } } as any);
+            component.lines = ['Line 1', 'Line 2', 'Line 3'];
+            fixture.detectChanges();
+            component.onLinesChange(['Line 1', 'Line 2', 'Line 3']);
 
-            expect(component.lineNumbers.length).toBeGreaterThan(0);
+            expect(component.textEditorRef?.lineNumbers.length).toBeGreaterThan(0);
         });
 
         it('should handle empty code', () => {
-            component.code = '';
-            component.onTextAreaInput({ target: { value: '' } } as any);
+            component.lines = [''];
+            fixture.detectChanges();
+            component.onLinesChange(['']);
 
-            expect(component.lineNumbers.length).toBeGreaterThanOrEqual(1);
+            expect(component.textEditorRef?.lineNumbers.length).toBeGreaterThanOrEqual(1);
         });
     });
 
     describe('Component Cleanup', () => {
-        it('should remove resize event listener on destroy', () => {
-            fixture.detectChanges();
-            component.ngAfterViewInit();
-
-            const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
-
-            component.ngOnDestroy();
-
-            expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
-        });
-
         it('should unsubscribe on destroy', () => {
             fixture.detectChanges();
 

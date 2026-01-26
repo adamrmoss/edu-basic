@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent, Folder, File } from 'ng-luna';
+import { TextEditorComponent } from '../text-editor/text-editor.component';
 
 interface FileNode
 {
@@ -13,7 +14,7 @@ interface FileNode
 @Component({
     selector: 'app-files',
     standalone: true,
-    imports: [ CommonModule, IconComponent ],
+    imports: [ CommonModule, IconComponent, TextEditorComponent ],
     templateUrl: './files.component.html',
     styleUrl: './files.component.scss'
 })
@@ -51,30 +52,13 @@ export class FilesComponent
         }
     }
 
-    public getLineNumbers(): number[]
+    public onLinesChange(lines: string[]): void
     {
-        return Array.from({ length: this.editorLines.length }, (_, i) => i + 1);
-    }
-
-    public onTextAreaInput(event: Event): void
-    {
-        const textarea = event.target as HTMLTextAreaElement;
-        this.editorLines = textarea.value.split('\n');
+        this.editorLines = lines;
         
         if (this.selectedFile)
         {
-            this.selectedFile.content = textarea.value;
-        }
-    }
-
-    public onTextAreaScroll(event: Event): void
-    {
-        const textarea = event.target as HTMLTextAreaElement;
-        const lineNumbers = document.querySelector('.file-line-numbers') as HTMLElement;
-        
-        if (lineNumbers)
-        {
-            lineNumbers.scrollTop = textarea.scrollTop;
+            this.selectedFile.content = lines.join('\n');
         }
     }
 
