@@ -45,6 +45,10 @@ export class DiskService
     public set programCode(code: string)
     {
         this.programCodeSubject.next(code);
+        const encoder = new TextEncoder();
+        const data = encoder.encode(code);
+        this.fileSystemService.writeFile('program.bas', data);
+        this.filesChangedSubject.next();
     }
 
     public newDisk(name: string = 'Untitled'): void
@@ -52,6 +56,9 @@ export class DiskService
         this.diskNameSubject.next(name);
         this.programCodeSubject.next('');
         this.fileSystemService.clear();
+        const encoder = new TextEncoder();
+        const data = encoder.encode('');
+        this.fileSystemService.writeFile('program.bas', data);
         this.filesChangedSubject.next();
     }
 
@@ -59,7 +66,19 @@ export class DiskService
     {
         const zip = new JSZip();
 
-        const programCode = this.programCodeSubject.value;
+        const programFileData = this.fileSystemService.readFile('program.bas');
+        let programCode: string;
+        
+        if (programFileData)
+        {
+            const decoder = new TextDecoder('utf-8');
+            programCode = decoder.decode(programFileData);
+        }
+        else
+        {
+            programCode = this.programCodeSubject.value;
+        }
+        
         zip.file('program.bas', programCode);
 
         const metadata: DiskMetadata = {
@@ -110,10 +129,11 @@ export class DiskService
         }
 
         const programFile = zip.file('program.bas');
+        let programText = '';
         
         if (programFile)
         {
-            const programText = await programFile.async('text');
+            programText = await programFile.async('text');
             this.programCodeSubject.next(programText);
         }
         else
@@ -122,6 +142,10 @@ export class DiskService
         }
 
         this.fileSystemService.clear();
+        
+        const encoder = new TextEncoder();
+        const programData = encoder.encode(programText);
+        this.fileSystemService.writeFile('program.bas', programData);
 
         const filesFolder = zip.folder('files');
         
@@ -148,7 +172,19 @@ export class DiskService
 
     public getFileList(): string[]
     {
+        this.ensureProgramBasExists();
         return this.fileSystemService.listFiles();
+    }
+
+    private ensureProgramBasExists(): void
+    {
+        if (!this.fileSystemService.fileExists('program.bas'))
+        {
+            const encoder = new TextEncoder();
+            const code = this.programCodeSubject.value;
+            const data = encoder.encode(code);
+            this.fileSystemService.writeFile('program.bas', data);
+        }
     }
 
     public getFile(path: string): Uint8Array | null
@@ -156,9 +192,31 @@ export class DiskService
         return this.fileSystemService.readFile(path);
     }
 
+    public getProgramCodeFromFile(): string
+    {
+        this.ensureProgramBasExists();
+        const fileData = this.fileSystemService.readFile('program.bas');
+        
+        if (fileData)
+        {
+            const decoder = new TextDecoder('utf-8');
+            return decoder.decode(fileData);
+        }
+        
+        return '';
+    }
+
     public saveFile(path: string, data: Uint8Array): void
     {
         this.fileSystemService.writeFile(path, data);
+        
+        if (path === 'program.bas')
+        {
+            const decoder = new TextDecoder('utf-8');
+            const code = decoder.decode(data);
+            this.programCodeSubject.next(code);
+        }
+        
         this.filesChangedSubject.next();
     }
 

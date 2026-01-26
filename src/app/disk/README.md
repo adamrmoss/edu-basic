@@ -24,11 +24,12 @@ The disk system allows students to:
 - Integration with FileSystemService for virtual file management
 
 **Key Methods**:
-- `newDisk(name)`: Creates a new empty disk
-- `loadDisk(file)`: Loads a disk from a `.disk` file
-- `saveDisk()`: Saves the current disk as a `.disk` file
+- `newDisk(name)`: Creates a new empty disk (creates `program.bas` in filesystem)
+- `loadDisk(file)`: Loads a disk from a `.disk` file (loads `program.bas` into filesystem)
+- `saveDisk()`: Saves the current disk as a `.disk` file (reads `program.bas` from filesystem)
 - `diskName` (getter/setter): Gets or sets the disk name
-- `programCode` (getter/setter): Gets or sets the program code
+- `programCode` (getter/setter): Gets or sets the program code (syncs with `program.bas` file)
+- `getProgramCodeFromFile()`: Reads program code from `program.bas` file (source of truth for execution)
 - `getFile(path)`, `saveFile(path, data)`, `deleteFile(path)`: File management
 
 ### FileSystemService
@@ -124,13 +125,18 @@ CLOSE file%
 
 ## Integration with CodeEditorComponent
 
-The CodeEditorComponent now integrates with DiskService:
+The CodeEditorComponent integrates with DiskService:
 
-1. Subscribes to `programCode$` observable
-2. Updates editor when disk is loaded
-3. Saves changes back to DiskService in real-time
+1. Subscribes to `programCode$` observable to display code in the editor
+2. Updates `program.bas` file when code is edited (via `programCode` setter)
+3. Reads from `program.bas` file when running programs (via `getProgramCodeFromFile()`)
 
-This ensures that the program code is always synchronized with the current disk and will be saved when the disk is saved.
+**Key Architecture Points:**
+- `program.bas` is stored in the filesystem and appears in the file hierarchy
+- The `programCode$` observable is kept in sync with `program.bas` for UI updates
+- When running a program, the Program object is derived from `program.bas` file (source of truth)
+- Changes in the code editor immediately update `program.bas` in the filesystem
+- Changes to `program.bas` in the disk file editor immediately update the code editor
 
 ## User Workflow
 

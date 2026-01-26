@@ -320,7 +320,8 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 - A new empty project is created
 - The project name appears at the top
 - The Code tab is cleared (ready for new code)
-- The file list is empty (no data files yet)
+- `program.bas` file is automatically created (appears in the file list)
+- The file list shows `program.bas` (ready for you to write code)
 
 **Project Name:**
 - The project name is displayed at the top of the Disk tab
@@ -336,7 +337,8 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 4. The project loads with all its code and files
 
 **What loads:**
-- Your BASIC program code (appears in the Code tab)
+- Your BASIC program code (appears in the Code tab and in `program.bas` file)
+- `program.bas` file (appears in the file list)
 - All data files (appear in the file list)
 - Project name and metadata
 
@@ -353,7 +355,7 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 3. A `.disk` file downloads to your computer
 
 **What gets saved:**
-- Your BASIC program code (from the Code tab)
+- `program.bas` file (your BASIC program code)
 - All data files (from the Disk tab)
 - Project name and metadata
 
@@ -368,28 +370,48 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 ### Project Files
 
 A project (disk) contains:
-- **Program Code** - Your BASIC program (visible in the Code tab)
-- **Data Files** - Files you create for your program to use (visible in the Disk tab)
+- **program.bas** - Your BASIC program code (visible in both Code tab and Disk tab file hierarchy)
+- **Data Files** - Additional files you create for your program to use (visible in the Disk tab)
 
-**Program Code:**
-- Stored separately from data files
+**program.bas File:**
+- The main program file that contains your BASIC code
+- Appears in the file hierarchy in the Disk tab (alongside other files)
 - Visible and editable in the Code tab
+- Can also be edited directly in the Disk tab file editor
+- Automatically created when you create a new project
 - Automatically saved when you save the project
+- **Source of truth**: When you run your program, it reads from `program.bas` file
 
 **Data Files:**
 - Created and managed in the Disk tab
 - Can be text files, binary files, or any data format
 - Accessible from your BASIC program using file I/O statements
+- Stored alongside `program.bas` in the project's file system
 
 ## Working with Data Files
 
 The Disk tab allows you to create and manage data files that your programs can use.
 
+### File Hierarchy
+
+The Disk tab shows a file hierarchy that includes:
+
+- **program.bas** - Your main BASIC program (always present)
+- **Data files** - Additional files you create (e.g., "data.txt", "scores.bin")
+- **Directories** - Folders you create to organize files
+
+**program.bas:**
+- Automatically created when you create a new project
+- Contains your BASIC program code
+- Can be edited in the Code tab or directly in the Disk tab
+- When you run your program, it reads from this file
+- Always appears in the file hierarchy
+
 ### Creating Files
 
 **To create a new data file:**
 1. Click the **Disk tab**
-2. Click the **"+" button** (usually near the file list)
+2. Click the **"+" button** (usually near the file list) or right-click in the file list
 3. Enter a filename (e.g., "data.txt")
 4. Click OK or press Enter
 
@@ -407,10 +429,17 @@ The Disk tab allows you to create and manage data files that your programs can u
 
 **To edit a file:**
 1. Click the **Disk tab**
-2. Click on a file name in the file list
+2. Click on a file name in the file list (including `program.bas`)
 3. The file opens in the editor on the right
 4. Make your changes
 5. Changes are automatically saved
+
+**Editing program.bas:**
+- You can edit `program.bas` in two ways:
+  - **Code tab**: Edit your program code (recommended for writing programs)
+  - **Disk tab**: Edit `program.bas` directly as a file (useful for quick edits)
+- Changes in either location are automatically synchronized
+- When you run your program, it always reads from the `program.bas` file
 
 **Text Editor:**
 - Line numbers displayed on the left

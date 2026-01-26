@@ -83,12 +83,14 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
     public onRun(): void
     {
-        const sourceCode = this.lines.join('\n');
+        const sourceCode = this.diskService.getProgramCodeFromFile();
         
         if (!sourceCode.trim())
         {
             return;
         }
+
+        const lines = sourceCode.split('\n');
 
         try
         {
@@ -100,9 +102,9 @@ export class CodeEditorComponent implements OnInit, OnDestroy
             let lineIndex = 0;
             let hasStatements = false;
 
-            for (let i = 0; i < this.lines.length; i++)
+            for (let i = 0; i < lines.length; i++)
             {
-                const line = this.lines[i].trim();
+                const line = lines[i].trim();
                 
                 if (line.length === 0 || line.startsWith("'"))
                 {
