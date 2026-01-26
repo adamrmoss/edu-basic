@@ -2,27 +2,29 @@
 
 .console-container
 {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
     background-color: $navy;
     color: $white;
+    display: flex;
+    flex-direction: column;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
+    gap: 8px;
+    height: 100%;
     padding: 8px;
 }
 
 .console-output
 {
+    display: flex;
+    flex-direction: column;
     flex: 1;
+    gap: 2px;
     overflow-y: auto;
-    margin-bottom: 8px;
 }
 
 .console-line
 {
     white-space: pre-wrap;
-    margin: 2px 0;
 
     &.error
     {
@@ -32,23 +34,23 @@
 
 .console-input-line
 {
-    display: flex;
     align-items: center;
+    display: flex;
+    gap: 8px;
 }
 
 .console-prompt
 {
-    margin-right: 8px;
     color: $blue-bright;
 }
 
 .console-input
 {
-    flex: 1;
     background: transparent;
     border: none;
-    outline: none;
     color: $white;
+    flex: 1;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
+    outline: none;
 }

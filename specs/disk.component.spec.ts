@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DiskComponent } from '../src/app/disk/disk.component';
 import { DiskService } from '../src/app/disk/disk.service';
 import { BehaviorSubject } from 'rxjs';
+import { DirectoryNode, FileNode } from '../src/app/disk/filesystem-node';
 
 describe('DiskComponent', () => {
     let component: DiskComponent;
@@ -16,6 +17,8 @@ describe('DiskComponent', () => {
         diskNameSubject = new BehaviorSubject<string>('TestDisk');
         filesChangedSubject = new BehaviorSubject<void>(undefined);
 
+        const mockRoot = new DirectoryNode('', '');
+
         const diskServiceMock = {
             diskName$: diskNameSubject.asObservable(),
             filesChanged$: filesChangedSubject.asObservable(),
@@ -25,10 +28,16 @@ describe('DiskComponent', () => {
             loadDisk: jest.fn(),
             saveDisk: jest.fn(),
             getFileList: jest.fn().mockReturnValue([]),
+            getFileSystemRoot: jest.fn().mockReturnValue(mockRoot),
             getFile: jest.fn(),
             saveFile: jest.fn(),
             deleteFile: jest.fn(),
-            createFile: jest.fn()
+            createFile: jest.fn(),
+            createDirectory: jest.fn(),
+            deleteDirectory: jest.fn(),
+            renameFile: jest.fn(),
+            renameDirectory: jest.fn(),
+            isDirectory: jest.fn()
         } as any;
 
         await TestBed.configureTestingModule({
@@ -53,9 +62,9 @@ describe('DiskComponent', () => {
             expect(component).toBeTruthy();
         });
 
-        it('should initialize with empty file list', () => {
+        it('should initialize with empty file tree', () => {
             fixture.detectChanges();
-            expect(component.fileList).toEqual([]);
+            expect(component.fileTree).toEqual([]);
         });
 
         it('should subscribe to disk name changes', () => {
@@ -70,15 +79,19 @@ describe('DiskComponent', () => {
             expect(component.diskName).toBe('UpdatedDisk');
         });
 
-        it('should refresh file list on files changed', () => {
-            diskService.getFileList.mockReturnValue(['file1.txt', 'file2.txt']);
+        it('should refresh file tree on files changed', () => {
+            const root = new DirectoryNode('', '');
+            root.addChild(new FileNode('file1.txt', 'file1.txt'));
+            root.addChild(new FileNode('file2.txt', 'file2.txt'));
+            diskService.getFileSystemRoot.mockReturnValue(root);
+            
             fixture.detectChanges();
 
             filesChangedSubject.next();
 
-            expect(component.fileList.length).toBe(2);
-            expect(component.fileList[0].name).toBe('file1.txt');
-            expect(component.fileList[1].name).toBe('file2.txt');
+            expect(component.fileTree.length).toBe(2);
+            expect(component.fileTree[0].name).toBe('file1.txt');
+            expect(component.fileTree[1].name).toBe('file2.txt');
         });
     });
 
@@ -101,7 +114,7 @@ describe('DiskComponent', () => {
 
             expect(diskService.newDisk).toHaveBeenCalledWith('MyDisk');
             expect(component.selectedFile).toBeNull();
-            expect(component.fileContent).toBe('');
+            expect(component.editorLines).toEqual(['']);
         });
 
         it('should not create new disk if prompt cancelled', () => {
@@ -189,18 +202,20 @@ describe('DiskComponent', () => {
         });
 
         it('should delete file with confirmation', () => {
-            component.selectedFile = { name: 'delete.txt', path: 'delete.txt', type: 'file' };
+            const fileNode = { name: 'delete.txt', path: 'delete.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
             jest.spyOn(window, 'confirm').mockReturnValue(true);
 
             component.onDeleteFile();
 
             expect(diskService.deleteFile).toHaveBeenCalledWith('delete.txt');
             expect(component.selectedFile).toBeNull();
-            expect(component.fileContent).toBe('');
+            expect(component.editorLines).toEqual(['']);
         });
 
         it('should not delete file if not confirmed', () => {
-            component.selectedFile = { name: 'keep.txt', path: 'keep.txt', type: 'file' };
+            const fileNode = { name: 'keep.txt', path: 'keep.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
             jest.spyOn(window, 'confirm').mockReturnValue(false);
 
             component.onDeleteFile();
@@ -221,49 +236,41 @@ describe('DiskComponent', () => {
             const fileData = new TextEncoder().encode('File content');
             diskService.getFile.mockReturnValue(fileData);
 
-            const fileNode = { name: 'test.txt', path: 'test.txt', type: 'file' as const };
+            const fileNode = { name: 'test.txt', path: 'test.txt', type: 'file' as const, expanded: false };
 
             component.selectFile(fileNode);
 
             expect(component.selectedFile).toBe(fileNode);
-            expect(component.fileContent).toBe('File content');
             expect(component.editorLines).toEqual(['File content']);
         });
 
         it('should handle empty file selection', () => {
             diskService.getFile.mockReturnValue(new Uint8Array(0));
 
-            const fileNode = { name: 'empty.txt', path: 'empty.txt', type: 'file' as const };
+            const fileNode = { name: 'empty.txt', path: 'empty.txt', type: 'file' as const, expanded: false };
 
             component.selectFile(fileNode);
 
-            expect(component.fileContent).toBe('');
             expect(component.editorLines).toEqual(['']);
         });
 
         it('should handle null file data', () => {
             diskService.getFile.mockReturnValue(null);
 
-            const fileNode = { name: 'null.txt', path: 'null.txt', type: 'file' as const };
+            const fileNode = { name: 'null.txt', path: 'null.txt', type: 'file' as const, expanded: false };
 
             component.selectFile(fileNode);
 
-            expect(component.fileContent).toBe('');
             expect(component.editorLines).toEqual(['']);
         });
 
-        it('should update file content on text area input', () => {
-            component.selectedFile = { name: 'edit.txt', path: 'edit.txt', type: 'file' };
+        it('should update file content on lines change', () => {
+            const fileNode = { name: 'edit.txt', path: 'edit.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
 
-            const event = {
-                target: {
-                    value: 'Updated content'
-                }
-            } as any;
+            component.onLinesChange(['Updated content']);
 
-            component.onTextAreaInput(event);
-
-            expect(component.fileContent).toBe('Updated content');
+            expect(component.editorLines).toEqual(['Updated content']);
             expect(diskService.saveFile).toHaveBeenCalled();
             
             const savedData = (diskService.saveFile as jest.Mock).mock.calls[0][1];
@@ -272,17 +279,33 @@ describe('DiskComponent', () => {
         });
 
         it('should split content into lines', () => {
-            component.selectedFile = { name: 'lines.txt', path: 'lines.txt', type: 'file' };
+            const fileNode = { name: 'lines.txt', path: 'lines.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
 
-            const event = {
-                target: {
-                    value: 'Line 1\nLine 2\nLine 3'
-                }
-            } as any;
-
-            component.onTextAreaInput(event);
+            component.onLinesChange(['Line 1', 'Line 2', 'Line 3']);
 
             expect(component.editorLines).toEqual(['Line 1', 'Line 2', 'Line 3']);
+        });
+
+        it('should select directory without toggling expansion', () => {
+            const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
+
+            component.selectFile(dirNode);
+
+            expect(component.selectedFile).toBe(dirNode);
+            expect(dirNode.expanded).toBe(false);
+        });
+
+        it('should toggle directory expansion', () => {
+            const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
+
+            component.toggleDirectory(dirNode);
+
+            expect(dirNode.expanded).toBe(true);
+
+            component.toggleDirectory(dirNode);
+
+            expect(dirNode.expanded).toBe(false);
         });
     });
 
@@ -308,7 +331,10 @@ describe('DiskComponent', () => {
         });
 
         it('should generate hex content', () => {
-            component.fileContent = 'ABC';
+            const fileData = new TextEncoder().encode('ABC');
+            const fileNode = { name: 'test.txt', path: 'test.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
+            diskService.getFile.mockReturnValue(fileData);
 
             const hex = component.getHexContent();
 
@@ -317,7 +343,10 @@ describe('DiskComponent', () => {
         });
 
         it('should format hex with offset', () => {
-            component.fileContent = 'Test';
+            const fileData = new TextEncoder().encode('Test');
+            const fileNode = { name: 'test.txt', path: 'test.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
+            diskService.getFile.mockReturnValue(fileData);
 
             const hex = component.getHexContent();
 
@@ -325,7 +354,9 @@ describe('DiskComponent', () => {
         });
 
         it('should return empty string for empty content', () => {
-            component.fileContent = '';
+            const fileNode = { name: 'empty.txt', path: 'empty.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
+            diskService.getFile.mockReturnValue(new Uint8Array(0));
 
             const hex = component.getHexContent();
 
@@ -333,7 +364,10 @@ describe('DiskComponent', () => {
         });
 
         it('should handle multi-line hex dump', () => {
-            component.fileContent = 'A'.repeat(20);
+            const fileData = new TextEncoder().encode('A'.repeat(20));
+            const fileNode = { name: 'test.txt', path: 'test.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
+            diskService.getFile.mockReturnValue(fileData);
 
             const hex = component.getHexContent();
 
@@ -342,7 +376,10 @@ describe('DiskComponent', () => {
         });
 
         it('should display non-printable chars as dots', () => {
-            component.fileContent = String.fromCharCode(1, 2, 3);
+            const fileData = new Uint8Array([1, 2, 3]);
+            const fileNode = { name: 'test.txt', path: 'test.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
+            diskService.getFile.mockReturnValue(fileData);
 
             const hex = component.getHexContent();
 
@@ -350,108 +387,83 @@ describe('DiskComponent', () => {
         });
     });
 
-    describe('Line Numbers', () => {
+    describe('File Tree Management', () => {
         beforeEach(() => {
             fixture.detectChanges();
         });
 
-        it('should generate line numbers', () => {
-            component.editorLines = ['Line 1', 'Line 2', 'Line 3'];
-
-            const lineNumbers = component.getLineNumbers();
-
-            expect(lineNumbers).toEqual([1, 2, 3]);
-        });
-
-        it('should generate line number for single line', () => {
-            component.editorLines = ['Single line'];
-
-            const lineNumbers = component.getLineNumbers();
-
-            expect(lineNumbers).toEqual([1]);
-        });
-
-        it('should generate line numbers for empty lines', () => {
-            component.editorLines = ['', '', ''];
-
-            const lineNumbers = component.getLineNumbers();
-
-            expect(lineNumbers).toEqual([1, 2, 3]);
-        });
-    });
-
-    describe('Scroll Synchronization', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should synchronize scroll position', () => {
-            const lineNumbers = document.createElement('div');
-            lineNumbers.className = 'file-line-numbers';
-            document.body.appendChild(lineNumbers);
-
-            jest.spyOn(document, 'querySelector').mockReturnValue(lineNumbers);
-
-            const event = {
-                target: {
-                    scrollTop: 100
-                }
-            } as any;
-
-            component.onTextAreaScroll(event);
-
-            expect(lineNumbers.scrollTop).toBe(100);
-
-            document.body.removeChild(lineNumbers);
-            jest.restoreAllMocks();
-        });
-
-        it('should handle missing line numbers element', () => {
-            const event = {
-                target: {
-                    scrollTop: 100
-                }
-            } as any;
-
-            expect(() => {
-                component.onTextAreaScroll(event);
-            }).not.toThrow();
-        });
-    });
-
-    describe('File List Management', () => {
-        beforeEach(() => {
-            fixture.detectChanges();
-        });
-
-        it('should refresh file list from service', () => {
-            diskService.getFileList.mockReturnValue(['file1.dat', 'file2.dat', 'file3.dat']);
+        it('should build tree from flat file list', () => {
+            const root = new DirectoryNode('', '');
+            root.addChild(new FileNode('file1.dat', 'file1.dat'));
+            root.addChild(new FileNode('file2.dat', 'file2.dat'));
+            root.addChild(new FileNode('file3.dat', 'file3.dat'));
+            diskService.getFileSystemRoot.mockReturnValue(root);
 
             filesChangedSubject.next();
 
-            expect(component.fileList.length).toBe(3);
-            expect(component.fileList[0].path).toBe('file1.dat');
-            expect(component.fileList[1].path).toBe('file2.dat');
-            expect(component.fileList[2].path).toBe('file3.dat');
+            expect(component.fileTree.length).toBe(3);
+            expect(component.fileTree[0].path).toBe('file1.dat');
+            expect(component.fileTree[1].path).toBe('file2.dat');
+            expect(component.fileTree[2].path).toBe('file3.dat');
         });
 
-        it('should create FileNode with correct properties', () => {
-            diskService.getFileList.mockReturnValue(['test.txt']);
+        it('should build hierarchical tree', () => {
+            const root = new DirectoryNode('', '');
+            const dir1 = new DirectoryNode('dir1', 'dir1');
+            dir1.addChild(new FileNode('file1.txt', 'dir1/file1.txt'));
+            dir1.addChild(new FileNode('file2.txt', 'dir1/file2.txt'));
+            root.addChild(dir1);
+            root.addChild(new FileNode('file3.txt', 'file3.txt'));
+            diskService.getFileSystemRoot.mockReturnValue(root);
 
             filesChangedSubject.next();
 
-            const fileNode = component.fileList[0];
-            expect(fileNode.name).toBe('test.txt');
-            expect(fileNode.path).toBe('test.txt');
-            expect(fileNode.type).toBe('file');
+            expect(component.fileTree.length).toBe(2);
+            const dirNode = component.fileTree.find(n => n.name === 'dir1');
+            expect(dirNode).toBeDefined();
+            expect(dirNode?.type).toBe('directory');
+            expect(dirNode?.children?.length).toBe(2);
         });
 
         it('should handle empty file list', () => {
-            diskService.getFileList.mockReturnValue([]);
+            const root = new DirectoryNode('', '');
+            diskService.getFileSystemRoot.mockReturnValue(root);
 
             filesChangedSubject.next();
 
-            expect(component.fileList).toEqual([]);
+            expect(component.fileTree).toEqual([]);
+        });
+    });
+
+    describe('Directory Operations', () => {
+        beforeEach(() => {
+            fixture.detectChanges();
+        });
+
+        it('should create new directory with prompt', () => {
+            jest.spyOn(window, 'prompt').mockReturnValue('newdir');
+
+            component.onNewDirectory();
+
+            expect(diskService.createDirectory).toHaveBeenCalledWith('newdir');
+        });
+
+        it('should create directory in parent path', () => {
+            jest.spyOn(window, 'prompt').mockReturnValue('subdir');
+
+            component.onNewDirectory('parent');
+
+            expect(diskService.createDirectory).toHaveBeenCalledWith('parent/subdir');
+        });
+
+        it('should delete directory with confirmation', () => {
+            const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
+            component.selectedFile = dirNode;
+            jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+            component.onDeleteFile();
+
+            expect(diskService.deleteDirectory).toHaveBeenCalledWith('dir');
         });
     });
 

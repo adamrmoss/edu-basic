@@ -13,8 +13,9 @@
   - [Disk Tab](#disk-tab)
   - [Output Tab](#output-tab)
 - [Using the Console](#using-the-console)
-  - [Entering Commands](#entering-commands)
-  - [Command History](#command-history)
+  - [Entering Statements](#entering-statements)
+  - [Expression Auto-Detection](#expression-auto-detection)
+  - [Statement History](#statement-history)
   - [Running Programs from Console](#running-programs-from-console)
 - [Writing and Running Programs](#writing-and-running-programs)
   - [The Code Editor](#the-code-editor)
@@ -49,7 +50,7 @@ EduBASIC is a web-based programming environment designed for learning the fundam
 
 **Key Features:**
 - Write and run BASIC programs directly in your browser
-- Interactive console for immediate command execution
+- Interactive console for immediate statement execution
 - Graphics output for visual programs
 - Project management system for organizing your work
 - File system for data storage and file I/O operations
@@ -92,17 +93,19 @@ Click on any tab to switch between views. The active tab is highlighted.
 The Console tab provides an interactive command-line interface where you can execute BASIC statements immediately.
 
 **Features:**
-- Type commands and press Enter to execute them
-- View command history (input, output, and errors)
-- Navigate through previous commands with arrow keys
-- Variables persist between commands
+- Type statements and press Enter to execute them
+- Type expressions directly to auto-evaluate and print results
+- View statement history (input, output, and errors)
+- Navigate through previous statements with arrow keys
+- Variables persist between statements
 - Perfect for testing individual statements or exploring the language
 
 **Use the Console when:**
 - Testing individual BASIC statements
 - Exploring language features
 - Debugging specific operations
-- Performing quick calculations
+- Performing quick calculations (just type the expression)
+- Looking up statement syntax with HELP
 
 ### Code Tab
 
@@ -156,32 +159,48 @@ The Output tab displays graphics and text output from your programs.
 
 ## Using the Console
 
-The Console provides an interactive way to execute BASIC commands immediately.
+The Console provides an interactive way to execute BASIC statements immediately.
 
-### Entering Commands
+### Entering Statements
 
 1. **Click the Console tab** to make it active
 2. **Type a BASIC statement** in the input field at the bottom
-3. **Press Enter** to execute the command
+3. **Press Enter** to execute the statement
 
 **Example:**
 ```
 PRINT "Hello, World!"
 ```
 
-The command executes immediately, and the output appears in the console history.
+The statement executes immediately, and the output appears in the console history.
 
-### Command History
+### Expression Auto-Detection
 
-The console maintains a history of all commands you've entered and their results.
+The console has a convenient feature: if you type just an expression (not a statement), it automatically evaluates and prints the result to the console, as if you had typed `CONSOLE` before it.
+
+**Examples:**
+```
+> 1 + 2
+3
+> x% * 2
+20
+> "Hello" + " " + "World"
+Hello World
+```
+
+This is equivalent to typing `CONSOLE 1 + 2`, `CONSOLE x% * 2`, etc. However, in program code, you must explicitly use the `CONSOLE` statement.
+
+### Statement History
+
+The console maintains a history of all statements you've entered and their results.
 
 **Navigating History:**
-- **Arrow Up** - Go to the previous command in history
-- **Arrow Down** - Go to the next command in history (or return to empty input)
+- **Arrow Up** - Go to the previous statement in history
+- **Arrow Down** - Go to the next statement in history (or return to empty input)
 
 **History Display:**
-- **Input** - Commands you've entered (shown in one color)
-- **Output** - Results from PRINT statements (shown in another color)
+- **Input** - Statements you've entered (shown in one color)
+- **Output** - Results from PRINT and CONSOLE statements (shown in another color)
 - **Errors** - Error messages if something goes wrong (shown in red)
 
 **Example Session:**
@@ -191,13 +210,21 @@ Hello
 > LET x% = 10
 > PRINT x%
 10
-> PRINT x% * 2
+> 1 + 2
+3
+> CONSOLE x% * 2
 20
+> HELP PRINT
+PRINT expression1, expression2, ...
+PRINT expression1, expression2, ...;
+PRINT array[]
+PRINT array[];
+PRINT
 ```
 
 ### Running Programs from Console
 
-You can execute multiple statements in the console, and variables persist between commands:
+You can execute multiple statements in the console, and variables persist between statements:
 
 ```
 > LET count% = 0
@@ -293,7 +320,8 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 - A new empty project is created
 - The project name appears at the top
 - The Code tab is cleared (ready for new code)
-- The file list is empty (no data files yet)
+- `program.bas` file is automatically created (appears in the file list)
+- The file list shows `program.bas` (ready for you to write code)
 
 **Project Name:**
 - The project name is displayed at the top of the Disk tab
@@ -309,9 +337,10 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 4. The project loads with all its code and files
 
 **What loads:**
-- Your BASIC program code (appears in the Code tab)
+- Your BASIC program code (appears in the Code tab and in `program.bas` file)
+- `program.bas` file (appears in the file list)
 - All data files (appear in the file list)
-- Project name and metadata
+- Project name (derived from the filename)
 
 **After loading:**
 - Switch to the Code tab to see your program
@@ -326,13 +355,15 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 3. A `.disk` file downloads to your computer
 
 **What gets saved:**
-- Your BASIC program code (from the Code tab)
+- `program.bas` file (your BASIC program code)
 - All data files (from the Disk tab)
-- Project name and metadata
+- All directories and their contents (preserving the file hierarchy)
 
 **File Format:**
 - Projects are saved as `.disk` files
-- These are ZIP archives containing your code and files
+- These are ZIP archives that directly represent your file system structure
+- The ZIP file contains all files and folders exactly as they appear in the Disk tab
+- No metadata files or wrapper folders - just your files organized in directories
 - You can share `.disk` files with others
 - You can load them on any computer with EduBASIC
 
@@ -341,28 +372,48 @@ EduBASIC uses a "disk" system to organize your work. A disk is a complete projec
 ### Project Files
 
 A project (disk) contains:
-- **Program Code** - Your BASIC program (visible in the Code tab)
-- **Data Files** - Files you create for your program to use (visible in the Disk tab)
+- **program.bas** - Your BASIC program code (visible in both Code tab and Disk tab file hierarchy)
+- **Data Files** - Additional files you create for your program to use (visible in the Disk tab)
 
-**Program Code:**
-- Stored separately from data files
+**program.bas File:**
+- The main program file that contains your BASIC code
+- Appears in the file hierarchy in the Disk tab (alongside other files)
 - Visible and editable in the Code tab
+- Can also be edited directly in the Disk tab file editor
+- Automatically created when you create a new project
 - Automatically saved when you save the project
+- **Source of truth**: When you run your program, it reads from `program.bas` file
 
 **Data Files:**
 - Created and managed in the Disk tab
 - Can be text files, binary files, or any data format
 - Accessible from your BASIC program using file I/O statements
+- Stored alongside `program.bas` in the project's file system
 
 ## Working with Data Files
 
 The Disk tab allows you to create and manage data files that your programs can use.
 
+### File Hierarchy
+
+The Disk tab shows a file hierarchy that includes:
+
+- **program.bas** - Your main BASIC program (always present)
+- **Data files** - Additional files you create (e.g., "data.txt", "scores.bin")
+- **Directories** - Folders you create to organize files
+
+**program.bas:**
+- Automatically created when you create a new project
+- Contains your BASIC program code
+- Can be edited in the Code tab or directly in the Disk tab
+- When you run your program, it reads from this file
+- Always appears in the file hierarchy
+
 ### Creating Files
 
 **To create a new data file:**
 1. Click the **Disk tab**
-2. Click the **"+" button** (usually near the file list)
+2. Click the **"+" button** (usually near the file list) or right-click in the file list
 3. Enter a filename (e.g., "data.txt")
 4. Click OK or press Enter
 
@@ -380,10 +431,17 @@ The Disk tab allows you to create and manage data files that your programs can u
 
 **To edit a file:**
 1. Click the **Disk tab**
-2. Click on a file name in the file list
+2. Click on a file name in the file list (including `program.bas`)
 3. The file opens in the editor on the right
 4. Make your changes
 5. Changes are automatically saved
+
+**Editing program.bas:**
+- You can edit `program.bas` in two ways:
+  - **Code tab**: Edit your program code (recommended for writing programs)
+  - **Disk tab**: Edit `program.bas` directly as a file (useful for quick edits)
+- Changes in either location are automatically synchronized
+- When you run your program, it always reads from the `program.bas` file
 
 **Text Editor:**
 - Line numbers displayed on the left
@@ -433,7 +491,7 @@ Your BASIC programs can access data files using file I/O statements.
 
 **Reading Files:**
 ```basic
-READFILE "data.txt" INTO content$
+READFILE content$ FROM "data.txt"
 PRINT content$
 ```
 
@@ -444,7 +502,7 @@ WRITEFILE "Hello, World!" TO "output.txt"
 
 **Binary File Operations:**
 ```basic
-OPEN "data.bin" FOR WRITE AS file%
+OPEN "data.bin" FOR OVERWRITE AS file%
 WRITE 42 TO file%
 WRITE 3.14 TO file%
 CLOSE file%
@@ -494,19 +552,19 @@ CIRCLE AT (320, 240) RADIUS 50 WITH &HFFFF00FF FILLED    ' Yellow filled circle
 **Text Display:**
 - Overlays the graphics canvas
 - Character grid: 80 columns × 30 rows (default)
-- 1-based coordinates (row 1, column 1 is top-left)
+- 0-based coordinates (row 0, column 0 is top-left)
 - Use `LOCATE` to position text cursor
 - Use `COLOR` to set text colors
 
 **PRINT Statement:**
 - Displays text and values
-- Comma (`,`) adds spacing between items
-- Semicolon (`;`) concatenates without spacing
+- Comma (`,`) separates items (concatenated with no spacing)
+- Semicolon (`;`) at end suppresses newline
 - Automatically switches to Output tab
 
 **Example:**
 ```basic
-LOCATE 10, 20
+LOCATE 9, 19
 COLOR &HFFFFFFFF    ' White text
 PRINT "Hello, World!"
 PRINT "X: "; x%; " Y: "; y%
@@ -564,8 +622,9 @@ PRINT "X: "; x%; " Y: "; y%
 
 **Console for Testing:**
 - Use the Console tab to test individual statements
-- Check variable values with PRINT
-- Test expressions before using in programs
+- Check variable values with PRINT or CONSOLE
+- Test expressions by typing them directly (auto-evaluates)
+- Use CONSOLE in programs for debugging output
 
 **Incremental Development:**
 - Write small sections of code
@@ -585,9 +644,12 @@ PRINT "X: "; x%; " Y: "; y%
 ### Keyboard Shortcuts
 
 **Console Tab:**
-- **Enter** - Execute command
-- **Arrow Up** - Previous command in history
-- **Arrow Down** - Next command in history
+- **Enter** - Execute statement
+- **Arrow Up** - Previous statement in history
+- **Arrow Down** - Next statement in history
+- **Type expression** - Automatically evaluates and prints (e.g., `1 + 2`)
+- **CONSOLE expression** - Explicitly print expression result to console
+- **HELP statement** - Get syntax help for any statement
 
 **Code Tab:**
 - Standard text editing shortcuts (Ctrl+C, Ctrl+V, etc.)
@@ -600,6 +662,55 @@ PRINT "X: "; x%; " Y: "; y%
 
 ### Getting Help
 
+**HELP Statement:**
+- Use the `HELP` statement in the Console to get syntax information for any statement
+- Type `HELP` followed by the statement name (e.g., `HELP PRINT`, `HELP COLOR`)
+- The HELP statement displays all valid syntax forms for the specified statement
+- Help output appears in the console (not the output tab)
+
+**Example:**
+```
+> HELP PRINT
+PRINT expression1, expression2, ...
+PRINT expression1, expression2, ...;
+PRINT array[]
+PRINT array[];
+PRINT
+
+> HELP COLOR
+COLOR foregroundColor%
+COLOR foregroundColor%, backgroundColor%
+COLOR , backgroundColor%
+```
+
+### Debugging with CONSOLE
+
+**CONSOLE Statement:**
+- The `CONSOLE` statement evaluates an expression and prints the result to the console
+- Useful for debugging and inspecting values during program execution
+- Can be used in programs or interactively in the console
+- Output appears in the console (not the output tab), keeping it separate from program output
+
+**Example:**
+```
+> CONSOLE 1 + 2
+3
+> LET x% = 10
+> CONSOLE x% * 2
+20
+> CONSOLE "Value: " + STR x%
+Value: 10
+```
+
+**In Program Code:**
+```basic
+LET result% = calculate()
+CONSOLE "Result: " + STR result%
+PRINT "Done"
+```
+
+**Note:** In the console, typing just an expression (e.g., `1 + 2`) automatically behaves as `CONSOLE 1 + 2`. However, in program code, you must explicitly use `CONSOLE`.
+
 **Language Reference:**
 - See the [EduBASIC Language Reference](edu-basic-language.md) for complete language documentation
 - All statements, operators, and functions are documented
@@ -610,6 +721,8 @@ PRINT "X: "; x%; " Y: "; y%
 - Try graphics operations
 - Experiment with variables and loops
 - Build up to more complex programs
+- Use `HELP` statement to quickly look up statement syntax
+- Use expressions directly in console for quick calculations
 
 **Common Tasks:**
 - **Run a program:** Code tab → Run button
@@ -627,7 +740,9 @@ EduBASIC provides a complete programming environment in your web browser. With t
 **Remember:**
 - Save your work regularly
 - Experiment and explore
-- Use the Console to test ideas
+- Use the Console to test ideas and expressions
+- Use CONSOLE for debugging output
+- Use HELP to look up statement syntax
 - Organize projects with clear names
 - Have fun programming!
 

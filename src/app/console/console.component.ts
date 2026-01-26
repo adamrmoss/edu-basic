@@ -6,6 +6,7 @@ import { ConsoleService, ConsoleEntry } from './console.service';
 
 @Component({
     selector: 'app-console',
+    standalone: true,
     imports: [ CommonModule, FormsModule ],
     templateUrl: './console.component.html',
     styleUrl: './console.component.scss'
@@ -91,18 +92,11 @@ export class ConsoleComponent implements OnInit, OnDestroy
 
     private getCanonicalRepresentation(input: string): string | null
     {
-        try
+        const parsedLine = this.consoleService.parseLine(input);
+        
+        if (parsedLine !== null && !parsedLine.hasError)
         {
-            const parsedLine = this.consoleService.parseLine(input);
-            
-            if (parsedLine && !parsedLine.hasError)
-            {
-                return parsedLine.statement.toString();
-            }
-        }
-        catch (error)
-        {
-            // Ignore parse errors, return null to use original input
+            return parsedLine.statement.toString();
         }
         
         return null;

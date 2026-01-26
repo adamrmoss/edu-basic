@@ -10,6 +10,7 @@ import { TabSwitchService } from './tab-switch.service';
 
 @Component({
     selector: 'app-root',
+    standalone: true,
     imports: [ 
         CommonModule, 
         WindowComponent, 
@@ -32,6 +33,7 @@ export class AppComponent implements OnInit, OnDestroy
     public tabs!: QueryList<TabComponent>;
 
     public title = 'EduBASIC';
+    public activeTabId: string = 'console';
 
     private readonly destroy$ = new Subject<void>();
 
@@ -48,6 +50,17 @@ export class AppComponent implements OnInit, OnDestroy
             });
     }
 
+    public isDiskTabActive(): boolean
+    {
+        if (this.tabsComponent)
+        {
+            const tabsComponentAny = this.tabsComponent as any;
+            return tabsComponentAny.activeTabId === 'disk';
+        }
+        
+        return this.activeTabId === 'disk';
+    }
+
     public ngOnDestroy(): void
     {
         this.destroy$.next();
@@ -56,6 +69,13 @@ export class AppComponent implements OnInit, OnDestroy
 
     private switchToTab(tabId: string): void
     {
+        if (tabId === 'output')
+        {
+            return;
+        }
+
+        this.activeTabId = tabId;
+
         if (this.tabsComponent && this.tabs)
         {
             const tabArray = this.tabs.toArray();

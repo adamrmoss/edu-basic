@@ -1,78 +1,71 @@
+@use 'sass:color';
 @use 'ng-luna/theme/_palette.scss' as *;
 
 .disk-container
 {
+    background-color: $navy;
     display: flex;
     height: 100%;
-    background-color: $navy;
 }
 
 .disk-sidebar
 {
-    width: 280px;
+    background-color: $navy-darkest;
     border-right: 1px solid $blue-steel-dark;
     display: flex;
     flex-direction: column;
+    width: 320px;
 }
 
-.disk-controls
+.disk-operations
 {
-    background-color: $navy-darkest;
-    border-bottom: 1px solid $blue-steel-dark;
-    padding: 12px;
+    border-bottom: 2px solid $blue-steel-dark;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
 }
 
-.disk-name-section
+.section-header
 {
-    margin-bottom: 12px;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
 
-    label
+    h3
     {
-        display: block;
         color: $white;
         font-family: 'IBM Plex Mono', monospace;
-        font-size: 12px;
-        margin-bottom: 4px;
+        font-size: 14px;
         font-weight: 600;
+        letter-spacing: 0.5px;
+        margin: 0;
+        text-transform: uppercase;
     }
 }
 
-.disk-name-input
-{
-    width: 100%;
-    padding: 6px 8px;
-    background-color: $navy;
-    border: 1px solid $blue-steel-dark;
-    border-radius: 4px;
-    color: $white;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px;
-    outline: none;
-
-    &:focus
-    {
-        border-color: $blue-bright;
-    }
-}
-
-.disk-buttons
+.header-actions
 {
     display: flex;
-    gap: 8px;
+    gap: 4px;
 }
 
-.disk-button
+.icon-button
 {
-    flex: 1;
-    padding: 6px 12px;
+    align-items: center;
     background-color: $blue-bright;
-    color: $white;
     border: none;
     border-radius: 4px;
+    color: $white;
     cursor: pointer;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
+    display: flex;
+    font-size: 16px;
+    height: 28px;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    transition: background-color 0.2s;
+    width: 28px;
 
     &:hover
     {
@@ -85,111 +78,318 @@
     }
 }
 
-.file-tree-header
+.disk-name-section
 {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    font-weight: 600;
-    background-color: $navy-darkest;
-    border-bottom: 1px solid $blue-steel-dark;
+    flex-direction: column;
+    gap: 6px;
+
+    label
+    {
+        color: $silver;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+}
+
+.disk-name-input
+{
+    background-color: $navy;
+    border: 1px solid $blue-steel-dark;
+    border-radius: 4px;
     color: $white;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
+    outline: none;
+    padding: 8px 10px;
+    transition: border-color 0.2s;
+    width: 100%;
+
+    &:focus
+    {
+        border-color: $blue-bright;
+    }
+
+    &::placeholder
+    {
+        color: $silver;
+        opacity: 0.5;
+    }
 }
 
-.new-file-button
+.disk-actions
 {
-    width: 24px;
-    height: 24px;
-    background-color: $blue-bright;
-    color: $white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
     display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.action-button
+{
     align-items: center;
-    justify-content: center;
+    background-color: $navy;
+    border: 1px solid $blue-steel-dark;
+    border-radius: 4px;
+    color: $white;
+    cursor: pointer;
+    display: flex;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    gap: 8px;
+    padding: 10px 12px;
+    transition: all 0.2s;
 
     &:hover
     {
-        background-color: $blue-bright-dark;
+        background-color: $navy-dark;
+        border-color: $blue-steel;
     }
+
+    &:active
+    {
+        transform: translateY(1px);
+    }
+
+    &.primary
+    {
+        background-color: $blue-bright;
+        border-color: $blue-bright;
+        font-weight: 600;
+
+        &:hover
+        {
+            background-color: $blue-bright-dark;
+            border-color: $blue-bright-dark;
+        }
+    }
+}
+
+.button-icon
+{
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.file-operations
+{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 12px;
+    overflow: hidden;
+    padding: 16px;
 }
 
 .file-tree
 {
     flex: 1;
     overflow-y: auto;
-    padding: 4px 0;
+    padding: 8px 0;
 }
 
 .file-tree-item
 {
-    display: flex;
     align-items: center;
-    padding: 6px 12px;
-    cursor: pointer;
     color: $white;
+    display: flex;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
+    padding: 6px 12px;
+    transition: background-color 0.15s;
+    user-select: none;
 
     &:hover
     {
         background-color: $navy-dark;
+
+        .item-actions
+        {
+            opacity: 1;
+        }
     }
 
     &.selected
     {
         background-color: $blue-bright;
+        color: $white;
+    }
+
+    &.directory
+    {
+        font-weight: 500;
+    }
+
+    &.dragging
+    {
+        background-color: rgba($blue-bright, 0.3);
+        border: 1px dashed $blue-bright;
+        opacity: 0.7;
+    }
+
+    &.in-dragged-subtree
+    {
+        background-color: rgba($blue-bright, 0.15);
+        border-left: 2px solid $blue-bright;
+    }
+
+    .item-content
+    {
+        align-items: center;
+        cursor: pointer;
+        display: flex;
+        flex: 1;
+        gap: 8px;
+        min-width: 0;
     }
 
     .icon
     {
-        margin-right: 6px;
-        display: flex;
         align-items: center;
+        display: flex;
+        flex-shrink: 0;
+    }
+
+    .name
+    {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .item-actions
+    {
+        display: flex;
+        gap: 4px;
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+}
+
+.item-action-button
+{
+    align-items: center;
+    background-color: rgba($white, 0.1);
+    border: none;
+    border-radius: 3px;
+    color: $white;
+    cursor: pointer;
+    display: flex;
+    font-size: 12px;
+    height: 24px;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    transition: background-color 0.15s;
+    width: 24px;
+
+    luna-icon
+    {
+        align-items: center;
+        display: flex;
+        height: 14px;
+        justify-content: center;
+        width: 14px;
+    }
+
+    &:hover
+    {
+        background-color: rgba($white, 0.2);
+    }
+
+    &.danger
+    {
+        background-color: rgba($orange, 0.2);
+        color: $orange;
+
+        &:hover
+        {
+            background-color: rgba($orange, 0.3);
+        }
     }
 }
 
 .no-files
 {
-    padding: 12px;
     color: $silver;
-    font-style: italic;
+    display: flex;
+    flex-direction: column;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
+    gap: 8px;
+    padding: 24px 12px;
     text-align: center;
+
+    .hint
+    {
+        color: $silver;
+        font-size: 11px;
+        opacity: 0.7;
+    }
 }
 
 .file-editor-pane
 {
-    flex: 1;
+    background-color: $navy;
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 .editor-toolbar
 {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
     background-color: $navy-darkest;
     border-bottom: 1px solid $blue-steel-dark;
+    display: flex;
+    justify-content: space-between;
+    min-height: 56px;
+    padding: 12px 16px;
+}
+
+.toolbar-left
+{
+    align-items: center;
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    min-width: 0;
+}
+
+.file-icon
+{
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    height: 18px;
+    width: 18px;
 }
 
 .current-file-name
 {
-    font-family: 'IBM Plex Mono', monospace;
     color: $white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.toolbar-buttons
+.toolbar-right
+{
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+
+.file-actions,
+.directory-actions
 {
     display: flex;
     gap: 8px;
@@ -197,112 +397,182 @@
 
 .toolbar-button
 {
-    padding: 4px 12px;
+    align-items: center;
     background-color: $blue-bright;
-    color: $white;
     border: none;
     border-radius: 4px;
+    color: $white;
     cursor: pointer;
+    display: flex;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
+    font-weight: 500;
+    gap: 6px;
+    padding: 6px 12px;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+
+    luna-icon
+    {
+        align-items: center;
+        display: flex;
+        flex-shrink: 0;
+        height: 14px;
+        width: 14px;
+    }
 
     &:hover
     {
         background-color: $blue-bright-dark;
     }
 
-    &.delete
+    &:active
     {
-        background-color: $blue-steel-dark;
+        transform: translateY(1px);
+    }
+
+    &.danger
+    {
+        background-color: $orange;
+        color: $white;
 
         &:hover
         {
-            background-color: $blue-steel;
+            background-color: color.adjust($orange, $lightness: -10%);
         }
     }
 }
 
 .file-editor
 {
+    display: flex;
+    flex-direction: column;
     flex: 1;
-    display: flex;
+    overflow: hidden;
 }
 
-.text-editor
-{
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
-.file-line-numbers
+::ng-deep app-text-editor
 {
     display: flex;
     flex-direction: column;
-    background-color: $navy-darkest;
-    color: $silver;
-    padding: 8px 12px;
-    text-align: right;
-    user-select: none;
-    overflow: hidden;
-    border-right: 1px solid $blue-steel-dark;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px;
-}
-
-.line-number
-{
-    line-height: 20px;
-    min-height: 20px;
-}
-
-.file-textarea
-{
     flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: $white;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px;
-    padding: 8px;
-    resize: none;
-    line-height: 20px;
-    white-space: pre;
-    overflow-wrap: normal;
-    overflow-x: auto;
+    overflow: hidden;
 }
 
 .hex-editor
 {
+    background-color: $navy-darkest;
     flex: 1;
-    padding: 8px;
     overflow: auto;
+    padding: 16px;
 }
 
 .hex-content
 {
+    color: $white;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
-    color: $white;
+    line-height: 1.6;
     margin: 0;
 }
 
-.no-file-selected
+.no-file-selected,
+.directory-selected
 {
+    align-items: center;
+    display: flex;
     flex: 1;
+    justify-content: center;
+    padding: 40px;
+}
+
+.empty-state
+{
+    align-items: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: $silver;
-    font-style: italic;
-    gap: 8px;
+    gap: 16px;
+    max-width: 400px;
+    text-align: center;
+}
 
-    .hint
+.empty-icon
+{
+    display: flex;
+    height: 64px;
+    justify-content: center;
+    opacity: 0.5;
+    width: 64px;
+}
+
+.empty-state h2
+{
+    color: $white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.empty-state .hint
+{
+    color: $silver;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.context-menu
+{
+    background-color: $navy-darkest;
+    border: 1px solid $blue-steel-dark;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 180px;
+    padding: 4px;
+    position: fixed;
+    z-index: 1000;
+}
+
+.context-menu-item
+{
+    align-items: center;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    color: $white;
+    cursor: pointer;
+    display: flex;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    gap: 10px;
+    padding: 10px 12px;
+    text-align: left;
+    transition: background-color 0.15s;
+    width: 100%;
+
+    &:hover
     {
-        font-size: 12px;
-        max-width: 400px;
-        text-align: center;
+        background-color: $navy-dark;
+    }
+
+    &.danger
+    {
+        color: $orange;
+
+        &:hover
+        {
+            background-color: rgba($orange, 0.1);
+        }
+    }
+
+    luna-icon
+    {
+        align-items: center;
+        display: flex;
+        flex-shrink: 0;
     }
 }

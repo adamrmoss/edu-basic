@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { DiskService } from '../src/app/disk/disk.service';
-import { FileSystemService } from '../src/app/files/filesystem.service';
+import { FileSystemService } from '../src/app/disk/filesystem.service';
 import JSZip from 'jszip';
 
 describe('DiskService', () => {
@@ -95,7 +95,9 @@ describe('DiskService', () => {
 
             expect(service.diskName).toBe('Untitled');
             expect(service.programCode).toBe('');
-            expect(fileSystemService.listFiles().length).toBe(0);
+            const files = fileSystemService.listFiles();
+            expect(files.length).toBe(1);
+            expect(files).toContain('program.bas');
         });
 
         it('should create new disk with custom name', () => {
@@ -103,7 +105,9 @@ describe('DiskService', () => {
 
             expect(service.diskName).toBe('NewProject');
             expect(service.programCode).toBe('');
-            expect(fileSystemService.listFiles().length).toBe(0);
+            const files = fileSystemService.listFiles();
+            expect(files.length).toBe(1);
+            expect(files).toContain('program.bas');
         });
 
         it('should emit filesChanged on new disk', (done) => {
@@ -280,20 +284,33 @@ describe('DiskService', () => {
 
             zip.file('program.bas', programCode);
 
-            zip.file('disk.json', JSON.stringify({
-                name: diskName,
-                created: new Date().toISOString(),
-                modified: new Date().toISOString()
-            }));
-
-            const filesFolder = zip.folder('files');
-            
-            if (filesFolder)
+            for (const [path, data] of files.entries())
             {
-                for (const [path, data] of files.entries())
+                if (path.includes('/'))
+                {
+                    const parts = path.split('/');
+                    let currentFolder: JSZip | null = zip;
+                    
+                    for (let i = 0; i < parts.length - 1; i++)
+                    {
+                        currentFolder = currentFolder.folder(parts[i]);
+                        
+                        if (!currentFolder)
+                        {
+                            break;
+                        }
+                    }
+                    
+                    if (currentFolder)
+                    {
+                        const buffer = new Uint8Array(data).buffer;
+                        currentFolder.file(parts[parts.length - 1], buffer);
+                    }
+                }
+                else
                 {
                     const buffer = new Uint8Array(data).buffer;
-                    filesFolder.file(path, buffer);
+                    zip.file(path, buffer);
                 }
             }
 
@@ -335,14 +352,15 @@ describe('DiskService', () => {
             await service.loadDisk(zipFile);
 
             const loadedFiles = fileSystemService.listFiles();
-            expect(loadedFiles.length).toBe(2);
+            expect(loadedFiles.length).toBe(3);
+            expect(loadedFiles).toContain('program.bas');
             expect(loadedFiles).toContain('file1.dat');
             expect(loadedFiles).toContain('file2.dat');
             expect(fileSystemService.readFile('file1.dat')).toEqual(new Uint8Array([1, 2, 3]));
             expect(fileSystemService.readFile('file2.dat')).toEqual(new Uint8Array([4, 5, 6]));
         });
 
-        it('should use filename as disk name if metadata missing', async () => {
+        it('should use filename as disk name', async () => {
             const zip = new JSZip();
             zip.file('program.bas', 'TEST');
 
@@ -356,7 +374,7 @@ describe('DiskService', () => {
 
         it('should handle ZIP without program file', async () => {
             const zip = new JSZip();
-            zip.file('disk.json', JSON.stringify({ name: 'NoProgram', created: '', modified: '' }));
+            zip.file('data.txt', 'some data');
 
             const blob = await zip.generateAsync({ type: 'blob' });
             const file = new File([blob], 'test.disk', { type: 'application/zip' });
@@ -364,6 +382,7 @@ describe('DiskService', () => {
             await service.loadDisk(file);
 
             expect(service.programCode).toBe('');
+            expect(fileSystemService.fileExists('data.txt')).toBe(true);
         });
 
         it('should emit filesChanged on load', async () => {

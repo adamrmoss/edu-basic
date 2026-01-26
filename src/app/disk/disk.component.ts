@@ -1,20 +1,25 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IconComponent, Folder, File } from 'ng-luna';
+import { IconComponent, Folder, File, Plus, Save, FolderOpen, Edit, Trash } from 'ng-luna';
 import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from './disk.service';
+import { TextEditorComponent } from '../text-editor/text-editor.component';
+import { DirectoryNode, FileSystemNode } from './filesystem-node';
 
-interface FileNode
+export interface FileNode
 {
     name: string;
     path: string;
-    type: 'file';
+    type: 'file' | 'directory';
+    children?: FileNode[];
+    expanded?: boolean;
 }
 
 @Component({
     selector: 'app-disk',
-    imports: [ CommonModule, FormsModule, IconComponent ],
+    standalone: true,
+    imports: [ CommonModule, FormsModule, IconComponent, TextEditorComponent ],
     templateUrl: './disk.component.html',
     styleUrl: './disk.component.scss'
 })
@@ -22,13 +27,26 @@ export class DiskComponent implements OnInit, OnDestroy
 {
     public readonly folderIcon = Folder;
     public readonly fileIcon = File;
+    public readonly plusIcon = Plus;
+    public readonly saveIcon = Save;
+    public readonly folderOpenIcon = FolderOpen;
+    public readonly editIcon = Edit;
+    public readonly trashIcon = Trash;
 
     public diskName: string = 'Untitled';
-    public fileList: FileNode[] = [];
+    public fileTree: FileNode[] = [];
     public selectedFile: FileNode | null = null;
-    public fileContent: string = '';
-    public viewMode: 'text' | 'hex' = 'text';
     public editorLines: string[] = [''];
+    public viewMode: 'text' | 'hex' = 'text';
+    public contextMenuPath: string | null = null;
+    public contextMenuClickedPath: string | null = null;
+    public contextMenuX: number = 0;
+    public contextMenuY: number = 0;
+    public showContextMenu: boolean = false;
+    public readonly emptyErrorLines: Set<number> = new Set();
+    public readonly emptyErrorMessages: Map<number, string> = new Map();
+    private expandedPaths: Set<string> = new Set();
+    public draggedNode: FileNode | null = null;
 
     private readonly destroy$ = new Subject<void>();
 
@@ -47,10 +65,10 @@ export class DiskComponent implements OnInit, OnDestroy
         this.diskService.filesChanged$
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
-                this.refreshFileList();
+                this.refreshFileTree();
             });
 
-        this.refreshFileList();
+        this.refreshFileTree();
     }
 
     public ngOnDestroy(): void
@@ -72,7 +90,6 @@ export class DiskComponent implements OnInit, OnDestroy
         {
             this.diskService.newDisk(name);
             this.selectedFile = null;
-            this.fileContent = '';
             this.editorLines = [''];
         }
     }
@@ -93,7 +110,6 @@ export class DiskComponent implements OnInit, OnDestroy
                 {
                     await this.diskService.loadDisk(file);
                     this.selectedFile = null;
-                    this.fileContent = '';
                     this.editorLines = [''];
                 }
                 catch (error)
@@ -118,27 +134,114 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
-    public onNewFile(): void
+    public onNewFile(parentPath: string = ''): void
     {
         const fileName = prompt('Enter file name:');
         
         if (fileName)
         {
-            this.diskService.createFile(fileName);
+            if (parentPath)
+            {
+                this.expandPathAndParents(parentPath);
+            }
+            
+            const fullPath = parentPath ? `${parentPath}/${fileName}` : fileName;
+            this.diskService.createFile(fullPath);
         }
+    }
+
+    public onNewDirectory(parentPath: string = ''): void
+    {
+        const dirName = prompt('Enter directory name:');
+        
+        if (dirName)
+        {
+            if (parentPath)
+            {
+                this.expandPathAndParents(parentPath);
+            }
+            
+            const fullPath = parentPath ? `${parentPath}/${dirName}` : dirName;
+            this.diskService.createDirectory(fullPath);
+        }
+    }
+
+    public onNewFileInSelectedOrRoot(): void
+    {
+        const parentPath = this.selectedFile && this.selectedFile.type === 'directory' ? this.selectedFile.path : '';
+        this.onNewFile(parentPath);
+    }
+
+    public onNewDirectoryInSelectedOrRoot(): void
+    {
+        const parentPath = this.selectedFile && this.selectedFile.type === 'directory' ? this.selectedFile.path : '';
+        this.onNewDirectory(parentPath);
+    }
+
+    public getNewFileTitle(): string
+    {
+        if (this.selectedFile && this.selectedFile.type === 'directory')
+        {
+            return `New File in ${this.selectedFile.name}`;
+        }
+        
+        return 'New File at Root';
+    }
+
+    public getNewDirectoryTitle(): string
+    {
+        if (this.selectedFile && this.selectedFile.type === 'directory')
+        {
+            return `New Directory in ${this.selectedFile.name}`;
+        }
+        
+        return 'New Directory at Root';
     }
 
     public onDeleteFile(): void
     {
-        if (this.selectedFile)
+        if (this.selectedFile && !this.isProgramBas(this.selectedFile))
         {
             const confirmed = confirm(`Delete ${this.selectedFile.name}?`);
             
             if (confirmed)
             {
-                this.diskService.deleteFile(this.selectedFile.path);
+                if (this.selectedFile.type === 'directory')
+                {
+                    this.diskService.deleteDirectory(this.selectedFile.path);
+                }
+                else
+                {
+                    this.diskService.deleteFile(this.selectedFile.path);
+                }
+                
                 this.selectedFile = null;
-                this.fileContent = '';
+                this.editorLines = [''];
+            }
+        }
+    }
+
+    public onRenameFile(): void
+    {
+        if (this.selectedFile && !this.isProgramBas(this.selectedFile))
+        {
+            const newName = prompt('Enter new name:', this.selectedFile.name);
+            
+            if (newName && newName !== this.selectedFile.name)
+            {
+                const parentPath = this.getParentPath(this.selectedFile.path);
+                const newPath = parentPath ? `${parentPath}/${newName}` : newName;
+                
+                if (this.selectedFile.type === 'directory')
+                {
+                    this.diskService.renameDirectory(this.selectedFile.path, newPath);
+                }
+                else
+                {
+                    this.diskService.renameFile(this.selectedFile.path, newPath);
+                }
+                
+                this.selectedFile = null;
                 this.editorLines = [''];
             }
         }
@@ -148,53 +251,74 @@ export class DiskComponent implements OnInit, OnDestroy
     {
         this.selectedFile = file;
         
-        const data = this.diskService.getFile(file.path);
-        
-        if (data)
+        if (file.type === 'file')
         {
-            const decoder = new TextDecoder('utf-8');
-            this.fileContent = decoder.decode(data);
-            this.editorLines = this.fileContent.split('\n');
+            const data = this.diskService.getFile(file.path);
             
-            if (this.editorLines.length === 0)
+            if (data)
+            {
+                const decoder = new TextDecoder('utf-8');
+                const content = decoder.decode(data);
+                this.editorLines = content.split('\n');
+                
+                if (this.editorLines.length === 0)
+                {
+                    this.editorLines = [''];
+                }
+            }
+            else
             {
                 this.editorLines = [''];
             }
         }
-        else
+    }
+
+    public toggleDirectory(file: FileNode): void
+    {
+        if (file.type === 'directory')
         {
-            this.fileContent = '';
-            this.editorLines = [''];
+            file.expanded = !file.expanded;
+            
+            if (file.expanded)
+            {
+                this.expandedPaths.add(file.path);
+            }
+            else
+            {
+                this.expandedPaths.delete(file.path);
+            }
         }
     }
 
-    public getLineNumbers(): number[]
+    private expandPath(path: string): void
     {
-        return Array.from({ length: this.editorLines.length }, (_, i) => i + 1);
+        this.expandedPaths.add(path);
     }
 
-    public onTextAreaInput(event: Event): void
+    private expandPathAndParents(path: string): void
     {
-        const textarea = event.target as HTMLTextAreaElement;
-        this.fileContent = textarea.value;
-        this.editorLines = this.fileContent.split('\n');
+        const parts = path.split('/').filter(p => p.length > 0);
+        let currentPath = '';
         
-        if (this.selectedFile)
+        for (const part of parts)
         {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+            this.expandedPaths.add(currentPath);
+        }
+        
+        this.refreshFileTree();
+    }
+
+    public onLinesChange(lines: string[]): void
+    {
+        this.editorLines = lines;
+        
+        if (this.selectedFile && this.selectedFile.type === 'file')
+        {
+            const content = lines.join('\n');
             const encoder = new TextEncoder();
-            const data = encoder.encode(this.fileContent);
+            const data = encoder.encode(content);
             this.diskService.saveFile(this.selectedFile.path, data);
-        }
-    }
-
-    public onTextAreaScroll(event: Event): void
-    {
-        const textarea = event.target as HTMLTextAreaElement;
-        const lineNumbers = document.querySelector('.file-line-numbers') as HTMLElement;
-        
-        if (lineNumbers)
-        {
-            lineNumbers.scrollTop = textarea.scrollTop;
         }
     }
 
@@ -205,18 +329,24 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public getHexContent(): string
     {
-        if (!this.fileContent)
+        if (!this.selectedFile || this.selectedFile.type !== 'file')
         {
             return '';
         }
 
-        const bytes = new TextEncoder().encode(this.fileContent);
+        const data = this.diskService.getFile(this.selectedFile.path);
+        
+        if (!data)
+        {
+            return '';
+        }
+
         let hex = '';
         
-        for (let i = 0; i < bytes.length; i += 16)
+        for (let i = 0; i < data.length; i += 16)
         {
             const offset = i.toString(16).padStart(8, '0').toUpperCase();
-            const chunk = bytes.slice(i, i + 16);
+            const chunk = data.slice(i, i + 16);
             const hexBytes = Array.from(chunk).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
             const ascii = Array.from(chunk).map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '.').join('');
             
@@ -226,13 +356,280 @@ export class DiskComponent implements OnInit, OnDestroy
         return hex;
     }
 
-    private refreshFileList(): void
+    public onContextMenu(event: MouseEvent, path: string): void
     {
-        const paths = this.diskService.getFileList();
-        this.fileList = paths.map((path: string) => ({
-            name: path,
-            path: path,
-            type: 'file' as const
-        }));
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const node = this.findNodeByPath(this.fileTree, path);
+        
+        this.contextMenuClickedPath = path;
+        
+        if (node)
+        {
+            if (node.type === 'directory')
+            {
+                this.contextMenuPath = node.path;
+            }
+            else
+            {
+                this.contextMenuPath = this.getParentPath(node.path);
+            }
+        }
+        else
+        {
+            this.contextMenuPath = '';
+        }
+        
+        this.contextMenuX = event.clientX;
+        this.contextMenuY = event.clientY;
+        this.showContextMenu = true;
     }
+
+    public closeContextMenu(): void
+    {
+        this.showContextMenu = false;
+        this.contextMenuPath = null;
+        this.contextMenuClickedPath = null;
+    }
+
+    public onContextMenuNewFile(): void
+    {
+        const parentPath = this.contextMenuPath !== null ? this.contextMenuPath : '';
+        this.onNewFile(parentPath);
+        this.closeContextMenu();
+    }
+
+    public onContextMenuNewDirectory(): void
+    {
+        const parentPath = this.contextMenuPath !== null ? this.contextMenuPath : '';
+        this.onNewDirectory(parentPath);
+        this.closeContextMenu();
+    }
+
+    public onContextMenuDelete(): void
+    {
+        if (this.contextMenuClickedPath !== null)
+        {
+            const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
+            
+            if (node && !this.isProgramBas(node))
+            {
+                this.selectedFile = node;
+                this.onDeleteFile();
+            }
+        }
+        
+        this.closeContextMenu();
+    }
+
+    public onContextMenuRename(): void
+    {
+        if (this.contextMenuClickedPath !== null)
+        {
+            const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
+            
+            if (node && !this.isProgramBas(node))
+            {
+                this.selectedFile = node;
+                this.onRenameFile();
+            }
+        }
+        
+        this.closeContextMenu();
+    }
+
+    private refreshFileTree(): void
+    {
+        const root = this.diskService.getFileSystemRoot();
+        this.fileTree = this.convertToFileNodes(root);
+    }
+
+    private convertToFileNodes(directory: DirectoryNode): FileNode[]
+    {
+        const result: FileNode[] = [];
+        const children = directory.children;
+
+        for (const child of children.values())
+        {
+            const fileNode: FileNode = {
+                name: child.name,
+                path: child.path,
+                type: child.type,
+                children: undefined,
+                expanded: this.expandedPaths.has(child.path)
+            };
+
+            if (child.type === 'directory')
+            {
+                fileNode.children = this.convertToFileNodes(child as DirectoryNode);
+            }
+
+            result.push(fileNode);
+        }
+
+        return result.sort((a, b) => {
+            if (a.type !== b.type)
+            {
+                return a.type === 'directory' ? -1 : 1;
+            }
+
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    private getParentPath(path: string): string
+    {
+        const lastSlash = path.lastIndexOf('/');
+        
+        if (lastSlash === -1)
+        {
+            return '';
+        }
+        
+        return path.substring(0, lastSlash);
+    }
+
+    private findNodeByPath(nodes: FileNode[], path: string): FileNode | null
+    {
+        for (const node of nodes)
+        {
+            if (node.path === path)
+            {
+                return node;
+            }
+            
+            if (node.children)
+            {
+                const found = this.findNodeByPath(node.children, path);
+                
+                if (found)
+                {
+                    return found;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    public isProgramBas(file: FileNode): boolean
+    {
+        return file.path === 'program.bas' || file.name === 'program.bas';
+    }
+
+    public onDragStart(event: DragEvent, node: FileNode): void
+    {
+        if (this.isProgramBas(node))
+        {
+            event.preventDefault();
+            return;
+        }
+
+        this.draggedNode = node;
+        event.dataTransfer!.effectAllowed = 'move';
+        event.dataTransfer!.setData('text/plain', node.path);
+    }
+
+    public onDragOver(event: DragEvent, node: FileNode): void
+    {
+        if (!this.draggedNode || this.draggedNode === node)
+        {
+            return;
+        }
+
+        let targetPath: string;
+
+        if (node.type === 'directory')
+        {
+            targetPath = node.path;
+        }
+        else
+        {
+            targetPath = this.getParentPath(node.path);
+        }
+
+        if (this.isDescendantOf(this.draggedNode.path, targetPath))
+        {
+            return;
+        }
+
+        event.preventDefault();
+        event.dataTransfer!.dropEffect = 'move';
+    }
+
+    public onDrop(event: DragEvent, targetNode: FileNode): void
+    {
+        event.preventDefault();
+
+        if (!this.draggedNode)
+        {
+            return;
+        }
+
+        let targetPath: string;
+
+        if (targetNode.type === 'directory')
+        {
+            targetPath = targetNode.path;
+        }
+        else
+        {
+            targetPath = this.getParentPath(targetNode.path);
+        }
+
+        if (this.isDescendantOf(this.draggedNode.path, targetPath))
+        {
+            return;
+        }
+
+        const newPath = targetPath ? `${targetPath}/${this.draggedNode.name}` : this.draggedNode.name;
+
+        if (this.draggedNode.type === 'directory')
+        {
+            this.diskService.renameDirectory(this.draggedNode.path, newPath);
+        }
+        else
+        {
+            this.diskService.renameFile(this.draggedNode.path, newPath);
+        }
+
+        if (targetPath)
+        {
+            this.expandPathAndParents(targetPath);
+        }
+
+        this.draggedNode = null;
+    }
+
+    public onDragEnd(): void
+    {
+        this.draggedNode = null;
+    }
+
+    public isNodeBeingDragged(node: FileNode): boolean
+    {
+        return this.draggedNode === node;
+    }
+
+    public isNodeInDraggedSubtree(node: FileNode): boolean
+    {
+        if (!this.draggedNode || this.draggedNode.type !== 'directory')
+        {
+            return false;
+        }
+
+        return this.isDescendantOf(node.path, this.draggedNode.path);
+    }
+
+    private isDescendantOf(descendantPath: string, ancestorPath: string): boolean
+    {
+        if (!ancestorPath)
+        {
+            return false;
+        }
+
+        return descendantPath.startsWith(ancestorPath + '/');
+    }
+
 }

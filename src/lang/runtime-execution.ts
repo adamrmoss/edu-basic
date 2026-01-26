@@ -3,13 +3,10 @@ import { Statement, ExecutionResult } from './statements/statement';
 import { ExecutionContext } from './execution-context';
 import { Graphics } from './graphics';
 import { Audio } from './audio';
-import { IfStatement } from './statements/control-flow/if-statement';
-import { WhileStatement } from './statements/control-flow/while-statement';
-import { DoLoopStatement } from './statements/control-flow/do-loop-statement';
-import { ForStatement } from './statements/control-flow/for-statement';
-import { GotoStatement } from './statements/control-flow/goto-statement';
+import { DoLoopStatement, ForStatement, GotoStatement, IfStatement, WhileStatement } from './statements/control-flow';
 import { EduBasicType } from './edu-basic-value';
-import { FileSystemService } from '../app/files/filesystem.service';
+import { FileSystemService } from '../app/disk/filesystem.service';
+import { ConsoleService } from '../app/console/console.service';
 
 interface ControlStructureFrame
 {
@@ -35,7 +32,8 @@ export class RuntimeExecution
         private readonly context: ExecutionContext,
         private readonly graphics: Graphics,
         private readonly audio: Audio,
-        private readonly fileSystem: FileSystemService
+        private readonly fileSystem: FileSystemService,
+        private readonly consoleService: ConsoleService | null = null
     )
     {
     }
@@ -43,6 +41,11 @@ export class RuntimeExecution
     public getFileSystem(): FileSystemService
     {
         return this.fileSystem;
+    }
+
+    public getConsoleService(): ConsoleService | null
+    {
+        return this.consoleService;
     }
 
     public setTabSwitchCallback(callback: ((tabId: string) => void) | null): void

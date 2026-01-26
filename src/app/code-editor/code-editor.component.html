@@ -2,23 +2,13 @@
     <div class="editor-toolbar">
         <button class="run-button" (click)="onRun()">Run</button>
     </div>
-    <div class="editor-content">
-        <div #lineNumbersDiv class="line-numbers">
-            <div *ngFor="let lineNum of lineNumbers; let i = index" class="line-number" [class.error]="lineNum > 0 && isLineError(lineNum - 1)">
-                <span *ngIf="lineNum > 0">{{ lineNum }}</span>
-                <span *ngIf="lineNum > 0 && isLineError(lineNum - 1)" class="error-indicator">⚠</span>
-                <span *ngIf="lineNum <= 0">&nbsp;</span>
-            </div>
-    </div>
-    <textarea 
-            #codeTextarea
-        class="code-textarea"
-        spellcheck="false"
-            [value]="code"
-        (input)="onTextAreaInput($event)"
-        (scroll)="onTextAreaScroll($event)"
-        (keydown)="onTextAreaKeyDown($event)"
-        (blur)="onTextAreaBlur()"
-    ></textarea>
-    </div>
+    <app-text-editor
+        #textEditor
+        [lines]="lines"
+        [errorLines]="errorLines"
+        [errorMessages]="errorMessages"
+        (linesChange)="onLinesChange($event)"
+        (keyDown)="onKeyDown($event)"
+        (blur)="onBlur()"
+    ></app-text-editor>
 </div>

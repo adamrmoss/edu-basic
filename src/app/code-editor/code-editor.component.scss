@@ -2,32 +2,34 @@
 
 .code-editor-container
 {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
     background-color: $navy;
     color: $white;
+    display: flex;
+    flex-direction: column;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
+    height: 100%;
 }
 
 .editor-toolbar
 {
-    display: flex;
-    padding: 8px;
+    align-items: center;
     background-color: $navy-darkest;
     border-bottom: 1px solid $blue-steel-dark;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
 }
 
 .run-button
 {
-    padding: 4px 12px;
     background-color: $blue-steel;
-    color: $white;
     border: 1px solid $blue-steel-dark;
+    color: $white;
     cursor: pointer;
     font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
+    padding: 4px 12px;
 
     &:hover
     {
@@ -40,65 +42,10 @@
     }
 }
 
-.editor-content
-{
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-}
-
-.line-numbers
+::ng-deep app-text-editor
 {
     display: flex;
     flex-direction: column;
-    background-color: $navy-darkest;
-    color: $silver;
-    padding: 8px 12px;
-    text-align: right;
-    user-select: none;
-    overflow: hidden;
-    border-right: 1px solid $blue-steel-dark;
-    min-width: 60px;
-}
-
-.line-number
-{
-    line-height: 20px;
-    min-height: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-right: 4px;
-
-    &.error
-    {
-        color: $orange;
-        background-color: rgba($orange, 0.1);
-    }
-}
-
-.error-indicator
-{
-    color: $orange;
-    font-size: 12px;
-    margin-left: 4px;
-}
-
-.code-textarea
-{
     flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: $white;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 14px;
-    padding: 8px;
-    resize: none;
-    line-height: 20px;
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
 }

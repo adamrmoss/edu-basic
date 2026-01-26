@@ -4,34 +4,26 @@ import { RuntimeExecution } from '../src/lang/runtime-execution';
 import { ExecutionResult } from '../src/lang/statements/statement';
 import { EduBasicType, EduBasicValue } from '../src/lang/edu-basic-value';
 
-import { ClsStatement } from '../src/lang/statements/io/cls-statement';
-import { ColorStatement } from '../src/lang/statements/io/color-statement';
-import { LocateStatement } from '../src/lang/statements/io/locate-statement';
-import { PsetStatement } from '../src/lang/statements/graphics/pset-statement';
-import { LineStatement } from '../src/lang/statements/graphics/line-statement';
-import { RectangleStatement } from '../src/lang/statements/graphics/rectangle-statement';
-import { OvalStatement } from '../src/lang/statements/graphics/oval-statement';
-import { CircleStatement } from '../src/lang/statements/graphics/circle-statement';
-import { TriangleStatement } from '../src/lang/statements/graphics/triangle-statement';
-import { ArcStatement } from '../src/lang/statements/graphics/arc-statement';
-import { PushStatement } from '../src/lang/statements/array/push-statement';
-import { PopStatement } from '../src/lang/statements/array/pop-statement';
-import { ShiftStatement } from '../src/lang/statements/array/shift-statement';
-import { UnshiftStatement } from '../src/lang/statements/array/unshift-statement';
-import { DimStatement } from '../src/lang/statements/variables/dim-statement';
-import { RandomizeStatement } from '../src/lang/statements/misc/randomize-statement';
-import { TempoStatement } from '../src/lang/statements/audio/tempo-statement';
-import { VolumeStatement } from '../src/lang/statements/audio/volume-statement';
-import { VoiceStatement } from '../src/lang/statements/audio/voice-statement';
-import { PlayStatement } from '../src/lang/statements/audio/play-statement';
+import { ClsStatement, ColorStatement, LocateStatement, PrintStatement } from '../src/lang/statements/io';
+import {
+    ArcStatement,
+    CircleStatement,
+    LineStatement,
+    OvalStatement,
+    PsetStatement,
+    RectangleStatement,
+    TriangleStatement
+} from '../src/lang/statements/graphics';
+import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '../src/lang/statements/array';
+import { DimStatement, LetStatement } from '../src/lang/statements/variables';
+import { RandomizeStatement } from '../src/lang/statements/misc';
+import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../src/lang/statements/audio';
 
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { PrintStatement } from '../src/lang/statements/io/print-statement';
-import { LetStatement } from '../src/lang/statements/variables/let-statement';
 import { coerceArrayElements } from '../src/lang/edu-basic-value';
 import { Graphics, Color } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/files/filesystem.service';
+import { FileSystemService } from '../src/app/disk/filesystem.service';
 
 class MockGraphics extends Graphics
 {

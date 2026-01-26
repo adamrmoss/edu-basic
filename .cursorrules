@@ -87,9 +87,18 @@ When solving problems, follow this workflow:
 # Technology-Specific Rules
 
 ## Angular
-- Use standalone components with separate files for templates (.html) and stylesheets (.scss)
+- **ALWAYS use standalone components** - Every `@Component` decorator MUST include `standalone: true`
+- Use separate files for templates (.html) and stylesheets (.scss) - NEVER include HTML/SCSS directly in TypeScript components
 - Prefer TypeScript over JavaScript
 - Prefer SCSS over CSS
+- **ALWAYS use IconComponent from ng-luna** - NEVER create custom SVG icons or invent your own icon rendering
+  - Use `<luna-icon>` component with the appropriate icon from ng-luna (e.g., `Folder`, `File`, `Edit`, `Trash`)
+  - For drag images or other DOM manipulation, clone the actual DOM elements that use IconComponent, never create facsimiles
+- **SCSS Property Ordering**: ALL CSS/SCSS properties MUST be alphabetized within each selector block
+  - Properties should be sorted alphabetically by property name (e.g., `align-items`, `background-color`, `border`, `color`, `display`, `font-size`, etc.)
+  - This applies to all selector blocks, including nested selectors, pseudo-classes (`:hover`, `:active`, etc.), and pseudo-elements (`::placeholder`, etc.)
+  - Example: `{ align-items: center; background-color: $navy; display: flex; }` ✅
+  - Example: `{ display: flex; align-items: center; background-color: $navy; }` ❌
 
 ## C# Code Style
 - Use explicit 'this.' to reference instance members (methods and properties)
@@ -109,11 +118,37 @@ When solving problems, follow this workflow:
 - **File Endings**: Files must end with exactly one newline character after the last content line
   - The last line of content should be followed by a single newline, then EOF
   - Do NOT include two blank lines at the end of files
+- **Error Handling**: Prefer returning null over throwing exceptions for recoverable errors
+  - Parsing methods (e.g., `parseLine`, `parseExpression`) should return `T | null` instead of throwing
+  - Use null returns to indicate failure states that callers can handle gracefully
+  - Avoid try-catch blocks for expected failure cases - check for null instead
+  - Exceptions should be reserved for truly exceptional/unexpected errors
+  - Example: `parseLine()` returns `ParsedLine | null` on parse failure, not a ParsedLine with `hasError: true`
 
 ## Architecture
 - Divide solutions by layers into projects
 - Subdivide projects semantically in domain space
 - Organize by domain concepts, NOT by technical layers
+
+## Module Organization & Barrel Files
+- **ALWAYS use barrel files (index.ts) for directories with multiple exports**
+- **Barrel files MUST be created for:**
+  - Any directory containing 3+ related TypeScript files that export classes/types/interfaces
+  - Subdirectories that group related functionality (e.g., `statements/array/`, `statements/control-flow/`)
+  - Main directories that contain subdirectories (e.g., `statements/`, `expressions/`)
+- **Barrel file structure:**
+  - Use `export * from './filename'` for each file in the directory
+  - Do NOT export non-public utilities or internal helpers from barrel files
+  - Main barrel files should re-export from subdirectory barrels when appropriate
+- **Import rules:**
+  - **ALWAYS import from barrel files** (e.g., `from './statements/array'`) instead of individual files (e.g., `from './statements/array/pop-statement'`)
+  - Use barrel files to simplify imports and reduce path length
+  - Group related imports from the same barrel on a single line when appropriate
+- **Examples:**
+  - ✅ `import { PopStatement, PushStatement } from '../../lang/statements/array'`
+  - ❌ `import { PopStatement } from '../../lang/statements/array/pop-statement'`
+  - ✅ `import { IfStatement, WhileStatement } from '../../lang/statements/control-flow'`
+  - ❌ `import { IfStatement } from '../../lang/statements/control-flow/if-statement'`
 
 ## EduBASIC Language Terminology
 - NEVER use the term "function" for computational operations (e.g., SIN, COS, PRINT)

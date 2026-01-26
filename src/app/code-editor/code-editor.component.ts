@@ -1,34 +1,30 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
-import { ParserService, ParsedLine } from '../interpreter/parser.service';
+import { ParserService } from '../interpreter/parser';
 import { Program } from '../../lang/program';
 import { ExecutionResult } from '../../lang/statements/statement';
+import { TextEditorComponent } from '../text-editor/text-editor.component';
 
 @Component({
     selector: 'app-code-editor',
-    imports: [ CommonModule ],
+    standalone: true,
+    imports: [ CommonModule, TextEditorComponent ],
     templateUrl: './code-editor.component.html',
     styleUrl: './code-editor.component.scss'
 })
-export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
+export class CodeEditorComponent implements OnInit, OnDestroy
 {
-    @ViewChild('codeTextarea', { static: false })
-    public codeTextareaRef!: ElementRef<HTMLTextAreaElement>;
+    @ViewChild('textEditor', { static: false })
+    public textEditorRef!: TextEditorComponent;
 
-    @ViewChild('lineNumbersDiv', { static: false })
-    public lineNumbersRef!: ElementRef<HTMLDivElement>;
-
-    public code: string = '';
-    public lineNumbers: number[] = [];
+    public lines: string[] = [''];
     public errorLines: Set<number> = new Set<number>();
+    public errorMessages: Map<number, string> = new Map<number, string>();
 
     private readonly destroy$ = new Subject<void>();
-    private textareaElement: HTMLTextAreaElement | null = null;
-    private lineNumbersElement: HTMLDivElement | null = null;
-    private resizeHandler: (() => void) | null = null;
 
     constructor(
         private readonly diskService: DiskService,
@@ -43,50 +39,33 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
         this.diskService.programCode$
             .pipe(takeUntil(this.destroy$))
             .subscribe((code: string) => {
-                this.code = code;
-                this.updateLineNumbers();
+                this.lines = code.split('\n');
+                if (this.lines.length === 0)
+                {
+                    this.lines = [''];
+                }
             });
-    }
-
-    public ngAfterViewInit(): void
-    {
-        this.textareaElement = this.codeTextareaRef?.nativeElement || null;
-        this.lineNumbersElement = this.lineNumbersRef?.nativeElement || null;
-        this.updateLineNumbers();
-        
-        this.resizeHandler = () => {
-            this.updateLineNumbers();
-        };
-        
-        window.addEventListener('resize', this.resizeHandler);
     }
 
     public ngOnDestroy(): void
     {
-        if (this.resizeHandler)
-        {
-            window.removeEventListener('resize', this.resizeHandler);
-        }
         this.destroy$.next();
         this.destroy$.complete();
     }
 
-    public onTextAreaInput(event: Event): void
+    public onLinesChange(lines: string[]): void
     {
-        const textarea = event.target as HTMLTextAreaElement;
-        this.code = textarea.value;
-        this.diskService.programCode = this.code;
-        this.updateLineNumbers();
+        this.lines = lines;
+        const code = lines.join('\n');
+        this.diskService.programCode = code;
         this.validateAndUpdateLines();
     }
 
-    public onTextAreaKeyDown(event: KeyboardEvent): void
+    public onKeyDown(event: KeyboardEvent): void
     {
         if (event.key === 'Enter')
         {
-            const textarea = event.target as HTMLTextAreaElement;
-            const cursorPosition = textarea.selectionStart;
-            const lineIndex = this.getLineIndexFromPosition(cursorPosition);
+            const lineIndex = this.textEditorRef.getCursorLineIndex();
             
             setTimeout(() => {
                 this.updateLineWithCanonical(lineIndex);
@@ -95,36 +74,23 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
         }
     }
 
-    public onTextAreaBlur(): void
+    public onBlur(): void
     {
-        if (this.textareaElement)
-        {
-            const cursorPosition = this.textareaElement.selectionStart;
-            const lineIndex = this.getLineIndexFromPosition(cursorPosition);
-            this.updateLineWithCanonical(lineIndex);
-        }
-        
+        const lineIndex = this.textEditorRef.getCursorLineIndex();
+        this.updateLineWithCanonical(lineIndex);
         this.validateAndUpdateLines();
-    }
-
-    public onTextAreaScroll(event: Event): void
-    {
-        const textarea = event.target as HTMLTextAreaElement;
-        
-        if (this.lineNumbersElement)
-        {
-            this.lineNumbersElement.scrollTop = textarea.scrollTop;
-        }
     }
 
     public onRun(): void
     {
-        const sourceCode = this.code;
+        const sourceCode = this.diskService.getProgramCodeFromFile();
         
         if (!sourceCode.trim())
         {
             return;
         }
+
+        const lines = sourceCode.split('\n');
 
         try
         {
@@ -133,7 +99,6 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
             const program = this.interpreterService.getSharedProgram();
             program.clear();
             
-            const lines = sourceCode.split('\n');
             let lineIndex = 0;
             let hasStatements = false;
 
@@ -146,7 +111,15 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
                     continue;
                 }
 
-                const parsed = this.parserService.parseLine(lineIndex, line);
+                const parseResult = this.parserService.parseLine(lineIndex, line);
+                
+                if (!parseResult.success)
+                {
+                    console.error(`Parse error on line ${i + 1}:`, parseResult.error || 'Unable to parse line');
+                    return;
+                }
+                
+                const parsed = parseResult.value;
                 
                 if (parsed.hasError)
                 {
@@ -208,101 +181,49 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
         }
     }
 
-    private updateLineNumbers(): void
-    {
-        const lines = this.code.split('\n');
-        
-        if (!this.textareaElement)
-        {
-            this.lineNumbers = lines.map((_, i) => i + 1);
-            return;
-        }
-
-        const lineNumbers: number[] = [];
-        const textarea = this.textareaElement;
-        const style = window.getComputedStyle(textarea);
-        const font = `${style.fontSize} ${style.fontFamily}`;
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        
-        if (!context)
-        {
-            this.lineNumbers = lines.map((_, i) => i + 1);
-            return;
-        }
-
-        context.font = font;
-        const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
-        const textareaWidth = textarea.clientWidth - padding - 2;
-        const charWidth = context.measureText('M').width;
-        const charsPerLine = Math.floor(textareaWidth / charWidth);
-        
-        for (let i = 0; i < lines.length; i++)
-        {
-            const line = lines[i];
-            const visualLines = Math.max(1, Math.ceil(line.length / charsPerLine));
-            
-            for (let j = 0; j < visualLines; j++)
-            {
-                if (j === 0)
-                {
-                    lineNumbers.push(i + 1);
-        }
-                else
-                {
-                    lineNumbers.push(-1);
-                }
-            }
-        }
-
-        this.lineNumbers = lineNumbers;
-    }
-
     private validateAndUpdateLines(): void
     {
-        const lines = this.code.split('\n');
         const newErrorLines = new Set<number>();
+        const newErrorMessages = new Map<number, string>();
         let lineIndex = 0;
         
-        for (let i = 0; i < lines.length; i++)
+        for (let i = 0; i < this.lines.length; i++)
         {
-            const line = lines[i].trim();
+            const line = this.lines[i].trim();
             
             if (line.length === 0 || line.startsWith("'"))
             {
                 continue;
             }
             
-            try
-            {
-                const parsed = this.parserService.parseLine(lineIndex, line);
-                
-                if (parsed.hasError)
-                {
-                    newErrorLines.add(i);
-                }
-                
-                lineIndex++;
-            }
-            catch (error)
+            const parseResult = this.parserService.parseLine(lineIndex, line);
+            
+            if (!parseResult.success)
             {
                 newErrorLines.add(i);
+                newErrorMessages.set(i, parseResult.error || 'Parse error');
             }
+            else if (parseResult.value.hasError)
+            {
+                newErrorLines.add(i);
+                newErrorMessages.set(i, parseResult.value.errorMessage || 'Parse error');
+            }
+            
+            lineIndex++;
         }
         
         this.errorLines = newErrorLines;
+        this.errorMessages = newErrorMessages;
     }
 
     private updateLineWithCanonical(lineIndex: number): void
     {
-        const lines = this.code.split('\n');
-        
-        if (lineIndex < 0 || lineIndex >= lines.length)
+        if (lineIndex < 0 || lineIndex >= this.lines.length)
         {
             return;
         }
         
-        const originalLine = lines[lineIndex];
+        const originalLine = this.lines[lineIndex];
         const trimmedLine = originalLine.trim();
         
         if (trimmedLine.length === 0 || trimmedLine.startsWith("'"))
@@ -315,16 +236,15 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
         if (canonical !== null && canonical !== trimmedLine)
         {
             const leadingWhitespace = originalLine.match(/^\s*/)?.[0] || '';
-            lines[lineIndex] = leadingWhitespace + canonical;
-            const newCode = lines.join('\n');
-            this.code = newCode;
+            this.lines[lineIndex] = leadingWhitespace + canonical;
+            const newCode = this.lines.join('\n');
             this.diskService.programCode = newCode;
             
-            if (this.textareaElement)
+            if (this.textEditorRef)
             {
                 setTimeout(() => {
                     const newPosition = this.getPositionFromLineIndex(lineIndex + 1);
-                    this.textareaElement?.setSelectionRange(newPosition, newPosition);
+                    this.textEditorRef.setCursorPosition(newPosition);
                 }, 0);
             }
         }
@@ -332,44 +252,25 @@ export class CodeEditorComponent implements OnInit, OnDestroy, AfterViewInit
 
     private getCanonicalRepresentation(line: string): string | null
     {
-        try
+        const parseResult = this.parserService.parseLine(0, line);
+        
+        if (parseResult.success && !parseResult.value.hasError)
         {
-            const parsed = this.parserService.parseLine(0, line);
-            
-            if (!parsed.hasError)
-            {
-                return parsed.statement.toString();
-            }
-        }
-        catch (error)
-        {
-            // Ignore parse errors
+            return parseResult.value.statement.toString();
         }
         
         return null;
     }
 
-    private getLineIndexFromPosition(position: number): number
-    {
-        const textBeforeCursor = this.code.substring(0, position);
-        return textBeforeCursor.split('\n').length - 1;
-    }
-
     private getPositionFromLineIndex(lineIndex: number): number
     {
-        const lines = this.code.split('\n');
         let position = 0;
         
-        for (let i = 0; i < lineIndex && i < lines.length; i++)
+        for (let i = 0; i < lineIndex && i < this.lines.length; i++)
         {
-            position += lines[i].length + 1;
+            position += this.lines[i].length + 1;
         }
         
         return position;
-    }
-
-    public isLineError(lineIndex: number): boolean
-    {
-        return this.errorLines.has(lineIndex);
     }
 }

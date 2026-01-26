@@ -1,0 +1,76 @@
+@use 'ng-luna/theme/_palette.scss' as *;
+
+.editor-content
+{
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.line-numbers
+{
+    background-color: $navy-darkest;
+    border-right: 1px solid $blue-steel-dark;
+    color: $silver;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    min-width: 60px;
+    overflow: hidden;
+    padding: 8px 12px;
+    text-align: right;
+    user-select: none;
+}
+
+.line-number
+{
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    line-height: 20px;
+    min-height: 20px;
+    padding-right: 4px;
+    width: 100%;
+
+    &.error
+    {
+        background-color: rgba($orange, 0.1);
+        color: $orange;
+    }
+
+    &.selected
+    {
+        background-color: rgba($blue-bright, 0.2);
+        color: $blue-bright;
+    }
+
+    &:not(.selected):hover
+    {
+        background-color: rgba($blue-steel, 0.1);
+    }
+}
+
+.error-indicator
+{
+    color: $orange;
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+.code-textarea
+{
+    background: transparent;
+    border: none;
+    color: $white;
+    flex: 1;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    line-height: 20px;
+    outline: none;
+    overflow-wrap: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 8px;
+    resize: none;
+    white-space: pre-wrap;
+}

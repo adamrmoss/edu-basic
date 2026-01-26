@@ -3210,10 +3210,10 @@ INPUT scores%[]
 PRINT &quot;Scores: &quot;, scores%[]
 
 ' Using LOCATE for formatted input
-LOCATE 10, 1
+LOCATE 9, 0
 PRINT &quot;Name: &quot;;
 INPUT playerName$
-LOCATE 11, 1
+LOCATE 10, 0
 PRINT &quot;Score: &quot;;
 INPUT score%
 </code></pre>
@@ -3225,18 +3225,19 @@ INPUT score%
 </code></pre>
 <p><strong>Rules:</strong></p>
 <ul>
-<li>Row and column are 1-based (row 1, column 1 is the top-left corner)</li>
-<li>The text display has a fixed character grid size</li>
+<li>Row and column are 0-based (row 0, column 0 is the top-left corner)</li>
+<li>The text display has a fixed character grid size (80 columns × 30 rows)</li>
+<li>Valid row range: 0 to 29, valid column range: 0 to 79</li>
 <li>After <code>LOCATE</code>, subsequent <code>PRINT</code> statements output at the specified position</li>
 </ul>
 <p><strong>Examples:</strong></p>
-<pre><code class="language-plain_text">LOCATE 10, 20
-PRINT &quot;This text appears at row 10, column 20&quot;
+<pre><code class="language-plain_text">LOCATE 9, 19
+PRINT &quot;This text appears at row 9, column 19&quot;
 
-LOCATE 1, 1
+LOCATE 0, 0
 PRINT &quot;Top-left corner&quot;
 
-FOR row% = 1 TO 10
+FOR row% = 0 TO 9
     LOCATE row%, row%
     PRINT &quot;*&quot;
 NEXT row%
@@ -3371,11 +3372,11 @@ SET VOLUME volume#
 <p><strong>Note:</strong> <code>SET VOLUME</code> is an alternative to the <code>VOLUME</code> statement. <code>VOLUME</code> uses integer values 0-127, while <code>SET VOLUME</code> uses real values 0.0-1.0. Both commands control the same global volume setting.</p>
 <p><strong>Examples:</strong></p>
 <pre><code class="language-plain_text">SET LINE SPACING OFF    ' Use 80×30 character grid (default)
-LOCATE 30, 1
+LOCATE 29, 0
 PRINT &quot;Bottom row&quot;
 
 SET LINE SPACING ON     ' Use 80×24 character grid
-LOCATE 24, 1
+LOCATE 23, 0
 PRINT &quot;Bottom row with spacing&quot;
 
 SET TEXT WRAP OFF       ' Truncate long lines (default)
@@ -6109,10 +6110,10 @@ CLOSE file%
 <h3><a id="locate" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>LOCATE</h3>
 <p><strong>Type:</strong> Command (Text I/O)<br />
 <strong>Syntax:</strong> <code>LOCATE row%, column%</code><br />
-<strong>Description:</strong> Positions the text cursor at a specific row and column in the text display. Row and column are 1-based (row 1, column 1 is the top-left corner).<br />
+<strong>Description:</strong> Positions the text cursor at a specific row and column in the text display. Row and column are 0-based (row 0, column 0 is the top-left corner). Valid ranges: row 0-29, column 0-79.<br />
 <strong>Example:</strong></p>
-<pre><code class="language-plain_text">LOCATE 10, 20
-PRINT &quot;This text appears at row 10, column 20&quot;
+<pre><code class="language-plain_text">LOCATE 9, 19
+PRINT &quot;This text appears at row 9, column 19&quot;
 </code></pre>
 <hr />
 <h3><a id="let" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>LET</h3>

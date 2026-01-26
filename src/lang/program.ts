@@ -1,5 +1,5 @@
 import { Statement } from './statements/statement';
-import { LabelStatement } from './statements/control-flow/label-statement';
+import { LabelStatement } from './statements/control-flow';
 import { Graphics } from './graphics';
 import { Audio } from './audio';
 
