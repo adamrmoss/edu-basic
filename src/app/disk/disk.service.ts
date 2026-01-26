@@ -284,39 +284,14 @@ export class DiskService
 
     public renameDirectory(oldPath: string, newPath: string): boolean
     {
-        const normalizedOldPath = oldPath.endsWith('/') ? oldPath : oldPath + '/';
-        const normalizedNewPath = newPath.endsWith('/') ? newPath : newPath + '/';
-        const allFiles = this.fileSystemService.getAllFiles();
-        const filesToRename: Array<[string, string]> = [];
+        const result = this.fileSystemService.renameDirectory(oldPath, newPath);
         
-        for (const filePath of allFiles.keys())
+        if (result)
         {
-            if (filePath.startsWith(normalizedOldPath))
-            {
-                const relativePath = filePath.substring(normalizedOldPath.length);
-                const newFilePath = normalizedNewPath + relativePath;
-                filesToRename.push([filePath, newFilePath]);
-            }
+            this.filesChangedSubject.next();
         }
         
-        if (filesToRename.length === 0)
-        {
-            return false;
-        }
-        
-        for (const [oldFilePath, newFilePath] of filesToRename)
-        {
-            const data = this.fileSystemService.readFile(oldFilePath);
-            
-            if (data)
-            {
-                this.fileSystemService.writeFile(newFilePath, data);
-                this.fileSystemService.deleteFile(oldFilePath);
-            }
-        }
-        
-        this.filesChangedSubject.next();
-        return true;
+        return result;
     }
 
     public isDirectory(path: string): boolean

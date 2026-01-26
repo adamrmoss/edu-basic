@@ -40,10 +40,10 @@
             <div class="section-header">
                 <h3>Files</h3>
                 <div class="header-actions">
-                    <button class="icon-button" (click)="onNewFile('')" title="New File at Root">
+                    <button class="icon-button" (click)="onNewFileInSelectedOrRoot()" [title]="getNewFileTitle()">
                         <luna-icon size="16" [svg]="fileIcon"></luna-icon>
                     </button>
-                    <button class="icon-button" (click)="onNewDirectory('')" title="New Directory at Root">
+                    <button class="icon-button" (click)="onNewDirectoryInSelectedOrRoot()" [title]="getNewDirectoryTitle()">
                         <luna-icon size="16" [svg]="folderIcon"></luna-icon>
                     </button>
                 </div>
@@ -160,7 +160,14 @@
             [class.file]="node.type === 'file'"
             [class.selected]="selectedFile === node"
             [class.expanded]="node.expanded"
+            [class.dragging]="isNodeBeingDragged(node)"
+            [class.in-dragged-subtree]="isNodeInDraggedSubtree(node)"
             [style.padding-left.px]="level * 16 + 12"
+            [draggable]="!isProgramBas(node)"
+            (dragstart)="onDragStart($event, node)"
+            (dragover)="onDragOver($event, node)"
+            (drop)="onDrop($event, node)"
+            (dragend)="onDragEnd()"
         >
             <div class="item-content" (click)="selectFile(node)" (dblclick)="toggleDirectory(node)" (contextmenu)="onContextMenu($event, node.path)">
                 <luna-icon 

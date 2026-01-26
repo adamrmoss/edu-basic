@@ -254,6 +254,45 @@ export class FileSystemService
         return false;
     }
 
+    public renameDirectory(oldPath: string, newPath: string): boolean
+    {
+        if (!oldPath || !newPath)
+        {
+            return false;
+        }
+
+        const node = this.findNode(oldPath);
+
+        if (!node || node.type !== 'directory')
+        {
+            return false;
+        }
+
+        const dir = node as DirectoryNode;
+        const oldParent = this.findParentDirectory(oldPath);
+        const newParentPath = this.getParentPath(newPath);
+        const newParent = newParentPath ? this.findNode(newParentPath) : this.root;
+
+        if (!newParent || newParent.type !== 'directory')
+        {
+            return false;
+        }
+
+        return dir.moveTo(oldParent, newParent as DirectoryNode);
+    }
+
+    private getParentPath(path: string): string
+    {
+        const lastSlash = path.lastIndexOf('/');
+
+        if (lastSlash === -1)
+        {
+            return '';
+        }
+
+        return path.substring(0, lastSlash);
+    }
+
     public listFiles(): string[]
     {
         const files: string[] = [];

@@ -224,6 +224,19 @@
         font-weight: 500;
     }
 
+    &.dragging
+    {
+        background-color: rgba($blue-bright, 0.3);
+        border: 1px dashed $blue-bright;
+        opacity: 0.7;
+    }
+
+    &.in-dragged-subtree
+    {
+        background-color: rgba($blue-bright, 0.15);
+        border-left: 2px solid $blue-bright;
+    }
+
     .item-content
     {
         align-items: center;

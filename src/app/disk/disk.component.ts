@@ -45,6 +45,8 @@ export class DiskComponent implements OnInit, OnDestroy
     public showContextMenu: boolean = false;
     public readonly emptyErrorLines: Set<number> = new Set();
     public readonly emptyErrorMessages: Map<number, string> = new Map();
+    private expandedPaths: Set<string> = new Set();
+    public draggedNode: FileNode | null = null;
 
     private readonly destroy$ = new Subject<void>();
 
@@ -138,6 +140,11 @@ export class DiskComponent implements OnInit, OnDestroy
         
         if (fileName)
         {
+            if (parentPath)
+            {
+                this.expandPathAndParents(parentPath);
+            }
+            
             const fullPath = parentPath ? `${parentPath}/${fileName}` : fileName;
             this.diskService.createFile(fullPath);
         }
@@ -149,9 +156,46 @@ export class DiskComponent implements OnInit, OnDestroy
         
         if (dirName)
         {
+            if (parentPath)
+            {
+                this.expandPathAndParents(parentPath);
+            }
+            
             const fullPath = parentPath ? `${parentPath}/${dirName}` : dirName;
             this.diskService.createDirectory(fullPath);
         }
+    }
+
+    public onNewFileInSelectedOrRoot(): void
+    {
+        const parentPath = this.selectedFile && this.selectedFile.type === 'directory' ? this.selectedFile.path : '';
+        this.onNewFile(parentPath);
+    }
+
+    public onNewDirectoryInSelectedOrRoot(): void
+    {
+        const parentPath = this.selectedFile && this.selectedFile.type === 'directory' ? this.selectedFile.path : '';
+        this.onNewDirectory(parentPath);
+    }
+
+    public getNewFileTitle(): string
+    {
+        if (this.selectedFile && this.selectedFile.type === 'directory')
+        {
+            return `New File in ${this.selectedFile.name}`;
+        }
+        
+        return 'New File at Root';
+    }
+
+    public getNewDirectoryTitle(): string
+    {
+        if (this.selectedFile && this.selectedFile.type === 'directory')
+        {
+            return `New Directory in ${this.selectedFile.name}`;
+        }
+        
+        return 'New Directory at Root';
     }
 
     public onDeleteFile(): void
@@ -234,7 +278,35 @@ export class DiskComponent implements OnInit, OnDestroy
         if (file.type === 'directory')
         {
             file.expanded = !file.expanded;
+            
+            if (file.expanded)
+            {
+                this.expandedPaths.add(file.path);
+            }
+            else
+            {
+                this.expandedPaths.delete(file.path);
+            }
         }
+    }
+
+    private expandPath(path: string): void
+    {
+        this.expandedPaths.add(path);
+    }
+
+    private expandPathAndParents(path: string): void
+    {
+        const parts = path.split('/').filter(p => p.length > 0);
+        let currentPath = '';
+        
+        for (const part of parts)
+        {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+            this.expandedPaths.add(currentPath);
+        }
+        
+        this.refreshFileTree();
     }
 
     public onLinesChange(lines: string[]): void
@@ -385,7 +457,7 @@ export class DiskComponent implements OnInit, OnDestroy
                 path: child.path,
                 type: child.type,
                 children: undefined,
-                expanded: false
+                expanded: this.expandedPaths.has(child.path)
             };
 
             if (child.type === 'directory')
@@ -444,5 +516,164 @@ export class DiskComponent implements OnInit, OnDestroy
     public isProgramBas(file: FileNode): boolean
     {
         return file.path === 'program.bas' || file.name === 'program.bas';
+    }
+
+    public onDragStart(event: DragEvent, node: FileNode): void
+    {
+        if (this.isProgramBas(node))
+        {
+            event.preventDefault();
+            return;
+        }
+
+        this.draggedNode = node;
+        event.dataTransfer!.effectAllowed = 'move';
+        event.dataTransfer!.setData('text/plain', node.path);
+
+        if (node.type === 'directory')
+        {
+            const itemCount = this.countSubtreeItems(node);
+            const dragImage = this.createDragImage(node.name, itemCount);
+            event.dataTransfer!.setDragImage(dragImage, 0, 0);
+        }
+    }
+
+    public onDragOver(event: DragEvent, node: FileNode): void
+    {
+        if (!this.draggedNode || this.draggedNode === node)
+        {
+            return;
+        }
+
+        let targetPath: string;
+
+        if (node.type === 'directory')
+        {
+            targetPath = node.path;
+        }
+        else
+        {
+            targetPath = this.getParentPath(node.path);
+        }
+
+        if (this.isDescendantOf(this.draggedNode.path, targetPath))
+        {
+            return;
+        }
+
+        event.preventDefault();
+        event.dataTransfer!.dropEffect = 'move';
+    }
+
+    public onDrop(event: DragEvent, targetNode: FileNode): void
+    {
+        event.preventDefault();
+
+        if (!this.draggedNode)
+        {
+            return;
+        }
+
+        let targetPath: string;
+
+        if (targetNode.type === 'directory')
+        {
+            targetPath = targetNode.path;
+        }
+        else
+        {
+            targetPath = this.getParentPath(targetNode.path);
+        }
+
+        if (this.isDescendantOf(this.draggedNode.path, targetPath))
+        {
+            return;
+        }
+
+        const newPath = targetPath ? `${targetPath}/${this.draggedNode.name}` : this.draggedNode.name;
+
+        if (this.draggedNode.type === 'directory')
+        {
+            this.diskService.renameDirectory(this.draggedNode.path, newPath);
+        }
+        else
+        {
+            this.diskService.renameFile(this.draggedNode.path, newPath);
+        }
+
+        if (targetPath)
+        {
+            this.expandPathAndParents(targetPath);
+        }
+
+        this.draggedNode = null;
+    }
+
+    public onDragEnd(): void
+    {
+        this.draggedNode = null;
+    }
+
+    public isNodeBeingDragged(node: FileNode): boolean
+    {
+        return this.draggedNode === node;
+    }
+
+    public isNodeInDraggedSubtree(node: FileNode): boolean
+    {
+        if (!this.draggedNode || this.draggedNode.type !== 'directory')
+        {
+            return false;
+        }
+
+        return this.isDescendantOf(node.path, this.draggedNode.path);
+    }
+
+    private isDescendantOf(descendantPath: string, ancestorPath: string): boolean
+    {
+        if (!ancestorPath)
+        {
+            return false;
+        }
+
+        return descendantPath.startsWith(ancestorPath + '/');
+    }
+
+    private countSubtreeItems(node: FileNode): number
+    {
+        let count = 1;
+
+        if (node.children)
+        {
+            for (const child of node.children)
+            {
+                count += this.countSubtreeItems(child);
+            }
+        }
+
+        return count;
+    }
+
+    private createDragImage(name: string, itemCount: number): HTMLElement
+    {
+        const dragImage = document.createElement('div');
+        dragImage.style.position = 'absolute';
+        dragImage.style.top = '-1000px';
+        dragImage.style.left = '-1000px';
+        dragImage.style.padding = '8px 12px';
+        dragImage.style.backgroundColor = 'rgba(30, 60, 90, 0.95)';
+        dragImage.style.border = '1px solid rgba(100, 150, 200, 0.8)';
+        dragImage.style.borderRadius = '4px';
+        dragImage.style.color = '#ffffff';
+        dragImage.style.fontFamily = "'IBM Plex Mono', monospace";
+        dragImage.style.fontSize = '13px';
+        dragImage.style.whiteSpace = 'nowrap';
+        dragImage.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+        dragImage.textContent = `${name} (${itemCount} item${itemCount !== 1 ? 's' : ''})`;
+        document.body.appendChild(dragImage);
+        
+        setTimeout(() => document.body.removeChild(dragImage), 0);
+        
+        return dragImage;
     }
 }
