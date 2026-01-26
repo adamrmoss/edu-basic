@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import JSZip from 'jszip';
 import { FileSystemService } from './filesystem.service';
+import { DirectoryNode } from './filesystem-node';
 
 export interface DiskMetadata
 {
@@ -176,6 +177,12 @@ export class DiskService
         return this.fileSystemService.listFiles();
     }
 
+    public getFileSystemRoot(): DirectoryNode
+    {
+        this.ensureProgramBasExists();
+        return this.fileSystemService.getRoot();
+    }
+
     private ensureProgramBasExists(): void
     {
         if (!this.fileSystemService.fileExists('program.bas'))
@@ -222,6 +229,11 @@ export class DiskService
 
     public deleteFile(path: string): void
     {
+        if (path === 'program.bas')
+        {
+            return;
+        }
+        
         this.fileSystemService.deleteFile(path);
         this.filesChangedSubject.next();
     }
@@ -234,34 +246,13 @@ export class DiskService
 
     public createDirectory(path: string): void
     {
-        const normalizedPath = path.endsWith('/') ? path : path + '/';
-        const markerFile = normalizedPath + '.dir';
-        this.fileSystemService.writeFile(markerFile, new Uint8Array(0));
+        this.fileSystemService.createDirectory(path);
         this.filesChangedSubject.next();
     }
 
     public deleteDirectory(path: string): boolean
     {
-        const normalizedPath = path.endsWith('/') ? path : path + '/';
-        const allFiles = this.fileSystemService.getAllFiles();
-        const filesToDelete: string[] = [];
-        
-        for (const filePath of allFiles.keys())
-        {
-            if (filePath.startsWith(normalizedPath))
-            {
-                filesToDelete.push(filePath);
-            }
-        }
-        
-        let deleted = false;
-        for (const filePath of filesToDelete)
-        {
-            if (this.fileSystemService.deleteFile(filePath))
-            {
-                deleted = true;
-            }
-        }
+        const deleted = this.fileSystemService.deleteDirectory(path);
         
         if (deleted)
         {
@@ -273,6 +264,11 @@ export class DiskService
 
     public renameFile(oldPath: string, newPath: string): boolean
     {
+        if (oldPath === 'program.bas')
+        {
+            return false;
+        }
+        
         const data = this.fileSystemService.readFile(oldPath);
         
         if (!data)
@@ -325,8 +321,6 @@ export class DiskService
 
     public isDirectory(path: string): boolean
     {
-        const normalizedPath = path.endsWith('/') ? path : path + '/';
-        const markerFile = normalizedPath + '.dir';
-        return this.fileSystemService.fileExists(markerFile);
+        return this.fileSystemService.directoryExists(path);
     }
 }

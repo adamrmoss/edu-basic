@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { FileSystemNode, FileNode, DirectoryNode } from './filesystem-node';
 
 export interface FileHandle
 {
@@ -13,58 +14,301 @@ export interface FileHandle
 })
 export class FileSystemService
 {
-    private files: Map<string, Uint8Array> = new Map();
+    private root: DirectoryNode;
     private openHandles: Map<number, FileHandle> = new Map();
     private nextHandleId: number = 1;
 
     public constructor()
     {
+        this.root = new DirectoryNode('', '');
     }
 
     public clear(): void
     {
-        this.files.clear();
+        this.root = new DirectoryNode('', '');
         this.openHandles.clear();
         this.nextHandleId = 1;
     }
 
+    public getRoot(): DirectoryNode
+    {
+        return this.root;
+    }
+
+    private findNode(path: string): FileSystemNode | null
+    {
+        if (!path)
+        {
+            return this.root;
+        }
+
+        const parts = path.split('/').filter(p => p.length > 0);
+        let current: FileSystemNode = this.root;
+
+        for (const part of parts)
+        {
+            if (current.type !== 'directory')
+            {
+                return null;
+            }
+
+            const dir = current as DirectoryNode;
+            const child = dir.getChild(part);
+
+            if (!child)
+            {
+                return null;
+            }
+
+            current = child;
+        }
+
+        return current;
+    }
+
+    private findParentDirectory(path: string): DirectoryNode | null
+    {
+        if (!path)
+        {
+            return this.root;
+        }
+
+        const lastSlash = path.lastIndexOf('/');
+
+        if (lastSlash === -1)
+        {
+            return this.root;
+        }
+
+        const parentPath = path.substring(0, lastSlash);
+        const node = this.findNode(parentPath);
+
+        if (node && node.type === 'directory')
+        {
+            return node as DirectoryNode;
+        }
+
+        return null;
+    }
+
     public fileExists(path: string): boolean
     {
-        return this.files.has(path);
+        const node = this.findNode(path);
+        return node !== null && node.type === 'file';
+    }
+
+    public directoryExists(path: string): boolean
+    {
+        const node = this.findNode(path);
+        return node !== null && node.type === 'directory';
     }
 
     public readFile(path: string): Uint8Array | null
     {
-        return this.files.get(path) ?? null;
+        const node = this.findNode(path);
+
+        if (node && node.type === 'file')
+        {
+            return node.data;
+        }
+
+        return null;
     }
 
     public writeFile(path: string, data: Uint8Array): void
     {
-        this.files.set(path, data);
+        if (!path)
+        {
+            return;
+        }
+
+        const existing = this.findNode(path);
+
+        if (existing)
+        {
+            if (existing.type === 'file')
+            {
+                existing.data = data;
+            }
+        }
+        else
+        {
+            const parts = path.split('/').filter(p => p.length > 0);
+            const fileName = parts[parts.length - 1];
+            const parentPath = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+            const parent = this.findParentDirectory(path) || this.ensureDirectory(parentPath);
+
+            if (parent)
+            {
+                const fileNode = new FileNode(fileName, path, data);
+                parent.addChild(fileNode);
+            }
+        }
     }
 
     public deleteFile(path: string): boolean
     {
-        return this.files.delete(path);
+        if (!path)
+        {
+            return false;
+        }
+
+        const parts = path.split('/').filter(p => p.length > 0);
+        const fileName = parts[parts.length - 1];
+        const parentPath = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+        const parent = this.findParentDirectory(path);
+
+        if (parent)
+        {
+            return parent.removeChild(fileName);
+        }
+
+        return false;
+    }
+
+    public createDirectory(path: string): void
+    {
+        if (!path)
+        {
+            return;
+        }
+
+        this.ensureDirectory(path);
+    }
+
+    private ensureDirectory(path: string): DirectoryNode | null
+    {
+        if (!path)
+        {
+            return this.root;
+        }
+
+        const existing = this.findNode(path);
+
+        if (existing)
+        {
+            if (existing.type === 'directory')
+            {
+                return existing as DirectoryNode;
+            }
+
+            return null;
+        }
+
+        const parts = path.split('/').filter(p => p.length > 0);
+        let current: DirectoryNode = this.root;
+
+        for (const part of parts)
+        {
+            let child = current.getChild(part);
+
+            if (!child)
+            {
+                const dirPath = current.path ? `${current.path}/${part}` : part;
+                child = new DirectoryNode(part, dirPath);
+                current.addChild(child);
+            }
+
+            if (child.type !== 'directory')
+            {
+                return null;
+            }
+
+            current = child as DirectoryNode;
+        }
+
+        return current;
+    }
+
+    public deleteDirectory(path: string): boolean
+    {
+        if (!path)
+        {
+            return false;
+        }
+
+        const node = this.findNode(path);
+
+        if (!node || node.type !== 'directory')
+        {
+            return false;
+        }
+
+        const dir = node as DirectoryNode;
+
+        if (dir.hasChildren)
+        {
+            return false;
+        }
+
+        const parts = path.split('/').filter(p => p.length > 0);
+        const dirName = parts[parts.length - 1];
+        const parentPath = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+        const parent = this.findParentDirectory(path);
+
+        if (parent)
+        {
+            return parent.removeChild(dirName);
+        }
+
+        return false;
     }
 
     public listFiles(): string[]
     {
-        return Array.from(this.files.keys());
+        const files: string[] = [];
+        this.collectFilePaths(this.root, files);
+        return files;
+    }
+
+    private collectFilePaths(node: FileSystemNode, files: string[]): void
+    {
+        if (node.type === 'file')
+        {
+            files.push(node.path);
+        }
+        else
+        {
+            const dir = node as DirectoryNode;
+
+            for (const child of dir.children.values())
+            {
+                this.collectFilePaths(child, files);
+            }
+        }
     }
 
     public getAllFiles(): Map<string, Uint8Array>
     {
-        return new Map(this.files);
+        const files = new Map<string, Uint8Array>();
+        this.collectFiles(this.root, files);
+        return files;
     }
 
-    public setAllFiles(files: Map<string, Uint8Array>): void
+    private collectFiles(node: FileSystemNode, files: Map<string, Uint8Array>): void
     {
-        this.files.clear();
-        
-        for (const [path, data] of files.entries())
+        if (node.type === 'file')
         {
-            this.files.set(path, data);
+            files.set(node.path, node.data!);
+        }
+        else
+        {
+            const dir = node as DirectoryNode;
+
+            for (const child of dir.children.values())
+            {
+                this.collectFiles(child, files);
+            }
+        }
+    }
+
+    public setAllFiles(fileMap: Map<string, Uint8Array>): void
+    {
+        this.root = new DirectoryNode('', '');
+
+        for (const [path, data] of fileMap.entries())
+        {
+            this.writeFile(path, data);
         }
     }
 
@@ -76,7 +320,7 @@ export class FileSystemService
 
         if (mode === 'read')
         {
-            const existingFile = this.files.get(path);
+            const existingFile = this.readFile(path);
             
             if (!existingFile)
             {
@@ -91,7 +335,7 @@ export class FileSystemService
         }
         else
         {
-            const existingFile = this.files.get(path);
+            const existingFile = this.readFile(path);
             buffer = existingFile ? new Uint8Array(existingFile) : new Uint8Array(0);
         }
 
@@ -117,7 +361,7 @@ export class FileSystemService
 
         if (handle.mode === 'write' || handle.mode === 'append')
         {
-            this.files.set(handle.path, handle.buffer);
+            this.writeFile(handle.path, handle.buffer);
         }
 
         this.openHandles.delete(handleId);

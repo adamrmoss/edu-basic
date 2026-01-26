@@ -5,6 +5,7 @@ import { IconComponent, Folder, File, Plus, Save, FolderOpen, Edit, Trash } from
 import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from './disk.service';
 import { TextEditorComponent } from '../text-editor/text-editor.component';
+import { DirectoryNode, FileSystemNode } from './filesystem-node';
 
 export interface FileNode
 {
@@ -155,7 +156,7 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public onDeleteFile(): void
     {
-        if (this.selectedFile)
+        if (this.selectedFile && !this.isProgramBas(this.selectedFile))
         {
             const confirmed = confirm(`Delete ${this.selectedFile.name}?`);
             
@@ -178,7 +179,7 @@ export class DiskComponent implements OnInit, OnDestroy
 
     public onRenameFile(): void
     {
-        if (this.selectedFile)
+        if (this.selectedFile && !this.isProgramBas(this.selectedFile))
         {
             const newName = prompt('Enter new name:', this.selectedFile.name);
             
@@ -340,7 +341,7 @@ export class DiskComponent implements OnInit, OnDestroy
         {
             const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
             
-            if (node)
+            if (node && !this.isProgramBas(node))
             {
                 this.selectedFile = node;
                 this.onDeleteFile();
@@ -356,7 +357,7 @@ export class DiskComponent implements OnInit, OnDestroy
         {
             const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
             
-            if (node)
+            if (node && !this.isProgramBas(node))
             {
                 this.selectedFile = node;
                 this.onRenameFile();
@@ -368,96 +369,41 @@ export class DiskComponent implements OnInit, OnDestroy
 
     private refreshFileTree(): void
     {
-        const paths = this.diskService.getFileList();
-        const tree = this.buildTree(paths);
-        this.fileTree = tree;
+        const root = this.diskService.getFileSystemRoot();
+        this.fileTree = this.convertToFileNodes(root);
     }
 
-    private buildTree(paths: string[]): FileNode[]
+    private convertToFileNodes(directory: DirectoryNode): FileNode[]
     {
-        interface TreeNode
+        const result: FileNode[] = [];
+        const children = directory.children;
+
+        for (const child of children.values())
         {
-            node: FileNode;
-            children: Map<string, TreeNode>;
+            const fileNode: FileNode = {
+                name: child.name,
+                path: child.path,
+                type: child.type,
+                children: undefined,
+                expanded: false
+            };
+
+            if (child.type === 'directory')
+            {
+                fileNode.children = this.convertToFileNodes(child as DirectoryNode);
+            }
+
+            result.push(fileNode);
         }
-        
-        const root: Map<string, TreeNode> = new Map();
-        
-        for (const path of paths)
-        {
-            if (path.endsWith('.dir'))
+
+        return result.sort((a, b) => {
+            if (a.type !== b.type)
             {
-                continue;
+                return a.type === 'directory' ? -1 : 1;
             }
-            
-            const parts = path.split('/');
-            let currentMap = root;
-            let currentPath = '';
-            
-            for (let i = 0; i < parts.length; i++)
-            {
-                const part = parts[i];
-                const isLast = i === parts.length - 1;
-                currentPath = currentPath ? `${currentPath}/${part}` : part;
-                
-                if (!currentMap.has(part))
-                {
-                    const node: FileNode = {
-                        name: part,
-                        path: currentPath,
-                        type: isLast ? 'file' : 'directory',
-                        children: undefined,
-                        expanded: false
-                    };
-                    
-                    const treeNode: TreeNode = {
-                        node,
-                        children: isLast ? new Map() : new Map<string, TreeNode>()
-                    };
-                    
-                    currentMap.set(part, treeNode);
-                }
-                
-                const treeNode = currentMap.get(part)!;
-                
-                if (!isLast)
-                {
-                    currentMap = treeNode.children;
-                }
-            }
-        }
-        
-        const convertToFileNodes = (map: Map<string, TreeNode>): FileNode[] =>
-        {
-            const result: FileNode[] = [];
-            
-            for (const treeNode of map.values())
-            {
-                const node = treeNode.node;
-                
-                if (treeNode.children.size > 0)
-                {
-                    node.children = convertToFileNodes(treeNode.children);
-                }
-                else if (node.type === 'directory')
-                {
-                    node.children = [];
-                }
-                
-                result.push(node);
-            }
-            
-            return result.sort((a, b) => {
-                if (a.type !== b.type)
-                {
-                    return a.type === 'directory' ? -1 : 1;
-                }
-                
-                return a.name.localeCompare(b.name);
-            });
-        };
-        
-        return convertToFileNodes(root);
+
+            return a.name.localeCompare(b.name);
+        });
     }
 
     private getParentPath(path: string): string
@@ -493,5 +439,10 @@ export class DiskComponent implements OnInit, OnDestroy
         }
         
         return null;
+    }
+
+    public isProgramBas(file: FileNode): boolean
+    {
+        return file.path === 'program.bas' || file.name === 'program.bas';
     }
 }

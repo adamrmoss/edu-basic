@@ -75,11 +75,21 @@
                         <span *ngIf="viewMode === 'text'">Hex</span>
                         <span *ngIf="viewMode === 'hex'">Text</span>
                     </button>
-                    <button class="toolbar-button" (click)="onRenameFile()" title="Rename File">
+                    <button 
+                        class="toolbar-button" 
+                        (click)="onRenameFile()" 
+                        title="Rename File"
+                        *ngIf="!isProgramBas(selectedFile)"
+                    >
                         <luna-icon size="16" [svg]="editIcon"></luna-icon>
                         <span>Rename</span>
                     </button>
-                    <button class="toolbar-button danger" (click)="onDeleteFile()" title="Delete File">
+                    <button 
+                        class="toolbar-button danger" 
+                        (click)="onDeleteFile()" 
+                        title="Delete File"
+                        *ngIf="!isProgramBas(selectedFile)"
+                    >
                         <luna-icon size="16" [svg]="trashIcon"></luna-icon>
                         <span>Delete</span>
                     </button>
@@ -160,7 +170,7 @@
                 ></luna-icon>
                 <span class="name">{{ node.name }}</span>
             </div>
-            <div class="item-actions" *ngIf="selectedFile === node" (click)="$event.stopPropagation()">
+            <div class="item-actions" *ngIf="selectedFile === node && !isProgramBas(node)" (click)="$event.stopPropagation()">
                 <button class="item-action-button" (click)="onRenameFile()" title="Rename">
                     <luna-icon size="16" [svg]="editIcon"></luna-icon>
                 </button>
@@ -191,11 +201,19 @@
         <luna-icon size="16" [svg]="folderIcon"></luna-icon>
         <span>New Directory</span>
     </button>
-    <button class="context-menu-item" (click)="onContextMenuRename()">
+    <button 
+        class="context-menu-item" 
+        (click)="onContextMenuRename()"
+        *ngIf="contextMenuClickedPath !== 'program.bas'"
+    >
         <luna-icon size="16" [svg]="editIcon"></luna-icon>
         <span>Rename</span>
     </button>
-    <button class="context-menu-item danger" (click)="onContextMenuDelete()">
+    <button 
+        class="context-menu-item danger" 
+        (click)="onContextMenuDelete()"
+        *ngIf="contextMenuClickedPath !== 'program.bas'"
+    >
         <luna-icon size="16" [svg]="trashIcon"></luna-icon>
         <span>Delete</span>
     </button>

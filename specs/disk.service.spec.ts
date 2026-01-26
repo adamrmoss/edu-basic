@@ -95,7 +95,9 @@ describe('DiskService', () => {
 
             expect(service.diskName).toBe('Untitled');
             expect(service.programCode).toBe('');
-            expect(fileSystemService.listFiles().length).toBe(0);
+            const files = fileSystemService.listFiles();
+            expect(files.length).toBe(1);
+            expect(files).toContain('program.bas');
         });
 
         it('should create new disk with custom name', () => {
@@ -103,7 +105,9 @@ describe('DiskService', () => {
 
             expect(service.diskName).toBe('NewProject');
             expect(service.programCode).toBe('');
-            expect(fileSystemService.listFiles().length).toBe(0);
+            const files = fileSystemService.listFiles();
+            expect(files.length).toBe(1);
+            expect(files).toContain('program.bas');
         });
 
         it('should emit filesChanged on new disk', (done) => {
@@ -335,7 +339,8 @@ describe('DiskService', () => {
             await service.loadDisk(zipFile);
 
             const loadedFiles = fileSystemService.listFiles();
-            expect(loadedFiles.length).toBe(2);
+            expect(loadedFiles.length).toBe(3);
+            expect(loadedFiles).toContain('program.bas');
             expect(loadedFiles).toContain('file1.dat');
             expect(loadedFiles).toContain('file2.dat');
             expect(fileSystemService.readFile('file1.dat')).toEqual(new Uint8Array([1, 2, 3]));

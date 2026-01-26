@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DiskComponent } from '../src/app/disk/disk.component';
 import { DiskService } from '../src/app/disk/disk.service';
 import { BehaviorSubject } from 'rxjs';
+import { DirectoryNode, FileNode } from '../src/app/disk/filesystem-node';
 
 describe('DiskComponent', () => {
     let component: DiskComponent;
@@ -16,6 +17,8 @@ describe('DiskComponent', () => {
         diskNameSubject = new BehaviorSubject<string>('TestDisk');
         filesChangedSubject = new BehaviorSubject<void>(undefined);
 
+        const mockRoot = new DirectoryNode('', '');
+
         const diskServiceMock = {
             diskName$: diskNameSubject.asObservable(),
             filesChanged$: filesChangedSubject.asObservable(),
@@ -25,6 +28,7 @@ describe('DiskComponent', () => {
             loadDisk: jest.fn(),
             saveDisk: jest.fn(),
             getFileList: jest.fn().mockReturnValue([]),
+            getFileSystemRoot: jest.fn().mockReturnValue(mockRoot),
             getFile: jest.fn(),
             saveFile: jest.fn(),
             deleteFile: jest.fn(),
@@ -76,7 +80,11 @@ describe('DiskComponent', () => {
         });
 
         it('should refresh file tree on files changed', () => {
-            diskService.getFileList.mockReturnValue(['file1.txt', 'file2.txt']);
+            const root = new DirectoryNode('', '');
+            root.addChild(new FileNode('file1.txt', 'file1.txt'));
+            root.addChild(new FileNode('file2.txt', 'file2.txt'));
+            diskService.getFileSystemRoot.mockReturnValue(root);
+            
             fixture.detectChanges();
 
             filesChangedSubject.next();
@@ -385,7 +393,11 @@ describe('DiskComponent', () => {
         });
 
         it('should build tree from flat file list', () => {
-            diskService.getFileList.mockReturnValue(['file1.dat', 'file2.dat', 'file3.dat']);
+            const root = new DirectoryNode('', '');
+            root.addChild(new FileNode('file1.dat', 'file1.dat'));
+            root.addChild(new FileNode('file2.dat', 'file2.dat'));
+            root.addChild(new FileNode('file3.dat', 'file3.dat'));
+            diskService.getFileSystemRoot.mockReturnValue(root);
 
             filesChangedSubject.next();
 
@@ -396,7 +408,13 @@ describe('DiskComponent', () => {
         });
 
         it('should build hierarchical tree', () => {
-            diskService.getFileList.mockReturnValue(['dir1/file1.txt', 'dir1/file2.txt', 'file3.txt']);
+            const root = new DirectoryNode('', '');
+            const dir1 = new DirectoryNode('dir1', 'dir1');
+            dir1.addChild(new FileNode('file1.txt', 'dir1/file1.txt'));
+            dir1.addChild(new FileNode('file2.txt', 'dir1/file2.txt'));
+            root.addChild(dir1);
+            root.addChild(new FileNode('file3.txt', 'file3.txt'));
+            diskService.getFileSystemRoot.mockReturnValue(root);
 
             filesChangedSubject.next();
 
@@ -408,7 +426,8 @@ describe('DiskComponent', () => {
         });
 
         it('should handle empty file list', () => {
-            diskService.getFileList.mockReturnValue([]);
+            const root = new DirectoryNode('', '');
+            diskService.getFileSystemRoot.mockReturnValue(root);
 
             filesChangedSubject.next();
 
