@@ -29,9 +29,11 @@ export class Audio
     private tempo: number = 120;
     private volume: number = 100;
     private currentVoice: number = 0;
+    private muted: boolean = false;
 
     private audioContext: AudioContext | null = null;
     private workletNode: AudioWorkletNode | null = null;
+    private gainNode: GainNode | null = null;
     private workletReady: boolean = false;
 
     private voiceConfigs: Map<number, VoiceConfig> = new Map();
@@ -45,10 +47,12 @@ export class Audio
 
     private async initializeAudio(): Promise<void>
     {
+        console.log('[Audio] Initializing audio system...');
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         
         if (!AudioContextClass)
         {
+            console.error('[Audio] AudioContext not available');
             this.workletReady = false;
             return;
         }
@@ -56,26 +60,51 @@ export class Audio
         try
         {
             this.audioContext = new AudioContextClass();
+            console.log('[Audio] AudioContext created, sample rate:', this.audioContext.sampleRate, 'state:', this.audioContext.state);
 
             await this.audioContext.audioWorklet.addModule('/grit-worklet.js');
+            console.log('[Audio] Worklet module loaded');
 
             this.workletNode = new AudioWorkletNode(this.audioContext, 'grit-processor');
-            this.workletNode.connect(this.audioContext.destination);
+            this.gainNode = this.audioContext.createGain();
+            this.gainNode.gain.value = this.volume / 100;
+            this.workletNode.connect(this.gainNode);
+            this.gainNode.connect(this.audioContext.destination);
+            console.log('[Audio] Worklet node created and connected with gain node, volume:', this.volume);
 
             this.workletReady = true;
 
             for (let i = 0; i < 8; i++)
             {
+                const defaultNoiseCode = PRESETS[0];
+                const defaultAdsr = { ...DEFAULT_ADSR_SUSTAINED };
+                
                 this.voiceConfigs.set(i, {
-                    noiseCode: PRESETS[0],
-                    adsr: { ...DEFAULT_ADSR_SUSTAINED },
+                    noiseCode: defaultNoiseCode,
+                    adsr: defaultAdsr,
                 });
                 this.scheduledNotes.set(i, []);
                 this.nextNoteTime.set(i, 0);
+                
+                if (this.workletNode)
+                {
+                    this.workletNode.port.postMessage({
+                        type: 'setVoice',
+                        voiceIndex: i,
+                        noiseCode: defaultNoiseCode,
+                        frequency: 440,
+                        adsr: defaultAdsr,
+                    });
+                }
+                
+                console.log(`[Audio] Voice ${i} initialized with preset 0 (${defaultNoiseCode.toString(16)}), ADSR:`, defaultAdsr);
             }
+            
+            console.log('[Audio] Audio system initialized successfully');
         }
-        catch
+        catch (error)
         {
+            console.error('[Audio] Failed to initialize audio system:', error);
             this.workletReady = false;
         }
     }
@@ -88,6 +117,45 @@ export class Audio
     public setVolume(volume: number): void
     {
         this.volume = Math.max(0, Math.min(100, volume));
+        console.log(`[Audio] Volume set to ${this.volume}%`);
+        
+        if (this.gainNode)
+        {
+            this.gainNode.gain.value = this.volume / 100;
+            console.log(`[Audio] Gain node updated to ${this.gainNode.gain.value}`);
+        }
+    }
+
+    public setMuted(muted: boolean): void
+    {
+        this.muted = muted;
+        console.log(`[Audio] Mute ${muted ? 'enabled' : 'disabled'}`);
+        
+        if (this.workletNode && this.audioContext)
+        {
+            if (muted)
+            {
+                if (this.gainNode)
+                {
+                    this.gainNode.disconnect();
+                }
+            }
+            else
+            {
+                if (this.workletNode && this.gainNode && this.audioContext)
+                {
+                    this.workletNode.disconnect();
+                    this.gainNode.disconnect();
+                    this.workletNode.connect(this.gainNode);
+                    this.gainNode.connect(this.audioContext.destination);
+                }
+            }
+        }
+    }
+
+    public getMuted(): boolean
+    {
+        return this.muted;
     }
 
     public setVoice(voiceIndex: number): void
@@ -104,6 +172,7 @@ export class Audio
     ): void
     {
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        console.log(`[Audio] configureVoice: Voice ${voice}, preset=${preset}, noiseCode=${noiseCode?.toString(16)}, adsrPreset=${adsrPreset}, adsrCustom=${adsrCustom?.join(',')}`);
 
         let noiseCodeValue: number;
 
@@ -168,6 +237,7 @@ export class Audio
         }
 
         this.voiceConfigs.set(voice, { noiseCode: noiseCodeValue, adsr });
+        console.log(`[Audio] Voice ${voice} configured: noiseCode=0x${noiseCodeValue.toString(16)}, ADSR=`, adsr);
 
         if (this.workletReady && this.workletNode && this.audioContext)
         {
@@ -178,6 +248,11 @@ export class Audio
                 frequency: 440,
                 adsr,
             });
+            console.log(`[Audio] Voice ${voice} configuration sent to worklet`);
+        }
+        else
+        {
+            console.warn(`[Audio] Cannot send voice config to worklet (ready=${this.workletReady}, node=${!!this.workletNode}, context=${!!this.audioContext})`);
         }
     }
 
@@ -314,21 +389,50 @@ export class Audio
         this.nextNoteTime.set(voice, startTime + duration);
     }
 
-    public playSequence(mml: string): void
+    public playSequence(voiceIndex: number, mml: string): void
+    {
+        if (!this.workletReady || !this.audioContext)
+        {
+            console.warn('[Audio] playSequence: Audio not ready', { workletReady: this.workletReady, audioContext: !!this.audioContext });
+            return;
+        }
+
+        if (this.audioContext.state === 'suspended')
+        {
+            console.log('[Audio] AudioContext is suspended, resuming...');
+            this.audioContext.resume().then(() =>
+            {
+                console.log('[Audio] AudioContext resumed, state:', this.audioContext?.state);
+                this.playSequenceInternal(voiceIndex, mml);
+            }).catch((error) =>
+            {
+                console.error('[Audio] Failed to resume AudioContext:', error);
+            });
+            return;
+        }
+
+        this.playSequenceInternal(voiceIndex, mml);
+    }
+
+    private playSequenceInternal(voiceIndex: number, mml: string): void
     {
         if (!this.workletReady || !this.audioContext)
         {
             return;
         }
 
-        const voice = this.currentVoice;
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        console.log(`[Audio] playSequence: Voice ${voice}, MML: "${mml}", tempo: ${this.tempo} BPM, context state: ${this.audioContext.state}`);
+        
         const notes = this.parseMml(mml);
+        console.log(`[Audio] Parsed ${notes.length} notes/rests`);
 
         const currentTime = this.audioContext.currentTime;
         let time = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
 
         const beatDuration = 60 / this.tempo;
         const volumeMultiplier = this.volume / 100;
+        console.log(`[Audio] Tempo: ${this.tempo} BPM, beat duration: ${beatDuration.toFixed(3)}s`);
 
         for (const note of notes)
         {
@@ -341,40 +445,67 @@ export class Audio
                 const frequency = this.midiNoteToFrequency(note.midiNote);
                 const duration = note.duration * beatDuration;
 
+                const scheduleDelay = (time - currentTime) * 1000;
+                console.log(`[Audio] Scheduling note: voice ${voice}, frequency ${frequency.toFixed(2)}Hz, duration ${duration.toFixed(3)}s, delay ${scheduleDelay.toFixed(0)}ms`);
+                
                 setTimeout(() =>
                 {
-                    if (this.workletReady && this.workletNode)
+                    if (!this.workletReady || !this.workletNode || !this.audioContext)
                     {
-                        const config = this.voiceConfigs.get(voice);
-
-                        if (config)
-                        {
-                            this.workletNode.port.postMessage({
-                                type: 'setVoice',
-                                voiceIndex: voice,
-                                noiseCode: config.noiseCode,
-                                frequency,
-                                adsr: config.adsr,
-                            });
-
-                            this.workletNode.port.postMessage({
-                                type: 'noteOn',
-                                voiceIndex: voice,
-                            });
-
-                            setTimeout(() =>
-                            {
-                                if (this.workletNode)
-                                {
-                                    this.workletNode.port.postMessage({
-                                        type: 'noteOff',
-                                        voiceIndex: voice,
-                                    });
-                                }
-                            }, duration * 1000);
-                        }
+                        console.warn(`[Audio] Cannot play note: workletReady=${this.workletReady}, node=${!!this.workletNode}, context=${!!this.audioContext}`);
+                        return;
                     }
-                }, (time - currentTime) * 1000);
+
+                    if (this.muted)
+                    {
+                        console.log(`[Audio] Note skipped (muted): voice ${voice}`);
+                        return;
+                    }
+
+                    if (this.audioContext.state !== 'running')
+                    {
+                        console.warn(`[Audio] AudioContext not running, state: ${this.audioContext.state}`);
+                        return;
+                    }
+
+                    const config = this.voiceConfigs.get(voice);
+
+                    if (!config)
+                    {
+                        console.warn(`[Audio] No config found for voice ${voice}`);
+                        return;
+                    }
+
+                    console.log(`[Audio] Playing note NOW: voice ${voice}, frequency ${frequency.toFixed(2)}Hz, duration ${duration.toFixed(3)}s, context time: ${this.audioContext.currentTime.toFixed(3)}s`);
+                    console.log(`[Audio] Voice config: noiseCode=0x${config.noiseCode.toString(16)}, ADSR=`, config.adsr);
+                    
+                    this.workletNode.port.postMessage({
+                        type: 'setVoice',
+                        voiceIndex: voice,
+                        noiseCode: config.noiseCode,
+                        frequency,
+                        adsr: config.adsr,
+                    });
+                    console.log(`[Audio] Sent setVoice message to worklet`);
+
+                    this.workletNode.port.postMessage({
+                        type: 'noteOn',
+                        voiceIndex: voice,
+                    });
+                    console.log(`[Audio] Sent noteOn message to worklet`);
+
+                    setTimeout(() =>
+                    {
+                        if (this.workletNode)
+                        {
+                            console.log(`[Audio] Note OFF: voice ${voice}`);
+                            this.workletNode.port.postMessage({
+                                type: 'noteOff',
+                                voiceIndex: voice,
+                            });
+                        }
+                    }, duration * 1000);
+                }, scheduleDelay);
 
                 time += duration;
             }

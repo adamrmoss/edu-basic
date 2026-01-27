@@ -44,6 +44,7 @@ interface ProcessorVoiceState
     decimationCounter: number;
     phase: number;
     shapePhase: number;
+    frequencyPhase: number;
 
     // Envelope
     envelope: EnvelopeState;
@@ -110,6 +111,7 @@ class GritProcessor extends AudioWorkletProcessor
             decimationCounter: 0,
             phase: 0,
             shapePhase: 0,
+            frequencyPhase: 0,
             envelope: createEnvelopeState(),
             gateOn: false,
             currentBit: false,
@@ -150,6 +152,7 @@ class GritProcessor extends AudioWorkletProcessor
                     voice.decimationCounter = 0;
                     voice.phase = 0;
                     voice.shapePhase = 0;
+                    voice.frequencyPhase = 0;
                 }
 
                 break;
@@ -261,12 +264,17 @@ class GritProcessor extends AudioWorkletProcessor
             return 0;
         }
 
-        // Step LFSRs based on decimation
-        voice.decimationCounter++;
+        // Step LFSRs based on frequency (for pitch control)
+        // Frequency controls how fast we step through the LFSR sequence
+        // For a 1-bit square wave (period 2), we need 2 steps per cycle
+        // So step rate = frequency * 2 / sampleRate
+        const stepRate = (voice.frequency * 2) * invSampleRate;
+        voice.frequencyPhase += stepRate;
 
-        if (voice.decimationCounter >= voice.fields.decimation)
+        // Frequency-based stepping takes precedence for pitch control
+        if (voice.frequencyPhase >= 1.0)
         {
-            voice.decimationCounter = 0;
+            voice.frequencyPhase -= 1.0;
             this.stepLfsrs(voice);
         }
 
