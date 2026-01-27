@@ -15,7 +15,10 @@
         "test": "jest",
         "test:verbose": "jest --verbose",
         "test:watch": "jest --watch",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "cloc": "cloc src specs --exclude-dir=node_modules,dist",
+        "cloc:src": "cloc src --exclude-dir=node_modules,dist",
+        "cloc:specs": "cloc specs --exclude-dir=node_modules,dist"
     },
     "private": true,
     "dependencies": {
@@ -38,6 +41,7 @@
         "@angular/compiler-cli": "19.x.x",
         "@types/jest": "29.x.x",
         "@types/jszip": "3.x.x",
+        "cloc": "^2.x.x",
         "esbuild": "0.x.x",
         "jest": "29.x.x",
         "jest-canvas-mock": "2.x.x",
