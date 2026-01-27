@@ -59,6 +59,7 @@ export class AudioParsers
         let adsrPreset: number | null = null;
         let adsrCustom: Expression[] | null = null;
         
+        // Check for PRESET or WITH keyword (both are optional)
         if (context.matchKeyword('PRESET'))
         {
             const presetResult = context.parseExpression();

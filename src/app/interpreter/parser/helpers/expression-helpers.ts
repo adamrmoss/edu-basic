@@ -114,8 +114,8 @@ export class ExpressionHelpers
     {
         const upperKeyword = keyword.toUpperCase();
         const statementKeywords = [
-            'APPEND', 'AS', 'AT', 'FILLED', 'FOR', 'FROM', 'IN', 'OVERWRITE', 
-            'RADII', 'RADIUS', 'READ', 'STEP', 'THEN', 'TO', 'WITH'
+            'ADSR', 'APPEND', 'AS', 'AT', 'FILLED', 'FOR', 'FROM', 'IN', 'OVERWRITE', 
+            'PRESET', 'RADII', 'RADIUS', 'READ', 'STEP', 'THEN', 'TO', 'WITH'
         ];
         return statementKeywords.includes(upperKeyword);
     }
