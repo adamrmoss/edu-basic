@@ -201,7 +201,7 @@ abstract class Statement extends RuntimeNode {
 
 **PlayStatement**:
 - `PLAY "C D E F G A B"` - Play notes
-- Uses Grit synthesis system
+- Uses webaudio-tinysynth (General MIDI)
 
 **TempoStatement**:
 - `TEMPO bpm%` - Set tempo

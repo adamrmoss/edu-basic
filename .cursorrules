@@ -62,7 +62,6 @@ When solving problems, follow this workflow:
 - **`src/lang/README.md`** - Language core (value system, ExecutionContext, Program, RuntimeExecution, Graphics, Audio)
 - **`src/lang/expressions/README.md`** - Expression system (all expression types, parsing, evaluation)
 - **`src/lang/statements/README.md`** - Statement system (all statement types, execution)
-- **`src/grit/README.md`** - Grit audio synthesis system
 
 ## Documentation Usage
 

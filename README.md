@@ -45,9 +45,7 @@ EduBASIC is an Angular-based web application that provides a BASIC programming e
   - [Language Core](src/lang/README.md) - Core language types, execution model, runtime execution, graphics, and audio
   - [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
   - [Statements System](src/lang/statements/README.md) - All statement types and their execution
-  - [Grit Synthesis System](src/grit/README.md) - Audio synthesis engine and components
-- [GRIT Noise Synthesis System](docs/grit-noise-synthesis-system.md) - Complete technical documentation for the GRIT audio synthesis system
-- [GRIT Preset Reference](docs/grit-presets.md) - Complete reference for all 128 GRIT presets organized by category
+  - Audio: `Audio` class in [Language Core](src/lang/README.md) uses webaudio-tinysynth (General MIDI)
 
 ## Tech Stack
 

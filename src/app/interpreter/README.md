@@ -201,7 +201,7 @@ Canvas rendering
 **Key Responsibilities**:
 - Maintains single `Audio` instance
 - Provides audio instance to execution context
-- Wraps Grit synthesis system
+- Uses webaudio-tinysynth (General MIDI) via `Audio` class
 
 **Key Methods**:
 - `getAudio()`: Returns Audio instance

@@ -19,7 +19,6 @@ npm run build:prod
 ```
 
 This command:
-- Builds the Grit audio worklet (minified)
 - Builds the Angular application for production
 - Outputs to `dist/edu-basic/browser/`
 
@@ -36,7 +35,6 @@ public_html/
   main-*.js
   polyfills-*.js
   styles-*.css
-  grit-worklet.js
   favicon.ico
   assets/
     fonts/
@@ -70,7 +68,6 @@ After uploading, verify the site works correctly:
 ## Build Output Details
 
 - **Output directory:** `dist/edu-basic/browser/`
-- **Worklet file:** `grit-worklet.js` (audio synthesis processor)
 - **Apache config:** `.htaccess` (included in build, forces HTTPS and www)
 - **Assets:** Fonts copied from ng-luna package
 
