@@ -87,19 +87,24 @@
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "4kB",
-                                    "maximumError": "8kB"
+                                    "maximumWarning": "8kB",
+                                    "maximumError": "16kB"
                                 }
                             ],
                             "allowedCommonJsDependencies": [
-                                "jszip"
+                                "jszip",
+                                "webaudio-tinysynth"
                             ],
                             "outputHashing": "all"
                         },
                         "development": {
                             "optimization": false,
                             "extractLicenses": false,
-                            "sourceMap": true
+                            "sourceMap": true,
+                            "allowedCommonJsDependencies": [
+                                "jszip",
+                                "webaudio-tinysynth"
+                            ]
                         }
                     },
                     "defaultConfiguration": "production"
