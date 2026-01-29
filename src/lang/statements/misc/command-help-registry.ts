@@ -243,10 +243,8 @@ export class StatementHelpRegistry
             'VOLUME volume%'
         ]],
         ['VOICE', [
-            'VOICE voice% PRESET preset$',
-            'VOICE voice% WITH noiseCode%',
-            'VOICE voice% PRESET preset$ ADSR PRESET adsrPreset%',
-            'VOICE voice% PRESET preset$ ADSR attack#, decay#, sustain#, release#'
+            'VOICE voice% INSTRUMENT instrumentNum%',
+            'VOICE voice% INSTRUMENT instrumentName$'
         ]],
         ['SLEEP', [
             'SLEEP milliseconds%'

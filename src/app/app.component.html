@@ -1,4 +1,10 @@
 <luna-window id="main-window" [showClose]="false" [showHelp]="false" [showMaximize]="false" [showMinimize]="false" [title]="title">
+    <div class="window-header-actions">
+        <button class="mute-button" (click)="toggleMute()" [title]="muted ? 'Unmute audio' : 'Mute audio'">
+            <luna-icon size="16" [svg]="muted ? muteIcon : unmuteIcon"></luna-icon>
+            <span>{{ muted ? 'Unmute' : 'Mute' }}</span>
+        </button>
+    </div>
     <div class="app-layout">
         <div class="tabs-container">
             <luna-tabs #tabsComponent>

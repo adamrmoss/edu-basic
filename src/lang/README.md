@@ -273,7 +273,7 @@ Manages all graphics operations including text output and pixel graphics.
 
 **Location**: `src/lang/audio.ts`
 
-Manages audio synthesis using Web Audio API and the Grit synthesis system.
+Manages audio synthesis using Web Audio API and webaudio-tinysynth (General MIDI).
 
 **Key Methods**:
 - `setTempo(bpm: number)` - Set tempo in BPM
@@ -282,7 +282,7 @@ Manages audio synthesis using Web Audio API and the Grit synthesis system.
 - `playNote(frequency: number, duration: number, velocity: number, voice?: number)` - Play note
 
 **Integration**:
-- Uses Grit synthesis system (see `src/grit/README.md`)
+- Uses webaudio-tinysynth for General MIDI instrument playback
 - AudioWorklet for real-time processing
 - Multiple voices for polyphony
 
