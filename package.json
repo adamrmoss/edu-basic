@@ -1,17 +1,14 @@
 {
     "name": "edu-basic",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "Education-focused BASIC dialect that runs in web browser",
     "license": "MIT",
     "scripts": {
         "ng": "ng",
-        "start": "npm run build:worklet && ng serve",
-        "build": "npm run build:worklet && ng build",
-        "build:prod": "npm run build:worklet:prod && ng build --configuration production",
-        "build:worklet": "node build-worklet.mjs --sourcemap",
-        "build:worklet:prod": "node build-worklet.mjs --minify",
-        "build:worklet:watch": "node build-worklet.mjs --watch --sourcemap",
-        "watch": "npm run build:worklet && ng build --watch --configuration development",
+        "start": "ng serve",
+        "build": "ng build",
+        "build:prod": "ng build --configuration production",
+        "watch": "ng build --watch --configuration development",
         "test": "jest",
         "test:verbose": "jest --verbose",
         "test:watch": "jest --watch",
@@ -33,6 +30,7 @@
         "ng-luna": "0.x.x",
         "rxjs": "7.x.x",
         "tslib": "2.x.x",
+        "webaudio-tinysynth": "1.x.x",
         "zone.js": "0.x.x"
     },
     "devDependencies": {

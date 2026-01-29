@@ -47,6 +47,12 @@ When solving problems, follow this workflow:
 
 **Documentation is co-located with code** - README.md files are placed in the same directories as the code they describe.
 
+## Generated Artifacts in docs/
+
+- **`.html` and `.pdf` files in `docs/` are generated artifacts** - they are produced from source (e.g. markdown) and must not be edited directly
+- Edit the source files instead; regenerate the HTML/PDF when needed
+- Do not propose or make changes to `docs/*.html` or `docs/*.pdf`
+
 ## Documentation Structure
 
 - **`docs/architecture.md`** - High-level system architecture overview

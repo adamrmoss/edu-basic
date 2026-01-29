@@ -142,9 +142,9 @@ class MockAudio extends Audio
         this.voice = voiceIndex;
     }
     
-    public override playSequence(mml: string): void
+    public override playSequence(voiceIndex: number, mml: string): void
     {
-        super.playSequence(mml);
+        super.playSequence(voiceIndex, mml);
         this.sequences.push(mml);
     }
 }
@@ -1222,14 +1222,11 @@ describe('Statement Implementations', () =>
         
         describe('VOICE Statement', () =>
         {
-            it('should set voice', () =>
+            it('should set voice and instrument', () =>
             {
                 const stmt = new VoiceStatement(
                     new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                    null,
-                    null,
-                    null,
-                    null
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 })
                 );
                 
                 const result = stmt.execute(context, graphics, audio, program, runtime);
@@ -1242,10 +1239,7 @@ describe('Statement Implementations', () =>
             {
                 const stmt = new VoiceStatement(
                     new LiteralExpression({ type: EduBasicType.Real, value: 3.7 }),
-                    null,
-                    null,
-                    null,
-                    null
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 })
                 );
                 
                 stmt.execute(context, graphics, audio, program, runtime);

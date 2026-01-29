@@ -499,7 +499,7 @@ export class Tokenizer
             // Graphics keywords (used in statements)
             'FROM', 'WITH', 'AS', 'AT', 'RADIUS', 'RADII', 'FILLED', 'PRESET',
             // Audio keywords (used in statements)
-            'ATTACK', 'DECAY', 'SUSTAIN', 'RELEASE',
+            'INSTRUMENT',
             // Data keywords (used in statements)
             'DATA', 'RESTORE',
             // Parameter keywords
