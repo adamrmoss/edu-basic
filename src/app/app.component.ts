@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList } from '@angular/core';
-import { WindowComponent, TabsComponent, TabComponent } from 'ng-luna';
+import { WindowComponent, TabsComponent, TabComponent, IconComponent, X, Check } from 'ng-luna';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { ConsoleComponent } from './console/console.component';
@@ -7,6 +7,7 @@ import { CodeEditorComponent } from './code-editor/code-editor.component';
 import { DiskComponent } from './disk/disk.component';
 import { OutputComponent } from './output/output.component';
 import { TabSwitchService } from './tab-switch.service';
+import { AudioService } from './interpreter/audio.service';
 
 @Component({
     selector: 'app-root',
@@ -16,6 +17,7 @@ import { TabSwitchService } from './tab-switch.service';
         WindowComponent, 
         TabsComponent, 
         TabComponent,
+        IconComponent,
         ConsoleComponent,
         CodeEditorComponent,
         DiskComponent,
@@ -34,10 +36,16 @@ export class AppComponent implements OnInit, OnDestroy
 
     public title = 'EduBASIC';
     public activeTabId: string = 'console';
+    public muted: boolean = false;
+    public readonly muteIcon = X;
+    public readonly unmuteIcon = Check;
 
     private readonly destroy$ = new Subject<void>();
 
-    constructor(private readonly tabSwitchService: TabSwitchService)
+    constructor(
+        private readonly tabSwitchService: TabSwitchService,
+        private readonly audioService: AudioService
+    )
     {
     }
 
@@ -48,6 +56,14 @@ export class AppComponent implements OnInit, OnDestroy
             .subscribe(tabId => {
                 this.switchToTab(tabId);
             });
+        
+        this.muted = this.audioService.getMuted();
+    }
+
+    public toggleMute(): void
+    {
+        this.muted = !this.muted;
+        this.audioService.setMuted(this.muted);
     }
 
     public isDiskTabActive(): boolean

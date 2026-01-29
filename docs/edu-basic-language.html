@@ -880,11 +880,10 @@ div.code-toolbar > .toolbar > .toolbar-item > span:focus {
 </li>
 <li><a href="#audio">Audio</a>
 <ul>
-<li><a href="#grit-overview">GRIT Overview</a></li>
+<li><a href="#general-midi--audio-overview">General MIDI / Audio Overview</a></li>
 <li><a href="#tempo-statement">TEMPO Statement</a></li>
 <li><a href="#volume-statement">VOLUME Statement</a></li>
 <li><a href="#voice-statement">VOICE Statement</a></li>
-<li><a href="#adsr-envelope-configuration">ADSR Envelope Configuration</a></li>
 <li><a href="#play-statement">PLAY Statement</a></li>
 <li><a href="#mml-syntax-reference">MML Syntax Reference</a></li>
 <li><a href="#mml-examples">MML Examples</a></li>
@@ -1198,17 +1197,27 @@ LET numbers%[]    ' numbers%[] = [ ] (default, empty array, size 0)
 <ul>
 <li>Array literals use square brackets <code>[]</code></li>
 <li>Elements are separated by commas</li>
-<li>Elements can be any data type (Integer, Real, Complex, String)</li>
+<li>Elements can be numeric types (Integer, Real, Complex) or strings, but cannot be mixed</li>
 <li>Empty array literal <code>[ ]</code> creates an array with size 0</li>
 <li>Array literals create arrays starting at index 1 (one-based)</li>
-<li>All elements in an array literal must be of compatible types (type coercion applies)</li>
+<li>For numeric arrays, all elements are coerced to the most specific common type following the hierarchy: <strong>Integer → Real → Complex</strong></li>
+<li>String arrays must contain only strings (no coercion)</li>
+<li>When assigning to a typed array variable, numeric elements are coerced to match the variable's type sigil</li>
 </ul>
 <p><strong>Examples:</strong></p>
 <pre><code class="language-plain_text">LET numbers%[] = [1, 2, 3, 4, 5]              ' Integer array
-LET names$[] = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;]    ' String array
+LET names$[] = [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;]    ' String array (string literals only)
 LET mixed#[] = [1.5, 2.7, 3.14]               ' Real array
 LET empty%[] = [ ]                            ' Empty array (size 0)
 LET complex&amp;[] = [1+2i, 3+4i, 5+6i]           ' Complex array
+
+' Type coercion in array literals
+LET reals#[] = [0, 3.14]                      ' [0, 3.14] coerces to Real array
+LET complex&amp;[] = [1, 3.14, 2+5i]              ' All coerced to Complex: [1+0i, 3.14+0i, 2+5i]
+
+' Assignment coercion
+LET x&amp;[] = [1, 3.14]                          ' Coerces to Complex array: [1+0i, 3.14+0i]
+LET y%[] = [5, 3.7]                           ' Coerces to Integer array: [5, 3] (truncated)
 </code></pre>
 <h4><a id="structure-literals" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Structure Literals</h4>
 <p>Structure literals are written using curly braces with comma-separated key-value pairs:</p>
@@ -2119,10 +2128,10 @@ LET stringLength% = | text$ |
 </tbody>
 </table>
 <p>Since there is no separate boolean data type, all boolean operators are <strong>bitwise operators</strong> that work on integers.</p>
-<p><strong>Boolean Constants:</strong></p>
+<p><strong>Boolean Nullary Operators:</strong></p>
 <ul>
-<li><code>FALSE%</code> = <code>0</code></li>
-<li><code>TRUE%</code> = <code>-1</code></li>
+<li><code>FALSE%</code> = <code>0</code> (always returns the same value)</li>
+<li><code>TRUE%</code> = <code>-1</code> (always returns the same value)</li>
 </ul>
 <p>Any non-zero value is treated as true in conditional expressions, but the canonical <code>TRUE%</code> value is <code>-1</code>. This is because <code>-1</code> in binary representation has all bits set to 1 (two's complement), which makes bitwise operations behave correctly. For example, <code>TRUE% AND TRUE%</code> yields <code>TRUE%</code> (<code>-1 AND -1 = -1</code>), while if <code>TRUE%</code> were <code>1</code>, then <code>1 AND 1 = 1</code> would only preserve the least significant bit.</p>
 <h3><a id="comparison-operations" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Comparison Operations</h3>
@@ -2191,7 +2200,7 @@ IF arr4%[] &lt; arr1%[] THEN PRINT &quot;Shorter is less&quot;    ' TRUE% (short
 <h3><a id="operator-precedence" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Operator Precedence</h3>
 <p>EduBASIC follows standard mathematical operator precedence:</p>
 <ol>
-<li><strong>Constants</strong>: <code>RND#</code>, <code>INKEY$</code>, <code>PI#</code>, <code>E#</code>, <code>DATE$</code>, <code>TIME$</code>, <code>NOW%</code>, <code>TRUE%</code>, <code>FALSE%</code> (highest precedence)</li>
+<li><strong>Nullary Operators</strong>: <code>RND#</code>, <code>INKEY$</code>, <code>PI#</code>, <code>E#</code>, <code>DATE$</code>, <code>TIME$</code>, <code>NOW%</code>, <code>TRUE%</code>, <code>FALSE%</code> (highest precedence)</li>
 <li>Parentheses <code>()</code></li>
 <li><strong>Prefix operators</strong>: <code>SIN</code>, <code>COS</code>, <code>TAN</code>, <code>ASIN</code>, <code>ACOS</code>, <code>ATAN</code>, <code>SINH</code>, <code>COSH</code>, <code>TANH</code>, <code>ASINH</code>, <code>ACOSH</code>, <code>ATANH</code>, <code>EXP</code>, <code>LOG</code>, <code>LOG10</code>, <code>LOG2</code>, <code>SQRT</code>, <code>CBRT</code>, <code>FLOOR</code>, <code>CEIL</code>, <code>ROUND</code>, <code>TRUNC</code>, <code>EXPAND</code>, <code>SGN</code>, <code>REAL</code>, <code>IMAG</code>, <code>CONJ</code>, <code>CABS</code>, <code>CARG</code>, <code>CSQRT</code>, <code>INT</code>, <code>ASC</code>, <code>CHR</code>, <code>STR</code>, <code>VAL</code>, <code>HEX</code>, <code>BIN</code>, <code>UCASE</code>, <code>LCASE</code>, <code>LTRIM</code>, <code>RTRIM</code>, <code>TRIM</code>, <code>REVERSE</code>, <code>EOF</code>, <code>LOC</code>, <code>NOTES</code></li>
 <li><strong>Postfix operators</strong>: <code>!</code> (factorial), <code>DEG</code>, <code>RAD</code></li>
@@ -2212,9 +2221,9 @@ IF arr4%[] &lt; arr1%[] THEN PRINT &quot;Shorter is less&quot;    ' TRUE% (short
 <p>When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative.</p>
 <h3><a id="random-number-generation" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Random Number Generation</h3>
 <p>EduBASIC provides the <code>RND#</code> operator to generate random numbers and the <code>RANDOMIZE</code> command to seed the random number generator.</p>
-<p><strong>Random Number Operator:</strong></p>
+<p><strong>Random Number Nullary Operator:</strong></p>
 <ul>
-<li><code>RND#</code> - Returns a random real number in the range [0, 1)</li>
+<li><code>RND#</code> - Returns a random real number in the range [0, 1). This nullary operator returns a different value on each evaluation.</li>
 </ul>
 <p><strong>Random Number Generator Seed:</strong></p>
 <p>The <code>RANDOMIZE</code> statement initializes the random number generator with a seed value.</p>
@@ -2234,10 +2243,10 @@ RANDOMIZE seedValue%
 RANDOMIZE 12345    ' Seed with specific value (reproducible)
 RANDOMIZE NOW%    ' Explicitly seed with current timestamp
 </code></pre>
-<p><strong>Mathematical Constants:</strong></p>
+<p><strong>Mathematical Nullary Operators:</strong></p>
 <ul>
-<li><code>PI#</code> - Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793)</li>
-<li><code>E#</code> - Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045)</li>
+<li><code>PI#</code> - Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793). This nullary operator always returns the same value.</li>
+<li><code>E#</code> - Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045). This nullary operator always returns the same value.</li>
 </ul>
 <p><strong>Examples:</strong></p>
 <pre><code class="language-plain_text">RANDOMIZE
@@ -2995,8 +3004,8 @@ CATCH error$
     END
 END TRY
 </code></pre>
-<h3><a id="date-and-time-functions" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Date and Time Functions</h3>
-<p>EduBASIC provides simple date and time operators for educational purposes. These operators return formatted strings or integer timestamps that are easy to display and work with.</p>
+<h3><a id="date-and-time-nullary-operators" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Date and Time Nullary Operators</h3>
+<p>EduBASIC provides simple date and time nullary operators for educational purposes. These nullary operators return formatted strings or integer timestamps that are easy to display and work with. They are evaluated fresh at runtime, so each evaluation returns the current date/time.</p>
 <p><strong><code>DATE$</code> - Current date as string:</strong></p>
 <pre><code class="language-plain_text">LET today$ = DATE$
 PRINT &quot;Today is: &quot;, today$    ' Prints: &quot;Today is: 2025-01-15&quot; (YYYY-MM-DD format)
@@ -3038,11 +3047,12 @@ END IF
 </code></pre>
 <p><strong>Design Notes:</strong></p>
 <ul>
-<li><code>DATE$</code> and <code>TIME$</code> return strings for simplicity and ease of display</li>
-<li><code>NOW%</code> returns an integer timestamp for calculations</li>
-<li>All functions use UTC time to avoid timezone complexity in educational contexts</li>
+<li><code>DATE$</code> and <code>TIME$</code> are nullary operators that return strings for simplicity and ease of display</li>
+<li><code>NOW%</code> is a nullary operator that returns an integer timestamp for calculations</li>
+<li>All nullary operators use UTC time to avoid timezone complexity in educational contexts</li>
 <li>The string formats (YYYY-MM-DD and HH:MM:SS) are standard and unambiguous</li>
 <li>No date parsing or manipulation functions are provided initially—keep it simple for educational use</li>
+<li>These nullary operators are evaluated fresh at runtime, so each evaluation returns the current date/time</li>
 </ul>
 <h3><a id="summary-structured-vs-unstructured-flow-control" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summary: Structured vs. Unstructured Flow Control</h3>
 <p>EduBASIC provides both structured and unstructured control flow:</p>
@@ -3400,8 +3410,8 @@ SET VOLUME -0.5         ' Clamped to 0.0 (silent)
 <p><strong>Note:</strong> All settings persist until changed. The line spacing setting affects the entire text display. Text wrapping only affects lines that exceed the display width. Audio settings affect all audio output globally. Volume values are automatically clamped to [0, 1].</p>
 <h3><a id="keyboard-input" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Keyboard Input</h3>
 <p>EduBASIC provides non-blocking keyboard input through the <code>INKEY$</code> operator, which allows programs to detect keypresses without waiting for user input. This is useful for games, interactive applications, and real-time input handling.</p>
-<h4><a id="inkey-operator" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>INKEY$ Operator</h4>
-<p>The <code>INKEY$</code> operator returns the currently pressed key as a string.</p>
+<h4><a id="inkey-nullary-operator" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>INKEY$ Nullary Operator</h4>
+<p>The <code>INKEY$</code> nullary operator returns the currently pressed key as a string.</p>
 <p><strong>Key Detection:</strong></p>
 <ul>
 <li><code>INKEY$</code> returns the currently pressed key as a string</li>
@@ -4414,48 +4424,28 @@ DO
 LOOP
 </code></pre>
 <h2><a id="audio" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Audio</h2>
-<p>EduBASIC provides audio capabilities using both Music Macro Language (MML) for note control and GRIT (Generative Random Iteration Tones) for timbre (sound character). All voices use both systems together, with ADSR envelopes controlling amplitude over time.</p>
-<h3><a id="grit-overview" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>GRIT Overview</h3>
-<p><strong>GRIT</strong> (Generative Random Iteration Tones) is a noise synthesis system that generates procedural audio through LFSR-based (Linear Feedback Shift Register) bitstream manipulation. GRIT is inspired by and extends the classic Atari POKEY chip's noise synthesis capabilities.</p>
-<p><strong>How GRIT Works:</strong></p>
+<p>EduBASIC provides audio using Music Macro Language (MML) for note control and <strong>webaudio-tinysynth</strong> for sound generation. Tinysynth is a lightweight General MIDI (GM)–compatible synthesizer: all timbres are generated algorithmically (no PCM samples), and voices use standard General MIDI instrument program numbers.</p>
+<h3><a id="general-midi-audio-overview" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>General MIDI / Audio Overview</h3>
+<p><strong>webaudio-tinysynth</strong> implements General MIDI sound mapping. Each voice has an <strong>instrument</strong> (GM program 0–127) that defines its timbre. You set the instrument with the <code>VOICE</code> statement and play notes with the <code>PLAY</code> statement using MML.</p>
+<p><strong>How Audio Works:</strong></p>
 <ul>
-<li>GRIT uses <strong>LFSRs</strong> (Linear Feedback Shift Registers) to generate bitstreams that create different timbres</li>
-<li>Each voice has <strong>3 LFSR slots</strong> (A, B, C) that can be enabled, combined, and configured independently</li>
-<li><strong>8 primary LFSR types</strong> are available, ranging from simple square waves (1-bit) to complex noise (31-bit)</li>
-<li>LFSRs can be <strong>combined</strong> using logical operations (XOR, AND, OR, etc.) to create complex textures</li>
-<li><strong>Decimation</strong> controls the stepping rate, creating pitched tones from repeating patterns</li>
-<li><strong>Clock coupling</strong> allows one LFSR to control the timing of another, creating rhythmic patterns</li>
-<li>The entire configuration is encoded in a single <strong>32-bit NoiseCode</strong> value</li>
+<li><strong>MML</strong> controls which notes to play, timing, and velocity for all voices</li>
+<li><strong>Instrument</strong> (set by <code>VOICE ... INSTRUMENT</code>) determines the timbre (piano, guitar, strings, etc.)</li>
+<li>The <code>VOICE</code> statement assigns a General MIDI instrument (by number or name) to a voice</li>
+<li>The <code>PLAY</code> statement plays MML sequences on a voice</li>
+<li><strong>Voice initialization:</strong> Voices (0–7) start with a default instrument until configured with <code>VOICE</code></li>
 </ul>
-<p><strong>What GRIT Creates:</strong></p>
+<p><strong>General MIDI Instruments:</strong></p>
 <ul>
-<li><strong>Pure tones</strong>: Square waves, pulse waves, and fundamental tones</li>
-<li><strong>Musical instruments</strong>: Bass, leads, pads, and melodic sounds</li>
-<li><strong>Percussion</strong>: Drums, snares, hi-hats, and impact sounds</li>
-<li><strong>Sound effects</strong>: Engines, weapons, ambience, and classic game sounds (Pitfall!, Defender, etc.)</li>
-</ul>
-<p><strong>Key Features:</strong></p>
-<ul>
-<li><strong>128 presets</strong> (0-127) provide ready-to-use timbres organized by category</li>
-<li><strong>Custom NoiseCodes</strong> can be created using bitwise operations for advanced sound design</li>
-<li><strong>Deterministic</strong>: Same NoiseCode + frequency = same output (reproducible)</li>
-<li><strong>Real-time</strong>: Suitable for games, interactive applications, and live audio</li>
+<li><strong>Program numbers 0–127</strong> map to standard GM instruments (e.g. 0 = Acoustic Grand Piano, 40 = Violin, 56 = Trumpet)</li>
+<li>Instruments are grouped into families: Piano (0–7), Chromatic Percussion (8–15), Organ (16–23), Guitar (24–31), Bass (32–39), Strings (40–47), Ensemble (48–55), Brass (56–63), Reed (64–71), Pipe (72–79), Synth Lead (80–87), Synth Pad (88–95), Synth Effects (96–103), Ethnic (104–111), Percussive (112–119), Sound Effects (120–127)</li>
+<li>You can specify the instrument by <strong>number</strong> (e.g. <code>VOICE 0 INSTRUMENT 0</code>) or by <strong>name</strong> (e.g. <code>VOICE 0 INSTRUMENT &quot;Acoustic Grand Piano&quot;</code>). Names are case-insensitive and should match standard GM instrument names.</li>
 </ul>
 <p><strong>Note Numbers:</strong></p>
 <ul>
-<li>Note numbers use MIDI standard: 0-127</li>
+<li>Note numbers use the MIDI standard: 0–127</li>
 <li>Middle C (C4) is note number 60</li>
 <li>Lower numbers are lower pitches, higher numbers are higher pitches</li>
-</ul>
-<p><strong>How Audio Works:</strong></p>
-<ul>
-<li><strong>MML</strong> controls frequency (which notes to play), timing, and velocity for ALL voices</li>
-<li><strong>GRIT</strong> determines the timbre (sound character) for ALL voices via NoiseCode</li>
-<li><strong>ADSR Envelopes</strong> control amplitude over time (Attack, Decay, Sustain, Release)</li>
-<li>Every voice uses MML (for notes), GRIT (for timbre), and ADSR (for amplitude shaping)</li>
-<li>The <code>VOICE</code> statement configures the GRIT NoiseCode and ADSR envelope for each voice</li>
-<li>The <code>PLAY</code> statement uses MML to specify which notes to play</li>
-<li><strong>Voice Initialization:</strong> All 64 voices (0-63) are initialized with GRIT NoiseCode preset 0 and ADSR preset 0 by default, until explicitly configured via the <code>VOICE</code> statement</li>
 </ul>
 <h3><a id="tempo-statement" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>TEMPO Statement</h3>
 <p>The <code>TEMPO</code> statement sets the playback tempo for MML music.</p>
@@ -4484,7 +4474,7 @@ TEMPO 180    ' Set to 180 BPM (fast)
 <li>Sets the global volume level (0-127)</li>
 <li>0 = silent, 127 = maximum volume</li>
 <li>Default volume is typically 64 (50%)</li>
-<li>Affects all voices regardless of their configuration (MML or GRIT)</li>
+<li>Affects all voices regardless of their configuration</li>
 <li>Volume persists until changed by another <code>VOLUME</code> statement</li>
 <li>Individual voice velocity (V in MML) is relative to the global volume</li>
 </ul>
@@ -4495,507 +4485,35 @@ VOLUME 32     ' Quarter volume
 VOLUME 0      ' Silent
 </code></pre>
 <h3><a id="voice-statement" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>VOICE Statement</h3>
-<p>The <code>VOICE</code> statement configures the GRIT timbre (sound character) and ADSR envelope for a voice. All voices use MML (for notes), GRIT (for timbre), and ADSR (for amplitude shaping).</p>
+<p>The <code>VOICE</code> statement assigns a General MIDI instrument to a voice. The instrument determines the timbre (sound character) when the voice plays MML via <code>PLAY</code>.</p>
 <p><strong>Syntax:</strong></p>
-<pre><code class="language-plain_text">VOICE voiceNumber% PRESET noisePreset%
-VOICE voiceNumber% WITH noiseCode%
-VOICE voiceNumber% PRESET noisePreset% ADSR attack# decay# sustain# release#
-VOICE voiceNumber% WITH noiseCode% ADSR attack# decay# sustain# release#
-VOICE voiceNumber% PRESET noisePreset% ADSR PRESET adsrPreset%
-VOICE voiceNumber% WITH noiseCode% ADSR PRESET adsrPreset%
+<pre><code class="language-plain_text">VOICE voiceNumber% INSTRUMENT instrumentNum%
+VOICE voiceNumber% INSTRUMENT instrumentName$
 </code></pre>
 <p><strong>Rules:</strong></p>
 <ul>
-<li><code>voiceNumber%</code> is an integer identifying the voice (0-63, for 64 total voices)</li>
-<li><strong>Voice Initialization:</strong> All 64 voices are initialized with GRIT NoiseCode preset 0 and ADSR preset 0 by default</li>
-<li>Voices retain their configuration until explicitly changed by another <code>VOICE</code> statement</li>
-<li>All voices use GRIT for timbre, MML for notes, and ADSR for amplitude shaping</li>
-<li><strong>NoiseCode Configuration:</strong>
-<ul>
-<li><code>PRESET noisePreset%</code>: Use a preset from the 128-entry GRIT preset table (0-127)</li>
-<li><code>WITH noiseCode%</code>: Use a custom NoiseCode value (32-bit unsigned integer bitfield)</li>
-</ul>
-</li>
-</ul>
-<p><strong>GRIT NoiseCode Presets:</strong></p>
-<p>The 128 GRIT presets (0-127) are organized into 8 categories, each optimized for specific sound types:</p>
-<table>
-<thead>
-<tr>
-<th>Preset Range</th>
-<th>Category</th>
-<th>Description</th>
-<th>Example Use Cases</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0-15</td>
-<td>Pure Tones</td>
-<td>Square waves, pulse waves, fundamental tones</td>
-<td>Melodies, simple leads, classic game sounds</td>
-</tr>
-<tr>
-<td>16-31</td>
-<td>Bass Instruments</td>
-<td>Deep, low-frequency sounds</td>
-<td>Basslines, low-end instruments</td>
-</tr>
-<tr>
-<td>32-47</td>
-<td>Lead Instruments</td>
-<td>Melodic lead sounds and arpeggios</td>
-<td>Lead melodies, solos, arpeggiated patterns</td>
-</tr>
-<tr>
-<td>48-63</td>
-<td>Drums &amp; Percussion</td>
-<td>Kick drums, snares, hi-hats, percussion</td>
-<td>Rhythm sections, drum patterns</td>
-</tr>
-<tr>
-<td>64-79</td>
-<td>Classic Game Sounds</td>
-<td>Pitfall!, Defender, and other classic game sounds</td>
-<td>Retro game sound effects, nostalgic tones</td>
-</tr>
-<tr>
-<td>80-95</td>
-<td>Engines &amp; Motors</td>
-<td>Rhythmic mechanical sounds</td>
-<td>Engine sounds, motor effects, mechanical textures</td>
-</tr>
-<tr>
-<td>96-111</td>
-<td>Weapons &amp; Impacts</td>
-<td>Sharp, aggressive sounds</td>
-<td>Weapon fire, impacts, explosions, sharp effects</td>
-</tr>
-<tr>
-<td>112-127</td>
-<td>Ambience &amp; Textures</td>
-<td>Background textures and atmospheric sounds</td>
-<td>Ambient backgrounds, atmospheric layers, textures</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Common Preset Examples:</strong></p>
-<ul>
-<li><strong>Preset 0</strong>: Pure Square 50/50 - Classic square wave, good for melodies</li>
-<li><strong>Preset 5</strong>: Pulse Decim 2 - Pulse wave with decimation, versatile</li>
-<li><strong>Preset 10</strong>: 9-bit Decim 8 - Classic Pitfall! style tone</li>
-<li><strong>Preset 48</strong>: Kick Drum - Deep kick drum sound</li>
-<li><strong>Preset 64</strong>: Pitfall! - Classic Pitfall! game sound</li>
-<li><strong>Preset 80</strong>: Engine - Rhythmic engine sound</li>
-<li><strong>Preset 96</strong>: Weapon - Sharp weapon sound</li>
-<li><strong>Preset 112</strong>: Wind - Ambient wind texture</li>
-</ul>
-<p><strong>Note:</strong> Each preset is a single 32-bit NoiseCode value optimized for its category. Presets can be used directly or combined with different ADSR envelopes to create variations.</p>
-<p><strong>Custom NoiseCode Bit Layout:</strong></p>
-<p>For advanced users who want to create custom NoiseCode values, the 32-bit integer is organized as follows:</p>
-<table>
-<thead>
-<tr>
-<th>Bits</th>
-<th>Field</th>
-<th>Range</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>31-30</td>
-<td>Reserved</td>
-<td>0</td>
-<td>Must be 0</td>
-</tr>
-<tr>
-<td>29-27</td>
-<td>DECIM</td>
-<td>0-7</td>
-<td>Decimation factor (actual = value + 1, so 0 = ÷1, 7 = ÷8)</td>
-</tr>
-<tr>
-<td>26-24</td>
-<td>SHAPE</td>
-<td>0-7</td>
-<td>Wave shaping mode (0=none, 1-7=AM, Ring, etc.)</td>
-</tr>
-<tr>
-<td>23-21</td>
-<td>COMB</td>
-<td>0-7</td>
-<td>Combination operation (0=XOR, 1=AND, 2=OR, 3=NAND, 4=NOR, 5=XNOR, etc.)</td>
-</tr>
-<tr>
-<td>20-18</td>
-<td>C_POLY</td>
-<td>0-7</td>
-<td>LFSR C polynomial (0=1-bit square, 1=25/75 pulse, 2=4-bit, 3=5-bit, 4=9-bit, 5=15-bit, 6=17-bit, 7=31-bit)</td>
-</tr>
-<tr>
-<td>17-15</td>
-<td>B_POLY</td>
-<td>0-7</td>
-<td>LFSR B polynomial (same as C_POLY)</td>
-</tr>
-<tr>
-<td>14-12</td>
-<td>A_POLY</td>
-<td>0-7</td>
-<td>LFSR A polynomial (same as C_POLY)</td>
-</tr>
-<tr>
-<td>11</td>
-<td>C_CLK_B</td>
-<td>0-1</td>
-<td>Clock coupling: LFSR C clocks LFSR B</td>
-</tr>
-<tr>
-<td>10</td>
-<td>B_CLK_A</td>
-<td>0-1</td>
-<td>Clock coupling: LFSR B clocks LFSR A</td>
-</tr>
-<tr>
-<td>9</td>
-<td>C_INV</td>
-<td>0-1</td>
-<td>Invert LFSR C output</td>
-</tr>
-<tr>
-<td>8</td>
-<td>B_INV</td>
-<td>0-1</td>
-<td>Invert LFSR B output</td>
-</tr>
-<tr>
-<td>7</td>
-<td>A_INV</td>
-<td>0-1</td>
-<td>Invert LFSR A output</td>
-</tr>
-<tr>
-<td>6</td>
-<td>C_EN</td>
-<td>0-1</td>
-<td>Enable LFSR C</td>
-</tr>
-<tr>
-<td>5</td>
-<td>B_EN</td>
-<td>0-1</td>
-<td>Enable LFSR B</td>
-</tr>
-<tr>
-<td>4</td>
-<td>A_EN</td>
-<td>0-1</td>
-<td>Enable LFSR A</td>
-</tr>
-<tr>
-<td>3-0</td>
-<td>Reserved</td>
-<td>0</td>
-<td>Must be 0</td>
-</tr>
-</tbody>
-</table>
-<p><strong>NoiseCode Construction Formula:</strong></p>
-<pre><code class="language-plain_text">NoiseCode = (DECIM &lt;&lt; 27) | (SHAPE &lt;&lt; 24) | (COMB &lt;&lt; 21) | 
-            (C_POLY &lt;&lt; 18) | (B_POLY &lt;&lt; 15) | (A_POLY &lt;&lt; 12) | 
-            (C_CLK_B &lt;&lt; 11) | (B_CLK_A &lt;&lt; 10) | 
-            (C_INV &lt;&lt; 9) | (B_INV &lt;&lt; 8) | (A_INV &lt;&lt; 7) | 
-            (C_EN &lt;&lt; 6) | (B_EN &lt;&lt; 5) | (A_EN &lt;&lt; 4)
-</code></pre>
-<p><strong>Example: Creating a Custom NoiseCode</strong></p>
-<pre><code class="language-plain_text">' Create a custom NoiseCode: 9-bit LFSR A enabled, decimation ÷8, no shaping
-LET decim% = 7        ' ÷8 (value 7 = decimation 8)
-LET shape% = 0        ' No shaping
-LET comb% = 0         ' XOR combination
-LET aPoly% = 4        ' 9-bit LFSR
-LET bPoly% = 0        ' Not used
-LET cPoly% = 0        ' Not used
-LET cClkB% = 0        ' No clock coupling
-LET bClkA% = 0        ' No clock coupling
-LET cInv% = 0         ' No inversion
-LET bInv% = 0         ' No inversion
-LET aInv% = 0         ' No inversion
-LET cEn% = 0          ' LFSR C disabled
-LET bEn% = 0          ' LFSR B disabled
-LET aEn% = 1          ' LFSR A enabled
-
-LET customNoise% = (decim% &lt;&lt; 27) OR (shape% &lt;&lt; 24) OR (comb% &lt;&lt; 21) OR _
-                    (cPoly% &lt;&lt; 18) OR (bPoly% &lt;&lt; 15) OR (aPoly% &lt;&lt; 12) OR _
-                    (cClkB% &lt;&lt; 11) OR (bClkA% &lt;&lt; 10) OR _
-                    (cInv% &lt;&lt; 9) OR (bInv% &lt;&lt; 8) OR (aInv% &lt;&lt; 7) OR _
-                    (cEn% &lt;&lt; 6) OR (bEn% &lt;&lt; 5) OR (aEn% &lt;&lt; 4)
-
-' This creates NoiseCode 0x38004010 (same as preset 10: 9-bit Decim 8)
-VOICE 0 WITH customNoise% ADSR PRESET 0
-</code></pre>
-<p><strong>Common Patterns:</strong></p>
-<ul>
-<li>
-<p><strong>Simple square wave</strong>: Enable only LFSR A with polynomial 0 (1-bit square), no decimation</p>
-<ul>
-<li><code>LET simpleSquare% = &amp;H00000010</code> (same as preset 0)</li>
-</ul>
-</li>
-<li>
-<p><strong>Pulse wave</strong>: Enable only LFSR A with polynomial 1 (25/75 pulse), no decimation</p>
-<ul>
-<li><code>LET pulseWave% = &amp;H00001010</code> (same as preset 1)</li>
-</ul>
-</li>
-<li>
-<p><strong>Pitched tone</strong>: Use 9-bit LFSR (polynomial 4) with decimation ÷8</p>
-<ul>
-<li><code>LET pitchedTone% = &amp;H38004010</code> (same as preset 10)</li>
-</ul>
-</li>
-<li>
-<p><strong>Noise texture</strong>: Enable multiple LFSRs (A and B) with XOR combination</p>
-<ul>
-<li><code>LET noiseTexture% = &amp;H00004010</code> (17-bit LFSRs with XOR)</li>
-</ul>
-</li>
-<li>
-<p><strong>ADSR Envelope Configuration:</strong></p>
-<ul>
-<li><code>ADSR attack# decay# sustain# release#</code>: Configure amplitude envelope with custom values
-<ul>
-<li><code>attack#</code>: Time to reach full amplitude from zero (typically 0.0-2.0 seconds)</li>
-<li><code>decay#</code>: Time to fall from full amplitude to sustain level (typically 0.0-2.0 seconds)</li>
-<li><code>sustain#</code>: Level to hold after decay (0.0-1.0, where 1.0 = full amplitude)</li>
-<li><code>release#</code>: Time to fall from sustain level to zero (typically 0.0-5.0 seconds)</li>
-</ul>
-</li>
-<li><code>ADSR PRESET adsrPreset%</code>: Use a preset from the 16-entry ADSR preset table (0-15)</li>
-</ul>
-</li>
-<li>
-<p>If ADSR is not specified in a <code>VOICE</code> statement, the voice retains its current ADSR configuration (or uses ADSR preset 0 if never set)</p>
-</li>
-<li>
-<p>All voices use MML (via <code>PLAY</code>) to control which notes to play and when</p>
-</li>
-<li>
-<p>Each voice operates independently</p>
-</li>
-<li>
-<p>Voices can be used in <code>PLAY</code> statements immediately (they default to preset 0 for both NoiseCode and ADSR)</p>
-</li>
+<li><code>voiceNumber%</code> identifies the voice (0–7). Up to 8 voices are available.</li>
+<li><strong>Instrument by number:</strong> <code>INSTRUMENT instrumentNum%</code> uses a General MIDI program number (0–127). For example, 0 = Acoustic Grand Piano, 40 = Violin, 56 = Trumpet.</li>
+<li><strong>Instrument by name:</strong> <code>INSTRUMENT instrumentName$</code> uses a string with the standard GM instrument name (e.g. <code>&quot;Acoustic Grand Piano&quot;</code>, <code>&quot;Electric Guitar&quot;</code>). Names are case-insensitive.</li>
+<li>Voices retain their instrument until changed by another <code>VOICE</code> statement.</li>
+<li>Voices can be used in <code>PLAY</code> immediately; unconfigured voices use a default instrument.</li>
 </ul>
 <p><strong>Examples:</strong></p>
-<pre><code class="language-plain_text">' All voices start with NoiseCode preset 0 and ADSR preset 0 by default
-' You can use them immediately without configuration:
-PLAY 0, &quot;CDEFGAB C&quot;    ' Voice 0 uses default presets (NoiseCode 0, ADSR 0)
+<pre><code class="language-plain_text">' Set voice 0 to Acoustic Grand Piano (GM program 0)
+VOICE 0 INSTRUMENT 0
 
-' Create voice with GRIT preset (keeps current ADSR, or uses ADSR preset 0 if never set)
-VOICE 0 PRESET 5
+' Set voice 1 to Electric Guitar by program number (27)
+VOICE 1 INSTRUMENT 27
 
-' Create voice with GRIT preset and ADSR preset
-VOICE 1 PRESET 48 ADSR PRESET 1    ' Drum sound with percussive envelope
+' Set voice 2 to Violin by name
+VOICE 2 INSTRUMENT &quot;Violin&quot;
 
-' Create voice with custom GRIT NoiseCode and ADSR preset
-LET myNoiseCode% = &amp;H12345678
-VOICE 2 WITH myNoiseCode% ADSR PRESET 3    ' Custom timbre with pad envelope
+' Set voice 3 to Synth Lead by name
+VOICE 3 INSTRUMENT &quot;Lead 1 (square)&quot;
 
-' Create voice with GRIT preset and custom ADSR envelope
-VOICE 3 PRESET 10 ADSR 0.01 0.1 0.0 0.1    ' Fast attack, no sustain (percussive)
-
-' Create voice with custom NoiseCode and custom ADSR envelope
-VOICE 4 WITH &amp;H00000010 ADSR 0.1 0.2 0.8 0.5    ' Slow attack, high sustain (pad)
-
-' Create voice with GRIT preset and ambient ADSR preset
-VOICE 5 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
-</code></pre>
-<h3><a id="adsr-envelope-configuration" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>ADSR Envelope Configuration</h3>
-<p>ADSR (Attack, Decay, Sustain, Release) envelopes control how the amplitude of a voice changes over time. This enables percussive sounds (fast attack, no sustain), sustained tones (slow attack, high sustain), and smooth fade-outs (long release).</p>
-<p><strong>Envelope Parameters:</strong></p>
-<ul>
-<li><strong>Attack</strong>: Time in seconds to reach full amplitude from zero. Fast attack (0.01-0.1s) for percussive sounds, slow attack (0.1-1.0s) for pads and ambient sounds.</li>
-<li><strong>Decay</strong>: Time in seconds to fall from full amplitude to sustain level. Fast decay (0.05-0.2s) for drums, slower decay (0.2-1.0s) for sustained instruments.</li>
-<li><strong>Sustain</strong>: Level to hold after decay (0.0-1.0, where 1.0 = full amplitude). 0.0 for percussive sounds, 0.5-0.9 for sustained tones.</li>
-<li><strong>Release</strong>: Time in seconds to fall from sustain level to zero when note ends. Short release (0.1-0.5s) for staccato, long release (1.0-5.0s) for legato and ambient sounds.</li>
-</ul>
-<p><strong>ADSR Presets:</strong></p>
-<p>EduBASIC provides 16 ADSR envelope presets (0-15) optimized for different musical contexts:</p>
-<table>
-<thead>
-<tr>
-<th>Preset</th>
-<th>Name</th>
-<th>Attack</th>
-<th>Decay</th>
-<th>Sustain</th>
-<th>Release</th>
-<th>Use Case</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0</td>
-<td>Default</td>
-<td>0.01</td>
-<td>0.1</td>
-<td>0.7</td>
-<td>0.2</td>
-<td>General purpose, sustained</td>
-</tr>
-<tr>
-<td>1</td>
-<td>Percussive</td>
-<td>0.01</td>
-<td>0.1</td>
-<td>0.0</td>
-<td>0.1</td>
-<td>Drums, kicks, percussive</td>
-</tr>
-<tr>
-<td>2</td>
-<td>Pluck</td>
-<td>0.01</td>
-<td>0.2</td>
-<td>0.5</td>
-<td>0.5</td>
-<td>Plucked strings, guitar</td>
-</tr>
-<tr>
-<td>3</td>
-<td>Pad</td>
-<td>0.3</td>
-<td>0.5</td>
-<td>0.8</td>
-<td>1.5</td>
-<td>Pads, strings, sustained</td>
-</tr>
-<tr>
-<td>4</td>
-<td>Ambient</td>
-<td>1.0</td>
-<td>0.5</td>
-<td>0.6</td>
-<td>4.0</td>
-<td>Ambient textures, long fade</td>
-</tr>
-<tr>
-<td>5</td>
-<td>Staccato</td>
-<td>0.01</td>
-<td>0.05</td>
-<td>0.0</td>
-<td>0.1</td>
-<td>Short, sharp notes</td>
-</tr>
-<tr>
-<td>6</td>
-<td>Legato</td>
-<td>0.1</td>
-<td>0.2</td>
-<td>0.9</td>
-<td>2.0</td>
-<td>Smooth, connected notes</td>
-</tr>
-<tr>
-<td>7</td>
-<td>Bell</td>
-<td>0.01</td>
-<td>0.3</td>
-<td>0.3</td>
-<td>1.0</td>
-<td>Bells, chimes, metallic</td>
-</tr>
-<tr>
-<td>8</td>
-<td>Brass</td>
-<td>0.05</td>
-<td>0.2</td>
-<td>0.6</td>
-<td>0.3</td>
-<td>Brass instruments</td>
-</tr>
-<tr>
-<td>9</td>
-<td>String</td>
-<td>0.2</td>
-<td>0.4</td>
-<td>0.7</td>
-<td>1.0</td>
-<td>String instruments</td>
-</tr>
-<tr>
-<td>10</td>
-<td>Organ</td>
-<td>0.01</td>
-<td>0.1</td>
-<td>1.0</td>
-<td>0.1</td>
-<td>Organ, sustained tones</td>
-</tr>
-<tr>
-<td>11</td>
-<td>Piano</td>
-<td>0.01</td>
-<td>0.15</td>
-<td>0.3</td>
-<td>0.5</td>
-<td>Piano, keyboard</td>
-</tr>
-<tr>
-<td>12</td>
-<td>Synth Lead</td>
-<td>0.01</td>
-<td>0.1</td>
-<td>0.8</td>
-<td>0.3</td>
-<td>Synth leads, bright</td>
-</tr>
-<tr>
-<td>13</td>
-<td>Bass</td>
-<td>0.01</td>
-<td>0.2</td>
-<td>0.4</td>
-<td>0.3</td>
-<td>Bass instruments</td>
-</tr>
-<tr>
-<td>14</td>
-<td>Snare</td>
-<td>0.001</td>
-<td>0.05</td>
-<td>0.0</td>
-<td>0.2</td>
-<td>Snare drums, sharp attack</td>
-</tr>
-<tr>
-<td>15</td>
-<td>Hi-Hat</td>
-<td>0.001</td>
-<td>0.01</td>
-<td>0.0</td>
-<td>0.05</td>
-<td>Hi-hats, very short</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Default Envelope:</strong><br />
-If ADSR is not specified in the <code>VOICE</code> statement, ADSR preset 0 (Default) is used.</p>
-<p><strong>Examples:</strong></p>
-<pre><code class="language-plain_text">' Use ADSR preset with GRIT preset
-VOICE 0 PRESET 48 ADSR PRESET 1    ' Drum with percussive envelope
-
-' Use ADSR preset with custom NoiseCode
-LET myNoise% = &amp;H12345678
-VOICE 1 WITH myNoise% ADSR PRESET 3    ' Custom timbre with pad envelope
-
-' Use custom ADSR values
-VOICE 2 PRESET 32 ADSR 0.3 0.5 0.8 1.5    ' Pad sound with custom envelope
-
-' Combine GRIT preset with ambient ADSR preset
-VOICE 3 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
+PLAY 0, &quot;CDEFGAB C&quot;    ' Piano
+PLAY 1, &quot;CEG&quot;         ' Guitar chord
+PLAY 2, &quot;N60 N64 N67&quot;  ' Violin
 </code></pre>
 <h3><a id="play-statement" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>PLAY Statement</h3>
 <p>The <code>PLAY</code> statement plays music or sound on a specific voice. <strong>All <code>PLAY</code> statements play music in the background</strong>—execution continues immediately without waiting for the music to finish.</p>
@@ -5004,11 +4522,10 @@ VOICE 3 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
 </code></pre>
 <p><strong>Rules:</strong></p>
 <ul>
-<li><code>voiceNumber%</code> must be a voice created with <code>VOICE</code> statement</li>
+<li><code>voiceNumber%</code> identifies the voice (0–7) to play on. Use <code>VOICE</code> to set the instrument for that voice.</li>
 <li><code>mmlString$</code> contains the Music Macro Language sequence</li>
-<li>MML controls the frequency (notes), timing, and velocity for ALL voices</li>
-<li>The voice's timbre (configured by <code>VOICE</code> NoiseCode) determines what the notes sound like</li>
-<li>The voice's ADSR envelope (configured by <code>VOICE</code> ADSR) controls amplitude shaping</li>
+<li>MML controls the frequency (notes), timing, and velocity for the voice</li>
+<li>The voice's timbre is determined by the General MIDI instrument set with <code>VOICE ... INSTRUMENT</code></li>
 <li>Each <code>PLAY</code> statement plays on the specified voice</li>
 <li>Multiple voices can play simultaneously</li>
 <li><strong>All <code>PLAY</code> statements execute asynchronously in the background</strong>—the program continues immediately</li>
@@ -5073,13 +4590,13 @@ VOICE 3 PRESET 112 ADSR PRESET 4    ' Ambient sound with long release
 <li>Useful for checking if a voice is still playing music</li>
 </ul>
 <p><strong>Examples:</strong></p>
-<pre><code class="language-plain_text">' Set up voices with GRIT timbres and ADSR envelopes
-VOICE 0 PRESET 5 ADSR PRESET 0    ' Engine sound timbre with default ADSR
-VOICE 1 PRESET 10 ADSR PRESET 1   ' Weapon sound timbre with percussive ADSR
+<pre><code class="language-plain_text">' Set up voices with General MIDI instruments
+VOICE 0 INSTRUMENT 0    ' Acoustic Grand Piano
+VOICE 1 INSTRUMENT 27  ' Electric Guitar (clean)
 
 TEMPO 120
 
-' Play melody - MML controls notes, GRIT preset 5 controls timbre, ADSR controls amplitude
+' Play melody - MML controls notes, instrument set by VOICE
 ' Note: PLAY executes in background, program continues immediately
 PLAY 0, &quot;CDEFGAB C&quot;
 
@@ -5093,30 +4610,30 @@ PLAY 0, &quot;N60 N62 N64 N65 N67&quot;
 LET notesLeft% = NOTES 0
 IF notesLeft% &gt; 0 THEN PRINT &quot;Voice 0 still playing: &quot;, notesLeft%, &quot; notes&quot;
 
-' Play on different voice - same MML, different GRIT timbre and ADSR
+' Play on different voice - same MML, different instrument
 PLAY 1, &quot;N60 L4&quot;    ' Play note 60 (middle C) for quarter note duration
 </code></pre>
 <h3><a id="mml-examples" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>MML Examples</h3>
 <p><strong>Simple Scale:</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 0    ' Use GRIT preset 0 with default ADSR
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Acoustic Grand Piano
 TEMPO 120
 PLAY 0, &quot;CDEFGAB C&quot;    ' MML controls notes
 </code></pre>
 <p><strong>Song with Velocity:</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 0 ADSR PRESET 0    ' Use ADSR preset 0 (default)
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Piano
 TEMPO 100
 ' V command sets velocity (0-127), relative to global VOLUME
 PLAY 0, &quot;V80 C L4 D L4 E L2 V100 F L4 G L4 A L2&quot;
 </code></pre>
 <p><strong>Using Note Numbers:</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 0 ADSR PRESET 0
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Piano
 TEMPO 120
 ' Play C major chord (C=60, E=64, G=67)
 PLAY 0, &quot;N60 N64 N67 L2&quot;
 </code></pre>
 <p><strong>Multiple Voices:</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 0 ADSR PRESET 0    ' Timbre for voice 0
-VOICE 1 PRESET 5 ADSR PRESET 0    ' Different timbre for voice 1
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Piano for voice 0
+VOICE 1 INSTRUMENT 27  ' Electric Guitar for voice 1
 TEMPO 120
 
 ' Melody on voice 0 (plays in background)
@@ -5131,87 +4648,60 @@ LET notes1% = NOTES 1
 PRINT &quot;Voice 0: &quot;, notes0%, &quot; notes remaining&quot;
 PRINT &quot;Voice 1: &quot;, notes1%, &quot; notes remaining&quot;
 </code></pre>
-<p><strong>GRIT Noise Example:</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 5 ADSR PRESET 0    ' Engine sound preset
+<p><strong>Different instruments example:</strong></p>
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT &quot;Acoustic Grand Piano&quot;
 TEMPO 120
 
-' Play noise at different pitches
+' Play melody at different pitches
 PLAY 0, &quot;N60 L4 N65 L4 N67 L4&quot;    ' Rising pitch pattern
 </code></pre>
 <h3><a id="audio-examples" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Audio Examples</h3>
 <p><strong>Example: Simple Melody:</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 0    ' Use GRIT preset 0 with default ADSR
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Acoustic Grand Piano
 TEMPO 120
 PLAY 0, &quot;C D E F G A B C&quot;    ' MML controls notes
 </code></pre>
 <p><strong>Example: Song with Dynamics (Velocity):</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 0 ADSR PRESET 0
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Piano
 TEMPO 100
 
 ' V command sets velocity (0-127), relative to global VOLUME
 ' Velocity affects loudness of individual notes
 PLAY 0, &quot;V64 C L4 V80 D L4 V96 E L4 V112 F L2&quot;
 </code></pre>
-<p><strong>Example: Different GRIT Timbres with ADSR Presets:</strong></p>
-<pre><code class="language-plain_text">' Create voices with different GRIT timbres and ADSR preset envelopes
-VOICE 0 PRESET 10 ADSR PRESET 1    ' Weapon sound (percussive ADSR)
-VOICE 1 PRESET 15 ADSR PRESET 0    ' Engine sound (default ADSR)
-VOICE 2 PRESET 20 ADSR PRESET 4    ' Ambience (ambient ADSR)
+<p><strong>Example: Different General MIDI Instruments:</strong></p>
+<pre><code class="language-plain_text">' Create voices with different GM instruments
+VOICE 0 INSTRUMENT 0    ' Acoustic Grand Piano
+VOICE 1 INSTRUMENT 27   ' Electric Guitar (clean)
+VOICE 2 INSTRUMENT 40   ' Violin
 
 TEMPO 120
 
-' Play notes with weapon sound timbre (fast attack, no sustain)
-PLAY 0, &quot;N80 L8&quot;
+' Play melody on piano
+PLAY 0, &quot;N60 N62 N64 N65 N67 L4&quot;
 
-' Play notes with engine sound timbre (sustained)
-PLAY 1, &quot;N40 L1&quot;    ' Low rumble
+' Play chord on guitar
+PLAY 1, &quot;N40 L1&quot;    ' Low chord
 
-' Play notes with ambience timbre (slow fade-in, long fade-out)
-PLAY 2, &quot;N50 L1&quot;    ' Background texture
+' Play sustained note on violin
+PLAY 2, &quot;N55 L1&quot;    ' String texture
 </code></pre>
-<p><strong>Example: Custom GRIT Voice with ADSR Preset:</strong></p>
-<pre><code class="language-plain_text">' Create custom GRIT voice with NoiseCode and ADSR preset
-LET customNoise% = &amp;HABCD1234
-VOICE 0 WITH customNoise% ADSR PRESET 3    ' Custom timbre with pad ADSR preset
+<p><strong>Example: Instruments by Name:</strong></p>
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT &quot;Acoustic Grand Piano&quot;
+VOICE 1 INSTRUMENT &quot;Electric Guitar (clean)&quot;
 
 TEMPO 120
 PLAY 0, &quot;N60 L4 N65 L4 N67 L4&quot;
+PLAY 1, &quot;CEG&quot;
 </code></pre>
-<p><strong>Example: Drum Pattern with Percussive ADSR Preset:</strong></p>
-<pre><code class="language-plain_text">' Drum sound: use ADSR preset 1 (percussive)
-VOICE 0 PRESET 48 ADSR PRESET 1
-TEMPO 120
-
-' Play kick drum pattern
-PLAY 0, &quot;N36 L4 R4 N36 L4 R4 N36 L8 N36 L8 R4&quot;
-</code></pre>
-<p><strong>Example: Pad Sound with Pad ADSR Preset:</strong></p>
-<pre><code class="language-plain_text">' Pad sound: use ADSR preset 3 (pad)
-VOICE 1 PRESET 32 ADSR PRESET 3
+<p><strong>Example: Multiple Voices:</strong></p>
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Piano
+VOICE 1 INSTRUMENT 48   ' String Ensemble 1
 TEMPO 100
 
-' Play sustained chord
-PLAY 1, &quot;N60 N64 N67 L1&quot;    ' C major chord, whole note
-</code></pre>
-<p><strong>Example: Combining GRIT and ADSR Presets:</strong></p>
-<pre><code class="language-plain_text">' Use different combinations of presets
-VOICE 0 PRESET 48 ADSR PRESET 1    ' Drum timbre with percussive envelope
-VOICE 1 PRESET 32 ADSR PRESET 3    ' Lead timbre with pad envelope
-VOICE 2 PRESET 112 ADSR PRESET 4   ' Ambient timbre with ambient envelope
-
-TEMPO 120
-PLAY 0, &quot;N36 L4&quot;    ' Kick drum
-PLAY 1, &quot;N60 L2&quot;    ' Sustained pad
-PLAY 2, &quot;N50 L1&quot;    ' Ambient texture
-</code></pre>
-<p><strong>Example: Custom ADSR Values:</strong></p>
-<pre><code class="language-plain_text">' Use custom ADSR values when presets don't fit
-VOICE 0 PRESET 5 ADSR 0.005 0.08 0.0 0.08    ' Very fast, custom percussive
-VOICE 1 PRESET 32 ADSR 0.4 0.6 0.85 2.0     ' Very slow, custom pad
-
-TEMPO 120
-PLAY 0, &quot;N60 L4&quot;
-PLAY 1, &quot;N64 L2&quot;
+' Melody and harmony
+PLAY 0, &quot;N60 N64 N67 L1&quot;    ' C major chord on piano
+PLAY 1, &quot;N60 N64 N67 L1&quot;    ' Same chord on strings
 </code></pre>
 <h2><a id="statement-and-operator-reference" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Statement and Operator Reference</h2>
 <p>This section provides an alphabetical reference of all EduBASIC statements, mathematical functions, and operators.</p>
@@ -5456,6 +4946,17 @@ CLS WITH &amp;H000033FF    ' Clear to dark blue
 CLOSE file%
 </code></pre>
 <hr />
+<h3><a id="console" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>CONSOLE</h3>
+<p><strong>Type:</strong> Statement (Console)<br />
+<strong>Syntax:</strong> <code>CONSOLE expression</code><br />
+<strong>Description:</strong> Evaluates an expression and prints the result to the console (not the output tab). Useful for debugging and inspecting values during program execution. Can be used in programs or interactively in the console.<br />
+<strong>Example:</strong></p>
+<pre><code class="language-plain_text">CONSOLE 1 + 2
+CONSOLE x% * y%
+CONSOLE &quot;Value: &quot; + STR value#
+</code></pre>
+<p><strong>Note:</strong> In the console, typing just an expression (e.g., <code>1 + 2</code>) automatically behaves as if you typed <code>CONSOLE 1 + 2</code>. However, <code>CONSOLE</code> must be explicitly used in program code.</p>
+<hr />
 <h3><a id="color" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>COLOR</h3>
 <p><strong>Type:</strong> Command (Text/Graphics)<br />
 <strong>Syntax:</strong> <code>COLOR foregroundColor%</code> or <code>COLOR foregroundColor%, backgroundColor%</code> or <code>COLOR , backgroundColor%</code><br />
@@ -5490,9 +4991,9 @@ PRINT root&amp;    ' Prints: 0+1i
 </code></pre>
 <hr />
 <h3><a id="date" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>DATE$</h3>
-<p><strong>Type:</strong> Operator (Date/Time)<br />
+<p><strong>Type:</strong> Nullary Operator (Date/Time)<br />
 <strong>Syntax:</strong> <code>DATE$</code><br />
-<strong>Description:</strong> Returns the current date as a string in <code>YYYY-MM-DD</code> format (ISO 8601 date format).<br />
+<strong>Description:</strong> Nullary operator that returns the current date as a string in <code>YYYY-MM-DD</code> format (ISO 8601 date format). This nullary operator is evaluated fresh at runtime, so each evaluation returns the current date.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET today$ = DATE$
 PRINT &quot;Today is: &quot;, today$    ' Prints: &quot;Today is: 2025-01-15&quot;
@@ -5685,9 +5186,9 @@ PRINT EXPAND -3.1    ' Prints: -4
 </code></pre>
 <hr />
 <h3><a id="e" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>E#</h3>
-<p><strong>Type:</strong> Operator (Math Constant)<br />
+<p><strong>Type:</strong> Nullary Operator (Math Constant)<br />
 <strong>Syntax:</strong> <code>E#</code><br />
-<strong>Description:</strong> Returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045).<br />
+<strong>Description:</strong> Nullary operator that returns the mathematical constant e (Euler's number) as a real number (approximately 2.718281828459045). This nullary operator always returns the same value.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET eValue# = E#
 PRINT eValue#    ' Prints: 2.718281828459045
@@ -5826,6 +5327,17 @@ LET hexStr$ = HEX -1     ' &quot;FFFFFFFF&quot;
 LET hexStr$ = HEX 4095    ' &quot;FFF&quot;
 </code></pre>
 <hr />
+<h3><a id="help" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>HELP</h3>
+<p><strong>Type:</strong> Statement (Console)<br />
+<strong>Syntax:</strong> <code>HELP keyword</code><br />
+<strong>Description:</strong> Displays help information for a specified statement. The keyword is the name of the statement (e.g., <code>PRINT</code>, <code>COLOR</code>, <code>FOR</code>). Prints all valid syntax forms for the statement to the console (not the output tab). If the statement is not found, displays a message indicating no help is available.<br />
+<strong>Example:</strong></p>
+<pre><code class="language-plain_text">HELP PRINT
+HELP COLOR
+HELP FOR
+</code></pre>
+<p><strong>Output:</strong> Each valid syntax form for the statement is printed on a separate line in the console.</p>
+<hr />
 <h3><a id="imp" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>IMP</h3>
 <p><strong>Type:</strong> Operator (Boolean/Bitwise)<br />
 <strong>Syntax:</strong> <code>expression1 IMP expression2</code><br />
@@ -5835,9 +5347,9 @@ LET hexStr$ = HEX 4095    ' &quot;FFF&quot;
 </code></pre>
 <hr />
 <h3><a id="inkey" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>INKEY$</h3>
-<p><strong>Type:</strong> Operator (Input)<br />
+<p><strong>Type:</strong> Nullary Operator (Input)<br />
 <strong>Syntax:</strong> <code>INKEY$</code><br />
-<strong>Description:</strong> Returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name.<br />
+<strong>Description:</strong> Nullary operator that returns a string containing the key currently pressed, or empty string if no key is pressed. Non-blocking keyboard input. Returns the character or special key name. This nullary operator is evaluated fresh at runtime, so each evaluation checks the current keyboard state.<br />
 <strong>Return Values:</strong></p>
 <ul>
 <li><strong>Empty string (<code>&quot;&quot;</code>):</strong> No key is currently pressed</li>
@@ -6274,9 +5786,9 @@ IF NOT gameOver% THEN GOSUB UpdateGame
 </code></pre>
 <hr />
 <h3><a id="now" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>NOW%</h3>
-<p><strong>Type:</strong> Operator (Date/Time)<br />
+<p><strong>Type:</strong> Nullary Operator (Date/Time)<br />
 <strong>Syntax:</strong> <code>NOW%</code><br />
-<strong>Description:</strong> Returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values.<br />
+<strong>Description:</strong> Nullary operator that returns the current Unix timestamp (seconds since January 1, 1970, 00:00:00 UTC) as an integer. Useful for calculating time differences and storing absolute time values. This nullary operator is evaluated fresh at runtime, so each evaluation returns the current timestamp.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET timestamp% = NOW%
 PRINT &quot;Timestamp: &quot;, timestamp%    ' Prints: &quot;Timestamp: 1736968245&quot;
@@ -6329,9 +5841,9 @@ PAINT (200, 200) WITH &amp;H00FF00FF BORDER &amp;H0000FFFF    ' Fill bounded by 
 <h3><a id="play" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>PLAY</h3>
 <p><strong>Type:</strong> Command (Audio)<br />
 <strong>Syntax:</strong> <code>PLAY voiceNumber%, mmlString$</code><br />
-<strong>Description:</strong> Plays music or sound on a specific voice using Music Macro Language (MML). <strong>All <code>PLAY</code> statements play music in the background</strong>—execution continues immediately without waiting for the music to finish. <code>voiceNumber%</code> must be a voice created with <code>VOICE</code> statement. <code>mmlString$</code> contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the GRIT NoiseCode configured in <code>VOICE</code>, and amplitude shaping is controlled by the ADSR envelope. Multiple voices can play simultaneously. Use <code>NOTES</code> operator to check how many notes remain for a voice. Velocity in MML (<code>V</code> command) is relative to the global <code>VOLUME</code> setting.<br />
+<strong>Description:</strong> Plays music or sound on a specific voice using Music Macro Language (MML). <strong>All <code>PLAY</code> statements play music in the background</strong>—execution continues immediately without waiting for the music to finish. <code>voiceNumber%</code> identifies the voice (0–7). <code>mmlString$</code> contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the General MIDI instrument set with <code>VOICE ... INSTRUMENT</code>. Multiple voices can play simultaneously. Use <code>NOTES</code> operator to check how many notes remain for a voice. Velocity in MML (<code>V</code> command) is relative to the global <code>VOLUME</code> setting.<br />
 <strong>Example:</strong></p>
-<pre><code class="language-plain_text">VOICE 0 PRESET 5 ADSR 0.01 0.1 0.7 0.2
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0
 TEMPO 120
 PLAY 0, &quot;CDEFGAB C&quot;    ' Play scale (continues in background)
 PLAY 0, &quot;V100 C L4 V64 D L4&quot;    ' Play with velocity (continues in background)
@@ -6343,9 +5855,9 @@ IF notesLeft% &gt; 0 THEN PRINT &quot;Still playing: &quot;, notesLeft%, &quot; 
 </code></pre>
 <hr />
 <h3><a id="pi" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>PI#</h3>
-<p><strong>Type:</strong> Operator (Math Constant)<br />
+<p><strong>Type:</strong> Nullary Operator (Math Constant)<br />
 <strong>Syntax:</strong> <code>PI#</code><br />
-<strong>Description:</strong> Returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793).<br />
+<strong>Description:</strong> Nullary operator that returns the mathematical constant π (pi) as a real number (approximately 3.141592653589793). This nullary operator always returns the same value.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET piValue# = PI#
 PRINT piValue#    ' Prints: 3.141592653589793
@@ -6529,9 +6041,9 @@ RMDIR &quot;/Users/name/old_data&quot;
 </code></pre>
 <hr />
 <h3><a id="rnd" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>RND#</h3>
-<p><strong>Type:</strong> Operator (Random)<br />
+<p><strong>Type:</strong> Nullary Operator (Random)<br />
 <strong>Syntax:</strong> <code>RND#</code><br />
-<strong>Description:</strong> Returns a random real number in the range [0, 1).<br />
+<strong>Description:</strong> Nullary operator that returns a random real number in the range [0, 1). This nullary operator is evaluated fresh at runtime, so each evaluation returns a different random value.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET random# = RND#
 LET dice% = INT (RND# * 6) + 1    ' Random integer 1-6
@@ -6760,9 +6272,9 @@ PRINT result#    ' Prints: 0.0
 </code></pre>
 <hr />
 <h3><a id="time" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>TIME$</h3>
-<p><strong>Type:</strong> Operator (Date/Time)<br />
+<p><strong>Type:</strong> Nullary Operator (Date/Time)<br />
 <strong>Syntax:</strong> <code>TIME$</code><br />
-<strong>Description:</strong> Returns the current time as a string in <code>HH:MM:SS</code> format (24-hour format).<br />
+<strong>Description:</strong> Nullary operator that returns the current time as a string in <code>HH:MM:SS</code> format (24-hour format). This nullary operator is evaluated fresh at runtime, so each evaluation returns the current time.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET now$ = TIME$
 PRINT &quot;Current time: &quot;, now$    ' Prints: &quot;Current time: 14:30:45&quot;
@@ -6846,9 +6358,9 @@ PRINT TRUNC -3.9     ' Prints: -3
 </code></pre>
 <hr />
 <h3><a id="true" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>TRUE%</h3>
-<p><strong>Type:</strong> Operator (Boolean Constant)<br />
+<p><strong>Type:</strong> Nullary Operator (Boolean Constant)<br />
 <strong>Syntax:</strong> <code>TRUE%</code><br />
-<strong>Description:</strong> Returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, <code>TRUE% AND TRUE%</code> yields <code>TRUE%</code> (<code>-1 AND -1 = -1</code>).<br />
+<strong>Description:</strong> Nullary operator that returns the canonical boolean true value as an integer (-1). All bits are set to 1 in two's complement representation, which makes bitwise operations behave correctly. For example, <code>TRUE% AND TRUE%</code> yields <code>TRUE%</code> (<code>-1 AND -1 = -1</code>). This nullary operator always returns the same value.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET flag% = TRUE%
 IF condition% THEN
@@ -6859,9 +6371,9 @@ LET check% = (x% &gt; 0) AND TRUE%    ' Bitwise AND with TRUE%
 </code></pre>
 <hr />
 <h3><a id="false" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>FALSE%</h3>
-<p><strong>Type:</strong> Operator (Boolean Constant)<br />
+<p><strong>Type:</strong> Nullary Operator (Boolean Constant)<br />
 <strong>Syntax:</strong> <code>FALSE%</code><br />
-<strong>Description:</strong> Returns the canonical boolean false value as an integer (0).<br />
+<strong>Description:</strong> Nullary operator that returns the canonical boolean false value as an integer (0). This nullary operator always returns the same value.<br />
 <strong>Example:</strong></p>
 <pre><code class="language-plain_text">LET flag% = FALSE%
 IF NOT condition% THEN
@@ -6973,23 +6485,16 @@ LET complexValue&amp; = VAL &quot;3-4i&quot;    ' 3-4i (complex number, coerced 
 <h3><a id="voice" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>VOICE</h3>
 <p><strong>Type:</strong> Command (Audio)<br />
 <strong>Syntax:</strong></p>
-<pre><code class="language-plain_text">VOICE voiceNumber% PRESET noisePreset%
-VOICE voiceNumber% WITH noiseCode%
-VOICE voiceNumber% PRESET noisePreset% ADSR attack# decay# sustain# release#
-VOICE voiceNumber% WITH noiseCode% ADSR attack# decay# sustain# release#
-VOICE voiceNumber% PRESET noisePreset% ADSR PRESET adsrPreset%
-VOICE voiceNumber% WITH noiseCode% ADSR PRESET adsrPreset%
+<pre><code class="language-plain_text">VOICE voiceNumber% INSTRUMENT instrumentNum%
+VOICE voiceNumber% INSTRUMENT instrumentName$
 </code></pre>
-<p><strong>Description:</strong> Configures the GRIT timbre (sound character) and ADSR envelope for a voice. All voices use MML (for notes), GRIT (for timbre), and ADSR (for amplitude shaping). <code>voiceNumber%</code> identifies the voice (0-63, for 64 total voices). <strong>Initialization:</strong> All 64 voices are initialized with GRIT NoiseCode preset 0 and ADSR preset 0 by default, and can be used immediately in <code>PLAY</code> statements. <strong>NoiseCode:</strong> <code>PRESET noisePreset%</code> uses a preset from the 128-entry GRIT preset table (0-127). <code>WITH noiseCode%</code> uses a custom NoiseCode value (32-bit unsigned integer). <strong>ADSR:</strong> <code>ADSR attack# decay# sustain# release#</code> configures the amplitude envelope with custom values (attack and decay in seconds, sustain 0.0-1.0, release in seconds). <code>ADSR PRESET adsrPreset%</code> uses a preset from the 16-entry ADSR preset table (0-15). If ADSR is not specified, the voice retains its current ADSR configuration (or uses ADSR preset 0 if never set). Voices retain their configuration until explicitly changed by another <code>VOICE</code> statement.<br />
+<p><strong>Description:</strong> Assigns a General MIDI instrument to a voice. The instrument sets the timbre when the voice plays MML via <code>PLAY</code>. <code>voiceNumber%</code> identifies the voice (0–7). <strong>Instrument by number:</strong> <code>INSTRUMENT instrumentNum%</code> uses a GM program number (0–127), e.g. 0 = Acoustic Grand Piano, 40 = Violin. <strong>Instrument by name:</strong> <code>INSTRUMENT instrumentName$</code> uses a string with the standard GM instrument name (e.g. <code>&quot;Acoustic Grand Piano&quot;</code>). Names are case-insensitive. Voices retain their instrument until changed by another <code>VOICE</code> statement.<br />
 <strong>Example:</strong></p>
-<pre><code class="language-plain_text">' Voices can be used immediately with defaults (NoiseCode preset 0, ADSR preset 0)
+<pre><code class="language-plain_text">VOICE 0 INSTRUMENT 0    ' Acoustic Grand Piano
+VOICE 1 INSTRUMENT 27  ' Electric Guitar (clean)
+VOICE 2 INSTRUMENT &quot;Violin&quot;
 PLAY 0, &quot;CDEFGAB C&quot;
-
-VOICE 0 PRESET 5    ' GRIT preset with default ADSR (preset 0)
-VOICE 1 PRESET 48 ADSR PRESET 1    ' Drum sound with percussive ADSR preset
-LET myNoise% = &amp;H12345678
-VOICE 2 WITH myNoise% ADSR PRESET 3    ' Custom NoiseCode with pad ADSR preset
-VOICE 3 PRESET 10 ADSR 0.01 0.1 0.0 0.1    ' GRIT preset with custom ADSR
+PLAY 1, &quot;CEG&quot;
 </code></pre>
 <hr />
 <h3><a id="volume" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>VOLUME</h3>
@@ -7915,8 +7420,9 @@ WRITEFILE output$ TO &quot;results.txt&quot;
 </tr>
 </tbody>
 </table>
-<h3><a id="constants" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Constants</h3>
-<p>These operators take no arguments and return a value. They use type sigils to indicate their return type.</p>
+<h3><a id="nullary-operators" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Nullary Operators</h3>
+<p>Nullary operators are built-in values that take no arguments and return a value. They can be thought of as &quot;pseudo-variables&quot; or &quot;constants that can change&quot; - they behave like variables in that they can be used anywhere a value is expected, but unlike true constants, some of them (like <code>RND#</code>, <code>DATE$</code>, <code>TIME$</code>, <code>NOW%</code>) return different values on each evaluation. The term &quot;nullary operator&quot; emphasizes that these are operators that take zero arguments, distinguishing them from both true constants (which never change) and variables (which are user-defined).</p>
+<p>All nullary operators use type sigils to indicate their return type.</p>
 <table>
 <thead>
 <tr>
@@ -8065,7 +7571,7 @@ WRITEFILE output$ TO &quot;results.txt&quot;
 </table>
 <h3><a id="operator-precedence-summary" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Operator Precedence Summary</h3>
 <ol>
-<li><strong>Constants</strong>: <code>RND#</code>, <code>INKEY$</code>, <code>PI#</code>, <code>E#</code>, <code>DATE$</code>, <code>TIME$</code>, <code>NOW%</code>, <code>TRUE%</code>, <code>FALSE%</code> (highest precedence)</li>
+<li><strong>Nullary Operators</strong>: <code>RND#</code>, <code>INKEY$</code>, <code>PI#</code>, <code>E#</code>, <code>DATE$</code>, <code>TIME$</code>, <code>NOW%</code>, <code>TRUE%</code>, <code>FALSE%</code> (highest precedence)</li>
 <li><strong>Parentheses</strong> <code>( )</code></li>
 <li><strong>Mathematical operators</strong>: <code>SIN</code>, <code>COS</code>, <code>TAN</code>, <code>ASIN</code>, <code>ACOS</code>, <code>ATAN</code>, <code>SINH</code>, <code>COSH</code>, <code>TANH</code>, <code>ASINH</code>, <code>ACOSH</code>, <code>ATANH</code>, <code>EXP</code>, <code>LOG</code>, <code>LOG10</code>, <code>LOG2</code>, <code>SQRT</code>, <code>CBRT</code>, <code>FLOOR</code>, <code>CEIL</code>, <code>ROUND</code>, <code>TRUNC</code>, <code>EXPAND</code>, <code>SGN</code></li>
 <li><strong>Complex operators</strong>: <code>REAL</code>, <code>IMAG</code>, <code>CONJ</code>, <code>CABS</code>, <code>CARG</code>, <code>CSQRT</code></li>
@@ -8090,8 +7596,9 @@ WRITEFILE output$ TO &quot;results.txt&quot;
 <p><strong>Notes:</strong></p>
 <ul>
 <li>When operators have the same precedence, evaluation proceeds left to right, except for exponentiation which is right-associative</li>
-<li>Constants take zero arguments and can appear anywhere in an expression</li>
-<li>All constants use type sigils in their identifiers to indicate return types</li>
+<li>Nullary operators take zero arguments and can appear anywhere in an expression</li>
+<li>All nullary operators use type sigils in their identifiers to indicate return types</li>
+<li>Some nullary operators (like <code>RND#</code>, <code>DATE$</code>, <code>TIME$</code>, <code>NOW%</code>) return different values on each evaluation, while others (like <code>PI#</code>, <code>E#</code>, <code>TRUE%</code>, <code>FALSE%</code>) always return the same value</li>
 </ul>
 <hr />
 <h2><a id="appendix-css-color-names" class="anchor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Appendix: CSS Color Names</h2>

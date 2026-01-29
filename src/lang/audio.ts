@@ -1,19 +1,8 @@
-import {
-    getPresetNoiseCode,
-    PRESETS,
-} from '../grit/presets';
-import {
-    DEFAULT_ADSR_SUSTAINED,
-    DEFAULT_ADSR_PERCUSSIVE,
-    DEFAULT_ADSR_PAD,
-    DEFAULT_ADSR_PLUCK,
-    AdsrEnvelope,
-} from '../grit/adsr-envelope';
+import WebAudioTinySynth from 'webaudio-tinysynth';
 
 interface VoiceConfig
 {
-    noiseCode: number;
-    adsr: AdsrEnvelope;
+    program: number;
 }
 
 interface ScheduledNote
@@ -29,10 +18,12 @@ export class Audio
     private tempo: number = 120;
     private volume: number = 100;
     private currentVoice: number = 0;
+    private muted: boolean = false;
 
     private audioContext: AudioContext | null = null;
-    private workletNode: AudioWorkletNode | null = null;
-    private workletReady: boolean = false;
+    private synth: WebAudioTinySynth | null = null;
+    private gainNode: GainNode | null = null;
+    private ready: boolean = false;
 
     private voiceConfigs: Map<number, VoiceConfig> = new Map();
     private scheduledNotes: Map<number, ScheduledNote[]> = new Map();
@@ -46,37 +37,36 @@ export class Audio
     private async initializeAudio(): Promise<void>
     {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-        
+
         if (!AudioContextClass)
         {
-            this.workletReady = false;
+            this.ready = false;
             return;
         }
 
         try
         {
             this.audioContext = new AudioContextClass();
-
-            await this.audioContext.audioWorklet.addModule('/grit-worklet.js');
-
-            this.workletNode = new AudioWorkletNode(this.audioContext, 'grit-processor');
-            this.workletNode.connect(this.audioContext.destination);
-
-            this.workletReady = true;
+            this.synth = new WebAudioTinySynth({ quality: 0, useReverb: 0, voices: 32 });
+            this.gainNode = this.audioContext.createGain();
+            this.gainNode.gain.value = this.volume / 100;
+            this.synth.setAudioContext(this.audioContext, this.gainNode);
+            this.gainNode.connect(this.audioContext.destination);
+            this.synth.setTsMode(0);
+            this.ready = true;
 
             for (let i = 0; i < 8; i++)
             {
-                this.voiceConfigs.set(i, {
-                    noiseCode: PRESETS[0],
-                    adsr: { ...DEFAULT_ADSR_SUSTAINED },
-                });
+                this.voiceConfigs.set(i, { program: 0 });
                 this.scheduledNotes.set(i, []);
                 this.nextNoteTime.set(i, 0);
+                this.synth.setProgram(i, 0);
+                this.synth.setChVol(i, Math.round(127 * this.volume / 100), 0);
             }
         }
         catch
         {
-            this.workletReady = false;
+            this.ready = false;
         }
     }
 
@@ -88,6 +78,48 @@ export class Audio
     public setVolume(volume: number): void
     {
         this.volume = Math.max(0, Math.min(100, volume));
+
+        if (this.gainNode)
+        {
+            this.gainNode.gain.value = this.volume / 100;
+        }
+
+        if (this.synth)
+        {
+            const chVol = Math.round(127 * this.volume / 100);
+            for (let i = 0; i < 8; i++)
+            {
+                this.synth.setChVol(i, chVol, 0);
+            }
+        }
+    }
+
+    public setMuted(muted: boolean): void
+    {
+        this.muted = muted;
+
+        if (this.synth && this.audioContext)
+        {
+            if (muted)
+            {
+                if (this.gainNode)
+                {
+                    this.gainNode.disconnect();
+                }
+            }
+            else
+            {
+                if (this.synth && this.gainNode && this.audioContext)
+                {
+                    this.gainNode.connect(this.audioContext.destination);
+                }
+            }
+        }
+    }
+
+    public getMuted(): boolean
+    {
+        return this.muted;
     }
 
     public setVoice(voiceIndex: number): void
@@ -95,136 +127,68 @@ export class Audio
         this.currentVoice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
     }
 
-    public configureVoice(
-        voiceIndex: number,
-        preset: number | null,
-        noiseCode: number | null,
-        adsrPreset: number | null,
-        adsrCustom: number[] | null
-    ): void
+    public setVoiceInstrument(voiceIndex: number, programNum: number): void
     {
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const program = Math.max(0, Math.min(127, Math.floor(programNum)));
+        this.voiceConfigs.set(voice, { program });
 
-        let noiseCodeValue: number;
-
-        if (preset !== null)
+        if (this.ready && this.synth)
         {
-            const presetNoiseCode = getPresetNoiseCode(preset);
-
-            if (presetNoiseCode !== undefined)
-            {
-                noiseCodeValue = presetNoiseCode;
-            }
-            else
-            {
-                noiseCodeValue = PRESETS[0];
-            }
-        }
-        else if (noiseCode !== null)
-        {
-            noiseCodeValue = noiseCode;
-        }
-        else
-        {
-            const current = this.voiceConfigs.get(voice);
-
-            if (current)
-            {
-                noiseCodeValue = current.noiseCode;
-            }
-            else
-            {
-                noiseCodeValue = PRESETS[0];
-            }
-        }
-
-        let adsr: AdsrEnvelope;
-
-        if (adsrPreset !== null)
-        {
-            adsr = this.getAdsrPreset(adsrPreset);
-        }
-        else if (adsrCustom !== null && adsrCustom.length >= 4)
-        {
-            adsr = {
-                attack: Math.max(0, adsrCustom[0]),
-                decay: Math.max(0, adsrCustom[1]),
-                sustain: Math.max(0, Math.min(1, adsrCustom[2])),
-                release: Math.max(0, adsrCustom[3]),
-            };
-        }
-        else
-        {
-            const current = this.voiceConfigs.get(voice);
-
-            if (current)
-            {
-                adsr = current.adsr;
-            }
-            else
-            {
-                adsr = { ...DEFAULT_ADSR_SUSTAINED };
-            }
-        }
-
-        this.voiceConfigs.set(voice, { noiseCode: noiseCodeValue, adsr });
-
-        if (this.workletReady && this.workletNode && this.audioContext)
-        {
-            this.workletNode.port.postMessage({
-                type: 'setVoice',
-                voiceIndex: voice,
-                noiseCode: noiseCodeValue,
-                frequency: 440,
-                adsr,
-            });
+            this.synth.setProgram(voice, program);
         }
     }
 
-    private getAdsrPreset(preset: number): AdsrEnvelope
+    public setVoiceInstrumentByName(voiceIndex: number, name: string): void
     {
-        switch (preset)
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const program = this.resolveProgramByName(name);
+        this.voiceConfigs.set(voice, { program });
+
+        if (this.ready && this.synth)
         {
-            case 0:
-                return { ...DEFAULT_ADSR_SUSTAINED };
-            case 1:
-                return { ...DEFAULT_ADSR_PERCUSSIVE };
-            case 2:
-                return { ...DEFAULT_ADSR_PLUCK };
-            case 3:
-                return { ...DEFAULT_ADSR_PAD };
-            case 4:
-                return { attack: 1.0, decay: 0.5, sustain: 0.6, release: 4.0 };
-            case 5:
-                return { attack: 0.01, decay: 0.05, sustain: 0.0, release: 0.1 };
-            case 6:
-                return { attack: 0.1, decay: 0.2, sustain: 0.9, release: 2.0 };
-            case 7:
-                return { attack: 0.01, decay: 0.3, sustain: 0.3, release: 1.0 };
-            case 8:
-                return { attack: 0.05, decay: 0.2, sustain: 0.6, release: 0.3 };
-            case 9:
-                return { attack: 0.2, decay: 0.4, sustain: 0.7, release: 1.0 };
-            case 10:
-                return { attack: 0.01, decay: 0.1, sustain: 1.0, release: 0.1 };
-            case 11:
-                return { attack: 0.01, decay: 0.15, sustain: 0.3, release: 0.5 };
-            case 12:
-                return { attack: 0.01, decay: 0.1, sustain: 0.8, release: 0.3 };
-            case 13:
-                return { attack: 0.01, decay: 0.2, sustain: 0.4, release: 0.3 };
-            case 14:
-                return { attack: 0.001, decay: 0.05, sustain: 0.0, release: 0.2 };
-            case 15:
-                return { attack: 0.001, decay: 0.01, sustain: 0.0, release: 0.05 };
-            default:
-                return { ...DEFAULT_ADSR_SUSTAINED };
+            this.synth.setProgram(voice, program);
         }
+    }
+
+    private resolveProgramByName(name: string): number
+    {
+        if (!this.synth || !name.trim())
+        {
+            return 0;
+        }
+
+        const normalized = name.trim().toLowerCase();
+
+        for (let i = 0; i < 128; i++)
+        {
+            const timbreName = this.synth.getTimbreName(0, i);
+            if (timbreName && timbreName.toLowerCase() === normalized)
+            {
+                return i;
+            }
+        }
+
+        for (let i = 0; i < 128; i++)
+        {
+            const timbreName = this.synth.getTimbreName(0, i);
+            if (timbreName && timbreName.toLowerCase().includes(normalized))
+            {
+                return i;
+            }
+        }
+
+        return 0;
     }
 
     private midiNoteToFrequency(note: number): number
     {
         return 440 * Math.pow(2, (note - 60) / 12);
+    }
+
+    private frequencyToMidiNote(frequency: number): number
+    {
+        return Math.round(69 + 12 * Math.log2(frequency / 440));
     }
 
     private parseNoteName(noteName: string, octave: number): number | null
@@ -251,7 +215,7 @@ export class Audio
 
     public playNote(note: string, duration: number): void
     {
-        if (!this.workletReady || !this.audioContext)
+        if (!this.ready || !this.audioContext)
         {
             return;
         }
@@ -263,13 +227,12 @@ export class Audio
             return;
         }
 
-        const frequency = this.midiNoteToFrequency(midiNote);
-        this.playFrequency(frequency, duration);
+        this.playMidiNote(this.currentVoice, midiNote, duration, 100);
     }
 
     public playFrequency(frequency: number, duration: number): void
     {
-        if (!this.workletReady || !this.workletNode || !this.audioContext)
+        if (!this.ready || !this.synth || !this.audioContext)
         {
             return;
         }
@@ -282,53 +245,76 @@ export class Audio
             return;
         }
 
+        const midiNote = this.frequencyToMidiNote(frequency);
         const currentTime = this.audioContext.currentTime;
         const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
 
-        this.workletNode.port.postMessage({
-            type: 'setVoice',
-            voiceIndex: voice,
-            noiseCode: config.noiseCode,
-            frequency,
-            adsr: config.adsr,
-        });
-
-        this.workletNode.port.postMessage({
-            type: 'noteOn',
-            voiceIndex: voice,
-        });
-
-        const volumeMultiplier = this.volume / 100;
-
-        setTimeout(() =>
-        {
-            if (this.workletNode)
-            {
-                this.workletNode.port.postMessage({
-                    type: 'noteOff',
-                    voiceIndex: voice,
-                });
-            }
-        }, (startTime - currentTime + duration) * 1000);
+        this.synth.setProgram(voice, config.program);
+        this.synth.noteOn(voice, midiNote, Math.round(127 * this.volume / 100), startTime);
+        this.synth.noteOff(voice, midiNote, startTime + duration);
 
         this.nextNoteTime.set(voice, startTime + duration);
     }
 
-    public playSequence(mml: string): void
+    private playMidiNote(voiceIndex: number, midiNote: number, duration: number, velocity: number): void
     {
-        if (!this.workletReady || !this.audioContext)
+        if (!this.ready || !this.synth || !this.audioContext)
         {
             return;
         }
 
-        const voice = this.currentVoice;
-        const notes = this.parseMml(mml);
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const config = this.voiceConfigs.get(voice);
+
+        if (!config)
+        {
+            return;
+        }
 
         const currentTime = this.audioContext.currentTime;
-        let time = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
+        const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
+        const vel = Math.round(velocity * this.volume / 100);
 
+        this.synth.setProgram(voice, config.program);
+        this.synth.noteOn(voice, midiNote, vel, startTime);
+        this.synth.noteOff(voice, midiNote, startTime + duration);
+
+        this.nextNoteTime.set(voice, startTime + duration);
+    }
+
+    public playSequence(voiceIndex: number, mml: string): void
+    {
+        if (!this.ready || !this.audioContext)
+        {
+            return;
+        }
+
+        if (this.audioContext.state === 'suspended')
+        {
+            this.audioContext.resume().then(() =>
+            {
+                this.playSequenceInternal(voiceIndex, mml);
+            }).catch(() =>
+            {
+            });
+            return;
+        }
+
+        this.playSequenceInternal(voiceIndex, mml);
+    }
+
+    private playSequenceInternal(voiceIndex: number, mml: string): void
+    {
+        if (!this.ready || !this.synth || !this.audioContext)
+        {
+            return;
+        }
+
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const notes = this.parseMml(mml);
+        const currentTime = this.audioContext.currentTime;
+        let time = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
         const beatDuration = 60 / this.tempo;
-        const volumeMultiplier = this.volume / 100;
 
         for (const note of notes)
         {
@@ -338,43 +324,12 @@ export class Audio
             }
             else if (note.type === 'note' && note.midiNote !== undefined)
             {
-                const frequency = this.midiNoteToFrequency(note.midiNote);
                 const duration = note.duration * beatDuration;
+                const vel = Math.round((note.velocity ?? 64) * this.volume / 100);
 
-                setTimeout(() =>
-                {
-                    if (this.workletReady && this.workletNode)
-                    {
-                        const config = this.voiceConfigs.get(voice);
-
-                        if (config)
-                        {
-                            this.workletNode.port.postMessage({
-                                type: 'setVoice',
-                                voiceIndex: voice,
-                                noiseCode: config.noiseCode,
-                                frequency,
-                                adsr: config.adsr,
-                            });
-
-                            this.workletNode.port.postMessage({
-                                type: 'noteOn',
-                                voiceIndex: voice,
-                            });
-
-                            setTimeout(() =>
-                            {
-                                if (this.workletNode)
-                                {
-                                    this.workletNode.port.postMessage({
-                                        type: 'noteOff',
-                                        voiceIndex: voice,
-                                    });
-                                }
-                            }, duration * 1000);
-                        }
-                    }
-                }, (time - currentTime) * 1000);
+                this.synth.setProgram(voice, this.voiceConfigs.get(voice)?.program ?? 0);
+                this.synth.noteOn(voice, note.midiNote, vel, time);
+                this.synth.noteOff(voice, note.midiNote, time + duration);
 
                 time += duration;
             }
@@ -383,9 +338,9 @@ export class Audio
         this.nextNoteTime.set(voice, time);
     }
 
-    private parseMml(mml: string): Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number }>
+    private parseMml(mml: string): Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }>
     {
-        const result: Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number }> = [];
+        const result: Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }> = [];
         let i = 0;
         let octave = 4;
         let defaultLength = 4;
@@ -487,6 +442,7 @@ export class Audio
                         type: 'note',
                         midiNote,
                         duration: hasDot ? 1.5 / length : 1 / length,
+                        velocity,
                     });
 
                     i += 1 + noteMatch[0].length;
@@ -553,6 +509,7 @@ export class Audio
                     type: 'note',
                     midiNote,
                     duration: hasDot ? 1.5 / length : 1 / length,
+                    velocity,
                 });
 
                 i++;
@@ -567,9 +524,12 @@ export class Audio
 
     public stop(): void
     {
-        if (this.workletNode)
+        if (this.synth)
         {
-            this.workletNode.port.postMessage({ type: 'stopAll' });
+            for (let i = 0; i < 8; i++)
+            {
+                this.synth.allSoundOff(i);
+            }
         }
 
         for (let i = 0; i < 8; i++)

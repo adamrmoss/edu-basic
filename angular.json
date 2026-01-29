@@ -57,9 +57,19 @@
                                 "input": "public"
                             },
                             {
-                                "glob": "**/*",
-                                "input": "node_modules/ng-luna/assets/fonts",
-                                "output": "/assets/fonts"
+                                "glob": "fonts/complete/**",
+                                "input": "node_modules/ng-luna/assets/fonts/IBM-Plex-Mono",
+                                "output": "/assets/fonts/IBM-Plex-Mono"
+                            },
+                            {
+                                "glob": "fonts/complete/**",
+                                "input": "node_modules/ng-luna/assets/fonts/IBM-Plex-Sans",
+                                "output": "/assets/fonts/IBM-Plex-Sans"
+                            },
+                            {
+                                "glob": "fonts/complete/**",
+                                "input": "node_modules/ng-luna/assets/fonts/IBM-Plex-Serif",
+                                "output": "/assets/fonts/IBM-Plex-Serif"
                             }
                         ],
                         "styles": [
@@ -77,19 +87,24 @@
                                 },
                                 {
                                     "type": "anyComponentStyle",
-                                    "maximumWarning": "4kB",
-                                    "maximumError": "8kB"
+                                    "maximumWarning": "8kB",
+                                    "maximumError": "16kB"
                                 }
                             ],
                             "allowedCommonJsDependencies": [
-                                "jszip"
+                                "jszip",
+                                "webaudio-tinysynth"
                             ],
                             "outputHashing": "all"
                         },
                         "development": {
                             "optimization": false,
                             "extractLicenses": false,
-                            "sourceMap": true
+                            "sourceMap": true,
+                            "allowedCommonJsDependencies": [
+                                "jszip",
+                                "webaudio-tinysynth"
+                            ]
                         }
                     },
                     "defaultConfiguration": "production"

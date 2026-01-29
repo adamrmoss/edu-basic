@@ -30,8 +30,8 @@ export class PlayStatement extends Statement
         
         const voice = voiceValue.type === EduBasicType.Integer || voiceValue.type === EduBasicType.Real ? Math.floor(voiceValue.value as number) : 0;
         const mmlString = mmlValue.type === EduBasicType.String ? mmlValue.value as string : '';
-        
-        audio.playSequence(mmlString);
+
+        audio.playSequence(voice, mmlString);
         
         return { result: ExecutionResult.Continue };
     }

@@ -36,3 +36,38 @@
     height: 100%;
     min-width: 0;
 }
+
+.window-header-actions
+{
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 1000;
+}
+
+.mute-button
+{
+    align-items: center;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: inherit;
+    cursor: pointer;
+    display: flex;
+    gap: 4px;
+    padding: 4px 8px;
+}
+
+.mute-button:hover
+{
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mute-icon
+{
+    font-size: 16px;
+}

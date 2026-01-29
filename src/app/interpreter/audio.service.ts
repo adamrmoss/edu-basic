@@ -17,4 +17,14 @@ export class AudioService
     {
         return this.audio;
     }
+
+    public setMuted(muted: boolean): void
+    {
+        this.audio.setMuted(muted);
+    }
+
+    public getMuted(): boolean
+    {
+        return this.audio.getMuted();
+    }
 }

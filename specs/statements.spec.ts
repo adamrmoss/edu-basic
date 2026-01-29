@@ -122,32 +122,61 @@ class MockAudio extends Audio
     public trackedTempo: number | null = null;
     public trackedVolume: number | null = null;
     public voice: number | null = null;
-    public sequences: string[] = [];
-    
+    public sequences: Array<{ voiceIndex: number; mml: string }> = [];
+    public instrumentCalls: Array<{ voiceIndex: number; program: number }> = [];
+    public instrumentByNameCalls: Array<{ voiceIndex: number; name: string }> = [];
+
     public override setTempo(bpm: number): void
     {
         super.setTempo(bpm);
         this.trackedTempo = bpm;
     }
-    
+
     public override setVolume(volume: number): void
     {
         super.setVolume(volume);
         this.trackedVolume = volume;
     }
-    
+
     public override setVoice(voiceIndex: number): void
     {
         super.setVoice(voiceIndex);
         this.voice = voiceIndex;
     }
-    
-    public override playSequence(mml: string): void
+
+    public override setVoiceInstrument(voiceIndex: number, programNum: number): void
     {
-        super.playSequence(mml);
-        this.sequences.push(mml);
+        super.setVoiceInstrument(voiceIndex, programNum);
+        this.instrumentCalls.push({ voiceIndex, program: programNum });
+    }
+
+    public override setVoiceInstrumentByName(voiceIndex: number, name: string): void
+    {
+        super.setVoiceInstrumentByName(voiceIndex, name);
+        this.instrumentByNameCalls.push({ voiceIndex, name });
+    }
+
+    public override playSequence(voiceIndex: number, mml: string): void
+    {
+        super.playSequence(voiceIndex, mml);
+        this.sequences.push({ voiceIndex, mml });
     }
 }
+
+const mockAudioContext = (): void =>
+{
+    (window as any).AudioContext = jest.fn().mockImplementation(() => ({
+        currentTime: 0,
+        destination: {},
+        sampleRate: 44100,
+        state: 'running',
+        createGain: jest.fn().mockReturnValue({
+            gain: { value: 1 },
+            connect: jest.fn(),
+            disconnect: jest.fn(),
+        }),
+    }));
+};
 
 describe('Statement Implementations', () =>
 {
@@ -159,6 +188,7 @@ describe('Statement Implementations', () =>
     
     beforeEach(() =>
     {
+        mockAudioContext();
         context = new ExecutionContext();
         graphics = new MockGraphics();
         audio = new MockAudio();
@@ -1222,14 +1252,11 @@ describe('Statement Implementations', () =>
         
         describe('VOICE Statement', () =>
         {
-            it('should set voice', () =>
+            it('should set voice and instrument', () =>
             {
                 const stmt = new VoiceStatement(
                     new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                    null,
-                    null,
-                    null,
-                    null
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 })
                 );
                 
                 const result = stmt.execute(context, graphics, audio, program, runtime);
@@ -1242,15 +1269,40 @@ describe('Statement Implementations', () =>
             {
                 const stmt = new VoiceStatement(
                     new LiteralExpression({ type: EduBasicType.Real, value: 3.7 }),
-                    null,
-                    null,
-                    null,
-                    null
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 })
                 );
-                
+
                 stmt.execute(context, graphics, audio, program, runtime);
-                
+
                 expect(audio.voice).toBe(3);
+            });
+
+            it('should call setVoiceInstrument with program number', () =>
+            {
+                const stmt = new VoiceStatement(
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 56 })
+                );
+
+                stmt.execute(context, graphics, audio, program, runtime);
+
+                expect(audio.instrumentCalls).toHaveLength(1);
+                expect(audio.instrumentCalls[0].voiceIndex).toBe(2);
+                expect(audio.instrumentCalls[0].program).toBe(56);
+            });
+
+            it('should call setVoiceInstrumentByName with string instrument', () =>
+            {
+                const stmt = new VoiceStatement(
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                    new LiteralExpression({ type: EduBasicType.String, value: 'Acoustic Grand Piano' })
+                );
+
+                stmt.execute(context, graphics, audio, program, runtime);
+
+                expect(audio.instrumentByNameCalls).toHaveLength(1);
+                expect(audio.instrumentByNameCalls[0].voiceIndex).toBe(0);
+                expect(audio.instrumentByNameCalls[0].name).toBe('Acoustic Grand Piano');
             });
         });
         
@@ -1264,22 +1316,67 @@ describe('Statement Implementations', () =>
                 );
                 
                 const result = stmt.execute(context, graphics, audio, program, runtime);
-                
+
                 expect(result.result).toBe(ExecutionResult.Continue);
                 expect(audio.sequences).toHaveLength(1);
-                expect(audio.sequences[0]).toBe('CDEFGAB');
+                expect(audio.sequences[0].voiceIndex).toBe(0);
+                expect(audio.sequences[0].mml).toBe('CDEFGAB');
             });
-            
+
             it('should handle complex MML sequences', () =>
             {
                 const stmt = new PlayStatement(
                     new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
                     new LiteralExpression({ type: EduBasicType.String, value: 'O4 L4 C D E F G A B O5 C' })
                 );
-                
+
                 stmt.execute(context, graphics, audio, program, runtime);
-                
-                expect(audio.sequences[0]).toBe('O4 L4 C D E F G A B O5 C');
+
+                expect(audio.sequences).toHaveLength(1);
+                expect(audio.sequences[0].voiceIndex).toBe(1);
+                expect(audio.sequences[0].mml).toBe('O4 L4 C D E F G A B O5 C');
+            });
+        });
+
+        describe('Audio statement toString', () =>
+        {
+            it('should format TEMPO correctly', () =>
+            {
+                const stmt = new TempoStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 120 }));
+                expect(stmt.toString()).toBe('TEMPO 120');
+            });
+
+            it('should format VOLUME correctly', () =>
+            {
+                const stmt = new VolumeStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 80 }));
+                expect(stmt.toString()).toBe('VOLUME 80');
+            });
+
+            it('should format VOICE with instrument number correctly', () =>
+            {
+                const stmt = new VoiceStatement(
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 56 })
+                );
+                expect(stmt.toString()).toBe('VOICE 0 INSTRUMENT 56');
+            });
+
+            it('should format VOICE with instrument name correctly', () =>
+            {
+                const stmt = new VoiceStatement(
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                    new LiteralExpression({ type: EduBasicType.String, value: 'Violin' })
+                );
+                expect(stmt.toString()).toBe('VOICE 1 INSTRUMENT "Violin"');
+            });
+
+            it('should format PLAY correctly', () =>
+            {
+                const stmt = new PlayStatement(
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                    new LiteralExpression({ type: EduBasicType.String, value: 'CDEFGAB' })
+                );
+                expect(stmt.toString()).toBe('PLAY 0, "CDEFGAB"');
             });
         });
     });

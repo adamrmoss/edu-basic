@@ -29,7 +29,7 @@ EduBASIC is a browser-based BASIC interpreter built with Angular 19. The system 
                      │
 ┌────────────────────▼────────────────────────────────────┐
 │              Runtime Systems Layer                      │
-│  (Graphics, Audio, Grit Synthesis)                      │
+│  (Graphics, Audio / webaudio-tinysynth)                  │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -115,10 +115,9 @@ Canvas rendering
 - **Graphics**: `Graphics` class for rendering operations
 - **Audio**: `Audio` class for sound synthesis
 
-### Grit Synthesis (`src/grit/`)
-- Audio synthesis system using Web Audio API
-- ADSR envelopes, noise generation, voice management
-- AudioWorklet for real-time processing
+### Audio (`src/lang/audio.ts`)
+- Audio synthesis using webaudio-tinysynth (General MIDI)
+- VOICE sets instrument by GM program number or name; PLAY uses MML
 
 ## State Management
 

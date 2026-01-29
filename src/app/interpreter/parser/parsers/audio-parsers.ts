@@ -47,64 +47,26 @@ export class AudioParsers
         {
             return voiceTokenResult;
         }
-        
+
         const voiceNumberResult = context.parseExpression();
         if (!voiceNumberResult.success)
         {
             return voiceNumberResult;
         }
-        
-        let preset: Expression | null = null;
-        let noiseCode: Expression | null = null;
-        let adsrPreset: number | null = null;
-        let adsrCustom: Expression[] | null = null;
-        
-        if (context.matchKeyword('PRESET'))
+
+        const instrumentKeywordResult = context.consume(TokenType.Keyword, 'INSTRUMENT');
+        if (!instrumentKeywordResult.success)
         {
-            const presetResult = context.parseExpression();
-            if (!presetResult.success)
-            {
-                return presetResult;
-            }
-            preset = presetResult.value;
+            return instrumentKeywordResult;
         }
-        else if (context.matchKeyword('WITH'))
+
+        const instrumentResult = context.parseExpression();
+        if (!instrumentResult.success)
         {
-            const noiseCodeResult = context.parseExpression();
-            if (!noiseCodeResult.success)
-            {
-                return noiseCodeResult;
-            }
-            noiseCode = noiseCodeResult.value;
+            return instrumentResult;
         }
-        
-        if (context.matchKeyword('ADSR'))
-        {
-            if (context.matchKeyword('PRESET'))
-            {
-                const presetTokenResult = context.consume(TokenType.Integer, 'ADSR preset number');
-                if (!presetTokenResult.success)
-                {
-                    return presetTokenResult;
-                }
-                adsrPreset = parseInt(presetTokenResult.value.value);
-            }
-            else
-            {
-                adsrCustom = [];
-                for (let i = 0; i < 4; i++)
-                {
-                    const exprResult = context.parseExpression();
-                    if (!exprResult.success)
-                    {
-                        return exprResult;
-                    }
-                    adsrCustom.push(exprResult.value);
-                }
-            }
-        }
-        
-        return success(new VoiceStatement(voiceNumberResult.value, preset, noiseCode, adsrPreset, adsrCustom));
+
+        return success(new VoiceStatement(voiceNumberResult.value, instrumentResult.value));
     }
 
     public static parsePlay(context: ParserContext): ParseResult<PlayStatement>

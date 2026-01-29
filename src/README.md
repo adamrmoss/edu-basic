@@ -8,7 +8,6 @@ This directory contains the complete source code for the EduBASIC application. D
 src/
 ├── app/              # Angular application components and services
 ├── lang/             # Language core (value system, execution, runtime)
-├── grit/             # Audio synthesis system
 ├── index.html        # Application entry point
 ├── index.scss        # Global styles
 └── main.ts           # Application bootstrap
@@ -33,12 +32,6 @@ The language core implements the EduBASIC language runtime, including value type
   - **[Expressions System](lang/expressions/README.md)** - Expression parsing, evaluation, and operator precedence
   - **[Statements System](lang/statements/README.md)** - All statement types and their execution
 
-### Audio Synthesis (`grit/`)
-
-The GRIT (Generative Random Iteration Tones) system provides procedural audio synthesis.
-
-- **[Grit Synthesis System](grit/README.md)** - Audio synthesis engine and components
-
 ## Quick Navigation
 
 **For UI/Component Development:**
@@ -53,7 +46,7 @@ The GRIT (Generative Random Iteration Tones) system provides procedural audio sy
 - Review [Statements System](lang/statements/README.md) for statement execution
 
 **For Audio Features:**
-- See [Grit Synthesis System](grit/README.md) for audio synthesis implementation
+- See [Language Core](lang/README.md) (Audio class) for sound via webaudio-tinysynth (General MIDI)
 
 ## Architecture Overview
 
@@ -67,5 +60,3 @@ For a high-level view of the system architecture, see [Architecture Overview](..
 
 **System Documentation:**
 - [Architecture Overview](../docs/architecture.md) - High-level system architecture
-- [GRIT Noise Synthesis System](../docs/grit-noise-synthesis-system.md) - Complete GRIT technical documentation
-- [GRIT Preset Reference](../docs/grit-presets.md) - Complete reference for all 128 GRIT presets
