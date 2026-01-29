@@ -327,7 +327,7 @@ export class ControlFlowParsers
         
         const parameters: SubParameter[] = [];
         
-        while (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
+        while (!context.isAtEnd() && (context.peek().type === TokenType.Identifier || context.peek().value.toUpperCase() === 'BYREF'))
         {
             const byRef = context.matchKeyword('BYREF');
             const paramNameResult = context.consume(TokenType.Identifier, 'parameter name');

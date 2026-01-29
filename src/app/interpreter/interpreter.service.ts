@@ -9,6 +9,7 @@ import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
 import { FileSystemService } from '../disk/filesystem.service';
 import { ConsoleService } from '../console/console.service';
+import { ParserService } from './parser';
 
 export enum InterpreterState
 {
@@ -128,34 +129,45 @@ export class InterpreterService
     {
         this.stateSubject.next(InterpreterState.Parsing);
 
-        try
+        const parserService = this.injector.get(ParserService);
+        parserService.clear();
+
+        const program = this.createProgram();
+        const errors: string[] = [];
+
+        const lines = sourceCode.split(/\r?\n/);
+        for (let i = 0; i < lines.length; i++)
         {
-            const result: ParseResult = {
-                success: true,
-                errors: [],
-                warnings: []
-            };
+            const lineText = lines[i];
+            const parseLineResult = parserService.parseLine(i + 1, lineText);
 
-            this.parseResultSubject.next(result);
-            this.stateSubject.next(InterpreterState.Idle);
+            if (!parseLineResult.success)
+            {
+                errors.push(parseLineResult.error || `Line ${i + 1}: Parse error`);
+                continue;
+            }
 
-            return result;
+            const parsedLine = parseLineResult.value;
+            program.appendLine(parsedLine.statement);
+
+            if (parsedLine.hasError && parsedLine.errorMessage)
+            {
+                errors.push(`Line ${i + 1}: ${parsedLine.errorMessage}`);
+            }
         }
-        catch (error)
-        {
-            console.error('Error parsing source code:', error);
-            
-            const result: ParseResult = {
-                success: false,
-                errors: [error instanceof Error ? error.message : String(error)],
-                warnings: []
-            };
 
-            this.parseResultSubject.next(result);
-            this.stateSubject.next(InterpreterState.Error);
+        this.program = program;
 
-            return result;
-        }
+        const result: ParseResult = {
+            success: errors.length === 0,
+            errors,
+            warnings: []
+        };
+
+        this.parseResultSubject.next(result);
+        this.stateSubject.next(result.success ? InterpreterState.Idle : InterpreterState.Error);
+
+        return result;
     }
 
     public run(): void
@@ -267,7 +279,24 @@ export class InterpreterService
             return true;
         }
 
-        return target.isContentEditable;
+        if (target.isContentEditable)
+        {
+            return true;
+        }
+
+        const contentEditable = (target as any).contentEditable;
+        if (typeof contentEditable === 'string' && contentEditable.toLowerCase() === 'true')
+        {
+            return true;
+        }
+
+        const attr = target.getAttribute?.('contenteditable');
+        if (attr !== null && attr !== undefined)
+        {
+            return attr.toLowerCase() !== 'false';
+        }
+
+        return false;
     }
 
     private normalizeKey(event: KeyboardEvent): string | null

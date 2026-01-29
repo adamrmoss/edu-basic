@@ -23,6 +23,11 @@ export class UnparsableStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (this.errorMessage === 'Comment or empty line')
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         throw new Error(this.errorMessage || `Cannot execute unparsable statement: ${this.sourceText}`);
     }
 

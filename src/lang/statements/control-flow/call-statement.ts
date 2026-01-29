@@ -56,7 +56,7 @@ export class CallStatement extends Statement
                             throw new Error('CALL: BYREF argument must be a variable');
                         }
 
-                        byRefBindings.set(param.name.toUpperCase(), argExpr.variableName);
+                        byRefBindings.set(param.name.toUpperCase(), argExpr.name);
                         continue;
                     }
 
