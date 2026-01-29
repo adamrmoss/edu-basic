@@ -7,6 +7,7 @@ import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../lan
 import { FunctionCallExpression, FunctionName } from '../../lang/expressions/function-call-expression';
 import { VariableExpression } from '../../lang/expressions/special/variable-expression';
 import { ParenthesizedExpression } from '../../lang/expressions/special/parenthesized-expression';
+import { BracketAccessExpression } from '../../lang/expressions/special/bracket-access-expression';
 import { NullaryExpression } from '../../lang/expressions/nullary-expression';
 import { EduBasicType } from '../../lang/edu-basic-value';
 import { Constant } from '../../lang/expressions/helpers/constant-evaluator';
@@ -325,19 +326,19 @@ export class ExpressionParserService
 
     private primary(): ParseResult<Expression>
     {
+        let expr: Expression | null = null;
+
         if (this.match(TokenType.Integer))
         {
             const value = parseInt(this.previous().value);
-            return success(new LiteralExpression({ type: EduBasicType.Integer, value }));
+            expr = new LiteralExpression({ type: EduBasicType.Integer, value });
         }
-
-        if (this.match(TokenType.Real))
+        else if (this.match(TokenType.Real))
         {
             const value = parseFloat(this.previous().value);
-            return success(new LiteralExpression({ type: EduBasicType.Real, value }));
+            expr = new LiteralExpression({ type: EduBasicType.Real, value });
         }
-
-        if (this.match(TokenType.Complex))
+        else if (this.match(TokenType.Complex))
         {
             const text = this.previous().value;
             const complexValue = this.parseComplexLiteral(text);
@@ -345,47 +346,45 @@ export class ExpressionParserService
             {
                 return failure(`Invalid complex literal: ${text}`);
             }
-            return success(new LiteralExpression({ type: EduBasicType.Complex, value: complexValue }));
+            expr = new LiteralExpression({ type: EduBasicType.Complex, value: complexValue });
         }
-
-        if (this.match(TokenType.String))
+        else if (this.match(TokenType.String))
         {
             const value = this.previous().value;
-            return success(new LiteralExpression({ type: EduBasicType.String, value }));
+            expr = new LiteralExpression({ type: EduBasicType.String, value });
         }
-
-        // Check for constants
-        if (this.check(TokenType.Identifier))
+        else if (this.check(TokenType.Identifier))
         {
             const constantName = this.peek().value;
             const constant = this.parseConstant(constantName);
             if (constant !== null)
             {
                 this.advance();
-                return success(new NullaryExpression(constant));
+                expr = new NullaryExpression(constant);
             }
-        }
-
-        // Check for function calls
-        if (this.check(TokenType.Identifier))
-        {
-            const functionName = this.peek().value;
-            const parsedFunction = this.parseFunctionCall(functionName);
-            if (parsedFunction !== null)
+            else
             {
-                return success(parsedFunction);
+                const functionName = this.peek().value;
+                const parsedFunction = this.parseFunctionCall(functionName);
+                if (parsedFunction !== null)
+                {
+                    expr = parsedFunction;
+                }
+                else if (this.match(TokenType.Identifier))
+                {
+                    const name = this.previous().value;
+                    expr = new VariableExpression(name);
+                }
             }
         }
-
-        // Check for unary function operators (SIN, COS, ABS, etc.)
-        if (this.check(TokenType.Keyword))
+        else if (this.check(TokenType.Keyword))
         {
             const keyword = this.peek().value;
             const unaryOp = this.parseUnaryFunction(keyword);
             if (unaryOp !== null)
             {
                 this.advance();
-                // Parentheses are optional for unary functions
+
                 if (this.match(TokenType.LeftParen))
                 {
                     const argumentResult = this.expression();
@@ -398,28 +397,20 @@ export class ExpressionParserService
                     {
                         return rightParenResult;
                     }
-                    return success(new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category));
+                    expr = new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category);
                 }
                 else
                 {
-                    // No parentheses - parse the next expression as the argument
                     const argumentResult = this.unaryPlusMinus();
                     if (!argumentResult.success)
                     {
                         return argumentResult;
                     }
-                    return success(new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category));
+                    expr = new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category);
                 }
             }
         }
-
-        if (this.match(TokenType.Identifier))
-        {
-            const name = this.previous().value;
-            return success(new VariableExpression(name));
-        }
-
-        if (this.match(TokenType.LeftParen))
+        else if (this.match(TokenType.LeftParen))
         {
             const exprResult = this.expression();
             if (!exprResult.success)
@@ -431,11 +422,58 @@ export class ExpressionParserService
             {
                 return rightParenResult;
             }
-            return success(new ParenthesizedExpression(exprResult.value));
+            expr = new ParenthesizedExpression(exprResult.value);
         }
 
-        const token = this.peek();
-        return failure(`Unexpected token: ${token.value} at line ${token.line}`);
+        if (!expr)
+        {
+            const token = this.peek();
+            return failure(`Unexpected token: ${token.value} at line ${token.line}`);
+        }
+
+        return this.parsePostfix(expr);
+    }
+
+    private parsePostfix(baseExpr: Expression): ParseResult<Expression>
+    {
+        let expr = baseExpr;
+
+        while (this.match(TokenType.LeftBracket))
+        {
+            if (this.check(TokenType.Identifier))
+            {
+                const identifier = this.peek().value;
+                const nextIndex = this.current + 1;
+                if (nextIndex < this.tokens.length && this.tokens[nextIndex].type === TokenType.RightBracket)
+                {
+                    this.advance();
+                    const rightBracketResult = this.consume(TokenType.RightBracket, "Expected ']' after member name");
+                    if (!rightBracketResult.success)
+                    {
+                        return rightBracketResult;
+                    }
+
+                    expr = new BracketAccessExpression(expr, null, identifier);
+                    continue;
+                }
+            }
+
+            const insideResult = this.expression();
+            if (!insideResult.success)
+            {
+                return insideResult;
+            }
+
+            const rightBracketResult = this.consume(TokenType.RightBracket, "Expected ']' after bracket expression");
+            if (!rightBracketResult.success)
+            {
+                return rightBracketResult;
+            }
+
+            expr = new BracketAccessExpression(expr, insideResult.value, null);
+        }
+
+        return success(expr);
     }
 
     private parseConstant(name: string): Constant | null

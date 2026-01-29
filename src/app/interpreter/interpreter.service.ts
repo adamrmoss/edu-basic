@@ -39,6 +39,37 @@ export class InterpreterService
     private executionContext: ExecutionContext;
     private sharedProgram: Program;
     private runtimeExecution: RuntimeExecution | null = null;
+    private readonly keyDownHandler = (event: KeyboardEvent): void =>
+    {
+        if (this.shouldIgnoreKeyEvent(event))
+        {
+            return;
+        }
+
+        const key = this.normalizeKey(event);
+        if (!key)
+        {
+            return;
+        }
+
+        this.executionContext.setKeyDown(key);
+    };
+
+    private readonly keyUpHandler = (event: KeyboardEvent): void =>
+    {
+        if (this.shouldIgnoreKeyEvent(event))
+        {
+            return;
+        }
+
+        const key = this.normalizeKey(event);
+        if (!key)
+        {
+            return;
+        }
+
+        this.executionContext.setKeyUp(key);
+    };
 
     public readonly program$: Observable<Program | null> = this.programSubject.asObservable();
     public readonly state$: Observable<InterpreterState> = this.stateSubject.asObservable();
@@ -55,6 +86,7 @@ export class InterpreterService
     {
         this.executionContext = new ExecutionContext();
         this.sharedProgram = new Program();
+        this.initializeKeyboardListeners();
     }
 
     public get program(): Program | null
@@ -208,5 +240,92 @@ export class InterpreterService
         }
 
         return this.runtimeExecution;
+    }
+
+    private initializeKeyboardListeners(): void
+    {
+        if (typeof window === 'undefined')
+        {
+            return;
+        }
+
+        window.addEventListener('keydown', this.keyDownHandler);
+        window.addEventListener('keyup', this.keyUpHandler);
+    }
+
+    private shouldIgnoreKeyEvent(event: KeyboardEvent): boolean
+    {
+        const target = event.target as HTMLElement | null;
+        if (!target)
+        {
+            return false;
+        }
+
+        const tagName = target.tagName?.toUpperCase();
+        if (tagName === 'INPUT' || tagName === 'TEXTAREA')
+        {
+            return true;
+        }
+
+        return target.isContentEditable;
+    }
+
+    private normalizeKey(event: KeyboardEvent): string | null
+    {
+        const key = event.key;
+
+        switch (key)
+        {
+            case 'Escape':
+                return 'ESC';
+            case 'Enter':
+                return 'ENTER';
+            case 'Backspace':
+                return 'BACKSPACE';
+            case 'Tab':
+                return 'TAB';
+            case 'ArrowUp':
+                return 'ARROWUP';
+            case 'ArrowDown':
+                return 'ARROWDOWN';
+            case 'ArrowLeft':
+                return 'ARROWLEFT';
+            case 'ArrowRight':
+                return 'ARROWRIGHT';
+            case 'Home':
+                return 'HOME';
+            case 'End':
+                return 'END';
+            case 'PageUp':
+                return 'PAGEUP';
+            case 'PageDown':
+                return 'PAGEDOWN';
+            case 'Insert':
+                return 'INSERT';
+            case 'Delete':
+                return 'DELETE';
+            case 'Shift':
+                return 'SHIFT';
+            case 'Control':
+                return 'CTRL';
+            case 'Alt':
+                return 'ALT';
+            case 'CapsLock':
+                return 'CAPSLOCK';
+            case ' ':
+                return ' ';
+        }
+
+        if (key.startsWith('F') && key.length <= 3)
+        {
+            return key.toUpperCase();
+        }
+
+        if (key.length === 1)
+        {
+            return key;
+        }
+
+        return key.toUpperCase();
     }
 }

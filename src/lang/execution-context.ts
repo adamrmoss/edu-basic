@@ -13,6 +13,8 @@ export class ExecutionContext
     private canonicalGlobalNames: Map<string, string>;
     private stackFrames: StackFrame[];
     private programCounter: number;
+    private pressedKeys: Set<string>;
+    private lastPressedKey: string | null;
 
     public constructor()
     {
@@ -20,6 +22,8 @@ export class ExecutionContext
         this.canonicalGlobalNames = new Map<string, string>();
         this.stackFrames = [];
         this.programCounter = 0;
+        this.pressedKeys = new Set<string>();
+        this.lastPressedKey = null;
     }
 
     public getProgramCounter(): number
@@ -170,6 +174,54 @@ export class ExecutionContext
     public clearStackFrames(): void
     {
         this.stackFrames = [];
+    }
+
+    public setKeyDown(key: string): void
+    {
+        if (!key)
+        {
+            return;
+        }
+
+        this.pressedKeys.add(key);
+        this.lastPressedKey = key;
+    }
+
+    public setKeyUp(key: string): void
+    {
+        if (!key)
+        {
+            return;
+        }
+
+        this.pressedKeys.delete(key);
+
+        if (this.lastPressedKey === key)
+        {
+            this.lastPressedKey = null;
+        }
+    }
+
+    public clearKeys(): void
+    {
+        this.pressedKeys.clear();
+        this.lastPressedKey = null;
+    }
+
+    public getInkey(): string
+    {
+        if (this.lastPressedKey && this.pressedKeys.has(this.lastPressedKey))
+        {
+            return this.lastPressedKey;
+        }
+
+        const first = this.pressedKeys.values().next();
+        if (!first.done)
+        {
+            return first.value;
+        }
+
+        return '';
     }
 
     private getDefaultValue(variableName: string): EduBasicValue
