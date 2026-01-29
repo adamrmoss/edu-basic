@@ -112,6 +112,8 @@ When solving problems, follow this workflow:
 - Keep each logical operation visually separate
 
 ## TypeScript/JavaScript Code Style
+- **Imports first** - All import statements must be at the top of the file, before any other code (exports, types, classes, etc.), unless there is a special reason (e.g. dynamic import, circular dependency workaround).
+- **Prefer traditional object-oriented structures** - Use classes with explicit access modifiers (public, private, protected) rather than object literals or functional patterns for namespaced logic. Prefer `class X { public static method() { } }` over `const X = { method() { } }`. No implied access levels.
 - Prefer switch statements over else-if chains when checking the same variable
 - Use braces { } for all control structures, even single-line blocks
 - ALL decorators must be on their own line (never on the same line as the property/method they decorate)
@@ -123,11 +125,12 @@ When solving problems, follow this workflow:
 - **File Endings**: Files must end with exactly one newline character after the last content line
   - The last line of content should be followed by a single newline, then EOF
   - Do NOT include two blank lines at the end of files
-- **Error Handling**: Prefer returning null over throwing exceptions for recoverable errors
+- **Error Handling**: Prefer returning null over throwing or logging for recoverable/expected failures
   - Parsing methods (e.g., `parseLine`, `parseExpression`) should return `T | null` instead of throwing
-  - Use null returns to indicate failure states that callers can handle gracefully
-  - Avoid try-catch blocks for expected failure cases - check for null instead
-  - Exceptions should be reserved for truly exceptional/unexpected errors
+  - Use null returns (or silent no-op) to indicate failure states that callers can handle gracefully
+  - NEVER use exceptions or console.error/console.warn for expected failure cases (e.g. missing API in tests, invalid input)
+  - Passing tests must NOT produce stack traces, console.error, or console.warn output
+  - **try/catch only for EXCEPTIONAL behaviour** - Use try/catch only when handling truly unexpected errors (e.g. out-of-memory). For expected conditions (e.g. "AudioContext not available" in Node), check and return/set state; do not throw or log.
   - Example: `parseLine()` returns `ParsedLine | null` on parse failure, not a ParsedLine with `hasError: true`
 
 ## Architecture

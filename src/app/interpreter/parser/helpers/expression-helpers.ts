@@ -1,5 +1,6 @@
 import { Expression } from '../../../../lang/expressions/expression';
 import { ExpressionParserService } from '../../expression-parser.service';
+import { Keywords } from '../../keywords';
 import { Token, TokenType } from '../../tokenizer.service';
 import { TokenHelpers } from './token-helpers';
 import { ParseResult, failure, success } from '../parse-result';
@@ -33,7 +34,7 @@ export class ExpressionHelpers
                 ];
 
                 if (stopTokens.includes(token.type) || 
-                    (token.type === TokenType.Keyword && this.isStatementKeyword(token.value)))
+                    (token.type === TokenType.Keyword && Keywords.isExpressionTerminatorKeyword(token.value)))
                 {
                     break;
                 }
@@ -108,16 +109,6 @@ export class ExpressionHelpers
         }
         
         return success(exprResult.value);
-    }
-
-    private static isStatementKeyword(keyword: string): boolean
-    {
-        const upperKeyword = keyword.toUpperCase();
-        const statementKeywords = [
-            'ADSR', 'APPEND', 'AS', 'AT', 'FILLED', 'FOR', 'FROM', 'IN', 'INSTRUMENT',
-            'OVERWRITE', 'PRESET', 'RADII', 'RADIUS', 'READ', 'STEP', 'THEN', 'TO', 'WITH'
-        ];
-        return statementKeywords.includes(upperKeyword);
     }
 
     private static needsSpace(prevToken: Token, currentToken: Token): boolean

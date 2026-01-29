@@ -77,6 +77,10 @@ ParserService.parseLine()
 Statement Object
 ```
 
+**Parser structure**:
+- **keywords.ts** – Single source of truth for all language keywords. Keywords are grouped into small arrays (variable, controlFlow, io, graphics, fileIo, audio, array, etc.); `Keywords.all` is built from those via set union. Also provides `statementStart`, `expressionTerminator`, and helpers `isKeyword()`, `isStatementStartKeyword()`, `isExpressionTerminatorKeyword()`.
+- **parser/statement-dispatch.ts** – Map from statement-start keyword to parser function. Adding a new statement type requires adding the keyword to `Keywords` (if new) and one entry in the dispatch table.
+
 **Statement Types Parsed**:
 - Control flow: IF, FOR, WHILE, DO, GOTO, etc.
 - I/O: PRINT, INPUT, COLOR, LOCATE, CLS

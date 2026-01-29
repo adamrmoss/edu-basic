@@ -36,12 +36,10 @@ export class Audio
 
     private async initializeAudio(): Promise<void>
     {
-        console.log('[Audio] Initializing audio system...');
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
 
         if (!AudioContextClass)
         {
-            console.error('[Audio] AudioContext not available');
             this.ready = false;
             return;
         }
@@ -49,16 +47,12 @@ export class Audio
         try
         {
             this.audioContext = new AudioContextClass();
-            console.log('[Audio] AudioContext created, sample rate:', this.audioContext.sampleRate, 'state:', this.audioContext.state);
-
             this.synth = new WebAudioTinySynth({ quality: 0, useReverb: 0, voices: 32 });
             this.gainNode = this.audioContext.createGain();
             this.gainNode.gain.value = this.volume / 100;
             this.synth.setAudioContext(this.audioContext, this.gainNode);
             this.gainNode.connect(this.audioContext.destination);
             this.synth.setTsMode(0);
-            console.log('[Audio] TinySynth created and connected');
-
             this.ready = true;
 
             for (let i = 0; i < 8; i++)
@@ -69,12 +63,9 @@ export class Audio
                 this.synth.setProgram(i, 0);
                 this.synth.setChVol(i, Math.round(127 * this.volume / 100), 0);
             }
-
-            console.log('[Audio] Audio system initialized successfully');
         }
-        catch (error)
+        catch
         {
-            console.error('[Audio] Failed to initialize audio system:', error);
             this.ready = false;
         }
     }
@@ -87,7 +78,6 @@ export class Audio
     public setVolume(volume: number): void
     {
         this.volume = Math.max(0, Math.min(100, volume));
-        console.log(`[Audio] Volume set to ${this.volume}%`);
 
         if (this.gainNode)
         {
@@ -107,7 +97,6 @@ export class Audio
     public setMuted(muted: boolean): void
     {
         this.muted = muted;
-        console.log(`[Audio] Mute ${muted ? 'enabled' : 'disabled'}`);
 
         if (this.synth && this.audioContext)
         {
@@ -297,19 +286,16 @@ export class Audio
     {
         if (!this.ready || !this.audioContext)
         {
-            console.warn('[Audio] playSequence: Audio not ready', { ready: this.ready, audioContext: !!this.audioContext });
             return;
         }
 
         if (this.audioContext.state === 'suspended')
         {
-            console.log('[Audio] AudioContext is suspended, resuming...');
             this.audioContext.resume().then(() =>
             {
                 this.playSequenceInternal(voiceIndex, mml);
-            }).catch((error) =>
+            }).catch(() =>
             {
-                console.error('[Audio] Failed to resume AudioContext:', error);
             });
             return;
         }
