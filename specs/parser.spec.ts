@@ -13,6 +13,9 @@ import {
 import { ColorStatement, PrintStatement } from '../src/lang/statements/io';
 import { LineStatement, PsetStatement } from '../src/lang/statements/graphics';
 import { CloseStatement, FileMode, OpenStatement } from '../src/lang/statements/file-io';
+import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../src/lang/statements/audio';
+import { LiteralExpression } from '../src/lang/expressions/literal-expression';
+import { EduBasicType } from '../src/lang/edu-basic-value';
 
 describe('ParserService', () =>
 {
@@ -661,6 +664,111 @@ describe('ParserService', () =>
             
             expect(result.value.hasError).toBe(false);
             expect(result.value.statement).toBeInstanceOf(CloseStatement);
+        });
+    });
+
+    describe('Audio Statements', () =>
+    {
+        it('should parse TEMPO statement', () =>
+        {
+            const result = parser.parseLine(1, 'TEMPO 120');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
+            expect(result.value.statement).toBeInstanceOf(TempoStatement);
+            const stmt = result.value.statement as TempoStatement;
+            expect(stmt.bpm).toBeInstanceOf(LiteralExpression);
+            expect((stmt.bpm as LiteralExpression).value).toEqual({ type: EduBasicType.Integer, value: 120 });
+        });
+
+        it('should parse VOLUME statement', () =>
+        {
+            const result = parser.parseLine(1, 'VOLUME 100');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
+            expect(result.value.statement).toBeInstanceOf(VolumeStatement);
+            const stmt = result.value.statement as VolumeStatement;
+            expect(stmt.level).toBeInstanceOf(LiteralExpression);
+        });
+
+        it('should parse VOICE with instrument number', () =>
+        {
+            const result = parser.parseLine(1, 'VOICE 0 INSTRUMENT 56');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
+            expect(result.value.statement).toBeInstanceOf(VoiceStatement);
+            const stmt = result.value.statement as VoiceStatement;
+            expect(stmt.voiceNumber).toBeInstanceOf(LiteralExpression);
+            expect((stmt.voiceNumber as LiteralExpression).value).toEqual({ type: EduBasicType.Integer, value: 0 });
+            expect(stmt.instrument).toBeInstanceOf(LiteralExpression);
+            expect((stmt.instrument as LiteralExpression).value).toEqual({ type: EduBasicType.Integer, value: 56 });
+        });
+
+        it('should parse VOICE with instrument name', () =>
+        {
+            const result = parser.parseLine(1, 'VOICE 1 INSTRUMENT "Acoustic Grand Piano"');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
+            expect(result.value.statement).toBeInstanceOf(VoiceStatement);
+            const stmt = result.value.statement as VoiceStatement;
+            expect(stmt.voiceNumber).toBeInstanceOf(LiteralExpression);
+            expect((stmt.voiceNumber as LiteralExpression).value).toEqual({ type: EduBasicType.Integer, value: 1 });
+            expect(stmt.instrument).toBeInstanceOf(LiteralExpression);
+            expect((stmt.instrument as LiteralExpression).value).toEqual({ type: EduBasicType.String, value: 'Acoustic Grand Piano' });
+        });
+
+        it('should parse PLAY statement', () =>
+        {
+            const result = parser.parseLine(1, 'PLAY 0, "CDEFGAB"');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
+            expect(result.value.statement).toBeInstanceOf(PlayStatement);
+            const stmt = result.value.statement as PlayStatement;
+            expect(stmt.voiceNumber).toBeInstanceOf(LiteralExpression);
+            expect((stmt.voiceNumber as LiteralExpression).value).toEqual({ type: EduBasicType.Integer, value: 0 });
+            expect(stmt.mml).toBeInstanceOf(LiteralExpression);
+            expect((stmt.mml as LiteralExpression).value).toEqual({ type: EduBasicType.String, value: 'CDEFGAB' });
+        });
+
+        it('should report error when VOICE missing INSTRUMENT keyword', () =>
+        {
+            const result = parser.parseLine(1, 'VOICE 0 56');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(true);
+        });
+
+        it('should report error when VOICE missing instrument expression', () =>
+        {
+            const result = parser.parseLine(1, 'VOICE 0 INSTRUMENT');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(true);
         });
     });
 
