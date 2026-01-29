@@ -21,6 +21,8 @@ export class Graphics
     private backgroundColor: Color = { r: 0, g: 0, b: 0, a: 255 };
     private cursorRow: number = 0;
     private cursorColumn: number = 0;
+    private lineSpacing: number = 1;
+    private textWrap: boolean = true;
     private flushCallback: (() => void) | null = null;
 
     public setContext(context: CanvasRenderingContext2D): void
@@ -48,6 +50,16 @@ export class Graphics
     public setBackgroundColor(color: Color): void
     {
         this.backgroundColor = color;
+    }
+
+    public setLineSpacing(enabled: boolean): void
+    {
+        this.lineSpacing = enabled ? 2 : 1;
+    }
+
+    public setTextWrap(enabled: boolean): void
+    {
+        this.textWrap = enabled;
     }
 
     public setCursorPosition(row: number, column: number): void
@@ -91,7 +103,14 @@ export class Graphics
         
         if (newColumn >= this.columns)
         {
-            this.newLine();
+            if (this.textWrap)
+            {
+                this.newLine();
+            }
+            else
+            {
+                this.setCursorPosition(this.cursorRow, this.columns - 1);
+            }
         }
         else
         {
@@ -109,16 +128,19 @@ export class Graphics
 
     public newLine(): void
     {
-        const newRow = this.cursorRow + 1;
-        
-        if (newRow >= this.rows)
+        for (let step = 0; step < this.lineSpacing; step++)
         {
-            this.scrollUp();
-            this.setCursorPosition(this.rows - 1, 0);
-        }
-        else
-        {
-            this.setCursorPosition(newRow, 0);
+            const newRow = this.cursorRow + 1;
+
+            if (newRow >= this.rows)
+            {
+                this.scrollUp();
+                this.setCursorPosition(this.rows - 1, 0);
+            }
+            else
+            {
+                this.setCursorPosition(newRow, 0);
+            }
         }
     }
 

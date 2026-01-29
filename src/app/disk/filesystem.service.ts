@@ -457,7 +457,15 @@ export class FileSystemService
             throw new Error(`Invalid file handle: ${handleId}`);
         }
 
-        handle.position = Math.max(0, Math.min(position, handle.buffer.length));
+        const pos = Math.max(0, Math.floor(position));
+
+        if (handle.mode === 'read')
+        {
+            handle.position = Math.min(pos, handle.buffer.length);
+            return;
+        }
+
+        handle.position = pos;
     }
 
     public tell(handleId: number): number

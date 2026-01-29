@@ -40,6 +40,11 @@ export class EndStatement extends Statement
             return { result: ExecutionResult.End };
         }
 
+        if (this.endType === EndType.Sub)
+        {
+            return { result: ExecutionResult.Return };
+        }
+
         if (this.endType === EndType.If)
         {
             const ifFrame = runtime.findControlFrame('if');

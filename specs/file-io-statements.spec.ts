@@ -7,7 +7,23 @@ import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
 import { FileSystemService } from '../src/app/disk/filesystem.service';
 
-import { CloseStatement, FileMode, OpenStatement, ReadfileStatement, WritefileStatement } from '../src/lang/statements/file-io';
+import {
+    CloseStatement,
+    CopyStatement,
+    DeleteStatement,
+    FileMode,
+    LineInputStatement,
+    ListdirStatement,
+    MkdirStatement,
+    MoveStatement,
+    OpenStatement,
+    ReadFileStatement,
+    ReadfileStatement,
+    RmdirStatement,
+    SeekStatement,
+    WriteFileStatement,
+    WritefileStatement
+} from '../src/lang/statements/file-io';
 
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { VariableExpression } from '../src/lang/expressions/special/variable-expression';
@@ -315,6 +331,127 @@ describe('File I/O Statements', () => {
             const stmt = new WritefileStatement(content, filename);
 
             expect(stmt.toString()).toBe('WRITEFILE "data" TO "file.txt"');
+        });
+    });
+
+    describe('WRITE/READ/SEEK/LINE INPUT Statements', () => {
+        it('should write and read a binary integer via file handle', () => {
+            const filename = new LiteralExpression({ type: EduBasicType.String, value: 'data.bin' });
+            const openWrite = new OpenStatement(filename, FileMode.Overwrite, 'fh%');
+            openWrite.execute(context, graphics, audio, program, runtime);
+
+            const handleExpr = new VariableExpression('fh%');
+            const write = new WriteFileStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 123 }),
+                handleExpr
+            );
+            write.execute(context, graphics, audio, program, runtime);
+            new CloseStatement(handleExpr).execute(context, graphics, audio, program, runtime);
+
+            const openRead = new OpenStatement(filename, FileMode.Read, 'rh%');
+            openRead.execute(context, graphics, audio, program, runtime);
+
+            const readHandleExpr = new VariableExpression('rh%');
+            const read = new ReadFileStatement('value%', readHandleExpr);
+            read.execute(context, graphics, audio, program, runtime);
+
+            expect(context.getVariable('value%')).toEqual({ type: EduBasicType.Integer, value: 123 });
+        });
+
+        it('should allow seeking past EOF for writable handles', () => {
+            const filename = new LiteralExpression({ type: EduBasicType.String, value: 'seek.bin' });
+            const openWrite = new OpenStatement(filename, FileMode.Overwrite, 'fh%');
+            openWrite.execute(context, graphics, audio, program, runtime);
+
+            const handleExpr = new VariableExpression('fh%');
+            const seek = new SeekStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 10 }), handleExpr);
+            seek.execute(context, graphics, audio, program, runtime);
+
+            const write = new WriteFileStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                handleExpr
+            );
+            write.execute(context, graphics, audio, program, runtime);
+            new CloseStatement(handleExpr).execute(context, graphics, audio, program, runtime);
+
+            const data = fileSystem.readFile('seek.bin');
+            expect(data).not.toBeNull();
+            expect(data!.length).toBe(14);
+        });
+
+        it('should read text lines (including newline) using LINE INPUT', () => {
+            fileSystem.writeFile('lines.txt', new TextEncoder().encode('a\nb\n'));
+
+            const filename = new LiteralExpression({ type: EduBasicType.String, value: 'lines.txt' });
+            const openRead = new OpenStatement(filename, FileMode.Read, 'fh%');
+            openRead.execute(context, graphics, audio, program, runtime);
+
+            const handleExpr = new VariableExpression('fh%');
+
+            new LineInputStatement('line$', handleExpr).execute(context, graphics, audio, program, runtime);
+            expect(context.getVariable('line$').value).toBe('a\n');
+
+            new LineInputStatement('line$', handleExpr).execute(context, graphics, audio, program, runtime);
+            expect(context.getVariable('line$').value).toBe('b\n');
+
+            expect(() => {
+                new LineInputStatement('line$', handleExpr).execute(context, graphics, audio, program, runtime);
+            }).toThrow('LINE INPUT: end of file');
+        });
+    });
+
+    describe('LISTDIR/MKDIR/RMDIR/COPY/MOVE/DELETE Statements', () => {
+        it('should create and remove an empty directory', () => {
+            const mkdir = new MkdirStatement(new LiteralExpression({ type: EduBasicType.String, value: 'temp' }));
+            mkdir.execute(context, graphics, audio, program, runtime);
+            expect(fileSystem.directoryExists('temp')).toBe(true);
+
+            const rmdir = new RmdirStatement(new LiteralExpression({ type: EduBasicType.String, value: 'temp' }));
+            rmdir.execute(context, graphics, audio, program, runtime);
+            expect(fileSystem.directoryExists('temp')).toBe(false);
+        });
+
+        it('should list directory entries into a string array', () => {
+            fileSystem.createDirectory('dir');
+            fileSystem.writeFile('dir/a.txt', new Uint8Array([1]));
+            fileSystem.createDirectory('dir/sub');
+
+            const stmt = new ListdirStatement(
+                'files$[]',
+                new LiteralExpression({ type: EduBasicType.String, value: 'dir' })
+            );
+            stmt.execute(context, graphics, audio, program, runtime);
+
+            const value = context.getVariable('files$[]');
+            expect(value.type).toBe(EduBasicType.Array);
+            expect(value.elementType).toBe(EduBasicType.String);
+
+            const entries = value.value.map(v => v.value);
+            expect(entries).toEqual(expect.arrayContaining(['a.txt', 'sub']));
+        });
+
+        it('should copy, move, and delete files', () => {
+            fileSystem.writeFile('src.txt', new TextEncoder().encode('data'));
+
+            new CopyStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'src.txt' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'dst.txt' })
+            ).execute(context, graphics, audio, program, runtime);
+
+            expect(fileSystem.readFile('dst.txt')).not.toBeNull();
+
+            new MoveStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'dst.txt' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'moved.txt' })
+            ).execute(context, graphics, audio, program, runtime);
+
+            expect(fileSystem.readFile('dst.txt')).toBeNull();
+            expect(fileSystem.readFile('moved.txt')).not.toBeNull();
+
+            new DeleteStatement(new LiteralExpression({ type: EduBasicType.String, value: 'moved.txt' }))
+                .execute(context, graphics, audio, program, runtime);
+
+            expect(fileSystem.readFile('moved.txt')).toBeNull();
         });
     });
 

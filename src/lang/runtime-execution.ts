@@ -26,6 +26,7 @@ export class RuntimeExecution
 {
     private controlStack: ControlStructureFrame[] = [];
     private tabSwitchCallback: ((tabId: string) => void) | null = null;
+    private sleepUntilMs: number | null = null;
 
     public constructor(
         private readonly program: Program,
@@ -63,6 +64,16 @@ export class RuntimeExecution
 
     public executeStep(): ExecutionResult
     {
+        if (this.sleepUntilMs !== null)
+        {
+            if (Date.now() < this.sleepUntilMs)
+            {
+                return ExecutionResult.Continue;
+            }
+
+            this.sleepUntilMs = null;
+        }
+
         const frame = this.getCurrentControlFrame();
 
         if (frame && frame.nestedStatements && frame.nestedIndex !== undefined)
@@ -166,6 +177,18 @@ export class RuntimeExecution
 
         this.context.incrementProgramCounter();
         return ExecutionResult.Continue;
+    }
+
+    public sleep(milliseconds: number): void
+    {
+        const ms = Math.max(0, Math.floor(milliseconds));
+
+        if (ms === 0)
+        {
+            return;
+        }
+
+        this.sleepUntilMs = Date.now() + ms;
     }
 
     public pushControlFrame(frame: ControlStructureFrame): void

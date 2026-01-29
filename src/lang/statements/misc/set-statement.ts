@@ -33,7 +33,29 @@ export class SetStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('SET statement not yet implemented');
+        switch (this.option)
+        {
+            case SetOption.LineSpacingOn:
+                graphics.setLineSpacing(true);
+                break;
+            case SetOption.LineSpacingOff:
+                graphics.setLineSpacing(false);
+                break;
+            case SetOption.TextWrapOn:
+                graphics.setTextWrap(true);
+                break;
+            case SetOption.TextWrapOff:
+                graphics.setTextWrap(false);
+                break;
+            case SetOption.AudioOn:
+                audio.setMuted(false);
+                break;
+            case SetOption.AudioOff:
+                audio.setMuted(true);
+                break;
+        }
+
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

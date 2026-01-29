@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class SleepStatement extends Statement
 {
@@ -23,7 +24,15 @@ export class SleepStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('SLEEP statement not yet implemented');
+        const value = this.milliseconds.evaluate(context);
+        if (value.type !== EduBasicType.Integer && value.type !== EduBasicType.Real)
+        {
+            throw new Error('SLEEP: milliseconds must be a number');
+        }
+
+        const ms = Math.max(0, Math.floor(value.value as number));
+        runtime.sleep(ms);
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

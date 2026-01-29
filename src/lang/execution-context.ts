@@ -4,6 +4,7 @@ interface StackFrame
 {
     localVariables: Map<string, EduBasicValue>;
     canonicalLocalNames: Map<string, string>;
+    byRefBindings: Map<string, string>;
     returnAddress: number;
 }
 
@@ -49,6 +50,12 @@ export class ExecutionContext
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
 
+            if (currentFrame.byRefBindings.has(lookupKey))
+            {
+                const targetName = currentFrame.byRefBindings.get(lookupKey)!;
+                return this.getVariableFromOuterScopes(targetName);
+            }
+
             if (currentFrame.localVariables.has(lookupKey))
             {
                 currentFrame.canonicalLocalNames.set(lookupKey, name);
@@ -70,6 +77,18 @@ export class ExecutionContext
     {
         const lookupKey = name.toUpperCase();
 
+        if (this.stackFrames.length > 0)
+        {
+            const currentFrame = this.stackFrames[this.stackFrames.length - 1];
+
+            if (currentFrame.byRefBindings.has(lookupKey))
+            {
+                const targetName = currentFrame.byRefBindings.get(lookupKey)!;
+                this.setVariableInOuterScopes(targetName, value);
+                return;
+            }
+        }
+
         if (isLocal && this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
@@ -90,6 +109,12 @@ export class ExecutionContext
         if (this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
+
+            if (currentFrame.byRefBindings.has(lookupKey))
+            {
+                const targetName = currentFrame.byRefBindings.get(lookupKey)!;
+                return this.hasVariableInOuterScopes(targetName);
+            }
 
             if (currentFrame.localVariables.has(lookupKey))
             {
@@ -118,6 +143,12 @@ export class ExecutionContext
         if (this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
+
+            if (currentFrame.byRefBindings.has(lookupKey))
+            {
+                const targetName = currentFrame.byRefBindings.get(lookupKey)!;
+                return this.getCanonicalNameFromOuterScopes(targetName) ?? targetName;
+            }
             const localName = currentFrame.canonicalLocalNames.get(lookupKey);
 
             if (localName)
@@ -136,11 +167,12 @@ export class ExecutionContext
         this.stackFrames = [];
     }
 
-    public pushStackFrame(returnAddress: number): void
+    public pushStackFrame(returnAddress: number, byRefBindings?: Map<string, string>): void
     {
         this.stackFrames.push({
             localVariables: new Map<string, EduBasicValue>(),
             canonicalLocalNames: new Map<string, string>(),
+            byRefBindings: byRefBindings ?? new Map<string, string>(),
             returnAddress: returnAddress
         });
     }
@@ -260,5 +292,81 @@ export class ExecutionContext
             default:
                 return { type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() };
         }
+    }
+
+    private hasVariableInOuterScopes(name: string): boolean
+    {
+        const lookupKey = name.toUpperCase();
+
+        for (let i = this.stackFrames.length - 2; i >= 0; i--)
+        {
+            const frame = this.stackFrames[i];
+            if (frame.localVariables.has(lookupKey))
+            {
+                return true;
+            }
+        }
+
+        return this.globalVariables.has(lookupKey);
+    }
+
+    private getVariableFromOuterScopes(name: string): EduBasicValue
+    {
+        const lookupKey = name.toUpperCase();
+
+        for (let i = this.stackFrames.length - 2; i >= 0; i--)
+        {
+            const frame = this.stackFrames[i];
+            if (frame.localVariables.has(lookupKey))
+            {
+                frame.canonicalLocalNames.set(lookupKey, name);
+                return frame.localVariables.get(lookupKey)!;
+            }
+        }
+
+        this.canonicalGlobalNames.set(lookupKey, name);
+
+        if (this.globalVariables.has(lookupKey))
+        {
+            return this.globalVariables.get(lookupKey)!;
+        }
+
+        return this.getDefaultValue(name);
+    }
+
+    private setVariableInOuterScopes(name: string, value: EduBasicValue): void
+    {
+        const lookupKey = name.toUpperCase();
+
+        for (let i = this.stackFrames.length - 2; i >= 0; i--)
+        {
+            const frame = this.stackFrames[i];
+            if (frame.localVariables.has(lookupKey))
+            {
+                frame.canonicalLocalNames.set(lookupKey, name);
+                frame.localVariables.set(lookupKey, value);
+                return;
+            }
+        }
+
+        this.canonicalGlobalNames.set(lookupKey, name);
+        this.globalVariables.set(lookupKey, value);
+    }
+
+    private getCanonicalNameFromOuterScopes(name: string): string | null
+    {
+        const lookupKey = name.toUpperCase();
+
+        for (let i = this.stackFrames.length - 2; i >= 0; i--)
+        {
+            const frame = this.stackFrames[i];
+            const localName = frame.canonicalLocalNames.get(lookupKey);
+            if (localName)
+            {
+                return localName;
+            }
+        }
+
+        return this.canonicalGlobalNames.get(lookupKey) ?? null;
     }
 }

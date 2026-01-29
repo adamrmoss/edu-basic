@@ -6,6 +6,8 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { SubStatement } from './sub-statement';
+import { VariableExpression } from '../../expressions/special/variable-expression';
+import { EduBasicValue } from '../../edu-basic-value';
 
 export class CallStatement extends Statement
 {
@@ -39,20 +41,35 @@ export class CallStatement extends Statement
                     throw new Error(`SUB ${this.subroutineName} expects ${stmt.parameters.length} parameters, got ${this.args.length}`);
                 }
 
+                const byRefBindings = new Map<string, string>();
+                const byValValues = new Map<string, EduBasicValue>();
+
                 for (let j = 0; j < stmt.parameters.length; j++)
                 {
                     const param = stmt.parameters[j];
-                    const argValue = this.args[j].evaluate(context);
 
                     if (param.byRef)
                     {
-                        throw new Error('BYREF parameters not yet implemented');
+                        const argExpr = this.args[j];
+                        if (!(argExpr instanceof VariableExpression))
+                        {
+                            throw new Error('CALL: BYREF argument must be a variable');
+                        }
+
+                        byRefBindings.set(param.name.toUpperCase(), argExpr.variableName);
+                        continue;
                     }
 
-                    context.setVariable(param.name, argValue, true);
+                    const argValue = this.args[j].evaluate(context);
+                    byValValues.set(param.name, argValue);
                 }
 
-                context.pushStackFrame(currentPc + 1);
+                context.pushStackFrame(currentPc + 1, byRefBindings);
+
+                for (const [paramName, value] of byValValues.entries())
+                {
+                    context.setVariable(paramName, value, true);
+                }
 
                 if (stmt.body.length > 0)
                 {

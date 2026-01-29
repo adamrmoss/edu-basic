@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class MkdirStatement extends Statement
 {
@@ -23,7 +24,16 @@ export class MkdirStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('MKDIR statement not yet implemented');
+        const pathValue = this.path.evaluate(context);
+        if (pathValue.type !== EduBasicType.String)
+        {
+            throw new Error('MKDIR: path must be a string');
+        }
+
+        const path = pathValue.value as string;
+        runtime.getFileSystem().createDirectory(path);
+
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string
