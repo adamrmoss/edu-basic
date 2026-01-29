@@ -53,7 +53,17 @@ export class ExitStatement extends Statement
 
             if (frame)
             {
-                runtime.popControlFrame();
+                let popped: any = null;
+
+                while (runtime.getCurrentControlFrame())
+                {
+                    popped = runtime.popControlFrame();
+
+                    if (popped && popped.type === frameType)
+                    {
+                        break;
+                    }
+                }
 
                 if (frame.endLine !== undefined)
                 {

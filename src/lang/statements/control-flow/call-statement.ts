@@ -71,39 +71,23 @@ export class CallStatement extends Statement
                     context.setVariable(paramName, value, true);
                 }
 
-                if (stmt.body.length > 0)
+                const endSubLine = runtime.findMatchingEndSub(i);
+                if (endSubLine === undefined)
                 {
-                    runtime.pushControlFrame({
-                        type: 'if',
-                        startLine: i,
-                        endLine: this.findEndSub(program, i) ?? i,
-                        nestedStatements: stmt.body,
-                        nestedIndex: 0
-                    });
-
-                    return { result: ExecutionResult.Goto, gotoTarget: i };
+                    throw new Error(`SUB ${this.subroutineName} is missing END SUB`);
                 }
+
+                runtime.pushControlFrame({
+                    type: 'sub',
+                    startLine: i,
+                    endLine: endSubLine
+                });
+
+                return { result: ExecutionResult.Goto, gotoTarget: i + 1 };
             }
         }
 
         throw new Error(`SUB ${this.subroutineName} not found`);
-    }
-
-    private findEndSub(program: Program, startLine: number): number | undefined
-    {
-        const statements = program.getStatements();
-
-        for (let i = startLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt.toString() === 'END SUB')
-            {
-                return i;
-            }
-        }
-
-        return undefined;
     }
 
     public override toString(): string

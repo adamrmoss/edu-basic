@@ -42,7 +42,11 @@ export class DoLoopStatement extends Statement
     ): ExecutionStatus
     {
         const currentPc = context.getProgramCounter();
-        const loopLine = this.findLoop(program, currentPc);
+        const loopLine = runtime.findMatchingLoop(currentPc);
+        if (loopLine === undefined)
+        {
+            throw new Error('DO: missing LOOP');
+        }
 
         switch (this.variant)
         {
@@ -53,19 +57,13 @@ export class DoLoopStatement extends Statement
             case DoLoopVariant.DoLoopWhile:
             case DoLoopVariant.DoLoopUntil:
             case DoLoopVariant.DoLoop:
-                if (this.body.length > 0)
-                {
-                    runtime.pushControlFrame({
-                        type: 'do',
-                        startLine: currentPc,
-                        endLine: loopLine ?? currentPc,
-                        nestedStatements: this.body,
-                        nestedIndex: 0,
-                        condition: this.condition
-                    });
+                runtime.pushControlFrame({
+                    type: 'do',
+                    startLine: currentPc,
+                    endLine: loopLine
+                });
 
-                    return { result: ExecutionResult.Continue };
-                }
+                return { result: ExecutionResult.Continue };
                 break;
         }
 
@@ -79,7 +77,7 @@ export class DoLoopStatement extends Statement
         program: Program,
         runtime: RuntimeExecution,
         currentPc: number,
-        loopLine: number | undefined
+        loopLine: number
     ): ExecutionStatus
     {
         const conditionValue = this.condition!.evaluate(context);
@@ -91,27 +89,16 @@ export class DoLoopStatement extends Statement
 
         if (conditionValue.value === 0)
         {
-            if (loopLine !== undefined)
-            {
-                return { result: ExecutionResult.Goto, gotoTarget: loopLine };
-            }
+            return { result: ExecutionResult.Goto, gotoTarget: loopLine + 1 };
         }
-        else
-        {
-            if (this.body.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'do',
-                    startLine: currentPc,
-                    endLine: loopLine ?? currentPc,
-                    nestedStatements: this.body,
-                    nestedIndex: 0,
-                    condition: this.condition
-                });
 
-                return { result: ExecutionResult.Continue };
-            }
-        }
+        runtime.pushControlFrame({
+            type: 'do',
+            startLine: currentPc,
+            endLine: loopLine
+        });
+
+        return { result: ExecutionResult.Continue };
 
         return { result: ExecutionResult.Continue };
     }
@@ -123,7 +110,7 @@ export class DoLoopStatement extends Statement
         program: Program,
         runtime: RuntimeExecution,
         currentPc: number,
-        loopLine: number | undefined
+        loopLine: number
     ): ExecutionStatus
     {
         const conditionValue = this.condition!.evaluate(context);
@@ -135,95 +122,32 @@ export class DoLoopStatement extends Statement
 
         if (conditionValue.value !== 0)
         {
-            if (loopLine !== undefined)
-            {
-                return { result: ExecutionResult.Goto, gotoTarget: loopLine };
-            }
+            return { result: ExecutionResult.Goto, gotoTarget: loopLine + 1 };
         }
-        else
-        {
-            if (this.body.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'do',
-                    startLine: currentPc,
-                    endLine: loopLine ?? currentPc,
-                    nestedStatements: this.body,
-                    nestedIndex: 0,
-                    condition: this.condition
-                });
 
-                return { result: ExecutionResult.Continue };
-            }
-        }
+        runtime.pushControlFrame({
+            type: 'do',
+            startLine: currentPc,
+            endLine: loopLine
+        });
+
+        return { result: ExecutionResult.Continue };
 
         return { result: ExecutionResult.Continue };
     }
 
-    private findLoop(program: Program, startLine: number): number | undefined
-    {
-        const statements = program.getStatements();
-
-        for (let i = startLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof LoopStatement)
-            {
-                if (stmt.indentLevel === this.indentLevel)
-                {
-                    return i;
-                }
-            }
-
-            if (stmt.indentLevel < this.indentLevel)
-            {
-                break;
-            }
-        }
-
-        return undefined;
-    }
-
     public override toString(): string
     {
-        let result = '';
-
         switch (this.variant)
         {
             case DoLoopVariant.DoWhile:
-                result = `DO WHILE ${this.condition!.toString()}\n`;
-                break;
+                return `DO WHILE ${this.condition!.toString()}`;
             case DoLoopVariant.DoUntil:
-                result = `DO UNTIL ${this.condition!.toString()}\n`;
-                break;
+                return `DO UNTIL ${this.condition!.toString()}`;
             case DoLoopVariant.DoLoop:
             case DoLoopVariant.DoLoopWhile:
             case DoLoopVariant.DoLoopUntil:
-                result = 'DO\n';
-                break;
+                return 'DO';
         }
-
-        for (const statement of this.body)
-        {
-            result += `    ${statement.toString()}\n`;
-        }
-
-        switch (this.variant)
-        {
-            case DoLoopVariant.DoWhile:
-            case DoLoopVariant.DoUntil:
-            case DoLoopVariant.DoLoop:
-                result += 'LOOP';
-                break;
-            case DoLoopVariant.DoLoopWhile:
-                result += `LOOP WHILE ${this.condition!.toString()}`;
-                break;
-            case DoLoopVariant.DoLoopUntil:
-                result += `LOOP UNTIL ${this.condition!.toString()}`;
-                break;
-        }
-
-        return result;
     }
 }

@@ -39,31 +39,24 @@ export class UntilStatement extends Statement
             throw new Error('UNTIL condition must evaluate to an integer');
         }
 
+        const uendLine = this.findUend(program, currentPc);
+        if (uendLine === undefined)
+        {
+            throw new Error('UNTIL: missing UEND');
+        }
+
         if (conditionValue.value !== 0)
         {
-            const uendLine = this.findUend(program, currentPc);
-
-            if (uendLine !== undefined)
-            {
-                return { result: ExecutionResult.Goto, gotoTarget: uendLine };
-            }
+            return { result: ExecutionResult.Goto, gotoTarget: uendLine + 1 };
         }
-        else
-        {
-            if (this.body.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'while',
-                    startLine: currentPc,
-                    endLine: this.findUend(program, currentPc) ?? currentPc,
-                    nestedStatements: this.body,
-                    nestedIndex: 0,
-                    condition: this.condition
-                });
 
-                return { result: ExecutionResult.Continue };
-            }
-        }
+        runtime.pushControlFrame({
+            type: 'while',
+            startLine: currentPc,
+            endLine: uendLine
+        });
+
+        return { result: ExecutionResult.Continue };
 
         return { result: ExecutionResult.Continue };
     }
@@ -71,22 +64,26 @@ export class UntilStatement extends Statement
     private findUend(program: Program, startLine: number): number | undefined
     {
         const statements = program.getStatements();
+        let depth = 0;
 
         for (let i = startLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
 
+            if (stmt instanceof UntilStatement)
+            {
+                depth++;
+                continue;
+            }
+
             if (stmt instanceof UendStatement)
             {
-                if (stmt.indentLevel === this.indentLevel)
+                if (depth === 0)
                 {
                     return i;
                 }
-            }
 
-            if (stmt.indentLevel < this.indentLevel)
-            {
-                break;
+                depth--;
             }
         }
 
@@ -95,15 +92,6 @@ export class UntilStatement extends Statement
 
     public override toString(): string
     {
-        let result = `UNTIL ${this.condition.toString()}\n`;
-
-        for (const statement of this.body)
-        {
-            result += `    ${statement.toString()}\n`;
-        }
-
-        result += 'UEND';
-
-        return result;
+        return `UNTIL ${this.condition.toString()}`;
     }
 }

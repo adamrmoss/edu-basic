@@ -7,6 +7,8 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { EndStatement, EndType } from './end-statement';
+import { ElseStatement } from './else-statement';
+import { IfStatement } from './if-statement';
 
 export class UnlessStatement extends Statement
 {
@@ -40,103 +42,86 @@ export class UnlessStatement extends Statement
             throw new Error('UNLESS condition must evaluate to an integer');
         }
 
-        if (conditionValue.value === 0)
+        const endUnlessLine = runtime.findMatchingEndUnless(currentPc);
+        if (endUnlessLine === undefined)
         {
-            if (this.thenBranch.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'if',
-                    startLine: currentPc,
-                    endLine: this.findEndUnless(program, currentPc) ?? currentPc,
-                    nestedStatements: this.thenBranch,
-                    nestedIndex: 0
-                });
-
-                return { result: ExecutionResult.Continue };
-            }
-            else
-            {
-                const endUnlessLine = this.findEndUnless(program, currentPc);
-
-                if (endUnlessLine !== undefined)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: endUnlessLine };
-                }
-            }
+            throw new Error('UNLESS: missing END UNLESS');
         }
-        else
+
+        const branchTaken = conditionValue.value === 0;
+
+        runtime.pushControlFrame({
+            type: 'unless',
+            startLine: currentPc,
+            endLine: endUnlessLine,
+            branchTaken
+        });
+
+        if (branchTaken)
         {
-            if (this.elseBranch !== null && this.elseBranch.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'if',
-                    startLine: currentPc,
-                    endLine: this.findEndUnless(program, currentPc) ?? currentPc,
-                    nestedStatements: this.elseBranch,
-                    nestedIndex: 0
-                });
-
-                return { result: ExecutionResult.Continue };
-            }
-            else
-            {
-                const endUnlessLine = this.findEndUnless(program, currentPc);
-
-                if (endUnlessLine !== undefined)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: endUnlessLine };
-                }
-            }
+            return { result: ExecutionResult.Continue };
         }
+
+        const elseOrEnd = this.findElseOrEnd(program, currentPc + 1, endUnlessLine);
+        return { result: ExecutionResult.Goto, gotoTarget: elseOrEnd };
 
         return { result: ExecutionResult.Continue };
     }
 
-    private findEndUnless(program: Program, startLine: number): number | undefined
+    private findElseOrEnd(program: Program, fromLine: number, endUnlessLine: number): number
     {
         const statements = program.getStatements();
+        let ifDepth = 0;
+        let unlessDepth = 0;
 
-        for (let i = startLine + 1; i < statements.length; i++)
+        for (let i = fromLine; i <= endUnlessLine && i < statements.length; i++)
         {
             const stmt = statements[i];
 
+            if (stmt instanceof IfStatement)
+            {
+                ifDepth++;
+                continue;
+            }
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
+            {
+                if (ifDepth > 0)
+                {
+                    ifDepth--;
+                    continue;
+                }
+            }
+
+            if (stmt instanceof UnlessStatement)
+            {
+                unlessDepth++;
+                continue;
+            }
+
             if (stmt instanceof EndStatement && stmt.endType === EndType.Unless)
             {
-                if (stmt.indentLevel === this.indentLevel)
+                if (unlessDepth > 0)
+                {
+                    unlessDepth--;
+                    continue;
+                }
+            }
+
+            if (ifDepth === 0 && unlessDepth === 0)
+            {
+                if (stmt instanceof ElseStatement)
                 {
                     return i;
                 }
             }
-
-            if (stmt.indentLevel < this.indentLevel)
-            {
-                break;
-            }
         }
 
-        return undefined;
+        return endUnlessLine;
     }
 
     public override toString(): string
     {
-        let result = `UNLESS ${this.condition.toString()} THEN\n`;
-
-        for (const statement of this.thenBranch)
-        {
-            result += `    ${statement.toString()}\n`;
-        }
-
-        if (this.elseBranch !== null)
-        {
-            result += 'ELSE\n';
-            for (const statement of this.elseBranch)
-            {
-                result += `    ${statement.toString()}\n`;
-            }
-        }
-
-        result += 'END UNLESS';
-
-        return result;
+        return `UNLESS ${this.condition.toString()} THEN`;
     }
 }

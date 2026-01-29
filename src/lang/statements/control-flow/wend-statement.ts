@@ -27,11 +27,11 @@ export class WendStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const whileFrame = runtime.findControlFrame('while');
+        const top = runtime.getCurrentControlFrame();
 
-        if (whileFrame)
+        if (top && top.type === 'while')
         {
-            const whileStmt = program.getStatement(whileFrame.startLine);
+            const whileStmt = program.getStatement(top.startLine);
 
             if (whileStmt instanceof WhileStatement)
             {
@@ -44,17 +44,17 @@ export class WendStatement extends Statement
 
                 if (conditionValue.value !== 0)
                 {
-                    if (whileFrame.nestedStatements && whileFrame.nestedStatements.length > 0)
-                    {
-                        whileFrame.nestedIndex = 0;
-                        return { result: ExecutionResult.Goto, gotoTarget: whileFrame.startLine };
-                    }
+                    return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
                 }
                 else
                 {
                     runtime.popControlFrame();
                 }
             }
+        }
+        else
+        {
+            throw new Error('WEND without WHILE');
         }
 
         return { result: ExecutionResult.Continue };

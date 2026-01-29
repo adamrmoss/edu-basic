@@ -27,11 +27,11 @@ export class UendStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const untilFrame = runtime.findControlFrame('while');
+        const top = runtime.getCurrentControlFrame();
 
-        if (untilFrame)
+        if (top && top.type === 'while')
         {
-            const untilStmt = program.getStatement(untilFrame.startLine);
+            const untilStmt = program.getStatement(top.startLine);
 
             if (untilStmt instanceof UntilStatement)
             {
@@ -44,17 +44,16 @@ export class UendStatement extends Statement
 
                 if (conditionValue.value === 0)
                 {
-                    if (untilFrame.nestedStatements && untilFrame.nestedStatements.length > 0)
-                    {
-                        untilFrame.nestedIndex = 0;
-                        return { result: ExecutionResult.Goto, gotoTarget: untilFrame.startLine };
-                    }
+                    return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
                 }
-                else
-                {
-                    runtime.popControlFrame();
-                }
+
+                runtime.popControlFrame();
+                return { result: ExecutionResult.Continue };
             }
+        }
+        else
+        {
+            throw new Error('UEND without UNTIL');
         }
 
         return { result: ExecutionResult.Continue };

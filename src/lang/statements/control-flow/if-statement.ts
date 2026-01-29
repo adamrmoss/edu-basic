@@ -43,143 +43,34 @@ export class IfStatement extends Statement
             throw new Error('IF condition must evaluate to an integer');
         }
 
-        if (conditionValue.value !== 0)
+        const endIfLine = runtime.findMatchingEndIf(currentPc);
+        if (endIfLine === undefined)
         {
-            if (this.thenBranch.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'if',
-                    startLine: currentPc,
-                    endLine: this.findEndIf(program, currentPc) ?? currentPc,
-                    nestedStatements: this.thenBranch,
-                    nestedIndex: 0
-                });
-
-                return { result: ExecutionResult.Continue };
-            }
-            else
-            {
-                const endIfLine = this.findEndIf(program, currentPc);
-
-                if (endIfLine !== undefined)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: endIfLine };
-                }
-            }
+            throw new Error('IF: missing END IF');
         }
-        else
+
+        const branchTaken = conditionValue.value !== 0;
+
+        runtime.pushControlFrame({
+            type: 'if',
+            startLine: currentPc,
+            endLine: endIfLine,
+            branchTaken
+        });
+
+        if (branchTaken)
         {
-            let executedBranch = false;
-
-            for (const elseIfBranch of this.elseIfBranches)
-            {
-                const elseIfConditionValue = elseIfBranch.condition.evaluate(context);
-
-                if (elseIfConditionValue.type !== EduBasicType.Integer)
-                {
-                    throw new Error('ELSEIF condition must evaluate to an integer');
-                }
-
-                if (elseIfConditionValue.value !== 0)
-                {
-                    if (elseIfBranch.statements.length > 0)
-                    {
-                        runtime.pushControlFrame({
-                            type: 'if',
-                            startLine: currentPc,
-                            endLine: this.findEndIf(program, currentPc) ?? currentPc,
-                            nestedStatements: elseIfBranch.statements,
-                            nestedIndex: 0
-                        });
-
-                        return { result: ExecutionResult.Continue };
-                    }
-
-                    executedBranch = true;
-                    break;
-                }
-            }
-
-            if (!executedBranch && this.elseBranch !== null && this.elseBranch.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'if',
-                    startLine: currentPc,
-                    endLine: this.findEndIf(program, currentPc) ?? currentPc,
-                    nestedStatements: this.elseBranch,
-                    nestedIndex: 0
-                });
-
-                return { result: ExecutionResult.Continue };
-            }
-            else if (!executedBranch)
-            {
-                const endIfLine = this.findEndIf(program, currentPc);
-
-                if (endIfLine !== undefined)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: endIfLine };
-                }
-            }
+            return { result: ExecutionResult.Continue };
         }
+
+        const nextClause = runtime.findNextIfClauseOrEnd(currentPc + 1, endIfLine);
+        return { result: ExecutionResult.Goto, gotoTarget: nextClause };
 
         return { result: ExecutionResult.Continue };
     }
 
-    private findEndIf(program: Program, startLine: number): number | undefined
-    {
-        const statements = program.getStatements();
-
-        for (let i = startLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
-            {
-                if (stmt.indentLevel === this.indentLevel)
-                {
-                    return i;
-                }
-            }
-
-            if (stmt.indentLevel < this.indentLevel)
-            {
-                break;
-            }
-        }
-
-        return undefined;
-    }
-
     public override toString(): string
     {
-        let result = `IF ${this.condition.toString()} THEN\n`;
-
-        for (const statement of this.thenBranch)
-        {
-            result += `    ${statement.toString()}\n`;
-        }
-
-        for (const elseIfBranch of this.elseIfBranches)
-        {
-            result += `ELSEIF ${elseIfBranch.condition.toString()} THEN\n`;
-            for (const statement of elseIfBranch.statements)
-            {
-                result += `    ${statement.toString()}\n`;
-            }
-        }
-
-        if (this.elseBranch !== null)
-        {
-            result += 'ELSE\n';
-            for (const statement of this.elseBranch)
-            {
-                result += `    ${statement.toString()}\n`;
-            }
-        }
-
-        result += 'END IF';
-
-        return result;
+        return `IF ${this.condition.toString()} THEN`;
     }
 }

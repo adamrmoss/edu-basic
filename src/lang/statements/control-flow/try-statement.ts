@@ -37,17 +37,14 @@ export class TryStatement extends Statement
     {
         if (this.tryBody.length > 0)
         {
-            const currentPc = context.getProgramCounter();
-
-            runtime.pushControlFrame({
-                type: 'if',
-                startLine: currentPc,
-                endLine: this.findEndTry(program, currentPc) ?? currentPc,
-                nestedStatements: this.tryBody,
-                nestedIndex: 0
-            });
-
-            return { result: ExecutionResult.Continue };
+            for (const stmt of this.tryBody)
+            {
+                const status = stmt.execute(context, graphics, audio, program, runtime);
+                if (status.result !== ExecutionResult.Continue)
+                {
+                    return status;
+                }
+            }
         }
 
         return { result: ExecutionResult.Continue };

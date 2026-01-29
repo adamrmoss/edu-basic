@@ -25,6 +25,18 @@ export class ElseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        const top = runtime.getCurrentControlFrame();
+        if (!top || (top.type !== 'if' && top.type !== 'unless'))
+        {
+            throw new Error('ELSE without IF/UNLESS');
+        }
+
+        if (top.branchTaken)
+        {
+            return { result: ExecutionResult.Goto, gotoTarget: top.endLine };
+        }
+
+        top.branchTaken = true;
         return { result: ExecutionResult.Continue };
     }
 

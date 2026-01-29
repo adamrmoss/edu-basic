@@ -39,71 +39,30 @@ export class WhileStatement extends Statement
             throw new Error('WHILE condition must evaluate to an integer');
         }
 
+        const wendLine = runtime.findMatchingWend(currentPc);
+        if (wendLine === undefined)
+        {
+            throw new Error('WHILE: missing WEND');
+        }
+
         if (conditionValue.value === 0)
         {
-            const wendLine = this.findWend(program, currentPc);
-
-            if (wendLine !== undefined)
-            {
-                return { result: ExecutionResult.Goto, gotoTarget: wendLine };
-            }
+            return { result: ExecutionResult.Goto, gotoTarget: wendLine + 1 };
         }
-        else
-        {
-            if (this.body.length > 0)
-            {
-                runtime.pushControlFrame({
-                    type: 'while',
-                    startLine: currentPc,
-                    endLine: this.findWend(program, currentPc) ?? currentPc,
-                    nestedStatements: this.body,
-                    nestedIndex: 0,
-                    condition: this.condition
-                });
 
-                return { result: ExecutionResult.Continue };
-            }
-        }
+        runtime.pushControlFrame({
+            type: 'while',
+            startLine: currentPc,
+            endLine: wendLine
+        });
+
+        return { result: ExecutionResult.Continue };
 
         return { result: ExecutionResult.Continue };
     }
 
-    private findWend(program: Program, startLine: number): number | undefined
-    {
-        const statements = program.getStatements();
-
-        for (let i = startLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof WendStatement)
-            {
-                if (stmt.indentLevel === this.indentLevel)
-                {
-                    return i;
-                }
-            }
-
-            if (stmt.indentLevel < this.indentLevel)
-            {
-                break;
-            }
-        }
-
-        return undefined;
-    }
-
     public override toString(): string
     {
-        let result = `WHILE ${this.condition.toString()}\n`;
-
-        for (const statement of this.body)
-        {
-            result += `    ${statement.toString()}\n`;
-        }
-
-        result += 'WEND';
-
-        return result;
+        return `WHILE ${this.condition.toString()}`;
     }
 }

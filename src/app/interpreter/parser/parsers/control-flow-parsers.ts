@@ -68,8 +68,20 @@ export class ControlFlowParsers
         {
             return elseifTokenResult;
         }
-        
-        return success(new ElseIfStatement());
+
+        const conditionResult = context.parseExpression();
+        if (!conditionResult.success)
+        {
+            return failure(conditionResult.error || 'Failed to parse condition expression');
+        }
+
+        const thenTokenResult = context.consume(TokenType.Keyword, 'THEN');
+        if (!thenTokenResult.success)
+        {
+            return thenTokenResult;
+        }
+
+        return success(new ElseIfStatement(conditionResult.value));
     }
 
     public static parseElse(context: ParserContext): ParseResult<ElseStatement>

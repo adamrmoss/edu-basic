@@ -12,7 +12,6 @@ import { VariableExpression } from '../src/lang/expressions/special/variable-exp
 import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
 import { CallStatement } from '../src/lang/statements/control-flow/call-statement';
 import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-statement';
-import { ReturnStatement } from '../src/lang/statements/control-flow/return-statement';
 import { SubStatement } from '../src/lang/statements/control-flow/sub-statement';
 
 class CopyVarStatement extends Statement
@@ -110,21 +109,20 @@ describe('CALL/SUB execution', () =>
         ], [
             new CopyVarStatement('q%', 'seen%'),
             new SetIntStatement('p%', 99, true),
-            new ReturnStatement()
         ]);
 
-        const endSub = new EndStatement(EndType.Sub);
+        program.appendLine(call);       // 0
+        program.appendLine(afterCall);  // 1
+        program.appendLine(sub);        // 2 (definition, skipped in normal flow)
+        program.appendLine(new CopyVarStatement('q%', 'seen%'));      // 3 (sub body)
+        program.appendLine(new SetIntStatement('p%', 99, true));      // 4 (sub body)
+        program.appendLine(new EndStatement(EndType.Sub));            // 5 (sub body)
 
-        program.appendLine(call);     // 0
-        program.appendLine(afterCall); // 1
-        program.appendLine(sub);      // 2
-        program.appendLine(endSub);   // 3
-
-        // CALL executes and jumps to the SUB line; SUB body is executed via nestedStatements.
+        // CALL executes and jumps to the first line after SUB.
         expect(runtime.executeStep()).toBe(ExecutionResult.Continue);
-        expect(context.getProgramCounter()).toBe(2);
+        expect(context.getProgramCounter()).toBe(3);
 
-        // Execute nested body (COPYVAR + SET + RETURN).
+        // Execute sub body (COPYVAR + SET + END SUB).
         expect(runtime.executeStep()).toBe(ExecutionResult.Continue);
         expect(runtime.executeStep()).toBe(ExecutionResult.Continue);
         expect(runtime.executeStep()).toBe(ExecutionResult.Continue);
@@ -147,7 +145,7 @@ describe('CALL/SUB execution', () =>
 
     it('should throw when SUB parameter count mismatches', () =>
     {
-        const sub = new SubStatement('S', [{ name: 'p%', byRef: false }], [new ReturnStatement()]);
+        const sub = new SubStatement('S', [{ name: 'p%', byRef: false }], []);
         program.appendLine(sub);
         program.appendLine(new EndStatement(EndType.Sub));
 
@@ -160,7 +158,7 @@ describe('CALL/SUB execution', () =>
 
     it('should throw when BYREF argument is not a variable', () =>
     {
-        const sub = new SubStatement('S', [{ name: 'p%', byRef: true }], [new ReturnStatement()]);
+        const sub = new SubStatement('S', [{ name: 'p%', byRef: true }], []);
         program.appendLine(sub);
         program.appendLine(new EndStatement(EndType.Sub));
 
