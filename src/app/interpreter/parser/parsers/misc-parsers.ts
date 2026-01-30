@@ -105,7 +105,7 @@ export class MiscParsers
             const exprResult = context.parseExpression();
             if (!exprResult.success)
             {
-                return failure(exprResult.error || 'Failed to parse RANDOMIZE seed expression');
+                return failure(`RANDOMIZE: ${exprResult.error || 'Failed to parse seed expression'}`);
             }
             seedExpression = exprResult.value;
         }

@@ -100,7 +100,7 @@ describe('Parser parsers (edge cases)', () =>
             ]))));
 
             expectFailure(FileIoParsers.parseClose(ctx(eofTokens([
-                t(TokenType.Keyword, 'OPEN'),
+                t(TokenType.Identifier, 'OPEN'),
                 t(TokenType.String, 'file.txt')
             ]))));
 
@@ -395,7 +395,7 @@ describe('Parser parsers (edge cases)', () =>
             expectFailure(AudioParsers.parseVoice(ctx(eofTokens([
                 t(TokenType.Keyword, 'VOICE'),
                 t(TokenType.Integer, '0'),
-                t(TokenType.Keyword, 'TO'),
+                t(TokenType.Identifier, 'TO'),
                 t(TokenType.String, 'piano')
             ]))));
 

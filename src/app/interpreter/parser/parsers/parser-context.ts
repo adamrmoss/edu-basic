@@ -1,8 +1,8 @@
 import { ExpressionParserService } from '../../expression-parser.service';
-import { Token } from '../../tokenizer.service';
+import { Token, TokenType } from '../../tokenizer.service';
 import { ExpressionHelpers } from '../helpers/expression-helpers';
 import { TokenHelpers } from '../helpers/token-helpers';
-import { ParseResult } from '../parse-result';
+import { ParseResult, failure, success } from '../parse-result';
 
 export class ParserContext
 {
@@ -42,6 +42,21 @@ export class ParserContext
     public consume(type: any, message: string): ParseResult<Token>
     {
         return TokenHelpers.consume(this.tokens, this.current, type, message);
+    }
+
+    public consumeKeyword(keyword: string): ParseResult<Token>
+    {
+        if (!this.isAtEnd() &&
+            this.peek().type === TokenType.Keyword &&
+            this.peek().value.toUpperCase() === keyword.toUpperCase())
+        {
+            return success(this.advance());
+        }
+
+        const actualToken = this.isAtEnd()
+            ? 'end of input'
+            : this.peek().value;
+        return failure(`Expected ${keyword}, got: ${actualToken}`);
     }
 
     public parseExpression(): ParseResult<any>

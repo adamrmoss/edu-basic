@@ -421,8 +421,15 @@ describe('File I/O Statements', () => {
 
             new WriteFileStatement(new LiteralExpression({ type: EduBasicType.Real, value: 3.25 }), handleExpr)
                 .execute(context, graphics, audio, program, runtime);
-            new WriteFileStatement(new LiteralExpression({ type: EduBasicType.String, value: 'hi' }), handleExpr)
-                .execute(context, graphics, audio, program, runtime);
+
+            // WRITE of a scalar string writes text with newline; to exercise READ string (length-prefixed),
+            // write the string as an array element so it uses binary string encoding.
+            new WriteFileStatement(new LiteralExpression({
+                type: EduBasicType.Array,
+                elementType: EduBasicType.String,
+                value: [{ type: EduBasicType.String, value: 'hi' }]
+            } as any), handleExpr).execute(context, graphics, audio, program, runtime);
+
             new WriteFileStatement(new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: -2 } }), handleExpr)
                 .execute(context, graphics, audio, program, runtime);
 
