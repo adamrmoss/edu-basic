@@ -3,6 +3,7 @@ import { EduBasicType } from '../src/lang/edu-basic-value';
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { Program } from '../src/lang/program';
 import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
+import { LetStatement } from '../src/lang/statements/variables';
 import { Audio } from '../src/lang/audio';
 import { Graphics } from '../src/lang/graphics';
 import {
@@ -719,37 +720,13 @@ describe('Control flow statements (direct execution)', () =>
 
     it('TryStatement should execute body, format toString, and support private findEndTry helper', () =>
     {
-        class ReturnStatusStatement extends Statement
-        {
-            public constructor(private readonly status: ExecutionStatus, private readonly repr: string)
-            {
-                super();
-            }
-
-            public override execute(
-                context: ExecutionContext,
-                graphics: Graphics,
-                audio: Audio,
-                program: Program,
-                runtime: any
-            ): ExecutionStatus
-            {
-                return this.status;
-            }
-
-            public override toString(): string
-            {
-                return this.repr;
-            }
-        }
-
         const context = new ExecutionContext();
         const graphics = new Graphics();
         const audio = new Audio();
         const program = new Program();
         const runtime = {} as any;
 
-        const endNow = new ReturnStatusStatement({ result: ExecutionResult.End }, 'ENDNOW');
+        const endNow = new EndStatement(EndType.Program);
         const tryStmt = new TryStatement([endNow], [{ variableName: 'e$', body: [endNow] }], [endNow]);
 
         expect(tryStmt.getIndentAdjustment()).toBe(1);
@@ -764,8 +741,8 @@ describe('Control flow statements (direct execution)', () =>
         const empty = new TryStatement([], [], null);
         expect(empty.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
 
-        const endTryMarker = new ReturnStatusStatement({ result: ExecutionResult.Continue }, 'END TRY');
-        program.appendLine(new ReturnStatusStatement({ result: ExecutionResult.Continue }, 'NOPE'));
+        const endTryMarker = new EndStatement(EndType.Try);
+        program.appendLine(new LetStatement('nope%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
         program.appendLine(endTryMarker);
         expect((tryStmt as any).findEndTry(program, 0)).toBe(1);
     });
@@ -818,44 +795,6 @@ describe('Control flow statements (direct execution)', () =>
 
     it('SelectCaseStatement should match value/range/relational/else and format toString', () =>
     {
-        class SetIntStatement extends Statement
-        {
-            public constructor(private readonly name: string, private readonly value: number)
-            {
-                super();
-            }
-
-            public override execute(
-                context: ExecutionContext,
-                graphics: Graphics,
-                audio: Audio,
-                program: Program,
-                runtime: any
-            ): ExecutionStatus
-            {
-                context.setVariable(this.name, { type: EduBasicType.Integer, value: this.value }, false);
-                return { result: ExecutionResult.Continue };
-            }
-
-            public override toString(): string
-            {
-                return `LET ${this.name} = ${this.value}`;
-            }
-        }
-
-        class EndNowStatement extends Statement
-        {
-            public override execute(): ExecutionStatus
-            {
-                return { result: ExecutionResult.End };
-            }
-
-            public override toString(): string
-            {
-                return 'ENDNOW';
-            }
-        }
-
         const context = new ExecutionContext();
         const graphics = new Graphics();
         const audio = new Audio();
@@ -871,7 +810,7 @@ describe('Control flow statements (direct execution)', () =>
                         new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
                         new LiteralExpression({ type: EduBasicType.Integer, value: 5 })
                     ],
-                    statements: [new SetIntStatement('hit%', 1)]
+                    statements: [new LetStatement('hit%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
                 }
             ]
         );
@@ -885,7 +824,7 @@ describe('Control flow statements (direct execution)', () =>
                 {
                     matchType: CaseMatchType.Value,
                     values: [new LiteralExpression({ type: EduBasicType.Integer, value: 5 })],
-                    statements: [new EndNowStatement()]
+                    statements: [new EndStatement(EndType.Program)]
                 }
             ]
         );
@@ -898,7 +837,7 @@ describe('Control flow statements (direct execution)', () =>
                     matchType: CaseMatchType.Range,
                     rangeStart: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
                     rangeEnd: new LiteralExpression({ type: EduBasicType.Integer, value: 7 }),
-                    statements: [new SetIntStatement('range%', 1)]
+                    statements: [new LetStatement('range%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
                 }
             ]
         );
@@ -912,7 +851,7 @@ describe('Control flow statements (direct execution)', () =>
                     matchType: CaseMatchType.Relational,
                     relationalOp: '>=',
                     relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-                    statements: [new SetIntStatement('rel%', 1)]
+                    statements: [new LetStatement('rel%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
                 }
             ]
         );
@@ -929,7 +868,7 @@ describe('Control flow statements (direct execution)', () =>
                 },
                 {
                     matchType: CaseMatchType.Else,
-                    statements: [new SetIntStatement('else%', 1)]
+                    statements: [new LetStatement('else%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
                 }
             ]
         );
@@ -957,7 +896,7 @@ describe('Control flow statements (direct execution)', () =>
                 {
                     matchType: CaseMatchType.Value,
                     values: [new LiteralExpression({ type: EduBasicType.Integer, value: 1 })],
-                    statements: [new SetIntStatement('x%', 1)]
+                    statements: [new LetStatement('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
                 },
                 {
                     matchType: CaseMatchType.Range,
@@ -987,7 +926,7 @@ describe('Control flow statements (direct execution)', () =>
         (findEnd as any).indentLevel = 1;
         const endSelect = new EndStatement(EndType.Select);
         (endSelect as any).indentLevel = 1;
-        const inner = new EndNowStatement();
+        const inner = new LetStatement('inner%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 }));
         (inner as any).indentLevel = 1;
         program.clear();
         program.appendLine(findEnd);

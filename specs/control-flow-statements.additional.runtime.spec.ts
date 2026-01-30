@@ -1,12 +1,6 @@
 import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { VariableExpression } from '../src/lang/expressions/special/variable-expression';
-import { ExecutionContext } from '../src/lang/execution-context';
-import { Program } from '../src/lang/program';
-import { RuntimeExecution } from '../src/lang/runtime-execution';
-import { Audio } from '../src/lang/audio';
-import { Graphics } from '../src/lang/graphics';
-import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory, LiteralExpression, VariableExpression } from '../src/lang/expressions';
+import { ExecutionResult } from '../src/lang/statements/statement';
 import {
     CaseMatchType,
     CatchClause,
@@ -36,68 +30,21 @@ import {
     WendStatement,
     WhileStatement
 } from '../src/lang/statements/control-flow';
-import { AssignIntStatement, createRuntimeFixture } from './statement-runtime-test-helpers';
+import { LetStatement } from '../src/lang/statements/variables';
 
-class EndNowStatement extends Statement
+import { createLetIntStatement, createRuntimeFixture } from './statement-runtime-test-helpers';
+
+function createIncrementIntStatement(variableName: string): LetStatement
 {
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        return { result: ExecutionResult.End };
-    }
-
-    public override toString(): string
-    {
-        return 'ENDNOW';
-    }
-}
-
-class IncrementAndMaybeSetFlagStatement extends Statement
-{
-    public constructor(
-        private readonly counterName: string,
-        private readonly flagName: string,
-        private readonly stopAt: number,
-        private readonly flagValueWhenDone: number
-    )
-    {
-        super();
-    }
-
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        const current = context.getVariable(this.counterName);
-        if (current.type !== EduBasicType.Integer)
-        {
-            throw new Error('Expected integer');
-        }
-
-        const next = (current.value as number) + 1;
-        context.setVariable(this.counterName, { type: EduBasicType.Integer, value: next }, false);
-
-        if (next >= this.stopAt)
-        {
-            context.setVariable(this.flagName, { type: EduBasicType.Integer, value: this.flagValueWhenDone }, false);
-        }
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    public override toString(): string
-    {
-        return `INC ${this.counterName}`;
-    }
+    return new LetStatement(
+        variableName,
+        new BinaryExpression(
+            new VariableExpression(variableName),
+            BinaryOperator.Add,
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            BinaryOperatorCategory.Arithmetic
+        )
+    );
 }
 
 describe('Control-flow statements (additional runtime coverage)', () =>
@@ -110,9 +57,9 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         context.setVariable('x%', { type: EduBasicType.Integer, value: 0 }, false);
 
         program.appendLine(new GotoStatement('Target'));
-        program.appendLine(new AssignIntStatement('x%', 1));
+        program.appendLine(createLetIntStatement('x%', 1));
         program.appendLine(new LabelStatement('Target'));
-        program.appendLine(new AssignIntStatement('x%', 2));
+        program.appendLine(createLetIntStatement('x%', 2));
         program.appendLine(new EndStatement(EndType.Program));
 
         runtime.executeStep();
@@ -131,10 +78,10 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         context.setVariable('after%', { type: EduBasicType.Integer, value: 0 }, false);
 
         program.appendLine(new GosubStatement('SubLabel'));
-        program.appendLine(new AssignIntStatement('after%', 1));
+        program.appendLine(createLetIntStatement('after%', 1));
         program.appendLine(new EndStatement(EndType.Program));
         program.appendLine(new LabelStatement('SubLabel'));
-        program.appendLine(new AssignIntStatement('inSub%', 1));
+        program.appendLine(createLetIntStatement('inSub%', 1));
         program.appendLine(new ReturnStatement());
 
         for (let i = 0; i < 50; i++)
@@ -159,9 +106,9 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         context.setVariable('after%', { type: EduBasicType.Integer, value: 0 }, false);
 
         program.appendLine(new SubStatement('S', [], []));
-        program.appendLine(new AssignIntStatement('inside%', 1));
+        program.appendLine(createLetIntStatement('inside%', 1));
         program.appendLine(new EndStatement(EndType.Sub));
-        program.appendLine(new AssignIntStatement('after%', 1));
+        program.appendLine(createLetIntStatement('after%', 1));
         program.appendLine(new EndStatement(EndType.Program));
 
         for (let i = 0; i < 10; i++)
@@ -192,9 +139,9 @@ describe('Control-flow statements (additional runtime coverage)', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
             []
         ));
-        program.appendLine(new AssignIntStatement('body%', 1));
+        program.appendLine(createLetIntStatement('body%', 1));
         program.appendLine(new NextStatement('i%'));
-        program.appendLine(new AssignIntStatement('after%', 1));
+        program.appendLine(createLetIntStatement('after%', 1));
         program.appendLine(new EndStatement(EndType.Program));
 
         runtime.executeStep();
@@ -248,9 +195,9 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         context.setVariable('x%', { type: EduBasicType.Integer, value: 0 }, false);
 
         program.appendLine(new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), [], null));
-        program.appendLine(new AssignIntStatement('x%', 1));
+        program.appendLine(createLetIntStatement('x%', 1));
         program.appendLine(new ElseStatement());
-        program.appendLine(new AssignIntStatement('x%', 2));
+        program.appendLine(createLetIntStatement('x%', 2));
         program.appendLine(new EndStatement(EndType.Unless));
         program.appendLine(new EndStatement(EndType.Program));
 
@@ -274,9 +221,9 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         context.setVariable('x%', { type: EduBasicType.Integer, value: 0 }, false);
 
         program.appendLine(new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null));
-        program.appendLine(new AssignIntStatement('x%', 1));
+        program.appendLine(createLetIntStatement('x%', 1));
         program.appendLine(new ElseStatement());
-        program.appendLine(new AssignIntStatement('x%', 2));
+        program.appendLine(createLetIntStatement('x%', 2));
         program.appendLine(new EndStatement(EndType.Unless));
         program.appendLine(new EndStatement(EndType.Program));
 
@@ -310,15 +257,28 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         context.setVariable('after%', { type: EduBasicType.Integer, value: 0 }, false);
 
         program.appendLine(new UntilStatement(new VariableExpression('flag%'), []));
-        program.appendLine(new IncrementAndMaybeSetFlagStatement('count%', 'flag%', 3, 1));
+        program.appendLine(createIncrementIntStatement('count%'));
+        program.appendLine(new IfStatement(
+            new BinaryExpression(
+                new VariableExpression('count%'),
+                BinaryOperator.GreaterThanOrEqual,
+                new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+                BinaryOperatorCategory.Comparison
+            ),
+            [],
+            [],
+            null
+        ));
+        program.appendLine(createLetIntStatement('flag%', 1));
+        program.appendLine(new EndStatement(EndType.If));
         program.appendLine(new UendStatement());
-        program.appendLine(new AssignIntStatement('after%', 1));
+        program.appendLine(createLetIntStatement('after%', 1));
         program.appendLine(new EndStatement(EndType.Program));
 
         for (let i = 0; i < 100; i++)
         {
             runtime.executeStep();
-            if (context.getProgramCounter() >= 5)
+            if (context.getProgramCounter() >= 8)
             {
                 break;
             }
@@ -345,14 +305,27 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         context.setVariable('count%', { type: EduBasicType.Integer, value: 0 }, false);
 
         program.appendLine(new DoLoopStatement(DoLoopVariant.DoWhile, new VariableExpression('flag%'), []));
-        program.appendLine(new IncrementAndMaybeSetFlagStatement('count%', 'flag%', 1, 0));
+        program.appendLine(createIncrementIntStatement('count%'));
+        program.appendLine(new IfStatement(
+            new BinaryExpression(
+                new VariableExpression('count%'),
+                BinaryOperator.GreaterThanOrEqual,
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                BinaryOperatorCategory.Comparison
+            ),
+            [],
+            [],
+            null
+        ));
+        program.appendLine(createLetIntStatement('flag%', 0));
+        program.appendLine(new EndStatement(EndType.If));
         program.appendLine(new LoopStatement());
         program.appendLine(new EndStatement(EndType.Program));
 
         for (let i = 0; i < 50; i++)
         {
             runtime.executeStep();
-            if (context.getProgramCounter() >= 4)
+            if (context.getProgramCounter() >= 7)
             {
                 break;
             }
@@ -378,23 +351,23 @@ describe('Control-flow statements (additional runtime coverage)', () =>
             {
                 matchType: CaseMatchType.Value,
                 values: [new LiteralExpression({ type: EduBasicType.Integer, value: 1 })],
-                statements: [new AssignIntStatement('x%', 10)]
+                statements: [createLetIntStatement('x%', 10)]
             },
             {
                 matchType: CaseMatchType.Range,
                 rangeStart: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
                 rangeEnd: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
-                statements: [new AssignIntStatement('x%', 20)]
+                statements: [createLetIntStatement('x%', 20)]
             },
             {
                 matchType: CaseMatchType.Relational,
                 relationalOp: '>=',
                 relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 99 }),
-                statements: [new AssignIntStatement('x%', 30)]
+                statements: [createLetIntStatement('x%', 30)]
             },
             {
                 matchType: CaseMatchType.Else,
-                statements: [new AssignIntStatement('x%', 40)]
+                statements: [createLetIntStatement('x%', 40)]
             }
         ];
 
@@ -415,7 +388,7 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         const cases: CaseClause[] = [
             {
                 matchType: CaseMatchType.Else,
-                statements: [new EndNowStatement()]
+                statements: [new EndStatement(EndType.Program)]
             }
         ];
 
@@ -451,7 +424,7 @@ describe('Control-flow statements (additional runtime coverage)', () =>
         ];
 
         const stmt = new TryStatement(
-            [new AssignIntStatement('x%', 1)],
+            [createLetIntStatement('x%', 1)],
             catches,
             [new FinallyStatement()]
         );
@@ -467,7 +440,7 @@ describe('Control-flow statements (additional runtime coverage)', () =>
     it('TryStatement should return early on non-Continue statement', () =>
     {
         const { context, program, runtime, graphics, audio } = createRuntimeFixture();
-        const stmt = new TryStatement([new EndNowStatement()], [], null);
+        const stmt = new TryStatement([new EndStatement(EndType.Program)], [], null);
         const status = stmt.execute(context, graphics, audio, program, runtime);
         expect(status.result).toBe(ExecutionResult.End);
     });

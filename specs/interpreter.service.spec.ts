@@ -17,31 +17,8 @@ import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
 import { RuntimeExecution } from '../src/lang/runtime-execution';
 import { EduBasicType } from '../src/lang/edu-basic-value';
-import { Statement, ExecutionResult, ExecutionStatus } from '../src/lang/statements/statement';
-
-class NoOpStatement extends Statement
-{
-    public constructor(private readonly text: string)
-    {
-        super();
-    }
-
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        return { result: ExecutionResult.Continue };
-    }
-
-    public override toString(): string
-    {
-        return this.text;
-    }
-}
+import { LiteralExpression } from '../src/lang/expressions';
+import { LetStatement } from '../src/lang/statements/variables';
 
 describe('InterpreterService', () =>
 {
@@ -216,14 +193,14 @@ describe('InterpreterService', () =>
         const okLine: ParsedLine = {
             lineNumber: 1,
             sourceText: 'OK',
-            statement: new NoOpStatement('OK'),
+            statement: new LetStatement('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 })),
             hasError: false,
         };
 
         const badLine: ParsedLine = {
             lineNumber: 2,
             sourceText: 'BAD',
-            statement: new NoOpStatement('BAD'),
+            statement: new LetStatement('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 2 })),
             hasError: true,
             errorMessage: 'Unknown keyword: BAD',
         };
@@ -248,7 +225,7 @@ describe('InterpreterService', () =>
         const okLine: ParsedLine = {
             lineNumber: 1,
             sourceText: 'OK',
-            statement: new NoOpStatement('OK'),
+            statement: new LetStatement('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 })),
             hasError: false,
         };
 

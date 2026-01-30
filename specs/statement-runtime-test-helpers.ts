@@ -6,31 +6,12 @@ import { Audio } from '../src/lang/audio';
 import { FileSystemService } from '../src/app/disk/filesystem.service';
 
 import { EduBasicType } from '../src/lang/edu-basic-value';
-import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
+import { LiteralExpression } from '../src/lang/expressions/literal-expression';
+import { LetStatement } from '../src/lang/statements/variables';
 
-export class AssignIntStatement extends Statement
+export function createLetIntStatement(variableName: string, value: number): LetStatement
 {
-    public constructor(private readonly name: string, private readonly value: number)
-    {
-        super();
-    }
-
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        context.setVariable(this.name, { type: EduBasicType.Integer, value: this.value }, false);
-        return { result: ExecutionResult.Continue };
-    }
-
-    public override toString(): string
-    {
-        return `LET ${this.name} = ${this.value}`;
-    }
+    return new LetStatement(variableName, new LiteralExpression({ type: EduBasicType.Integer, value }));
 }
 
 export class MockConsoleService

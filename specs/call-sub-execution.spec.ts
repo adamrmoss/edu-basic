@@ -9,68 +9,11 @@ import { EduBasicType } from '../src/lang/edu-basic-value';
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { VariableExpression } from '../src/lang/expressions/special/variable-expression';
 
-import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
+import { ExecutionResult } from '../src/lang/statements/statement';
 import { CallStatement } from '../src/lang/statements/control-flow/call-statement';
 import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-statement';
 import { SubStatement } from '../src/lang/statements/control-flow/sub-statement';
-
-class CopyVarStatement extends Statement
-{
-    public constructor(
-        private readonly from: string,
-        private readonly to: string
-    )
-    {
-        super();
-    }
-
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        const value = context.getVariable(this.from);
-        context.setVariable(this.to, value, false);
-        return { result: ExecutionResult.Continue };
-    }
-
-    public override toString(): string
-    {
-        return `COPYVAR ${this.from} -> ${this.to}`;
-    }
-}
-
-class SetIntStatement extends Statement
-{
-    public constructor(
-        private readonly name: string,
-        private readonly value: number,
-        private readonly isLocal: boolean
-    )
-    {
-        super();
-    }
-
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        context.setVariable(this.name, { type: EduBasicType.Integer, value: this.value }, this.isLocal);
-        return { result: ExecutionResult.Continue };
-    }
-
-    public override toString(): string
-    {
-        return `SET ${this.name}=${this.value}`;
-    }
-}
+import { LetStatement, LocalStatement } from '../src/lang/statements/variables';
 
 describe('CALL/SUB execution', () =>
 {
@@ -101,21 +44,21 @@ describe('CALL/SUB execution', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 7 })
         ]);
 
-        const afterCall = new SetIntStatement('after%', 123, false);
+        const afterCall = new LetStatement('after%', new LiteralExpression({ type: EduBasicType.Integer, value: 123 }));
 
         const sub = new SubStatement('MySub', [
             { name: 'p%', byRef: true },
             { name: 'q%', byRef: false }
         ], [
-            new CopyVarStatement('q%', 'seen%'),
-            new SetIntStatement('p%', 99, true),
+            new LetStatement('seen%', new VariableExpression('q%')),
+            new LocalStatement('p%', new LiteralExpression({ type: EduBasicType.Integer, value: 99 })),
         ]);
 
         program.appendLine(call);       // 0
         program.appendLine(afterCall);  // 1
         program.appendLine(sub);        // 2 (definition, skipped in normal flow)
-        program.appendLine(new CopyVarStatement('q%', 'seen%'));      // 3 (sub body)
-        program.appendLine(new SetIntStatement('p%', 99, true));      // 4 (sub body)
+        program.appendLine(new LetStatement('seen%', new VariableExpression('q%'))); // 3 (sub body)
+        program.appendLine(new LocalStatement('p%', new LiteralExpression({ type: EduBasicType.Integer, value: 99 }))); // 4 (sub body)
         program.appendLine(new EndStatement(EndType.Sub));            // 5 (sub body)
 
         // CALL executes and jumps to the first line after SUB.

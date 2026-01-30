@@ -17,7 +17,7 @@ import { Graphics } from '../src/lang/graphics';
 import { Audio } from '../src/lang/audio';
 import { RuntimeExecution } from '../src/lang/runtime-execution';
 import { FileSystemService } from '../src/app/disk/filesystem.service';
-import { Statement, ExecutionResult } from '../src/lang/statements/statement';
+import { ThrowStatement } from '../src/lang/statements/control-flow';
 
 describe('ConsoleService', () => {
     let service: ConsoleService;
@@ -203,21 +203,6 @@ describe('ConsoleService', () => {
         });
 
         it('should execute parsed statements when expression parsing fails', () => {
-            class TouchStatement extends Statement
-            {
-                public override execute(
-                    ctx: ExecutionContext,
-                    graphics: Graphics,
-                    audio: Audio,
-                    program: Program,
-                    runtime: RuntimeExecution
-                ): any
-                {
-                    ctx.setVariable('x%', { type: EduBasicType.Integer, value: 1 }, false);
-                    return { result: ExecutionResult.Continue };
-                }
-            }
-
             const context = new ExecutionContext();
             const program = new Program();
             const graphics = new Graphics();
@@ -236,7 +221,7 @@ describe('ConsoleService', () => {
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'TOUCH',
-                statement: new TouchStatement(),
+                statement: new LetStatement('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 })),
                 hasError: false
             };
             parserService.parseLine.mockReturnValue(success(parsedLine));
@@ -276,20 +261,6 @@ describe('ConsoleService', () => {
         });
 
         it('should catch exceptions during execution and print error', () => {
-            class ThrowStatement extends Statement
-            {
-                public override execute(
-                    context: ExecutionContext,
-                    graphics: Graphics,
-                    audio: Audio,
-                    program: Program,
-                    runtime: RuntimeExecution
-                ): any
-                {
-                    throw new Error('Boom');
-                }
-            }
-
             const context = new ExecutionContext();
             const program = new Program();
             const graphics = new Graphics();
@@ -308,7 +279,7 @@ describe('ConsoleService', () => {
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
                 sourceText: 'THROW',
-                statement: new ThrowStatement(),
+                statement: new ThrowStatement(new LiteralExpression({ type: EduBasicType.String, value: 'Boom' })),
                 hasError: false
             };
             parserService.parseLine.mockReturnValue(success(parsedLine));

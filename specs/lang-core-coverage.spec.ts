@@ -6,72 +6,14 @@ import { Audio } from '../src/lang/audio';
 import { FileSystemService } from '../src/app/disk/filesystem.service';
 
 import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-
-import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory, LiteralExpression, VariableExpression } from '../src/lang/expressions';
+import { LetStatement } from '../src/lang/statements/variables';
 import { LabelStatement } from '../src/lang/statements/control-flow/label-statement';
 import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-statement';
 import { IfStatement } from '../src/lang/statements/control-flow/if-statement';
 import { WhileStatement } from '../src/lang/statements/control-flow/while-statement';
 import { DoLoopStatement, DoLoopVariant } from '../src/lang/statements/control-flow/do-loop-statement';
 import { ForStatement } from '../src/lang/statements/control-flow/for-statement';
-
-class NoOpStatement extends Statement
-{
-    public constructor(private readonly text: string = 'NOOP')
-    {
-        super();
-    }
-
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        return { result: ExecutionResult.Continue };
-    }
-
-    public override toString(): string
-    {
-        return this.text;
-    }
-}
-
-class TouchStatement extends Statement
-{
-    public constructor(private readonly variableName: string)
-    {
-        super();
-    }
-
-    public override execute(
-        context: ExecutionContext,
-        graphics: Graphics,
-        audio: Audio,
-        program: Program,
-        runtime: RuntimeExecution
-    ): ExecutionStatus
-    {
-        const current = context.getVariable(this.variableName);
-
-        if (current.type !== EduBasicType.Integer)
-        {
-            context.setVariable(this.variableName, { type: EduBasicType.Integer, value: 1 });
-            return { result: ExecutionResult.Continue };
-        }
-
-        context.setVariable(this.variableName, { type: EduBasicType.Integer, value: (current.value as number) + 1 });
-        return { result: ExecutionResult.Continue };
-    }
-
-    public override toString(): string
-    {
-        return `TOUCH ${this.variableName}`;
-    }
-}
 
 describe('Core language coverage', () =>
 {
@@ -80,7 +22,7 @@ describe('Core language coverage', () =>
         it('should return undefined for out-of-range getStatement', () =>
         {
             const program = new Program();
-            program.appendLine(new NoOpStatement());
+            program.appendLine(new LetStatement('noop%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
 
             expect(program.getStatement(-1)).toBeUndefined();
             expect(program.getStatement(1)).toBeUndefined();
@@ -90,13 +32,13 @@ describe('Core language coverage', () =>
         {
             const program = new Program();
             program.appendLine(new LabelStatement('Start'));
-            program.appendLine(new NoOpStatement('A'));
+            program.appendLine(new LetStatement('a%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
             program.appendLine(new LabelStatement('Middle'));
 
             expect(program.getLabelIndex('START')).toBe(0);
             expect(program.getLabelIndex('middle')).toBe(2);
 
-            program.insertLine(0, new NoOpStatement('Inserted'));
+            program.insertLine(0, new LetStatement('inserted%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
 
             expect(program.getLabelIndex('Start')).toBe(1);
             expect(program.getLabelIndex('Middle')).toBe(3);
@@ -111,11 +53,11 @@ describe('Core language coverage', () =>
         {
             const program = new Program();
             program.appendLine(new LabelStatement('A'));
-            program.appendLine(new NoOpStatement('B'));
+            program.appendLine(new LetStatement('b%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
 
             expect(program.hasLabel('A')).toBe(true);
 
-            program.replaceLine(0, new NoOpStatement('not-a-label'));
+            program.replaceLine(0, new LetStatement('notALabel%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
             expect(program.hasLabel('A')).toBe(false);
 
             program.replaceLine(1, new LabelStatement('NewLabel'));
@@ -126,7 +68,7 @@ describe('Core language coverage', () =>
         {
             const program = new Program();
             program.appendLine(new LabelStatement('A'));
-            program.appendLine(new NoOpStatement('B'));
+            program.appendLine(new LetStatement('b%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
 
             expect(program.getLineCount()).toBe(2);
             expect(program.hasLabel('A')).toBe(true);
@@ -144,7 +86,7 @@ describe('Core language coverage', () =>
             program.appendLine(new LabelStatement('B'));
 
             program.clear();
-            program.appendLine(new NoOpStatement('X'));
+            program.appendLine(new LetStatement('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 })));
             program.appendLine(new LabelStatement('C'));
 
             program.rebuildLabelMap();
@@ -243,7 +185,15 @@ describe('Core language coverage', () =>
         it('should delay execution while sleeping', () =>
         {
             const program = new Program();
-            program.appendLine(new TouchStatement('touched%'));
+            program.appendLine(new LetStatement(
+                'touched%',
+                new BinaryExpression(
+                    new VariableExpression('touched%'),
+                    BinaryOperator.Add,
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                    BinaryOperatorCategory.Arithmetic
+                )
+            ));
 
             const context = new ExecutionContext();
             context.setProgramCounter(0);
@@ -306,7 +256,7 @@ describe('Core language coverage', () =>
             );
             forStmt.indentLevel = 0;
 
-            const endBlock = new NoOpStatement('END-BLOCK');
+            const endBlock = new LetStatement('endBlock%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 }));
             endBlock.indentLevel = 0;
 
             program.appendLine(ifStmt);      // 0
