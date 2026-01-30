@@ -1,10 +1,10 @@
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ExecutionResult } from '../../src/lang/statements/statement';
-import { UnparsableStatement } from '../../src/lang/statements/unparsable-statement';
-import { ConsoleStatement, HelpStatement, SetOption, SetStatement, SleepStatement } from '../../src/lang/statements/misc';
-import { RuntimeExecution } from '../../src/lang/runtime-execution';
-import { Graphics } from '../../src/lang/graphics';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ExecutionResult } from '@/lang/statements/statement';
+import { UnparsableStatement } from '@/lang/statements/unparsable-statement';
+import { ConsoleStatement, HelpStatement, SetOption, SetStatement, SleepStatement } from '@/lang/statements/misc';
+import { RuntimeExecution } from '@/lang/runtime-execution';
+import { Graphics } from '@/lang/graphics';
 
 import { createRuntimeFixture, MockConsoleService } from './program-execution-test-fixtures';
 

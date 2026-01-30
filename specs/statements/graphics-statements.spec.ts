@@ -1,7 +1,7 @@
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ExecutionResult } from '../../src/lang/statements/statement';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ExecutionResult } from '@/lang/statements/statement';
 import {
     CircleStatement,
     GetStatement,
@@ -11,7 +11,7 @@ import {
     RectangleStatement,
     TriangleStatement,
     TurtleStatement
-} from '../../src/lang/statements/graphics';
+} from '@/lang/statements/graphics';
 
 describe('Graphics statements (unit)', () =>
 {

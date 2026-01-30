@@ -1,7 +1,7 @@
-import { NullaryExpression } from '../../src/lang/expressions/nullary-expression';
-import { Constant } from '../../src/lang/expressions/helpers/constant-evaluator';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { NullaryExpression } from '@/lang/expressions/nullary-expression';
+import { Constant } from '@/lang/expressions/helpers/constant-evaluator';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('Nullary Expressions (Built-in Values)', () =>
 {

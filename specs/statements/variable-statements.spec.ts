@@ -1,6 +1,6 @@
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { LocalStatement } from '../../src/lang/statements/variables';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { LocalStatement } from '@/lang/statements/variables';
 
 import { createRuntimeFixture } from './program-execution-test-fixtures';
 

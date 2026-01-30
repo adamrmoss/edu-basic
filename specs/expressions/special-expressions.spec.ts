@@ -1,7 +1,7 @@
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType, EduBasicValue } from '../../src/lang/edu-basic-value';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ArrayAccessExpression, StructureMemberExpression, VariableExpression } from '../../src/lang/expressions/special';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType, EduBasicValue } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ArrayAccessExpression, StructureMemberExpression, VariableExpression } from '@/lang/expressions/special';
 
 describe('Special Expressions', () => {
     it('ArrayAccessExpression.toString should format array access', () => {

@@ -1,10 +1,10 @@
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { Program } from '../../src/lang/program';
-import { RuntimeExecution } from '../../src/lang/runtime-execution';
-import { ExecutionResult } from '../../src/lang/statements/statement';
-import { EduBasicType, EduBasicValue } from '../../src/lang/edu-basic-value';
+import { ExecutionContext } from '@/lang/execution-context';
+import { Program } from '@/lang/program';
+import { RuntimeExecution } from '@/lang/runtime-execution';
+import { ExecutionResult } from '@/lang/statements/statement';
+import { EduBasicType, EduBasicValue } from '@/lang/edu-basic-value';
 
-import { ClsStatement, ColorStatement, LocateStatement, PrintStatement } from '../../src/lang/statements/io';
+import { ClsStatement, ColorStatement, LocateStatement, PrintStatement } from '@/lang/statements/io';
 import {
     ArcStatement,
     CircleStatement,
@@ -13,17 +13,17 @@ import {
     PsetStatement,
     RectangleStatement,
     TriangleStatement
-} from '../../src/lang/statements/graphics';
-import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '../../src/lang/statements/array';
-import { DimStatement, LetStatement } from '../../src/lang/statements/variables';
-import { RandomizeStatement } from '../../src/lang/statements/misc';
-import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../../src/lang/statements/audio';
+} from '@/lang/statements/graphics';
+import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '@/lang/statements/array';
+import { DimStatement, LetStatement } from '@/lang/statements/variables';
+import { RandomizeStatement } from '@/lang/statements/misc';
+import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '@/lang/statements/audio';
 
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { coerceArrayElements } from '../../src/lang/edu-basic-value';
-import { Graphics, Color } from '../../src/lang/graphics';
-import { Audio } from '../../src/lang/audio';
-import { FileSystemService } from '../../src/app/disk/filesystem.service';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { coerceArrayElements } from '@/lang/edu-basic-value';
+import { Graphics, Color } from '@/lang/graphics';
+import { Audio } from '@/lang/audio';
+import { FileSystemService } from '@/app/disk/filesystem.service';
 
 class MockGraphics extends Graphics
 {

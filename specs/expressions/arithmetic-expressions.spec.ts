@@ -1,9 +1,9 @@
-import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../src/lang/expressions/binary-expression';
-import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../src/lang/expressions/unary-expression';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '@/lang/expressions/binary-expression';
+import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '@/lang/expressions/unary-expression';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { VariableExpression } from '@/lang/expressions/special/variable-expression';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('Arithmetic Expressions', () =>
 {

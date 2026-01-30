@@ -1,7 +1,7 @@
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { StructureMemberExpression } from '../../src/lang/expressions/special/structure-member-expression';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { StructureMemberExpression } from '@/lang/expressions/special/structure-member-expression';
 
 describe('StructureMemberExpression', () =>
 {

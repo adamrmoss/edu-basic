@@ -1,7 +1,7 @@
-import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../src/lang/expressions/unary-expression';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '@/lang/expressions/unary-expression';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('Mathematical Operator Expressions', () =>
 {

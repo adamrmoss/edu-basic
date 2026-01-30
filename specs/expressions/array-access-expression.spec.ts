@@ -1,8 +1,8 @@
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ArrayAccessExpression } from '../../src/lang/expressions/special/array-access-expression';
-import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { ExecutionContext } from '@/lang/execution-context';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ArrayAccessExpression } from '@/lang/expressions/special/array-access-expression';
+import { VariableExpression } from '@/lang/expressions/special/variable-expression';
 
 describe('ArrayAccessExpression', () =>
 {

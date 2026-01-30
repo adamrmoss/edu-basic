@@ -1,13 +1,13 @@
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { Program } from '../../src/lang/program';
-import { RuntimeExecution } from '../../src/lang/runtime-execution';
-import { Graphics } from '../../src/lang/graphics';
-import { Audio } from '../../src/lang/audio';
-import { FileSystemService } from '../../src/app/disk/filesystem.service';
+import { ExecutionContext } from '@/lang/execution-context';
+import { Program } from '@/lang/program';
+import { RuntimeExecution } from '@/lang/runtime-execution';
+import { Graphics } from '@/lang/graphics';
+import { Audio } from '@/lang/audio';
+import { FileSystemService } from '@/app/disk/filesystem.service';
 
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { LetStatement } from '../../src/lang/statements/variables';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { LetStatement } from '@/lang/statements/variables';
 
 export function createLetIntStatement(variableName: string, value: number): LetStatement
 {

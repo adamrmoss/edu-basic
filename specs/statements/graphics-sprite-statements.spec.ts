@@ -1,15 +1,15 @@
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { Program } from '../../src/lang/program';
-import { RuntimeExecution } from '../../src/lang/runtime-execution';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { ExecutionContext } from '@/lang/execution-context';
+import { Program } from '@/lang/program';
+import { RuntimeExecution } from '@/lang/runtime-execution';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
-import { Audio } from '../../src/lang/audio';
-import { Graphics } from '../../src/lang/graphics';
-import { FileSystemService } from '../../src/app/disk/filesystem.service';
+import { Audio } from '@/lang/audio';
+import { Graphics } from '@/lang/graphics';
+import { FileSystemService } from '@/app/disk/filesystem.service';
 
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
 
-import { PaintStatement, PutStatement, GetStatement } from '../../src/lang/statements/graphics';
+import { PaintStatement, PutStatement, GetStatement } from '@/lang/statements/graphics';
 
 class BufferGraphics extends Graphics
 {

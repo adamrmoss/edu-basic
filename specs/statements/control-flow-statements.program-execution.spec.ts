@@ -1,8 +1,8 @@
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { BinaryExpression, BinaryOperator, BinaryOperatorCategory, LiteralExpression, VariableExpression } from '../../src/lang/expressions';
-import { ExecutionResult } from '../../src/lang/statements/statement';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory, LiteralExpression, VariableExpression } from '@/lang/expressions';
+import { ExecutionResult } from '@/lang/statements/statement';
 
-import { LetStatement } from '../../src/lang/statements/variables';
+import { LetStatement } from '@/lang/statements/variables';
 import {
     CaseMatchType,
     CaseClause,
@@ -36,7 +36,7 @@ import {
     WendStatement,
     WhileStatement,
     FinallyStatement
-} from '../../src/lang/statements/control-flow';
+} from '@/lang/statements/control-flow';
 
 import { createLetIntStatement, createRuntimeFixture } from './program-execution-test-fixtures';
 

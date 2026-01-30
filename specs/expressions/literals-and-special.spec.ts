@@ -1,8 +1,8 @@
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
-import { ParenthesizedExpression } from '../../src/lang/expressions/special/parenthesized-expression';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType, coerceArrayElements } from '../../src/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { VariableExpression } from '@/lang/expressions/special/variable-expression';
+import { ParenthesizedExpression } from '@/lang/expressions/special/parenthesized-expression';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType, coerceArrayElements } from '@/lang/edu-basic-value';
 
 describe('Literal and Special Expressions', () =>
 {

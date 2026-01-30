@@ -1,8 +1,8 @@
-import { EduBasicType, EduBasicValue } from '../../src/lang/edu-basic-value';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { BracketAccessExpression } from '../../src/lang/expressions/special/bracket-access-expression';
-import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
+import { EduBasicType, EduBasicValue } from '@/lang/edu-basic-value';
+import { ExecutionContext } from '@/lang/execution-context';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { BracketAccessExpression } from '@/lang/expressions/special/bracket-access-expression';
+import { VariableExpression } from '@/lang/expressions/special/variable-expression';
 
 describe('BracketAccessExpression', () =>
 {

@@ -1,7 +1,7 @@
-import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../src/lang/expressions/binary-expression';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '@/lang/expressions/binary-expression';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('Comparison Expressions', () =>
 {

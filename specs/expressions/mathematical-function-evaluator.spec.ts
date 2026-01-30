@@ -1,6 +1,6 @@
-import { EduBasicType } from '../../src/lang/edu-basic-value';
-import { MathematicalFunctionEvaluator } from '../../src/lang/expressions/helpers/mathematical-function-evaluator';
-import { UnaryOperator } from '../../src/lang/expressions/unary-expression';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { MathematicalFunctionEvaluator } from '@/lang/expressions/helpers/mathematical-function-evaluator';
+import { UnaryOperator } from '@/lang/expressions/unary-expression';
 
 describe('MathematicalFunctionEvaluator', () =>
 {

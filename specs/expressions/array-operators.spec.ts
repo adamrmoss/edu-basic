@@ -3,10 +3,10 @@ import {
     ArraySearchOperator,
     BarsExpression,
     JoinOperatorExpression,
-} from '../../src/lang/expressions/operators';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType, EduBasicValue } from '../../src/lang/edu-basic-value';
+} from '@/lang/expressions/operators';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType, EduBasicValue } from '@/lang/edu-basic-value';
 
 describe('Array operators', () =>
 {

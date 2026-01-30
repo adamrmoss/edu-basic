@@ -1,7 +1,7 @@
-import { NullaryExpression as ConstantExpressionNullaryExpression } from '../../src/lang/expressions/constant-expression';
-import { Constant } from '../../src/lang/expressions/helpers/constant-evaluator';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { NullaryExpression as ConstantExpressionNullaryExpression } from '@/lang/expressions/constant-expression';
+import { Constant } from '@/lang/expressions/helpers/constant-evaluator';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('constant-expression.ts', () => {
     it('should evaluate PI# to Math.PI', () => {

@@ -7,10 +7,10 @@ import {
     ReplaceOperatorExpression,
     RightOperatorExpression,
     StartsWithOperatorExpression,
-} from '../../src/lang/expressions/operators';
-import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
-import { ExecutionContext } from '../../src/lang/execution-context';
-import { EduBasicType } from '../../src/lang/edu-basic-value';
+} from '@/lang/expressions/operators';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('String operators', () =>
 {
