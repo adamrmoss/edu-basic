@@ -1,11 +1,11 @@
-import { ExecutionContext } from '../src/lang/execution-context';
-import { Program } from '../src/lang/program';
-import { RuntimeExecution } from '../src/lang/runtime-execution';
-import { ExecutionResult } from '../src/lang/statements/statement';
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { Graphics } from '../src/lang/graphics';
-import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/disk/filesystem.service';
+import { ExecutionContext } from '../../src/lang/execution-context';
+import { Program } from '../../src/lang/program';
+import { RuntimeExecution } from '../../src/lang/runtime-execution';
+import { ExecutionResult } from '../../src/lang/statements/statement';
+import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { Graphics } from '../../src/lang/graphics';
+import { Audio } from '../../src/lang/audio';
+import { FileSystemService } from '../../src/app/disk/filesystem.service';
 
 import {
     CloseStatement,
@@ -23,10 +23,10 @@ import {
     SeekStatement,
     WriteFileStatement,
     WritefileStatement
-} from '../src/lang/statements/file-io';
+} from '../../src/lang/statements/file-io';
 
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { VariableExpression } from '../src/lang/expressions/special/variable-expression';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
+import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
 
 describe('File I/O Statements', () => {
     let context: ExecutionContext;

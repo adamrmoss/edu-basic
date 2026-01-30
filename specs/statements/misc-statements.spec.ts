@@ -1,11 +1,30 @@
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { ExecutionResult } from '../src/lang/statements/statement';
-import { UnparsableStatement } from '../src/lang/statements/unparsable-statement';
-import { ConsoleStatement, HelpStatement, SetOption, SetStatement, SleepStatement } from '../src/lang/statements/misc';
-import { RuntimeExecution } from '../src/lang/runtime-execution';
+import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
+import { ExecutionResult } from '../../src/lang/statements/statement';
+import { UnparsableStatement } from '../../src/lang/statements/unparsable-statement';
+import { ConsoleStatement, HelpStatement, SetOption, SetStatement, SleepStatement } from '../../src/lang/statements/misc';
+import { RuntimeExecution } from '../../src/lang/runtime-execution';
+import { Graphics } from '../../src/lang/graphics';
 
-import { createRuntimeFixture, MockConsoleService } from './statement-runtime-test-helpers';
+import { createRuntimeFixture, MockConsoleService } from './program-execution-test-fixtures';
+
+class CursorTrackingGraphics extends Graphics
+{
+    public lastCursor: { row: number; column: number } | null = null;
+    public newLineCalls: number = 0;
+
+    public override setCursorPosition(row: number, column: number): void
+    {
+        super.setCursorPosition(row, column);
+        this.lastCursor = { row, column };
+    }
+
+    public override newLine(): void
+    {
+        this.newLineCalls++;
+        super.newLine();
+    }
+}
 
 describe('Misc statements', () =>
 {
@@ -77,6 +96,23 @@ describe('Misc statements', () =>
         {
             const stmt = new SetStatement(999 as any);
             expect(stmt.toString()).toBe('SET');
+        });
+
+        it('should toggle text wrap and line spacing in Graphics behavior', () =>
+        {
+            const { context, program, audio, runtime } = createRuntimeFixture();
+            const graphics = new CursorTrackingGraphics();
+
+            new SetStatement(SetOption.TextWrapOff).execute(context, graphics, audio, program, runtime);
+            new SetStatement(SetOption.LineSpacingOn).execute(context, graphics, audio, program, runtime);
+
+            graphics.setCursorPosition(0, 0);
+            graphics.printText('X'.repeat(100));
+            expect(graphics.newLineCalls).toBe(0);
+
+            graphics.setCursorPosition(0, 0);
+            graphics.newLine();
+            expect(graphics.lastCursor?.row).toBe(2);
         });
     });
 

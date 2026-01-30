@@ -1,11 +1,11 @@
-import { ExecutionContext } from '../src/lang/execution-context';
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { Program } from '../src/lang/program';
-import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
-import { LetStatement } from '../src/lang/statements/variables';
-import { Audio } from '../src/lang/audio';
-import { Graphics } from '../src/lang/graphics';
+import { ExecutionContext } from '../../src/lang/execution-context';
+import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
+import { Program } from '../../src/lang/program';
+import { ExecutionResult, Statement, ExecutionStatus } from '../../src/lang/statements/statement';
+import { LetStatement } from '../../src/lang/statements/variables';
+import { Audio } from '../../src/lang/audio';
+import { Graphics } from '../../src/lang/graphics';
 import {
     ContinueStatement,
     ContinueTarget,
@@ -33,9 +33,9 @@ import {
     UntilStatement,
     WendStatement,
     WhileStatement
-} from '../src/lang/statements/control-flow';
+} from '../../src/lang/statements/control-flow';
 
-describe('Control flow statements (direct execution)', () =>
+describe('Control-flow statements (unit)', () =>
 {
     it('GotoStatement should throw when label is missing', () =>
     {

@@ -1,21 +1,21 @@
-import { ExecutionContext } from '../src/lang/execution-context';
-import { Program } from '../src/lang/program';
-import { RuntimeExecution } from '../src/lang/runtime-execution';
-import { Graphics } from '../src/lang/graphics';
-import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/disk/filesystem.service';
+import { ExecutionContext } from '../../src/lang/execution-context';
+import { Program } from '../../src/lang/program';
+import { RuntimeExecution } from '../../src/lang/runtime-execution';
+import { Graphics } from '../../src/lang/graphics';
+import { Audio } from '../../src/lang/audio';
+import { FileSystemService } from '../../src/app/disk/filesystem.service';
 
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { VariableExpression } from '../src/lang/expressions/special/variable-expression';
+import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
+import { VariableExpression } from '../../src/lang/expressions/special/variable-expression';
 
-import { ExecutionResult } from '../src/lang/statements/statement';
-import { CallStatement } from '../src/lang/statements/control-flow/call-statement';
-import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-statement';
-import { SubStatement } from '../src/lang/statements/control-flow/sub-statement';
-import { LetStatement, LocalStatement } from '../src/lang/statements/variables';
+import { ExecutionResult } from '../../src/lang/statements/statement';
+import { CallStatement } from '../../src/lang/statements/control-flow/call-statement';
+import { EndStatement, EndType } from '../../src/lang/statements/control-flow/end-statement';
+import { SubStatement } from '../../src/lang/statements/control-flow/sub-statement';
+import { LetStatement, LocalStatement } from '../../src/lang/statements/variables';
 
-describe('CALL/SUB execution', () =>
+describe('CALL/SUB statements (program execution)', () =>
 {
     let context: ExecutionContext;
     let program: Program;

@@ -1,7 +1,7 @@
-import { ExecutionContext } from '../src/lang/execution-context';
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { ExecutionResult } from '../src/lang/statements/statement';
+import { ExecutionContext } from '../../src/lang/execution-context';
+import { EduBasicType } from '../../src/lang/edu-basic-value';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
+import { ExecutionResult } from '../../src/lang/statements/statement';
 import {
     CircleStatement,
     GetStatement,
@@ -11,9 +11,9 @@ import {
     RectangleStatement,
     TriangleStatement,
     TurtleStatement
-} from '../src/lang/statements/graphics';
+} from '../../src/lang/statements/graphics';
 
-describe('Graphics statements (direct execution)', () =>
+describe('Graphics statements (unit)', () =>
 {
     beforeEach(() =>
     {
@@ -63,6 +63,30 @@ describe('Graphics statements (direct execution)', () =>
         expect(flush).toHaveBeenCalled();
         expect(runtime.requestTabSwitch).toHaveBeenCalledWith('output');
         expect(drawLine).toHaveBeenCalled();
+    });
+
+    it('TURTLE should draw lines for movement commands with pen down', () =>
+    {
+        const context = new ExecutionContext();
+        const audio = {} as any;
+        const program = {} as any;
+        const runtime = { requestTabSwitch: jest.fn() } as any;
+
+        const lines: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
+        const graphics = {
+            width: 100,
+            height: 100,
+            drawLine: (x1: number, y1: number, x2: number, y2: number) =>
+            {
+                lines.push({ x1, y1, x2, y2 });
+            },
+            flush: jest.fn()
+        } as any;
+
+        new TurtleStatement(new LiteralExpression({ type: EduBasicType.String, value: 'HOME FD 10 RT 90 FD 10' }))
+            .execute(context, graphics, audio, program, runtime);
+
+        expect(lines.length).toBe(2);
     });
 
     it('TURTLE should throw on malformed or unknown commands', () =>

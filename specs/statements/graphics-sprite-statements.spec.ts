@@ -1,18 +1,15 @@
-import { ExecutionContext } from '../src/lang/execution-context';
-import { Program } from '../src/lang/program';
-import { RuntimeExecution } from '../src/lang/runtime-execution';
-import { ExecutionResult } from '../src/lang/statements/statement';
-import { EduBasicType } from '../src/lang/edu-basic-value';
+import { ExecutionContext } from '../../src/lang/execution-context';
+import { Program } from '../../src/lang/program';
+import { RuntimeExecution } from '../../src/lang/runtime-execution';
+import { EduBasicType } from '../../src/lang/edu-basic-value';
 
-import { Audio } from '../src/lang/audio';
-import { Graphics } from '../src/lang/graphics';
-import { FileSystemService } from '../src/app/disk/filesystem.service';
+import { Audio } from '../../src/lang/audio';
+import { Graphics } from '../../src/lang/graphics';
+import { FileSystemService } from '../../src/app/disk/filesystem.service';
 
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
+import { LiteralExpression } from '../../src/lang/expressions/literal-expression';
 
-import { InputStatement } from '../src/lang/statements/io';
-import { SetOption, SetStatement } from '../src/lang/statements/misc';
-import { GetStatement, PaintStatement, PutStatement, TurtleStatement } from '../src/lang/statements/graphics';
+import { PaintStatement, PutStatement, GetStatement } from '../../src/lang/statements/graphics';
 
 class BufferGraphics extends Graphics
 {
@@ -24,34 +21,6 @@ class BufferGraphics extends Graphics
     public override getBuffer(): ImageData | null
     {
         return this.testBuffer;
-    }
-}
-
-class LineTrackingGraphics extends Graphics
-{
-    public lines: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
-
-    public override drawLine(x1: number, y1: number, x2: number, y2: number): void
-    {
-        this.lines.push({ x1, y1, x2, y2 });
-    }
-}
-
-class CursorTrackingGraphics extends Graphics
-{
-    public lastCursor: { row: number; column: number } | null = null;
-    public newLineCalls: number = 0;
-
-    public override setCursorPosition(row: number, column: number): void
-    {
-        super.setCursorPosition(row, column);
-        this.lastCursor = { row, column };
-    }
-
-    public override newLine(): void
-    {
-        this.newLineCalls++;
-        super.newLine();
     }
 }
 
@@ -77,7 +46,7 @@ function getPixel(buffer: ImageData, width: number, height: number, x: number, y
     };
 }
 
-describe('Newly implemented statements', () =>
+describe('Graphics sprite statements', () =>
 {
     let context: ExecutionContext;
     let program: Program;
@@ -97,59 +66,6 @@ describe('Newly implemented statements', () =>
     afterEach(() =>
     {
         jest.restoreAllMocks();
-    });
-
-    it('INPUT should assign scalar values based on sigil', () =>
-    {
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('42');
-
-        const stmt = new InputStatement('x%');
-        const result = stmt.execute(context, new Graphics(), audio, program, runtime);
-
-        expect(result.result).toBe(ExecutionResult.Continue);
-        expect(context.getVariable('x%')).toEqual({ type: EduBasicType.Integer, value: 42 });
-    });
-
-    it('INPUT should fill arrays from comma-separated values', () =>
-    {
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('1, 2, 3');
-
-        context.setVariable('scores%[]', {
-            type: EduBasicType.Array,
-            elementType: EduBasicType.Integer,
-            value: [
-                { type: EduBasicType.Integer, value: 0 },
-                { type: EduBasicType.Integer, value: 0 },
-                { type: EduBasicType.Integer, value: 0 },
-                { type: EduBasicType.Integer, value: 0 },
-                { type: EduBasicType.Integer, value: 0 }
-            ]
-        }, false);
-
-        const stmt = new InputStatement('scores%[]');
-        stmt.execute(context, new Graphics(), audio, program, runtime);
-
-        const scores = context.getVariable('scores%[]');
-        expect(scores.type).toBe(EduBasicType.Array);
-        expect(scores.elementType).toBe(EduBasicType.Integer);
-        expect(scores.value.slice(0, 3).map(v => v.value)).toEqual([1, 2, 3]);
-        expect(scores.value.slice(3).map(v => v.value)).toEqual([0, 0]);
-    });
-
-    it('SET should toggle text wrap and line spacing', () =>
-    {
-        const graphics = new CursorTrackingGraphics();
-
-        new SetStatement(SetOption.TextWrapOff).execute(context, graphics, audio, program, runtime);
-        new SetStatement(SetOption.LineSpacingOn).execute(context, graphics, audio, program, runtime);
-
-        graphics.setCursorPosition(0, 0);
-        graphics.printText('X'.repeat(100));
-        expect(graphics.newLineCalls).toBe(0);
-
-        graphics.setCursorPosition(0, 0);
-        graphics.newLine();
-        expect(graphics.lastCursor?.row).toBe(2);
     });
 
     it('GET should capture a region into an integer array sprite', () =>
@@ -245,17 +161,6 @@ describe('Newly implemented statements', () =>
 
         expect(inside).toEqual({ r: 0, g: 255, b: 0, a: 255 });
         expect(outside).toEqual({ r: 255, g: 255, b: 255, a: 255 });
-    });
-
-    it('TURTLE should draw lines for movement commands with pen down', () =>
-    {
-        const graphics = new LineTrackingGraphics();
-        const turtle = new TurtleStatement(new LiteralExpression({ type: EduBasicType.String, value: 'HOME FD 10 RT 90 FD 10' }));
-
-        const result = turtle.execute(context, graphics, audio, program, runtime);
-
-        expect(result.result).toBe(ExecutionResult.Continue);
-        expect(graphics.lines.length).toBe(2);
     });
 });
 
