@@ -15,6 +15,7 @@ import {
     GotoStatement,
     ForStatement,
     SubStatement,
+    ThrowStatement,
     UendStatement,
     UntilStatement
 } from '../src/lang/statements/control-flow';
@@ -485,6 +486,23 @@ describe('Control flow statements (direct execution)', () =>
         expect(noStepString.toString()).toBe('FOR i% = 1 TO 2');
 
         expect(enter.toString()).toBe('FOR i% = 1 TO 2 STEP 1');
+    });
+
+    it('ThrowStatement should throw and format toString', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = {} as any;
+        const runtime = {} as any;
+
+        const stmt = new ThrowStatement(new LiteralExpression({ type: EduBasicType.String, value: 'boom' }));
+        expect(stmt.toString()).toBe('THROW "boom"');
+
+        expect(() =>
+        {
+            stmt.execute(context, graphics, audio, program, runtime);
+        }).toThrow('boom');
     });
 });
 

@@ -352,6 +352,13 @@ describe('Parser parsers (edge cases)', () =>
         it('fails parsing when required tokens/expressions are missing', () =>
         {
             expectFailure(ArrayParsers.parsePush(ctx(eofTokens([
+                t(TokenType.Identifier, 'PUSH'),
+                t(TokenType.Identifier, 'arr%[]'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(ArrayParsers.parsePush(ctx(eofTokens([
                 t(TokenType.Keyword, 'SHIFT'),
                 t(TokenType.Identifier, 'arr%[]')
             ]))));
@@ -362,7 +369,32 @@ describe('Parser parsers (edge cases)', () =>
 
             expectFailure(ArrayParsers.parsePush(ctx(eofTokens([
                 t(TokenType.Keyword, 'PUSH'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(ArrayParsers.parsePush(ctx(eofTokens([
+                t(TokenType.Keyword, 'PUSH'),
                 t(TokenType.Identifier, 'arr%[]'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(ArrayParsers.parsePush(ctx(eofTokens([
+                t(TokenType.Keyword, 'PUSH'),
+                t(TokenType.Identifier, 'arr%[]'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(ArrayParsers.parsePop(ctx(eofTokens([
+                t(TokenType.Identifier, 'POP'),
+                t(TokenType.Identifier, 'arr%[]')
+            ]))));
+
+            expectFailure(ArrayParsers.parsePop(ctx(eofTokens([
+                t(TokenType.Keyword, 'POP')
+            ]))));
+
+            expectFailure(ArrayParsers.parsePop(ctx(eofTokens([
+                t(TokenType.Keyword, 'POP'),
                 t(TokenType.Integer, '1')
             ]))));
 
@@ -372,9 +404,30 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Comma, ',')
             ]))));
 
+            expectFailure(ArrayParsers.parseShift(ctx(eofTokens([
+                t(TokenType.Identifier, 'SHIFT'),
+                t(TokenType.Identifier, 'arr%[]')
+            ]))));
+
+            expectFailure(ArrayParsers.parseShift(ctx(eofTokens([
+                t(TokenType.Keyword, 'SHIFT')
+            ]))));
+
+            expectFailure(ArrayParsers.parseShift(ctx(eofTokens([
+                t(TokenType.Keyword, 'SHIFT'),
+                t(TokenType.Integer, '1')
+            ]))));
+
             expectFailure(ArrayParsers.parseUnshift(ctx(eofTokens([
                 t(TokenType.Keyword, 'UNSHIFT'),
                 t(TokenType.Identifier, 'arr%[]'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(ArrayParsers.parseUnshift(ctx(eofTokens([
+                t(TokenType.Keyword, 'UNSHIFT'),
+                t(TokenType.Identifier, 'arr%[]'),
+                t(TokenType.Comma, ','),
                 t(TokenType.Comma, ',')
             ]))));
         });
@@ -385,6 +438,11 @@ describe('Parser parsers (edge cases)', () =>
         it('fails parsing when required tokens/expressions are missing', () =>
         {
             expectFailure(AudioParsers.parseTempo(ctx(eofTokens([
+                t(TokenType.Identifier, 'TEMPO'),
+                t(TokenType.Integer, '120')
+            ]))));
+
+            expectFailure(AudioParsers.parseTempo(ctx(eofTokens([
                 t(TokenType.Keyword, 'TEMPO')
             ]))));
 
@@ -392,10 +450,22 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Keyword, 'VOLUME')
             ]))));
 
+            expectFailure(AudioParsers.parseVolume(ctx(eofTokens([
+                t(TokenType.Identifier, 'VOLUME'),
+                t(TokenType.Integer, '80')
+            ]))));
+
             expectFailure(AudioParsers.parseVoice(ctx(eofTokens([
                 t(TokenType.Keyword, 'VOICE'),
                 t(TokenType.Integer, '0'),
                 t(TokenType.Identifier, 'TO'),
+                t(TokenType.String, 'piano')
+            ]))));
+
+            expectFailure(AudioParsers.parseVoice(ctx(eofTokens([
+                t(TokenType.Identifier, 'VOICE'),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Keyword, 'INSTRUMENT'),
                 t(TokenType.String, 'piano')
             ]))));
 
@@ -409,6 +479,358 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Keyword, 'PLAY'),
                 t(TokenType.Integer, '0'),
                 t(TokenType.String, 'C D E')
+            ]))));
+
+            expectFailure(AudioParsers.parsePlay(ctx(eofTokens([
+                t(TokenType.Identifier, 'PLAY'),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.String, 'C D E')
+            ]))));
+
+            expectFailure(AudioParsers.parsePlay(ctx(eofTokens([
+                t(TokenType.Keyword, 'PLAY'),
+                t(TokenType.Comma, ','),
+                t(TokenType.String, 'C D E')
+            ]))));
+
+            expectFailure(AudioParsers.parsePlay(ctx(eofTokens([
+                t(TokenType.Keyword, 'PLAY'),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ',')
+            ]))));
+        });
+    });
+
+    describe('GraphicsParsers', () =>
+    {
+        it('parses common forms without optional WITH/FILLED', () =>
+        {
+            const psetNoWith = GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Keyword, 'PSET'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')')
+            ])));
+            expect(psetNoWith.success).toBe(true);
+
+            const rectNoWithNoFilled = GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '1'),
+                t(TokenType.RightParen, ')')
+            ])));
+            expect(rectNoWithNoFilled.success).toBe(true);
+
+            const ovalNoWithNoFilled = GraphicsParsers.parseOval(ctx(eofTokens([
+                t(TokenType.Keyword, 'OVAL'),
+                t(TokenType.Keyword, 'AT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '5'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '6'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'RADII'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')')
+            ])));
+            expect(ovalNoWithNoFilled.success).toBe(true);
+
+            const circleNoWithNoFilled = GraphicsParsers.parseCircle(ctx(eofTokens([
+                t(TokenType.Keyword, 'CIRCLE'),
+                t(TokenType.Keyword, 'AT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '5'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '6'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'RADIUS'),
+                t(TokenType.Integer, '4')
+            ])));
+            expect(circleNoWithNoFilled.success).toBe(true);
+
+            const arcNoWith = GraphicsParsers.parseArc(ctx(eofTokens([
+                t(TokenType.Keyword, 'ARC'),
+                t(TokenType.Keyword, 'AT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '5'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '6'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'RADIUS'),
+                t(TokenType.Integer, '4'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.Integer, '90')
+            ])));
+            expect(arcNoWith.success).toBe(true);
+        });
+
+        it('fails parsing when WITH is present but missing a color expression', () =>
+        {
+            expectFailure(GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Keyword, 'PSET'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'WITH'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '1'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'WITH'),
+                t(TokenType.Comma, ',')
+            ]))));
+        });
+
+        it('covers many early-return branches for graphics parsing', () =>
+        {
+            expectFailure(GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Identifier, 'PSET')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Keyword, 'PSET'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Keyword, 'PSET'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Keyword, 'PSET'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Integer, '2')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Keyword, 'PSET'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.RightParen, ')')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePset(ctx(eofTokens([
+                t(TokenType.Keyword, 'PSET'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Identifier, 'RECTANGLE')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Identifier, 'FROM')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.Integer, '0')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Integer, '0')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.RightParen, ')')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Integer, '0')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Identifier, 'TO')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseRectangle(ctx(eofTokens([
+                t(TokenType.Keyword, 'RECTANGLE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.Integer, '0')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePaint(ctx(eofTokens([
+                t(TokenType.Identifier, 'PAINT')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePaint(ctx(eofTokens([
+                t(TokenType.Keyword, 'PAINT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Identifier, 'WITH'),
+                t(TokenType.Integer, '3')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePaint(ctx(eofTokens([
+                t(TokenType.Keyword, 'PAINT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'WITH'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseOval(ctx(eofTokens([
+                t(TokenType.Identifier, 'OVAL')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseOval(ctx(eofTokens([
+                t(TokenType.Keyword, 'OVAL'),
+                t(TokenType.Identifier, 'AT')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseOval(ctx(eofTokens([
+                t(TokenType.Keyword, 'OVAL'),
+                t(TokenType.Keyword, 'AT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Identifier, 'RADII')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseCircle(ctx(eofTokens([
+                t(TokenType.Identifier, 'CIRCLE')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseCircle(ctx(eofTokens([
+                t(TokenType.Keyword, 'CIRCLE'),
+                t(TokenType.Keyword, 'AT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Identifier, 'RADIUS')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseArc(ctx(eofTokens([
+                t(TokenType.Identifier, 'ARC')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseArc(ctx(eofTokens([
+                t(TokenType.Keyword, 'ARC'),
+                t(TokenType.Keyword, 'AT'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'RADIUS'),
+                t(TokenType.Integer, '3'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Identifier, 'TO')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseTriangle(ctx(eofTokens([
+                t(TokenType.Identifier, 'TRIANGLE')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseGet(ctx(eofTokens([
+                t(TokenType.Identifier, 'GET')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseGet(ctx(eofTokens([
+                t(TokenType.Keyword, 'GET'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(GraphicsParsers.parsePut(ctx(eofTokens([
+                t(TokenType.Keyword, 'PUT'),
+                t(TokenType.Identifier, 'arr%[]'),
+                t(TokenType.Identifier, 'AT')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseTurtle(ctx(eofTokens([
+                t(TokenType.Identifier, 'TURTLE'),
+                t(TokenType.String, 'FD 10')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Identifier, 'LINE')
             ]))));
         });
     });
@@ -803,6 +1225,86 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Keyword, 'IF'),
                 t(TokenType.Integer, '1')
             ]))).success).toBe(false);
+        });
+
+        it('fails parsing other control-flow forms when required parts are missing', () =>
+        {
+            expectFailure(ControlFlowParsers.parseSelectCase(ctx(eofTokens([
+                t(TokenType.Keyword, 'SELECT'),
+                t(TokenType.Identifier, 'CASE'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseSelectCase(ctx(eofTokens([
+                t(TokenType.Keyword, 'SELECT'),
+                t(TokenType.Keyword, 'CASE')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseThrow(ctx(eofTokens([
+                t(TokenType.Keyword, 'THROW')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseThrow(ctx(eofTokens([
+                t(TokenType.Keyword, 'THROW'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseGoto(ctx(eofTokens([
+                t(TokenType.Keyword, 'GOTO')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseGosub(ctx(eofTokens([
+                t(TokenType.Keyword, 'GOSUB')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseLabel(ctx(eofTokens([
+                t(TokenType.Keyword, 'LABEL')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseReturn(ctx(eofTokens([
+                t(TokenType.Identifier, 'RETURN')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseTry(ctx(eofTokens([
+                t(TokenType.Identifier, 'TRY')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseCatch(ctx(eofTokens([
+                t(TokenType.Identifier, 'CATCH')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseFinally(ctx(eofTokens([
+                t(TokenType.Identifier, 'FINALLY')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseWhile(ctx(eofTokens([
+                t(TokenType.Keyword, 'WHILE')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseWhile(ctx(eofTokens([
+                t(TokenType.Keyword, 'WHILE'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseUnless(ctx(eofTokens([
+                t(TokenType.Keyword, 'UNLESS'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Keyword, 'THEN')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseUntil(ctx(eofTokens([
+                t(TokenType.Keyword, 'UNTIL')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseDo(ctx(eofTokens([
+                t(TokenType.Keyword, 'DO'),
+                t(TokenType.Keyword, 'WHILE')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseDo(ctx(eofTokens([
+                t(TokenType.Keyword, 'DO'),
+                t(TokenType.Keyword, 'UNTIL')
+            ]))));
         });
     });
 }
