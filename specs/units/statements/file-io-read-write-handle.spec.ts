@@ -3,7 +3,7 @@ import { LiteralExpression } from '@/lang/expressions/literal-expression';
 import { VariableExpression } from '@/lang/expressions/special/variable-expression';
 import { OpenStatement, FileMode, ReadFileStatement, WriteFileStatement } from '@/lang/statements/file-io';
 
-import { createRuntimeFixture } from './statements/program-execution-test-fixtures';
+import { createRuntimeFixture } from './program-execution-test-fixtures';
 
 describe('File I/O (READ/WRITE by file handle)', () =>
 {
