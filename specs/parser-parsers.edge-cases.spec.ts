@@ -204,6 +204,99 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Keyword, 'DELETE')
             ]))));
         });
+
+        it('fails parsing at key stages for WRITEFILE/LISTDIR/MKDIR/RMDIR/COPY/MOVE/DELETE', () =>
+        {
+            expectFailure(FileIoParsers.parseWritefile(ctx(eofTokens([
+                t(TokenType.Keyword, 'WRITEFILE'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(FileIoParsers.parseWritefile(ctx(eofTokens([
+                t(TokenType.Keyword, 'WRITEFILE'),
+                t(TokenType.String, 'x'),
+                t(TokenType.Keyword, 'FROM')
+            ]))));
+
+            expectFailure(FileIoParsers.parseWritefile(ctx(eofTokens([
+                t(TokenType.Keyword, 'WRITEFILE'),
+                t(TokenType.String, 'x'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(FileIoParsers.parseListdir(ctx(eofTokens([
+                t(TokenType.Identifier, 'LISTDIR')
+            ]))));
+
+            expectFailure(FileIoParsers.parseListdir(ctx(eofTokens([
+                t(TokenType.Keyword, 'LISTDIR'),
+                t(TokenType.Identifier, 'arr$[]'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(FileIoParsers.parseMkdir(ctx(eofTokens([
+                t(TokenType.Identifier, 'MKDIR')
+            ]))));
+
+            expectFailure(FileIoParsers.parseRmdir(ctx(eofTokens([
+                t(TokenType.Identifier, 'RMDIR')
+            ]))));
+
+            expectFailure(FileIoParsers.parseCopy(ctx(eofTokens([
+                t(TokenType.Identifier, 'COPY')
+            ]))));
+
+            expectFailure(FileIoParsers.parseCopy(ctx(eofTokens([
+                t(TokenType.Keyword, 'COPY'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(FileIoParsers.parseCopy(ctx(eofTokens([
+                t(TokenType.Keyword, 'COPY'),
+                t(TokenType.String, 'a'),
+                t(TokenType.Keyword, 'IN')
+            ]))));
+
+            expectFailure(FileIoParsers.parseCopy(ctx(eofTokens([
+                t(TokenType.Keyword, 'COPY'),
+                t(TokenType.String, 'a'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(FileIoParsers.parseMove(ctx(eofTokens([
+                t(TokenType.Identifier, 'MOVE')
+            ]))));
+
+            expectFailure(FileIoParsers.parseMove(ctx(eofTokens([
+                t(TokenType.Keyword, 'MOVE'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(FileIoParsers.parseMove(ctx(eofTokens([
+                t(TokenType.Keyword, 'MOVE'),
+                t(TokenType.String, 'a'),
+                t(TokenType.Keyword, 'IN')
+            ]))));
+
+            expectFailure(FileIoParsers.parseMove(ctx(eofTokens([
+                t(TokenType.Keyword, 'MOVE'),
+                t(TokenType.String, 'a'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(FileIoParsers.parseDelete(ctx(eofTokens([
+                t(TokenType.Identifier, 'DELETE')
+            ]))));
+
+            expectFailure(FileIoParsers.parseDelete(ctx(eofTokens([
+                t(TokenType.Keyword, 'DELETE'),
+                t(TokenType.Comma, ',')
+            ]))));
+        });
     });
 
     describe('GraphicsParsers', () =>
@@ -312,6 +405,194 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Integer, '0'),
                 t(TokenType.RightParen, ')'),
                 t(TokenType.Keyword, 'TO')
+            ]))));
+        });
+
+        it('parses LINE INPUT / LINE FROM and fails at each stage', () =>
+        {
+            const lineInputOk = GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'INPUT'),
+                t(TokenType.Identifier, 'line$'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.Identifier, 'h%')
+            ])));
+            expect(lineInputOk.success).toBe(true);
+
+            const lineFromOk = GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '1'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'WITH'),
+                t(TokenType.Integer, '0')
+            ])));
+            expect(lineFromOk.success).toBe(true);
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'INPUT')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'INPUT'),
+                t(TokenType.Identifier, 'line$')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'INPUT'),
+                t(TokenType.Identifier, 'line$'),
+                t(TokenType.Keyword, 'FROM')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Integer, '0')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.RightParen, ')')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Keyword, 'TO')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Identifier, 'TO')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Comma, ',')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.RightParen, ')')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(GraphicsParsers.parseLineInputOrGraphics(ctx(eofTokens([
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'FROM'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '0'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.LeftParen, '('),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '1'),
+                t(TokenType.RightParen, ')'),
+                t(TokenType.Keyword, 'WITH')
             ]))));
         });
     });
@@ -873,6 +1154,31 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Integer, '10')
             ]))));
         });
+
+        it('fails parsing when the initial keyword token is missing', () =>
+        {
+            expectFailure(VariableParsers.parseLet(ctx(eofTokens([
+                t(TokenType.Identifier, 'LET'),
+                t(TokenType.Identifier, 'x%'),
+                t(TokenType.Equal, '='),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(VariableParsers.parseLocal(ctx(eofTokens([
+                t(TokenType.Identifier, 'LOCAL'),
+                t(TokenType.Identifier, 'x%'),
+                t(TokenType.Equal, '='),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(VariableParsers.parseDim(ctx(eofTokens([
+                t(TokenType.Identifier, 'DIM'),
+                t(TokenType.Identifier, 'a%'),
+                t(TokenType.LeftBracket, '['),
+                t(TokenType.Integer, '10'),
+                t(TokenType.RightBracket, ']')
+            ]))));
+        });
     });
 
     describe('IoParsers', () =>
@@ -942,6 +1248,42 @@ describe('Parser parsers (edge cases)', () =>
                 t(TokenType.Comma, ',')
             ])));
             expect(missingBackgroundExpr.success).toBe(false);
+
+            const missingBackgroundAfterLeadingComma = IoParsers.parseColor(ctx(eofTokens([
+                t(TokenType.Keyword, 'COLOR'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Comma, ',')
+            ])));
+            expect(missingBackgroundAfterLeadingComma.success).toBe(false);
+        });
+
+        it('fails parsing when the initial keyword token is missing', () =>
+        {
+            expectFailure(IoParsers.parsePrint(ctx(eofTokens([
+                t(TokenType.Identifier, 'PRINT'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(IoParsers.parseInput(ctx(eofTokens([
+                t(TokenType.Identifier, 'INPUT'),
+                t(TokenType.Identifier, 'x%')
+            ]))));
+
+            expectFailure(IoParsers.parseColor(ctx(eofTokens([
+                t(TokenType.Identifier, 'COLOR'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(IoParsers.parseLocate(ctx(eofTokens([
+                t(TokenType.Identifier, 'LOCATE'),
+                t(TokenType.Integer, '1'),
+                t(TokenType.Comma, ','),
+                t(TokenType.Integer, '2')
+            ]))));
+
+            expectFailure(IoParsers.parseCls(ctx(eofTokens([
+                t(TokenType.Identifier, 'CLS')
+            ]))));
         });
     });
 
@@ -1015,6 +1357,61 @@ describe('Parser parsers (edge cases)', () =>
 
             expectFailure(MiscParsers.parseConsole(ctx(eofTokens([
                 t(TokenType.Keyword, 'CONSOLE')
+            ]))));
+        });
+
+        it('fails parsing when the initial keyword token is missing or when SET subkeywords are malformed', () =>
+        {
+            expectFailure(MiscParsers.parseSleep(ctx(eofTokens([
+                t(TokenType.Identifier, 'SLEEP'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(MiscParsers.parseRandomize(ctx(eofTokens([
+                t(TokenType.Identifier, 'RANDOMIZE'),
+                t(TokenType.Integer, '1')
+            ]))));
+
+            expectFailure(MiscParsers.parseHelp(ctx(eofTokens([
+                t(TokenType.Identifier, 'HELP'),
+                t(TokenType.Keyword, 'PRINT')
+            ]))));
+
+            expectFailure(MiscParsers.parseConsole(ctx(eofTokens([
+                t(TokenType.Identifier, 'CONSOLE'),
+                t(TokenType.String, 'x')
+            ]))));
+
+            expectFailure(MiscParsers.parseSet(ctx(eofTokens([
+                t(TokenType.Keyword, 'SET'),
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Identifier, 'SPACING')
+            ]))));
+
+            expectFailure(MiscParsers.parseSet(ctx(eofTokens([
+                t(TokenType.Keyword, 'SET'),
+                t(TokenType.Keyword, 'LINE'),
+                t(TokenType.Keyword, 'SPACING'),
+                t(TokenType.Identifier, 'ON')
+            ]))));
+
+            expectFailure(MiscParsers.parseSet(ctx(eofTokens([
+                t(TokenType.Keyword, 'SET'),
+                t(TokenType.Keyword, 'TEXT'),
+                t(TokenType.Identifier, 'WRAP')
+            ]))));
+
+            expectFailure(MiscParsers.parseSet(ctx(eofTokens([
+                t(TokenType.Keyword, 'SET'),
+                t(TokenType.Keyword, 'TEXT'),
+                t(TokenType.Keyword, 'WRAP'),
+                t(TokenType.Identifier, 'OFF')
+            ]))));
+
+            expectFailure(MiscParsers.parseSet(ctx(eofTokens([
+                t(TokenType.Keyword, 'SET'),
+                t(TokenType.Keyword, 'AUDIO'),
+                t(TokenType.Identifier, 'ON')
             ]))));
         });
     });
@@ -1304,6 +1701,57 @@ describe('Parser parsers (edge cases)', () =>
             expectFailure(ControlFlowParsers.parseDo(ctx(eofTokens([
                 t(TokenType.Keyword, 'DO'),
                 t(TokenType.Keyword, 'UNTIL')
+            ]))));
+        });
+
+        it('fails parsing when the initial keyword token is missing', () =>
+        {
+            expectFailure(ControlFlowParsers.parseDo(ctx(eofTokens([
+                t(TokenType.Identifier, 'DO')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseLoop(ctx(eofTokens([
+                t(TokenType.Identifier, 'LOOP')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseSub(ctx(eofTokens([
+                t(TokenType.Identifier, 'SUB')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseCall(ctx(eofTokens([
+                t(TokenType.Identifier, 'CALL')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseGoto(ctx(eofTokens([
+                t(TokenType.Identifier, 'GOTO'),
+                t(TokenType.Identifier, 'L')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseGosub(ctx(eofTokens([
+                t(TokenType.Identifier, 'GOSUB'),
+                t(TokenType.Identifier, 'L')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseLabel(ctx(eofTokens([
+                t(TokenType.Identifier, 'LABEL'),
+                t(TokenType.Identifier, 'L')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseEnd(ctx(eofTokens([
+                t(TokenType.Identifier, 'END')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseExit(ctx(eofTokens([
+                t(TokenType.Identifier, 'EXIT')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseContinue(ctx(eofTokens([
+                t(TokenType.Identifier, 'CONTINUE')
+            ]))));
+
+            expectFailure(ControlFlowParsers.parseThrow(ctx(eofTokens([
+                t(TokenType.Identifier, 'THROW'),
+                t(TokenType.String, 'x')
             ]))));
         });
     });

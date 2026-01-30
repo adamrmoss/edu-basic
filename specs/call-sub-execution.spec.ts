@@ -143,6 +143,18 @@ describe('CALL/SUB execution', () =>
         expect(context.getVariable('after%')).toEqual({ type: EduBasicType.Integer, value: 123 });
     });
 
+    it('CALL should format toString with and without arguments', () =>
+    {
+        const noArgs = new CallStatement('S', []);
+        expect(noArgs.toString()).toBe('CALL S');
+
+        const withArgs = new CallStatement('S', [
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.String, value: 'hi' })
+        ]);
+        expect(withArgs.toString()).toBe('CALL S 1, "hi"');
+    });
+
     it('should throw when SUB parameter count mismatches', () =>
     {
         const sub = new SubStatement('S', [{ name: 'p%', byRef: false }], []);

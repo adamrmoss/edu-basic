@@ -2,7 +2,16 @@ import { ExecutionContext } from '../src/lang/execution-context';
 import { EduBasicType } from '../src/lang/edu-basic-value';
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { ExecutionResult } from '../src/lang/statements/statement';
-import { PutStatement, TurtleStatement } from '../src/lang/statements/graphics';
+import {
+    CircleStatement,
+    GetStatement,
+    LineStatement,
+    OvalStatement,
+    PutStatement,
+    RectangleStatement,
+    TriangleStatement,
+    TurtleStatement
+} from '../src/lang/statements/graphics';
 
 describe('Graphics statements (direct execution)', () =>
 {
@@ -218,6 +227,185 @@ describe('Graphics statements (direct execution)', () =>
         {
             stmt.execute(context, graphics, audio, program, runtime);
         }).toThrow('PUT: sprite array too small');
+    });
+
+    it('shape statements should render with and without WITH color', () =>
+    {
+        const context = new ExecutionContext();
+        const drawCircle = jest.fn();
+        const drawLine = jest.fn();
+        const drawOval = jest.fn();
+        const drawRectangle = jest.fn();
+        const drawTriangle = jest.fn();
+        const flush = jest.fn();
+
+        const graphics = {
+            drawCircle,
+            drawLine,
+            drawOval,
+            drawRectangle,
+            drawTriangle,
+            flush
+        } as any;
+
+        const audio = {} as any;
+        const program = {} as any;
+        const runtime = { requestTabSwitch: jest.fn() } as any;
+
+        const withColor = new LiteralExpression({ type: EduBasicType.Integer, value: 0x11223344 });
+
+        new CircleStatement(
+            new LiteralExpression({ type: EduBasicType.Real, value: 1.9 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+            null,
+            false
+        ).execute(context, graphics, audio, program, runtime);
+
+        new CircleStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+            withColor,
+            true
+        ).execute(context, graphics, audio, program, runtime);
+
+        expect(drawCircle).toHaveBeenCalled();
+        expect(runtime.requestTabSwitch).toHaveBeenCalledWith('output');
+
+        new LineStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            null
+        ).execute(context, graphics, audio, program, runtime);
+
+        new LineStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            withColor
+        ).execute(context, graphics, audio, program, runtime);
+
+        expect(drawLine).toHaveBeenCalled();
+
+        new OvalStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 6 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            null,
+            false
+        ).execute(context, graphics, audio, program, runtime);
+
+        new OvalStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 6 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            withColor,
+            true
+        ).execute(context, graphics, audio, program, runtime);
+
+        expect(drawOval).toHaveBeenCalled();
+
+        new RectangleStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            null,
+            false
+        ).execute(context, graphics, audio, program, runtime);
+
+        new RectangleStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            withColor,
+            true
+        ).execute(context, graphics, audio, program, runtime);
+
+        expect(drawRectangle).toHaveBeenCalled();
+
+        new TriangleStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            null,
+            false
+        ).execute(context, graphics, audio, program, runtime);
+
+        new TriangleStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            withColor,
+            true
+        ).execute(context, graphics, audio, program, runtime);
+
+        expect(drawTriangle).toHaveBeenCalled();
+        expect(flush).toHaveBeenCalled();
+    });
+
+    it('GET should validate destination variable and handle missing/available buffers', () =>
+    {
+        const context = new ExecutionContext();
+        const audio = {} as any;
+        const program = {} as any;
+        const runtime = {} as any;
+
+        const noArray = new GetStatement(
+            'sprite%',
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+        );
+        expect(() =>
+        {
+            noArray.execute(context, { width: 2, height: 2, getBuffer: () => null } as any, audio, program, runtime);
+        }).toThrow('GET: destination must be an array');
+
+        const graphicsNoBuffer = { width: 2, height: 2, getBuffer: () => null } as any;
+        const stmt = new GetStatement(
+            'sprite%[]',
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+        );
+        stmt.execute(context, graphicsNoBuffer, audio, program, runtime);
+
+        const v = context.getVariable('sprite%[]');
+        expect(v.type).toBe(EduBasicType.Array);
+        if (v.type !== EduBasicType.Array)
+        {
+            return;
+        }
+        expect(v.elementType).toBe(EduBasicType.Integer);
+        expect(v.value.length).toBe(2);
+
+        const buffer = { data: new Uint8ClampedArray(2 * 2 * 4) } as any;
+        const graphicsWithBuffer = { width: 2, height: 2, getBuffer: () => buffer } as any;
+        stmt.execute(context, graphicsWithBuffer, audio, program, runtime);
+
+        const v2 = context.getVariable('sprite%[]');
+        expect(v2.type).toBe(EduBasicType.Array);
+        if (v2.type !== EduBasicType.Array)
+        {
+            return;
+        }
+        expect(v2.value.length).toBeGreaterThan(2);
     });
 });
 

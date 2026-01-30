@@ -239,5 +239,68 @@ describe('BracketAccessExpression', () =>
         );
         expect(expr.toString()).toBe('a%[][]');
     });
+
+    it('uses bracketExpr values to form structure keys (string/number/complex/type)', () =>
+    {
+        const context = new ExecutionContext();
+
+        const map = new Map<string, EduBasicValue>();
+        map.set('2', { type: EduBasicType.Integer, value: 22 });
+        map.set('3.5', { type: EduBasicType.Integer, value: 35 });
+        map.set('1+2i', { type: EduBasicType.Integer, value: 12 });
+        map.set('STRUCTURE', { type: EduBasicType.Integer, value: 99 });
+        context.setVariable('s', { type: EduBasicType.Structure, value: map }, false);
+
+        const intKey = new BracketAccessExpression(
+            new VariableExpression('s'),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+            null
+        );
+        expect(intKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 22 });
+
+        const realKey = new BracketAccessExpression(
+            new VariableExpression('s'),
+            new LiteralExpression({ type: EduBasicType.Real, value: 3.5 }),
+            null
+        );
+        expect(realKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 35 });
+
+        const complexKey = new BracketAccessExpression(
+            new VariableExpression('s'),
+            new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } }),
+            null
+        );
+        expect(complexKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 12 });
+
+        const typeKey = new BracketAccessExpression(
+            new VariableExpression('s'),
+            new LiteralExpression({ type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() }),
+            null
+        );
+        expect(typeKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 99 });
+    });
+
+    it('returns default values for array element types ARRAY and STRUCTURE', () =>
+    {
+        const context = new ExecutionContext();
+
+        context.setVariable('aa%[]', { type: EduBasicType.Array, elementType: EduBasicType.Array, value: [] } as any, false);
+        const arrayOfArrays = new BracketAccessExpression(
+            new VariableExpression('aa%[]'),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            null
+        );
+        const a = arrayOfArrays.evaluate(context);
+        expect(a.type).toBe(EduBasicType.Array);
+
+        context.setVariable('ss%[]', { type: EduBasicType.Array, elementType: EduBasicType.Structure, value: [] } as any, false);
+        const arrayOfStructs = new BracketAccessExpression(
+            new VariableExpression('ss%[]'),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            null
+        );
+        const s = arrayOfStructs.evaluate(context);
+        expect(s.type).toBe(EduBasicType.Structure);
+    });
 });
 

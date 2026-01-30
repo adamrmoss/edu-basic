@@ -1287,6 +1287,33 @@ describe('ExpressionParser', () =>
             expect(result.value).toMatch(/^\d{4}-\d{2}-\d{2}$/);
         });
 
+        it('should parse INKEY$, TIME$, and NOW% constants', () =>
+        {
+            const inkey = parser.parseExpression('INKEY$');
+            expect(inkey.success).toBe(true);
+            if (!inkey.success)
+            {
+                return;
+            }
+            expect(inkey.value.evaluate(context).type).toBe(EduBasicType.String);
+
+            const time = parser.parseExpression('TIME$');
+            expect(time.success).toBe(true);
+            if (!time.success)
+            {
+                return;
+            }
+            expect(time.value.evaluate(context).type).toBe(EduBasicType.String);
+
+            const now = parser.parseExpression('NOW%');
+            expect(now.success).toBe(true);
+            if (!now.success)
+            {
+                return;
+            }
+            expect(now.value.evaluate(context).type).toBe(EduBasicType.Integer);
+        });
+
         it('should parse TRUE% in lowercase (case-insensitive)', () =>
         {
             const exprResult = parser.parseExpression('true%');
@@ -1567,6 +1594,30 @@ describe('ExpressionParser', () =>
             expect(result.value).toBe(20);
         });
 
+        it('should parse bracket access where the bracket expression starts with an identifier', () =>
+        {
+            context.setVariable('a%[]', {
+                type: EduBasicType.Array,
+                elementType: EduBasicType.Integer,
+                value: [
+                    { type: EduBasicType.Integer, value: 10 },
+                    { type: EduBasicType.Integer, value: 20 }
+                ]
+            }, false);
+            context.setVariable('i%', { type: EduBasicType.Integer, value: 1 }, false);
+
+            const exprResult = parser.parseExpression('a%[][i%+1]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(20);
+        });
+
         it('should return failure when extra tokens remain after a valid expression', () =>
         {
             const exprResult = parser.parseExpression('1 2');
@@ -1607,9 +1658,71 @@ describe('ExpressionParser', () =>
             expect(result.value).toBeCloseTo(0.0);
         });
 
+        it('should parse and evaluate additional unary keyword operators', () =>
+        {
+            const cosResult = parser.parseExpression('COS(0)');
+            expect(cosResult.success).toBe(true);
+            if (!cosResult.success)
+            {
+                return;
+            }
+            const cosValue = cosResult.value.evaluate(context);
+            expect(cosValue.type).toBe(EduBasicType.Real);
+            expect(cosValue.value).toBeCloseTo(1.0);
+
+            const sqrtResult = parser.parseExpression('SQRT 4');
+            expect(sqrtResult.success).toBe(true);
+            if (!sqrtResult.success)
+            {
+                return;
+            }
+            const sqrtValue = sqrtResult.value.evaluate(context);
+            expect(sqrtValue.type).toBe(EduBasicType.Real);
+            expect(sqrtValue.value).toBeCloseTo(2.0);
+
+            const absResult = parser.parseExpression('ABS(-5)');
+            expect(absResult.success).toBe(true);
+            if (!absResult.success)
+            {
+                return;
+            }
+            const absValue = absResult.value.evaluate(context);
+            expect(absValue.type).toBe(EduBasicType.Real);
+            expect(absValue.value).toBe(5);
+
+            const chrResult = parser.parseExpression('CHR(65)');
+            expect(chrResult.success).toBe(true);
+            if (!chrResult.success)
+            {
+                return;
+            }
+            const chrValue = chrResult.value.evaluate(context);
+            expect(chrValue.type).toBe(EduBasicType.String);
+            expect(chrValue.value).toBe('A');
+
+            const ucaseResult = parser.parseExpression('UCASE("hello")');
+            expect(ucaseResult.success).toBe(true);
+            if (!ucaseResult.success)
+            {
+                return;
+            }
+            const ucaseValue = ucaseResult.value.evaluate(context);
+            expect(ucaseValue.type).toBe(EduBasicType.String);
+            expect(ucaseValue.value).toBe('HELLO');
+
+            const intResult = parser.parseExpression('INT(3.14)');
+            expect(intResult.success).toBe(true);
+            if (!intResult.success)
+            {
+                return;
+            }
+            const intValue = intResult.value.evaluate(context);
+            expect(intValue).toEqual({ type: EduBasicType.Integer, value: 3 });
+        });
+
         it('should parse call expressions like LEFT$ and RIGHT$', () =>
         {
-            const leftResult = parser.parseExpression('LEFT$("abc", 2)');
+            const leftResult = parser.parseExpression('"abc" LEFT 2');
             expect(leftResult.success).toBe(true);
             if (!leftResult.success)
             {
@@ -1619,7 +1732,7 @@ describe('ExpressionParser', () =>
             const leftValue = leftResult.value.evaluate(context);
             expect(leftValue).toEqual({ type: EduBasicType.String, value: 'ab' });
 
-            const rightResult = parser.parseExpression('RIGHT$("abc", 1)');
+            const rightResult = parser.parseExpression('"abc" RIGHT 1');
             expect(rightResult.success).toBe(true);
             if (!rightResult.success)
             {
@@ -1628,6 +1741,115 @@ describe('ExpressionParser', () =>
 
             const rightValue = rightResult.value.evaluate(context);
             expect(rightValue).toEqual({ type: EduBasicType.String, value: 'c' });
+        });
+
+        it('should parse and evaluate additional operator expressions', () =>
+        {
+            context.setVariable('a%[]', {
+                type: EduBasicType.Array,
+                elementType: EduBasicType.Integer,
+                value: [
+                    { type: EduBasicType.Integer, value: 1 },
+                    { type: EduBasicType.Integer, value: 2 }
+                ]
+            }, false);
+            context.setVariable('b%[]', { type: EduBasicType.Array, elementType: EduBasicType.Integer, value: [] }, false);
+            context.setVariable('a$[]', {
+                type: EduBasicType.Array,
+                elementType: EduBasicType.String,
+                value: [
+                    { type: EduBasicType.String, value: 'x' },
+                    { type: EduBasicType.String, value: 'y' }
+                ]
+            }, false);
+
+            const mid = parser.parseExpression('"Hello" MID 2 TO 4');
+            expect(mid.success).toBe(true);
+            if (!mid.success)
+            {
+                return;
+            }
+            expect(mid.value.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'ell' });
+
+            const instr = parser.parseExpression('"abc" INSTR "b"');
+            expect(instr.success).toBe(true);
+            if (!instr.success)
+            {
+                return;
+            }
+            expect(instr.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 2 });
+
+            const replace = parser.parseExpression('"a.a" REPLACE "." WITH "!"');
+            expect(replace.success).toBe(true);
+            if (!replace.success)
+            {
+                return;
+            }
+            expect(replace.value.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'a!a' });
+
+            const starts = parser.parseExpression('"abc" STARTSWITH "a"');
+            expect(starts.success).toBe(true);
+            if (!starts.success)
+            {
+                return;
+            }
+            expect(starts.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: -1 });
+
+            const ends = parser.parseExpression('"abc" ENDSWITH "c"');
+            expect(ends.success).toBe(true);
+            if (!ends.success)
+            {
+                return;
+            }
+            expect(ends.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: -1 });
+
+            const stringLen = parser.parseExpression('| "abc" |');
+            expect(stringLen.success).toBe(true);
+            if (!stringLen.success)
+            {
+                return;
+            }
+            expect(stringLen.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 3 });
+
+            const arrayLen = parser.parseExpression('| a%[] |');
+            expect(arrayLen.success).toBe(true);
+            if (!arrayLen.success)
+            {
+                return;
+            }
+            expect(arrayLen.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 2 });
+
+            const join = parser.parseExpression('a$[] JOIN ","');
+            expect(join.success).toBe(true);
+            if (!join.success)
+            {
+                return;
+            }
+            expect(join.value.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'x,y' });
+
+            const find = parser.parseExpression('a%[] FIND 2');
+            expect(find.success).toBe(true);
+            if (!find.success)
+            {
+                return;
+            }
+            expect(find.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 2 });
+
+            const indexOf = parser.parseExpression('a%[] INDEXOF 2');
+            expect(indexOf.success).toBe(true);
+            if (!indexOf.success)
+            {
+                return;
+            }
+            expect(indexOf.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 2 });
+
+            const includes = parser.parseExpression('a%[] INCLUDES 2');
+            expect(includes.success).toBe(true);
+            if (!includes.success)
+            {
+                return;
+            }
+            expect(includes.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: -1 });
         });
 
         it('should return failure on unterminated bracket access', () =>

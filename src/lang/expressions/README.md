@@ -56,17 +56,17 @@ Handles all unary operators and single-argument functions.
 - `REAL` and `IMAG` require complex operands
 - Results preserve type when possible (e.g., `ABS` of integer may return integer)
 
-### FunctionCallExpression
+### Infix and Multi-part Operator Expressions
 
-**Location**: `src/lang/expressions/function-call-expression.ts`
+**Location**: `src/lang/expressions/operators/`
 
-Handles multi-argument function calls.
+Handles non-arithmetic infix operators and multi-keyword operator forms that are defined by the language reference.
 
-**Functions**:
-- **String**: `LEFT`, `RIGHT`, `MID`, `INSTR`, `REPLACE`, `STARTSWITH`, `ENDSWITH`
-- **Array**: `FIND`, `JOIN`, `INDEXOF`, `INCLUDES`, `SIZE`, `EMPTY`, `LEN`
-
-**Evaluation**: Validates argument count and delegates to helper evaluators.
+**Examples**:
+- **Array search operators**: `array[] FIND value`, `array[] INDEXOF value`, `array[] INCLUDES value`
+- **String/array operators**: `string$ LEFT n%`, `string$ RIGHT n%`, `string$ MID start% TO end%`, `string$ INSTR substring$ [FROM start%]`, `string$ REPLACE old$ WITH new$`, `array$[] JOIN separator$`
+- **String prefix/suffix operators**: `string$ STARTSWITH prefix$`, `string$ ENDSWITH suffix$`
+- **Absolute value / length / norm operator**: `| x |`
 
 ## Nullary Expressions
 

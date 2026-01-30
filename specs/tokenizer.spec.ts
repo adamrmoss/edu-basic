@@ -375,7 +375,7 @@ describe('Tokenizer', () =>
 
         it('should recognize string manipulation keywords', () =>
         {
-            const keywords = 'ASC CHR UCASE LCASE LTRIM RTRIM TRIM REVERSE LEN LEFT RIGHT MID INSTR'.split(' ');
+            const keywords = 'ASC CHR UCASE LCASE LTRIM RTRIM TRIM REVERSE LEFT RIGHT MID INSTR'.split(' ');
             const tokens = tokenizer.tokenize(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>

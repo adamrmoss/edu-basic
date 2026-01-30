@@ -4,11 +4,23 @@ import { Expression } from '../../lang/expressions/expression';
 import { LiteralExpression } from '../../lang/expressions/literal-expression';
 import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../lang/expressions/binary-expression';
 import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../lang/expressions/unary-expression';
-import { FunctionCallExpression, FunctionName } from '../../lang/expressions/function-call-expression';
 import { VariableExpression } from '../../lang/expressions/special/variable-expression';
 import { ParenthesizedExpression } from '../../lang/expressions/special/parenthesized-expression';
 import { BracketAccessExpression } from '../../lang/expressions/special/bracket-access-expression';
 import { NullaryExpression } from '../../lang/expressions/nullary-expression';
+import {
+    ArraySearchExpression,
+    ArraySearchOperator,
+    BarsExpression,
+    EndsWithOperatorExpression,
+    InstrOperatorExpression,
+    JoinOperatorExpression,
+    LeftOperatorExpression,
+    MidOperatorExpression,
+    ReplaceOperatorExpression,
+    RightOperatorExpression,
+    StartsWithOperatorExpression,
+} from '../../lang/expressions/operators';
 import { EduBasicType } from '../../lang/edu-basic-value';
 import { Constant } from '../../lang/expressions/helpers/constant-evaluator';
 import { ParseResult, success, failure } from './parser/parse-result';
@@ -163,7 +175,7 @@ export class ExpressionParserService
 
     private comparison(): ParseResult<Expression>
     {
-        const exprResult = this.addSub();
+        const exprResult = this.stringOperators();
         
         if (!exprResult.success)
         {
@@ -208,6 +220,199 @@ export class ExpressionParserService
                 return rightResult;
             }
             expr = new BinaryExpression(expr, operator, rightResult.value, BinaryOperatorCategory.Comparison);
+        }
+
+        return success(expr);
+    }
+
+    private stringOperators(): ParseResult<Expression>
+    {
+        const exprResult = this.arraySearchOperators();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
+
+        while (this.matchKeyword('LEFT') ||
+               this.matchKeyword('RIGHT') ||
+               this.matchKeyword('MID') ||
+               this.matchKeyword('INSTR') ||
+               this.matchKeyword('REPLACE') ||
+               this.matchKeyword('JOIN') ||
+               this.matchKeyword('STARTSWITH') ||
+               this.matchKeyword('ENDSWITH'))
+        {
+            const operatorToken = this.previous().value;
+
+            switch (operatorToken)
+            {
+                case 'LEFT':
+                {
+                    const lengthResult = this.arraySearchOperators();
+                    if (!lengthResult.success)
+                    {
+                        return lengthResult;
+                    }
+                    expr = new LeftOperatorExpression(expr, lengthResult.value);
+                    break;
+                }
+                case 'RIGHT':
+                {
+                    const lengthResult = this.arraySearchOperators();
+                    if (!lengthResult.success)
+                    {
+                        return lengthResult;
+                    }
+                    expr = new RightOperatorExpression(expr, lengthResult.value);
+                    break;
+                }
+                case 'MID':
+                {
+                    const startResult = this.arraySearchOperators();
+                    if (!startResult.success)
+                    {
+                        return startResult;
+                    }
+
+                    if (!this.matchKeyword('TO'))
+                    {
+                        const actualToken = this.isAtEnd() ? 'end of input' : this.peek().value;
+                        return failure(`Expected TO after MID start expression, got: ${actualToken}`);
+                    }
+
+                    const endResult = this.arraySearchOperators();
+                    if (!endResult.success)
+                    {
+                        return endResult;
+                    }
+
+                    expr = new MidOperatorExpression(expr, startResult.value, endResult.value);
+                    break;
+                }
+                case 'INSTR':
+                {
+                    const needleResult = this.arraySearchOperators();
+                    if (!needleResult.success)
+                    {
+                        return needleResult;
+                    }
+
+                    let fromExpr: Expression | null = null;
+                    if (this.matchKeyword('FROM'))
+                    {
+                        const fromResult = this.arraySearchOperators();
+                        if (!fromResult.success)
+                        {
+                            return fromResult;
+                        }
+                        fromExpr = fromResult.value;
+                    }
+
+                    expr = new InstrOperatorExpression(expr, needleResult.value, fromExpr);
+                    break;
+                }
+                case 'REPLACE':
+                {
+                    const oldResult = this.arraySearchOperators();
+                    if (!oldResult.success)
+                    {
+                        return oldResult;
+                    }
+
+                    if (!this.matchKeyword('WITH'))
+                    {
+                        const actualToken = this.isAtEnd() ? 'end of input' : this.peek().value;
+                        return failure(`Expected WITH after REPLACE old substring, got: ${actualToken}`);
+                    }
+
+                    const newResult = this.arraySearchOperators();
+                    if (!newResult.success)
+                    {
+                        return newResult;
+                    }
+
+                    expr = new ReplaceOperatorExpression(expr, oldResult.value, newResult.value);
+                    break;
+                }
+                case 'JOIN':
+                {
+                    const separatorResult = this.arraySearchOperators();
+                    if (!separatorResult.success)
+                    {
+                        return separatorResult;
+                    }
+                    expr = new JoinOperatorExpression(expr, separatorResult.value);
+                    break;
+                }
+                case 'STARTSWITH':
+                {
+                    const prefixResult = this.arraySearchOperators();
+                    if (!prefixResult.success)
+                    {
+                        return prefixResult;
+                    }
+                    expr = new StartsWithOperatorExpression(expr, prefixResult.value);
+                    break;
+                }
+                case 'ENDSWITH':
+                {
+                    const suffixResult = this.arraySearchOperators();
+                    if (!suffixResult.success)
+                    {
+                        return suffixResult;
+                    }
+                    expr = new EndsWithOperatorExpression(expr, suffixResult.value);
+                    break;
+                }
+                default:
+                    return failure(`Unknown string operator: ${operatorToken}`);
+            }
+        }
+
+        return success(expr);
+    }
+
+    private arraySearchOperators(): ParseResult<Expression>
+    {
+        const exprResult = this.addSub();
+        
+        if (!exprResult.success)
+        {
+            return exprResult;
+        }
+
+        let expr = exprResult.value;
+
+        while (this.matchKeyword('FIND') || this.matchKeyword('INDEXOF') || this.matchKeyword('INCLUDES'))
+        {
+            const operatorToken = this.previous().value;
+            let operator: ArraySearchOperator;
+
+            switch (operatorToken)
+            {
+                case 'FIND':
+                    operator = ArraySearchOperator.Find;
+                    break;
+                case 'INDEXOF':
+                    operator = ArraySearchOperator.IndexOf;
+                    break;
+                case 'INCLUDES':
+                    operator = ArraySearchOperator.Includes;
+                    break;
+                default:
+                    return failure(`Unknown array search operator: ${operatorToken}`);
+            }
+
+            const rightResult = this.addSub();
+            if (!rightResult.success)
+            {
+                return rightResult;
+            }
+
+            expr = new ArraySearchExpression(expr, operator, rightResult.value);
         }
 
         return success(expr);
@@ -355,8 +560,8 @@ export class ExpressionParserService
         }
         else if (this.check(TokenType.Identifier))
         {
-            const constantName = this.peek().value;
-            const constant = this.parseConstant(constantName);
+            const identifier = this.peek().value;
+            const constant = this.parseConstant(identifier);
             if (constant !== null)
             {
                 this.advance();
@@ -364,17 +569,8 @@ export class ExpressionParserService
             }
             else
             {
-                const functionName = this.peek().value;
-                const parsedFunction = this.parseFunctionCall(functionName);
-                if (parsedFunction !== null)
-                {
-                    expr = parsedFunction;
-                }
-                else if (this.match(TokenType.Identifier))
-                {
-                    const name = this.previous().value;
-                    expr = new VariableExpression(name);
-                }
+                this.advance();
+                expr = new VariableExpression(identifier);
             }
         }
         else if (this.check(TokenType.Keyword))
@@ -409,6 +605,22 @@ export class ExpressionParserService
                     expr = new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category);
                 }
             }
+        }
+        else if (this.match(TokenType.Pipe))
+        {
+            const insideResult = this.expression();
+            if (!insideResult.success)
+            {
+                return insideResult;
+            }
+
+            const rightPipeResult = this.consume(TokenType.Pipe, " '|' after | expression");
+            if (!rightPipeResult.success)
+            {
+                return rightPipeResult;
+            }
+
+            expr = new BarsExpression(insideResult.value);
         }
         else if (this.match(TokenType.LeftParen))
         {
@@ -511,108 +723,6 @@ export class ExpressionParserService
             default:
                 return null;
         }
-    }
-
-    private parseFunctionCall(name: string): FunctionCallExpression | null
-    {
-        // Check if it's a function call (identifier followed by '(')
-        if (!this.check(TokenType.Identifier) || this.peek().value !== name)
-        {
-            return null;
-        }
-
-        const nextIndex = this.current + 1;
-        if (nextIndex >= this.tokens.length || this.tokens[nextIndex].type !== TokenType.LeftParen)
-        {
-            return null;
-        }
-
-        // Parse function name
-        let functionName: FunctionName | null = null;
-
-        switch (name.toUpperCase())
-        {
-            // String functions (2 args)
-            case 'LEFT':
-            case 'LEFT$':
-                functionName = FunctionName.Left;
-                break;
-            case 'RIGHT':
-            case 'RIGHT$':
-                functionName = FunctionName.Right;
-                break;
-            case 'INSTR':
-                functionName = FunctionName.Instr;
-                break;
-            case 'REPLACE':
-                functionName = FunctionName.Replace;
-                break;
-            case 'STARTSWITH':
-                functionName = FunctionName.Startswith;
-                break;
-            case 'ENDSWITH':
-                functionName = FunctionName.Endswith;
-                break;
-            
-            // String functions (3 args)
-            case 'MID':
-            case 'MID$':
-                functionName = FunctionName.Mid;
-                break;
-            
-            // Array functions (2 args)
-            case 'FIND':
-                functionName = FunctionName.Find;
-                break;
-            case 'INDEXOF':
-                functionName = FunctionName.IndexOf;
-                break;
-            case 'INCLUDES':
-                functionName = FunctionName.Includes;
-                break;
-            case 'JOIN':
-                functionName = FunctionName.Join;
-                break;
-            
-            // Array functions (1 arg)
-            case 'SIZE':
-                functionName = FunctionName.Size;
-                break;
-            case 'EMPTY':
-                functionName = FunctionName.Empty;
-                break;
-            case 'LEN':
-                functionName = FunctionName.Len;
-                break;
-        }
-
-        if (functionName === null)
-        {
-            return null;
-        }
-
-        // Parse arguments
-        this.advance(); // consume function name
-        this.consume(TokenType.LeftParen, `Expected '(' after ${name}`);
-        
-        const args: Expression[] = [];
-        if (!this.check(TokenType.RightParen))
-        {
-            do
-            {
-                const argResult = this.expression();
-                if (!argResult.success)
-                {
-                    return null;
-                }
-                args.push(argResult.value);
-            }
-            while (this.match(TokenType.Comma));
-        }
-        
-        this.consume(TokenType.RightParen, `Expected ')' after ${name} arguments`);
-        
-        return new FunctionCallExpression(functionName, args);
     }
 
     private parseUnaryFunction(keyword: string): { operator: UnaryOperator; category: UnaryOperatorCategory } | null

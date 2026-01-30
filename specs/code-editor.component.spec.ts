@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CodeEditorComponent } from '../src/app/code-editor/code-editor.component';
 import { DiskService } from '../src/app/disk/disk.service';
-import { InterpreterService } from '../src/app/interpreter/interpreter.service';
+import { InterpreterService, InterpreterState } from '../src/app/interpreter/interpreter.service';
 import { ParserService, ParsedLine } from '../src/app/interpreter/parser';
 import { BehaviorSubject } from 'rxjs';
 import { LetStatement } from '../src/lang/statements/variables';
@@ -12,6 +12,7 @@ import { EduBasicType } from '../src/lang/edu-basic-value';
 import { Program } from '../src/lang/program';
 import { ExecutionContext } from '../src/lang/execution-context';
 import { RuntimeExecution } from '../src/lang/runtime-execution';
+import { ExecutionResult } from '../src/lang/statements/statement';
 import { GraphicsService } from '../src/app/interpreter/graphics.service';
 import { AudioService } from '../src/app/interpreter/audio.service';
 import { TabSwitchService } from '../src/app/tab-switch.service';
@@ -26,27 +27,42 @@ describe('CodeEditorComponent', () => {
     let parserService: jest.Mocked<ParserService>;
 
     let programCodeSubject: BehaviorSubject<string>;
+    let runtimeExecution: any;
 
     beforeEach(async () => {
         programCodeSubject = new BehaviorSubject<string>('');
 
         const diskServiceMock = {
             programCode$: programCodeSubject.asObservable(),
-            programCode: ''
+            programCode: '',
+            getProgramCodeFromFile: jest.fn().mockReturnValue('')
         } as any;
 
         const parserServiceMock = {
             parseLine: jest.fn()
         } as any;
 
+        const sharedProgram = new Program();
+        const executionContext = new ExecutionContext();
+
         const interpreterServiceMock = {
             reset: jest.fn(),
-            getSharedProgram: jest.fn().mockReturnValue(new Program()),
-            getExecutionContext: jest.fn().mockReturnValue(new ExecutionContext()),
+            run: jest.fn(),
+            stop: jest.fn(),
+            getSharedProgram: jest.fn().mockReturnValue(sharedProgram),
+            getExecutionContext: jest.fn().mockReturnValue(executionContext),
             getRuntimeExecution: jest.fn(),
             program: null,
-            state: 'idle'
+            state: InterpreterState.Idle
         } as any;
+        interpreterServiceMock.run.mockImplementation(() =>
+        {
+            interpreterServiceMock.state = InterpreterState.Running;
+        });
+        interpreterServiceMock.stop.mockImplementation(() =>
+        {
+            interpreterServiceMock.state = InterpreterState.Idle;
+        });
 
         const graphicsServiceMock = {
             getGraphics: jest.fn()
@@ -66,6 +82,7 @@ describe('CodeEditorComponent', () => {
         } as any;
 
         interpreterServiceMock.getRuntimeExecution.mockReturnValue(runtimeExecutionMock);
+        runtimeExecution = runtimeExecutionMock;
 
         await TestBed.configureTestingModule({
             imports: [CodeEditorComponent],
@@ -91,6 +108,7 @@ describe('CodeEditorComponent', () => {
     afterEach(() => {
         fixture.destroy();
         jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     describe('Component Initialization', () => {
@@ -423,6 +441,115 @@ describe('CodeEditorComponent', () => {
             component.onLinesChange(['']);
 
             expect(component.textEditorRef?.lineNumbers.length).toBeGreaterThanOrEqual(1);
+        });
+    });
+
+    describe('Run Program', () =>
+    {
+        beforeEach(() =>
+        {
+            fixture.detectChanges();
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+        });
+
+        it('should no-op when program code is empty/whitespace', () =>
+        {
+            diskService.getProgramCodeFromFile = jest.fn().mockReturnValue('   \n   ');
+
+            component.onRun();
+
+            expect(interpreterService.reset).not.toHaveBeenCalled();
+            expect(parserService.parseLine).not.toHaveBeenCalled();
+            expect(interpreterService.run).not.toHaveBeenCalled();
+        });
+
+        it('should parse, run, and stop when ExecutionResult.End is reached', () =>
+        {
+            jest.useFakeTimers();
+
+            diskService.getProgramCodeFromFile = jest.fn().mockReturnValue([
+                "' comment",
+                'LET x = 1',
+                'PRINT "A"'
+            ].join('\n'));
+
+            parserService.parseLine.mockImplementation((lineNumber: number, sourceText: string) =>
+            {
+                if (sourceText.startsWith('LET'))
+                {
+                    return success({
+                        lineNumber,
+                        sourceText,
+                        statement: new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 1 })),
+                        hasError: false
+                    } as ParsedLine);
+                }
+
+                return success({
+                    lineNumber,
+                    sourceText,
+                    statement: new PrintStatement([new LiteralExpression({ type: EduBasicType.String, value: 'A' })]),
+                    hasError: false
+                } as ParsedLine);
+            });
+
+            runtimeExecution.executeStep.mockReturnValue(ExecutionResult.End);
+
+            const program = interpreterService.getSharedProgram();
+            const clearSpy = jest.spyOn(program, 'clear');
+            const appendSpy = jest.spyOn(program, 'appendLine');
+            const rebuildSpy = jest.spyOn(program, 'rebuildLabelMap');
+
+            component.onRun();
+
+            expect(interpreterService.reset).toHaveBeenCalled();
+            expect(clearSpy).toHaveBeenCalled();
+            expect(appendSpy).toHaveBeenCalledTimes(2);
+            expect(rebuildSpy).toHaveBeenCalled();
+
+            expect(interpreterService.run).toHaveBeenCalled();
+
+            jest.advanceTimersByTime(10);
+
+            expect(runtimeExecution.executeStep).toHaveBeenCalled();
+            expect(interpreterService.stop).toHaveBeenCalled();
+        });
+
+        it('should return early and log when parsing fails', () =>
+        {
+            diskService.getProgramCodeFromFile = jest.fn().mockReturnValue('PRINT 1');
+            parserService.parseLine.mockReturnValue(failure('bad parse'));
+
+            component.onRun();
+
+            expect(interpreterService.reset).toHaveBeenCalled();
+            expect(interpreterService.run).not.toHaveBeenCalled();
+            expect(interpreterService.stop).not.toHaveBeenCalled();
+            expect(console.error).toHaveBeenCalled();
+        });
+
+        it('should stop when runtime execution throws', () =>
+        {
+            jest.useFakeTimers();
+
+            diskService.getProgramCodeFromFile = jest.fn().mockReturnValue('PRINT "A"');
+            parserService.parseLine.mockReturnValue(success({
+                lineNumber: 0,
+                sourceText: 'PRINT "A"',
+                statement: new PrintStatement([new LiteralExpression({ type: EduBasicType.String, value: 'A' })]),
+                hasError: false
+            } as ParsedLine));
+
+            runtimeExecution.executeStep.mockImplementation(() =>
+            {
+                throw new Error('boom');
+            });
+
+            component.onRun();
+            jest.advanceTimersByTime(10);
+
+            expect(console.error).toHaveBeenCalledWith('Error executing step:', expect.any(Error));
+            expect(interpreterService.stop).toHaveBeenCalled();
         });
     });
 

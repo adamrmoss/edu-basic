@@ -549,7 +549,7 @@ export class DiskComponent implements OnInit, OnDestroy
             targetPath = this.getParentPath(node.path);
         }
 
-        if (this.isDescendantOf(this.draggedNode.path, targetPath))
+        if (targetPath === this.draggedNode.path || this.isDescendantOf(targetPath, this.draggedNode.path))
         {
             return;
         }
@@ -578,7 +578,7 @@ export class DiskComponent implements OnInit, OnDestroy
             targetPath = this.getParentPath(targetNode.path);
         }
 
-        if (this.isDescendantOf(this.draggedNode.path, targetPath))
+        if (targetPath === this.draggedNode.path || this.isDescendantOf(targetPath, this.draggedNode.path))
         {
             return;
         }

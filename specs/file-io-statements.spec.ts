@@ -513,6 +513,37 @@ describe('File I/O Statements', () => {
                 new LineInputStatement('line$', handleExpr).execute(context, graphics, audio, program, runtime);
             }).toThrow('LINE INPUT: end of file');
         });
+
+        it('LINE INPUT should validate handle and destination variable types', () =>
+        {
+            fileSystem.clear();
+
+            expect(() =>
+            {
+                new LineInputStatement('line$', new LiteralExpression({ type: EduBasicType.String, value: 'nope' }))
+                    .execute(context, graphics, audio, program, runtime);
+            }).toThrow('LINE INPUT: file handle must be an integer');
+
+            fileSystem.writeFile('one.txt', new TextEncoder().encode('x\n'));
+            const openRead = new OpenStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'one.txt' }),
+                FileMode.Read,
+                'fh%'
+            );
+            openRead.execute(context, graphics, audio, program, runtime);
+
+            const handleExpr = new VariableExpression('fh%');
+            expect(() =>
+            {
+                new LineInputStatement('line%', handleExpr).execute(context, graphics, audio, program, runtime);
+            }).toThrow('LINE INPUT: target variable must be a string');
+        });
+
+        it('LINE INPUT should format toString correctly', () =>
+        {
+            const stmt = new LineInputStatement('line$', new LiteralExpression({ type: EduBasicType.Integer, value: 7 }));
+            expect(stmt.toString()).toBe('LINE INPUT line$ FROM #7');
+        });
     });
 
     describe('LISTDIR/MKDIR/RMDIR/COPY/MOVE/DELETE Statements', () => {
@@ -638,6 +669,36 @@ describe('File I/O Statements', () => {
                 .execute(context, graphics, audio, program, runtime);
 
             expect(fileSystem.readFile('moved.txt')).toBeNull();
+        });
+
+        it('COPY should validate types and error conditions', () =>
+        {
+            const nonString = new CopyStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'x' })
+            );
+            expect(() =>
+            {
+                nonString.execute(context, graphics, audio, program, runtime);
+            }).toThrow('COPY: source and destination must be strings');
+
+            const missing = new CopyStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'missing.txt' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'dst.txt' })
+            );
+            expect(() =>
+            {
+                missing.execute(context, graphics, audio, program, runtime);
+            }).toThrow('COPY: file not found: missing.txt');
+        });
+
+        it('COPY should format toString correctly', () =>
+        {
+            const stmt = new CopyStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'a.txt' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'b.txt' })
+            );
+            expect(stmt.toString()).toBe('COPY "a.txt" TO "b.txt"');
         });
 
         it('MOVE should validate types and error conditions', () =>

@@ -174,5 +174,52 @@ describe('TextEditorComponent', () =>
         expect(removeDocSpy).toHaveBeenCalledWith('mousemove', expect.any(Function));
         expect(removeDocSpy).toHaveBeenCalledWith('mouseup', expect.any(Function));
     });
+
+    it('mouse move selection clamps y and no-ops when visual index cannot map', () =>
+    {
+        const component = createComponent();
+        component.lines = ['a', 'b', 'c'];
+
+        const textarea = document.createElement('textarea');
+        textarea.value = 'a\nb\nc';
+        (component as any).textareaElement = textarea;
+
+        const selectionSpy = jest.spyOn(textarea, 'setSelectionRange');
+        const emitSpy = jest.spyOn(component.lineSelectionChange, 'emit');
+
+        const lineDiv = document.createElement('div');
+        jest.spyOn(lineDiv, 'getBoundingClientRect').mockReturnValue({ top: 0 } as any);
+        Object.defineProperty(lineDiv, 'scrollTop', { value: 0, writable: true });
+        Object.defineProperty(lineDiv, 'scrollHeight', { value: 60 });
+        (component as any).lineNumbersElement = lineDiv;
+
+        component.lineNumbers = [1, 2, 3];
+        component.isDragging = true;
+        (component as any).mouseDownLineIndex = 1;
+
+        (component as any).onMouseMove({ clientY: -10 } as any);
+        expect(selectionSpy).toHaveBeenCalled();
+        expect(emitSpy).toHaveBeenCalled();
+
+        component.lineNumbers = [-1, -1, -1];
+        selectionSpy.mockClear();
+        emitSpy.mockClear();
+
+        (component as any).onMouseMove({ clientY: 10 } as any);
+        expect(selectionSpy).not.toHaveBeenCalled();
+        expect(emitSpy).not.toHaveBeenCalled();
+    });
+
+    it('mouse up stops dragging', () =>
+    {
+        const component = createComponent();
+        component.isDragging = true;
+        (component as any).mouseDownLineIndex = 0;
+
+        (component as any).onMouseUp({} as any);
+
+        expect(component.isDragging).toBe(false);
+        expect((component as any).mouseDownLineIndex).toBeNull();
+    });
 });
 

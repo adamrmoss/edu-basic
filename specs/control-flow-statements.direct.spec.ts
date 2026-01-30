@@ -2,7 +2,7 @@ import { ExecutionContext } from '../src/lang/execution-context';
 import { EduBasicType } from '../src/lang/edu-basic-value';
 import { LiteralExpression } from '../src/lang/expressions/literal-expression';
 import { Program } from '../src/lang/program';
-import { ExecutionResult } from '../src/lang/statements/statement';
+import { ExecutionResult, Statement, ExecutionStatus } from '../src/lang/statements/statement';
 import { Audio } from '../src/lang/audio';
 import { Graphics } from '../src/lang/graphics';
 import {
@@ -10,14 +10,28 @@ import {
     ContinueTarget,
     DoLoopStatement,
     DoLoopVariant,
+    ElseStatement,
     ElseIfStatement,
+    EndStatement,
+    EndType,
+    ExitStatement,
+    ExitTarget,
     GosubStatement,
     GotoStatement,
     ForStatement,
+    IfStatement,
+    LoopStatement,
+    NextStatement,
+    SelectCaseStatement,
+    CaseMatchType,
     SubStatement,
+    TryStatement,
     ThrowStatement,
     UendStatement,
-    UntilStatement
+    UnlessStatement,
+    UntilStatement,
+    WendStatement,
+    WhileStatement
 } from '../src/lang/statements/control-flow';
 
 describe('Control flow statements (direct execution)', () =>
@@ -503,6 +517,483 @@ describe('Control flow statements (direct execution)', () =>
         {
             stmt.execute(context, graphics, audio, program, runtime);
         }).toThrow('boom');
+    });
+
+    it('ElseStatement should validate control frame and handle branchTaken', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = {} as any;
+
+        const stmt = new ElseStatement();
+        expect(stmt.getIndentAdjustment()).toBe(0);
+        expect(stmt.toString()).toBe('ELSE');
+
+        const badRuntime = { getCurrentControlFrame: () => null } as any;
+        expect(() =>
+        {
+            stmt.execute(context, graphics, audio, program, badRuntime);
+        }).toThrow('ELSE without IF/UNLESS');
+
+        const takenFrame = { type: 'if', branchTaken: true, endLine: 123 };
+        const takenRuntime = { getCurrentControlFrame: () => takenFrame } as any;
+        expect(stmt.execute(context, graphics, audio, program, takenRuntime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 123 });
+
+        const openFrame = { type: 'if', branchTaken: false, endLine: 50 };
+        const openRuntime = { getCurrentControlFrame: () => openFrame } as any;
+        expect(stmt.execute(context, graphics, audio, program, openRuntime)).toEqual({ result: ExecutionResult.Continue });
+        expect(openFrame.branchTaken).toBe(true);
+    });
+
+    it('ExitStatement should return, jump, or continue depending on target and frames', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = {} as any;
+
+        const exitSub = new ExitStatement(ExitTarget.Sub);
+        expect(exitSub.toString()).toBe('EXIT SUB');
+        expect(exitSub.execute(context, graphics, audio, program, {} as any)).toEqual({ result: ExecutionResult.Return });
+
+        const noFrame = new ExitStatement(ExitTarget.For);
+        expect(noFrame.toString()).toBe('EXIT FOR');
+        expect(noFrame.execute(context, graphics, audio, program, { findControlFrame: () => null } as any)).toEqual({ result: ExecutionResult.Continue });
+
+        const frames: any[] = [
+            { type: 'if' },
+            { type: 'for', endLine: 10 }
+        ];
+        const runtime = {
+            findControlFrame: (type: string) => frames.find((f) => f.type === type) ?? null,
+            getCurrentControlFrame: () => frames[frames.length - 1] ?? null,
+            popControlFrame: () => frames.pop()
+        } as any;
+
+        const exitFor = new ExitStatement(ExitTarget.For);
+        expect(exitFor.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 11 });
+
+        const framesNoEnd: any[] = [{ type: 'for' }];
+        const runtimeNoEnd = {
+            findControlFrame: () => framesNoEnd[0],
+            getCurrentControlFrame: () => framesNoEnd[framesNoEnd.length - 1] ?? null,
+            popControlFrame: () => framesNoEnd.pop()
+        } as any;
+        expect(exitFor.execute(context, graphics, audio, program, runtimeNoEnd)).toEqual({ result: ExecutionResult.Continue });
+
+        const unknown = new ExitStatement(999 as any);
+        expect(unknown.toString()).toBe('EXIT');
+        expect(unknown.execute(context, graphics, audio, program, {} as any)).toEqual({ result: ExecutionResult.Continue });
+    });
+
+    it('NextStatement should update loop variable and format toString', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = {} as any;
+
+        const withVar = new NextStatement('i%');
+        const withoutVar = new NextStatement(null);
+        expect(withVar.getIndentAdjustment()).toBe(-1);
+        expect(withVar.toString()).toBe('NEXT i%');
+        expect(withoutVar.toString()).toBe('NEXT');
+
+        context.setVariable('i%', { type: EduBasicType.Integer, value: 4 }, false);
+        const frame = { type: 'for', loopVariable: 'i%', loopEndValue: 5, loopStepValue: 1, startLine: 10 };
+        const runtime = { findControlFrame: () => frame } as any;
+
+        const cont = withVar.execute(context, graphics, audio, program, runtime);
+        expect(cont).toEqual({ result: ExecutionResult.Goto, gotoTarget: 11 });
+        expect(context.getVariable('i%')).toEqual({ type: EduBasicType.Integer, value: 5 });
+
+        const stop = withVar.execute(context, graphics, audio, program, runtime);
+        expect(stop).toEqual({ result: ExecutionResult.Continue });
+    });
+
+    it('LoopStatement should validate DO frame and handle DO variants', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+
+        const loop = new LoopStatement();
+        expect(loop.getIndentAdjustment()).toBe(-1);
+        expect(loop.toString()).toBe('LOOP');
+
+        expect(() =>
+        {
+            loop.execute(context, graphics, audio, {} as any, { getCurrentControlFrame: () => null } as any);
+        }).toThrow('LOOP without DO');
+
+        const doLoopStmt = new DoLoopStatement(DoLoopVariant.DoLoop, null, []);
+        const program = { getStatement: () => doLoopStmt } as any;
+        const runtime = { getCurrentControlFrame: () => ({ type: 'do', startLine: 5 }), popControlFrame: jest.fn() } as any;
+        expect(loop.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 6 });
+
+        const missingCond = new DoLoopStatement(DoLoopVariant.DoLoopWhile, null, []);
+        const missingProgram = { getStatement: () => missingCond } as any;
+        expect(() =>
+        {
+            loop.execute(context, graphics, audio, missingProgram, runtime);
+        }).toThrow('LOOP condition is missing');
+
+        const badCond = new DoLoopStatement(
+            DoLoopVariant.DoLoopWhile,
+            new LiteralExpression({ type: EduBasicType.String, value: 'nope' }),
+            []
+        );
+        const badProgram = { getStatement: () => badCond } as any;
+        expect(() =>
+        {
+            loop.execute(context, graphics, audio, badProgram, runtime);
+        }).toThrow('LOOP condition must evaluate to an integer');
+
+        const condFalse = new DoLoopStatement(
+            DoLoopVariant.DoLoopWhile,
+            new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+            []
+        );
+        const condFalseProgram = { getStatement: () => condFalse } as any;
+        const popSpy = jest.fn();
+        const runtimeWithPop = { getCurrentControlFrame: () => ({ type: 'do', startLine: 1 }), popControlFrame: popSpy } as any;
+        expect(loop.execute(context, graphics, audio, condFalseProgram, runtimeWithPop)).toEqual({ result: ExecutionResult.Continue });
+        expect(popSpy).toHaveBeenCalled();
+    });
+
+    it('UendStatement should validate frame and UNTIL condition type', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+
+        const stmt = new UendStatement();
+        expect(stmt.getIndentAdjustment()).toBe(-1);
+        expect(stmt.toString()).toBe('UEND');
+
+        expect(() =>
+        {
+            stmt.execute(context, graphics, audio, {} as any, { getCurrentControlFrame: () => null } as any);
+        }).toThrow('UEND without UNTIL');
+
+        const until = new UntilStatement(new LiteralExpression({ type: EduBasicType.String, value: 'nope' }), []);
+        const program = { getStatement: () => until } as any;
+        const runtime = { getCurrentControlFrame: () => ({ type: 'while', startLine: 0 }), popControlFrame: jest.fn() } as any;
+        expect(() =>
+        {
+            stmt.execute(context, graphics, audio, program, runtime);
+        }).toThrow('UNTIL condition must evaluate to an integer');
+    });
+
+    it('WendStatement should loop while condition is true', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+
+        const stmt = new WendStatement();
+        expect(stmt.getIndentAdjustment()).toBe(-1);
+        expect(stmt.toString()).toBe('WEND');
+
+        expect(() =>
+        {
+            stmt.execute(context, graphics, audio, {} as any, { getCurrentControlFrame: () => null } as any);
+        }).toThrow('WEND without WHILE');
+
+        const whileStmt = new WhileStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), []);
+        const program = { getStatement: () => whileStmt } as any;
+        const popSpy = jest.fn();
+        const runtime = {
+            getCurrentControlFrame: () => ({ type: 'while', startLine: 0 }),
+            popControlFrame: popSpy
+        } as any;
+
+        expect(stmt.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 1 });
+
+        const whileStop = new WhileStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), []);
+        const programStop = { getStatement: () => whileStop } as any;
+        expect(stmt.execute(context, graphics, audio, programStop, runtime)).toEqual({ result: ExecutionResult.Continue });
+        expect(popSpy).toHaveBeenCalled();
+    });
+
+    it('TryStatement should execute body, format toString, and support private findEndTry helper', () =>
+    {
+        class ReturnStatusStatement extends Statement
+        {
+            public constructor(private readonly status: ExecutionStatus, private readonly repr: string)
+            {
+                super();
+            }
+
+            public override execute(
+                context: ExecutionContext,
+                graphics: Graphics,
+                audio: Audio,
+                program: Program,
+                runtime: any
+            ): ExecutionStatus
+            {
+                return this.status;
+            }
+
+            public override toString(): string
+            {
+                return this.repr;
+            }
+        }
+
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = new Program();
+        const runtime = {} as any;
+
+        const endNow = new ReturnStatusStatement({ result: ExecutionResult.End }, 'ENDNOW');
+        const tryStmt = new TryStatement([endNow], [{ variableName: 'e$', body: [endNow] }], [endNow]);
+
+        expect(tryStmt.getIndentAdjustment()).toBe(1);
+        expect(tryStmt.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.End });
+
+        const s = tryStmt.toString();
+        expect(s).toContain('TRY');
+        expect(s).toContain('CATCH e$');
+        expect(s).toContain('FINALLY');
+        expect(s).toContain('END TRY');
+
+        const empty = new TryStatement([], [], null);
+        expect(empty.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
+
+        const endTryMarker = new ReturnStatusStatement({ result: ExecutionResult.Continue }, 'END TRY');
+        program.appendLine(new ReturnStatusStatement({ result: ExecutionResult.Continue }, 'NOPE'));
+        program.appendLine(endTryMarker);
+        expect((tryStmt as any).findEndTry(program, 0)).toBe(1);
+    });
+
+    it('UnlessStatement should validate condition and find ELSE while skipping nested blocks', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = new Program();
+
+        const bad = new UnlessStatement(new LiteralExpression({ type: EduBasicType.String, value: 'nope' }), [], null);
+        expect(bad.getIndentAdjustment()).toBe(1);
+        expect(bad.toString()).toBe('UNLESS "nope" THEN');
+        expect(() =>
+        {
+            bad.execute(context, graphics, audio, program, { findMatchingEndUnless: () => 0 } as any);
+        }).toThrow('UNLESS condition must evaluate to an integer');
+
+        const missingEnd = new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null);
+        expect(() =>
+        {
+            missingEnd.execute(context, graphics, audio, program, { findMatchingEndUnless: () => undefined } as any);
+        }).toThrow('UNLESS: missing END UNLESS');
+
+        const runtime = {
+            findMatchingEndUnless: () => 7,
+            pushControlFrame: jest.fn()
+        } as any;
+
+        const taken = new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), [], null);
+        context.setProgramCounter(0);
+        expect(taken.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
+        expect(runtime.pushControlFrame).toHaveBeenCalled();
+
+        const elseStmt = new ElseStatement();
+        program.appendLine(new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null));
+        program.appendLine(new IfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null));
+        program.appendLine(new ElseStatement());
+        program.appendLine(new EndStatement(EndType.If));
+        program.appendLine(new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null));
+        program.appendLine(new EndStatement(EndType.Unless));
+        program.appendLine(elseStmt);
+        program.appendLine(new EndStatement(EndType.Unless));
+
+        const notTaken = new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null);
+        const status = notTaken.execute(context, graphics, audio, program, runtime);
+        expect(status).toEqual({ result: ExecutionResult.Goto, gotoTarget: 6 });
+    });
+
+    it('SelectCaseStatement should match value/range/relational/else and format toString', () =>
+    {
+        class SetIntStatement extends Statement
+        {
+            public constructor(private readonly name: string, private readonly value: number)
+            {
+                super();
+            }
+
+            public override execute(
+                context: ExecutionContext,
+                graphics: Graphics,
+                audio: Audio,
+                program: Program,
+                runtime: any
+            ): ExecutionStatus
+            {
+                context.setVariable(this.name, { type: EduBasicType.Integer, value: this.value }, false);
+                return { result: ExecutionResult.Continue };
+            }
+
+            public override toString(): string
+            {
+                return `LET ${this.name} = ${this.value}`;
+            }
+        }
+
+        class EndNowStatement extends Statement
+        {
+            public override execute(): ExecutionStatus
+            {
+                return { result: ExecutionResult.End };
+            }
+
+            public override toString(): string
+            {
+                return 'ENDNOW';
+            }
+        }
+
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = new Program();
+        const runtime = {} as any;
+
+        const valueMatch = new SelectCaseStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+            [
+                {
+                    matchType: CaseMatchType.Value,
+                    values: [
+                        new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                        new LiteralExpression({ type: EduBasicType.Integer, value: 5 })
+                    ],
+                    statements: [new SetIntStatement('hit%', 1)]
+                }
+            ]
+        );
+        expect(valueMatch.getIndentAdjustment()).toBe(1);
+        expect(valueMatch.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
+        expect(context.getVariable('hit%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+
+        const earlyReturn = new SelectCaseStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+            [
+                {
+                    matchType: CaseMatchType.Value,
+                    values: [new LiteralExpression({ type: EduBasicType.Integer, value: 5 })],
+                    statements: [new EndNowStatement()]
+                }
+            ]
+        );
+        expect(earlyReturn.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.End });
+
+        const rangeMatch = new SelectCaseStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+            [
+                {
+                    matchType: CaseMatchType.Range,
+                    rangeStart: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+                    rangeEnd: new LiteralExpression({ type: EduBasicType.Integer, value: 7 }),
+                    statements: [new SetIntStatement('range%', 1)]
+                }
+            ]
+        );
+        rangeMatch.execute(context, graphics, audio, program, runtime);
+        expect(context.getVariable('range%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+
+        const relationalMatch = new SelectCaseStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+            [
+                {
+                    matchType: CaseMatchType.Relational,
+                    relationalOp: '>=',
+                    relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+                    statements: [new SetIntStatement('rel%', 1)]
+                }
+            ]
+        );
+        relationalMatch.execute(context, graphics, audio, program, runtime);
+        expect(context.getVariable('rel%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+
+        const elseMatch = new SelectCaseStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+            [
+                {
+                    matchType: CaseMatchType.Value,
+                    values: [new LiteralExpression({ type: EduBasicType.Integer, value: 1 })],
+                    statements: []
+                },
+                {
+                    matchType: CaseMatchType.Else,
+                    statements: [new SetIntStatement('else%', 1)]
+                }
+            ]
+        );
+        elseMatch.execute(context, graphics, audio, program, runtime);
+        expect(context.getVariable('else%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+
+        expect(() =>
+        {
+            new SelectCaseStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+                [
+                    {
+                        matchType: CaseMatchType.Relational,
+                        relationalOp: '??',
+                        relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                        statements: []
+                    }
+                ]
+            ).execute(context, graphics, audio, program, runtime);
+        }).toThrow('Unknown relational operator: ??');
+
+        const s = new SelectCaseStatement(
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            [
+                {
+                    matchType: CaseMatchType.Value,
+                    values: [new LiteralExpression({ type: EduBasicType.Integer, value: 1 })],
+                    statements: [new SetIntStatement('x%', 1)]
+                },
+                {
+                    matchType: CaseMatchType.Range,
+                    rangeStart: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                    rangeEnd: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+                    statements: []
+                },
+                {
+                    matchType: CaseMatchType.Relational,
+                    relationalOp: '=',
+                    relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                    statements: []
+                },
+                {
+                    matchType: CaseMatchType.Else,
+                    statements: []
+                }
+            ]
+        );
+        const text = s.toString();
+        expect(text).toContain('SELECT CASE');
+        expect(text).toContain('CASE');
+        expect(text).toContain('CASE ELSE');
+        expect(text).toContain('END SELECT');
+
+        const findEnd = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), []);
+        (findEnd as any).indentLevel = 1;
+        const endSelect = new EndStatement(EndType.Select);
+        (endSelect as any).indentLevel = 1;
+        const inner = new EndNowStatement();
+        (inner as any).indentLevel = 1;
+        program.clear();
+        program.appendLine(findEnd);
+        program.appendLine(inner);
+        program.appendLine(endSelect);
+        expect((findEnd as any).findEndSelect(program, 0)).toBe(2);
     });
 });
 

@@ -114,10 +114,24 @@ describe('InterpreterService', () =>
 
         expect(normalizeKey({ key: 'Escape' } as any)).toBe('ESC');
         expect(normalizeKey({ key: 'Enter' } as any)).toBe('ENTER');
+        expect(normalizeKey({ key: 'Backspace' } as any)).toBe('BACKSPACE');
+        expect(normalizeKey({ key: 'Tab' } as any)).toBe('TAB');
         expect(normalizeKey({ key: 'ArrowUp' } as any)).toBe('ARROWUP');
         expect(normalizeKey({ key: 'F1' } as any)).toBe('F1');
         expect(normalizeKey({ key: 'a' } as any)).toBe('a');
+        expect(normalizeKey({ key: 'ArrowLeft' } as any)).toBe('ARROWLEFT');
+        expect(normalizeKey({ key: 'ArrowRight' } as any)).toBe('ARROWRIGHT');
+        expect(normalizeKey({ key: 'Home' } as any)).toBe('HOME');
+        expect(normalizeKey({ key: 'End' } as any)).toBe('END');
+        expect(normalizeKey({ key: 'PageUp' } as any)).toBe('PAGEUP');
         expect(normalizeKey({ key: 'PageDown' } as any)).toBe('PAGEDOWN');
+        expect(normalizeKey({ key: 'Insert' } as any)).toBe('INSERT');
+        expect(normalizeKey({ key: 'Delete' } as any)).toBe('DELETE');
+        expect(normalizeKey({ key: 'Shift' } as any)).toBe('SHIFT');
+        expect(normalizeKey({ key: 'Control' } as any)).toBe('CTRL');
+        expect(normalizeKey({ key: 'Alt' } as any)).toBe('ALT');
+        expect(normalizeKey({ key: 'CapsLock' } as any)).toBe('CAPSLOCK');
+        expect(normalizeKey({ key: ' ' } as any)).toBe(' ');
         expect(normalizeKey({ key: 'Something' } as any)).toBe('SOMETHING');
     });
 
@@ -135,7 +149,15 @@ describe('InterpreterService', () =>
         editable.setAttribute('contenteditable', 'true');
         keyDownHandler({ key: 'a', target: editable } as any);
 
+        const contentEditableProp = document.createElement('div');
+        (contentEditableProp as any).contentEditable = 'true';
+        keyDownHandler({ key: 'a', target: contentEditableProp } as any);
+
         expect(setKeyDownSpy).not.toHaveBeenCalled();
+
+        const explicitFalse = document.createElement('div');
+        explicitFalse.setAttribute('contenteditable', 'false');
+        keyDownHandler({ key: 'b', target: explicitFalse } as any);
 
         keyDownHandler({ key: 'a', target: document.createElement('div') } as any);
         expect(setKeyDownSpy).toHaveBeenCalledWith('a');
