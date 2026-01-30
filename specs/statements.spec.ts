@@ -1172,7 +1172,7 @@ describe('Statement Implementations', () =>
     {
         it('should seed random number generator with explicit seed', () =>
         {
-            const stmt = new RandomizeStatement(12345);
+            const stmt = new RandomizeStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 12345 }));
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
@@ -1188,11 +1188,20 @@ describe('Statement Implementations', () =>
         
         it('should have correct toString representation', () =>
         {
-            const stmt1 = new RandomizeStatement(42);
+            const stmt1 = new RandomizeStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             expect(stmt1.toString()).toBe('RANDOMIZE 42');
             
             const stmt2 = new RandomizeStatement(null);
             expect(stmt2.toString()).toBe('RANDOMIZE');
+        });
+
+        it('should validate seed type at runtime', () =>
+        {
+            const stmt = new RandomizeStatement(new LiteralExpression({ type: EduBasicType.String, value: 'nope' }));
+            expect(() =>
+            {
+                stmt.execute(context, graphics, audio, program, runtime);
+            }).toThrow('RANDOMIZE: seed must be a number');
         });
     });
     

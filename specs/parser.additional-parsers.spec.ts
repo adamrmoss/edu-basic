@@ -227,7 +227,23 @@ describe('ParserService (additional statement parsers)', () =>
             {
                 expect(withSeed.value.hasError).toBe(false);
                 expect(withSeed.value.statement).toBeInstanceOf(RandomizeStatement);
+
+                const stmt = withSeed.value.statement as RandomizeStatement;
+                expect(stmt.toString()).toBe('RANDOMIZE 123');
             }
+        });
+
+        it('should report error for malformed RANDOMIZE seed', () =>
+        {
+            const bad = parser.parseLine(1, 'RANDOMIZE ,');
+            expect(bad.success).toBe(true);
+            if (!bad.success)
+            {
+                return;
+            }
+
+            expect(bad.value.hasError).toBe(true);
+            expect(bad.value.errorMessage).toContain('RANDOMIZE');
         });
 
         it('should parse HELP statement', () =>

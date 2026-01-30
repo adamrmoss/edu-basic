@@ -358,6 +358,38 @@ describe('File I/O Statements', () => {
             expect(context.getVariable('value%')).toEqual({ type: EduBasicType.Integer, value: 123 });
         });
 
+        it('should validate SEEK argument types and clamp negative positions', () =>
+        {
+            const filename = new LiteralExpression({ type: EduBasicType.String, value: 'seek2.bin' });
+            const openWrite = new OpenStatement(filename, FileMode.Overwrite, 'fh%');
+            openWrite.execute(context, graphics, audio, program, runtime);
+
+            const handleExpr = new VariableExpression('fh%');
+
+            const badHandle = new SeekStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'nope' })
+            );
+            expect(() =>
+            {
+                badHandle.execute(context, graphics, audio, program, runtime);
+            }).toThrow('SEEK: file handle must be an integer');
+
+            const badPos = new SeekStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'nope' }),
+                handleExpr
+            );
+            expect(() =>
+            {
+                badPos.execute(context, graphics, audio, program, runtime);
+            }).toThrow('SEEK: position must be a number');
+
+            const seekSpy = jest.spyOn(fileSystem, 'seek');
+            const clamp = new SeekStatement(new LiteralExpression({ type: EduBasicType.Integer, value: -5 }), handleExpr);
+            clamp.execute(context, graphics, audio, program, runtime);
+            expect(seekSpy).toHaveBeenCalledWith(expect.any(Number), 0);
+        });
+
         it('should allow seeking past EOF for writable handles', () => {
             const filename = new LiteralExpression({ type: EduBasicType.String, value: 'seek.bin' });
             const openWrite = new OpenStatement(filename, FileMode.Overwrite, 'fh%');
@@ -377,6 +409,82 @@ describe('File I/O Statements', () => {
             const data = fileSystem.readFile('seek.bin');
             expect(data).not.toBeNull();
             expect(data!.length).toBe(14);
+        });
+
+        it('should read multiple scalar types from a file handle', () =>
+        {
+            const filename = new LiteralExpression({ type: EduBasicType.String, value: 'types.bin' });
+            const openWrite = new OpenStatement(filename, FileMode.Overwrite, 'fh%');
+            openWrite.execute(context, graphics, audio, program, runtime);
+
+            const handleExpr = new VariableExpression('fh%');
+
+            new WriteFileStatement(new LiteralExpression({ type: EduBasicType.Real, value: 3.25 }), handleExpr)
+                .execute(context, graphics, audio, program, runtime);
+            new WriteFileStatement(new LiteralExpression({ type: EduBasicType.String, value: 'hi' }), handleExpr)
+                .execute(context, graphics, audio, program, runtime);
+            new WriteFileStatement(new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: -2 } }), handleExpr)
+                .execute(context, graphics, audio, program, runtime);
+
+            new CloseStatement(handleExpr).execute(context, graphics, audio, program, runtime);
+
+            const openRead = new OpenStatement(filename, FileMode.Read, 'rh%');
+            openRead.execute(context, graphics, audio, program, runtime);
+
+            const readHandleExpr = new VariableExpression('rh%');
+
+            new ReadFileStatement('r#', readHandleExpr).execute(context, graphics, audio, program, runtime);
+            expect(context.getVariable('r#')).toEqual({ type: EduBasicType.Real, value: 3.25 });
+
+            new ReadFileStatement('s$', readHandleExpr).execute(context, graphics, audio, program, runtime);
+            expect(context.getVariable('s$')).toEqual({ type: EduBasicType.String, value: 'hi' });
+
+            new ReadFileStatement('z&', readHandleExpr).execute(context, graphics, audio, program, runtime);
+            expect(context.getVariable('z&')).toEqual({ type: EduBasicType.Complex, value: { real: 1, imaginary: -2 } });
+        });
+
+        it('should throw on READ end-of-file and invalid target types', () =>
+        {
+            fileSystem.writeFile('empty.bin', new Uint8Array(0));
+
+            const filename = new LiteralExpression({ type: EduBasicType.String, value: 'empty.bin' });
+            const openRead = new OpenStatement(filename, FileMode.Read, 'fh%');
+            openRead.execute(context, graphics, audio, program, runtime);
+
+            const handleExpr = new VariableExpression('fh%');
+
+            expect(() =>
+            {
+                new ReadFileStatement('x%', handleExpr).execute(context, graphics, audio, program, runtime);
+            }).toThrow('READ: end of file');
+
+            const badHandle = new ReadFileStatement('x%', new LiteralExpression({ type: EduBasicType.String, value: 'nope' }));
+            expect(() =>
+            {
+                badHandle.execute(context, graphics, audio, program, runtime);
+            }).toThrow('READ: file handle must be an integer');
+
+            const badTarget = new ReadFileStatement('s', handleExpr);
+            expect(() =>
+            {
+                badTarget.execute(context, graphics, audio, program, runtime);
+            }).toThrow('READ: cannot read STRUCTURE values');
+        });
+
+        it('should throw when reading into an array variable that is not an array', () =>
+        {
+            fileSystem.writeFile('ints.bin', new Uint8Array(0));
+
+            const filename = new LiteralExpression({ type: EduBasicType.String, value: 'ints.bin' });
+            const openRead = new OpenStatement(filename, FileMode.Read, 'fh%');
+            openRead.execute(context, graphics, audio, program, runtime);
+
+            context.setVariable('a%[]', { type: EduBasicType.Integer, value: 0 } as any, false);
+            const handleExpr = new VariableExpression('fh%');
+            expect(() =>
+            {
+                new ReadFileStatement('a%[]', handleExpr).execute(context, graphics, audio, program, runtime);
+            }).toThrow('READ: a%[] is not an array');
         });
 
         it('should read text lines (including newline) using LINE INPUT', () => {
@@ -411,6 +519,33 @@ describe('File I/O Statements', () => {
             expect(fileSystem.directoryExists('temp')).toBe(false);
         });
 
+        it('should throw for non-string MKDIR path', () =>
+        {
+            const mkdir = new MkdirStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }));
+            expect(() =>
+            {
+                mkdir.execute(context, graphics, audio, program, runtime);
+            }).toThrow('MKDIR: path must be a string');
+        });
+
+        it('should throw for non-string RMDIR path', () =>
+        {
+            const rmdir = new RmdirStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }));
+            expect(() =>
+            {
+                rmdir.execute(context, graphics, audio, program, runtime);
+            }).toThrow('RMDIR: path must be a string');
+        });
+
+        it('should throw when RMDIR cannot remove a directory', () =>
+        {
+            const rmdir = new RmdirStatement(new LiteralExpression({ type: EduBasicType.String, value: 'missing-dir' }));
+            expect(() =>
+            {
+                rmdir.execute(context, graphics, audio, program, runtime);
+            }).toThrow('RMDIR: could not remove directory: missing-dir');
+        });
+
         it('should list directory entries into a string array', () => {
             fileSystem.createDirectory('dir');
             fileSystem.writeFile('dir/a.txt', new Uint8Array([1]));
@@ -424,10 +559,54 @@ describe('File I/O Statements', () => {
 
             const value = context.getVariable('files$[]');
             expect(value.type).toBe(EduBasicType.Array);
+            if (value.type !== EduBasicType.Array)
+            {
+                return;
+            }
             expect(value.elementType).toBe(EduBasicType.String);
 
-            const entries = value.value.map(v => v.value);
+            const entries = value.value.map((v) => v.value);
             expect(entries).toEqual(expect.arrayContaining(['a.txt', 'sub']));
+        });
+
+        it('LISTDIR should validate destination and path, and reject missing directories', () =>
+        {
+            const badDest = new ListdirStatement(
+                'files$',
+                new LiteralExpression({ type: EduBasicType.String, value: '.' })
+            );
+            expect(() =>
+            {
+                badDest.execute(context, graphics, audio, program, runtime);
+            }).toThrow('LISTDIR: destination must be an array');
+
+            const badPathType = new ListdirStatement(
+                'files$[]',
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+            );
+            expect(() =>
+            {
+                badPathType.execute(context, graphics, audio, program, runtime);
+            }).toThrow('LISTDIR: path must be a string');
+
+            const missingDir = new ListdirStatement(
+                'files$[]',
+                new LiteralExpression({ type: EduBasicType.String, value: 'missing' })
+            );
+            expect(() =>
+            {
+                missingDir.execute(context, graphics, audio, program, runtime);
+            }).toThrow('LISTDIR: directory not found: missing');
+
+            fileSystem.writeFile('a.txt', new Uint8Array([1]));
+            const fileAsDir = new ListdirStatement(
+                'files$[]',
+                new LiteralExpression({ type: EduBasicType.String, value: 'a.txt' })
+            );
+            expect(() =>
+            {
+                fileAsDir.execute(context, graphics, audio, program, runtime);
+            }).toThrow('LISTDIR: directory not found: a.txt');
         });
 
         it('should copy, move, and delete files', () => {
@@ -452,6 +631,57 @@ describe('File I/O Statements', () => {
                 .execute(context, graphics, audio, program, runtime);
 
             expect(fileSystem.readFile('moved.txt')).toBeNull();
+        });
+
+        it('MOVE should validate types and error conditions', () =>
+        {
+            const nonString = new MoveStatement(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'x' })
+            );
+            expect(() =>
+            {
+                nonString.execute(context, graphics, audio, program, runtime);
+            }).toThrow('MOVE: source and destination must be strings');
+
+            const missing = new MoveStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'missing.txt' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'dst.txt' })
+            );
+            expect(() =>
+            {
+                missing.execute(context, graphics, audio, program, runtime);
+            }).toThrow('MOVE: file not found: missing.txt');
+
+            fileSystem.writeFile('src2.txt', new Uint8Array([1]));
+            const deleteSpy = jest.spyOn(fileSystem, 'deleteFile').mockReturnValue(false);
+            const cannotDelete = new MoveStatement(
+                new LiteralExpression({ type: EduBasicType.String, value: 'src2.txt' }),
+                new LiteralExpression({ type: EduBasicType.String, value: 'dst2.txt' })
+            );
+            expect(() =>
+            {
+                cannotDelete.execute(context, graphics, audio, program, runtime);
+            }).toThrow('MOVE: could not delete source: src2.txt');
+            deleteSpy.mockRestore();
+        });
+
+        it('should throw for non-string DELETE filename', () =>
+        {
+            const del = new DeleteStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }));
+            expect(() =>
+            {
+                del.execute(context, graphics, audio, program, runtime);
+            }).toThrow('DELETE: filename must be a string');
+        });
+
+        it('should throw when DELETE file does not exist', () =>
+        {
+            const del = new DeleteStatement(new LiteralExpression({ type: EduBasicType.String, value: 'missing.txt' }));
+            expect(() =>
+            {
+                del.execute(context, graphics, audio, program, runtime);
+            }).toThrow('DELETE: file not found: missing.txt');
         });
     });
 

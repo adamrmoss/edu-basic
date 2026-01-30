@@ -1578,6 +1578,63 @@ describe('ExpressionParser', () =>
             const exprResult = parser.parseExpression('SIN(1');
             expect(exprResult.success).toBe(false);
         });
+
+        it('should parse a unary keyword operator with parentheses', () =>
+        {
+            const exprResult = parser.parseExpression('SIN(0)');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBeCloseTo(0.0);
+        });
+
+        it('should parse a unary keyword operator without parentheses', () =>
+        {
+            const exprResult = parser.parseExpression('SIN 0');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBeCloseTo(0.0);
+        });
+
+        it('should parse call expressions like LEFT$ and RIGHT$', () =>
+        {
+            const leftResult = parser.parseExpression('LEFT$("abc", 2)');
+            expect(leftResult.success).toBe(true);
+            if (!leftResult.success)
+            {
+                return;
+            }
+
+            const leftValue = leftResult.value.evaluate(context);
+            expect(leftValue).toEqual({ type: EduBasicType.String, value: 'ab' });
+
+            const rightResult = parser.parseExpression('RIGHT$("abc", 1)');
+            expect(rightResult.success).toBe(true);
+            if (!rightResult.success)
+            {
+                return;
+            }
+
+            const rightValue = rightResult.value.evaluate(context);
+            expect(rightValue).toEqual({ type: EduBasicType.String, value: 'c' });
+        });
+
+        it('should return failure on unterminated bracket access', () =>
+        {
+            const exprResult = parser.parseExpression('a%[][1');
+            expect(exprResult.success).toBe(false);
+        });
     });
 });
 

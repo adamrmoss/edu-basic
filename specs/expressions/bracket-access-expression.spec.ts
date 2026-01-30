@@ -121,5 +121,123 @@ describe('BracketAccessExpression', () =>
 
         expect(() => expr.evaluate(context)).toThrow('Cannot apply [ ] to INTEGER');
     });
+
+    it('treats untyped bases as arrays when name[] exists', () =>
+    {
+        const context = new ExecutionContext();
+        context.setVariable('u[]', {
+            type: EduBasicType.Array,
+            elementType: EduBasicType.String,
+            value: [
+                { type: EduBasicType.String, value: 'x' }
+            ]
+        } as any, false);
+
+        const expr = new BracketAccessExpression(
+            new VariableExpression('u'),
+            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+            null
+        );
+
+        expect(expr.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'x' });
+    });
+
+    it('returns defaults when bracket expression and identifier are missing', () =>
+    {
+        const context = new ExecutionContext();
+        context.setVariable('a%[]', {
+            type: EduBasicType.Array,
+            elementType: EduBasicType.Integer,
+            value: [
+                { type: EduBasicType.Integer, value: 10 }
+            ]
+        }, false);
+
+        const arrayExpr = new BracketAccessExpression(
+            new VariableExpression('a%[]'),
+            null,
+            null
+        );
+        expect(arrayExpr.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+
+        const structExpr = new BracketAccessExpression(
+            new VariableExpression('s'),
+            null,
+            null
+        );
+        expect(structExpr.evaluate(context).type).toBe(EduBasicType.Structure);
+    });
+
+    it('handles non-numeric string and complex indices for arrays', () =>
+    {
+        const context = new ExecutionContext();
+        context.setVariable('a%[]', {
+            type: EduBasicType.Array,
+            elementType: EduBasicType.Integer,
+            value: [
+                { type: EduBasicType.Integer, value: 10 }
+            ]
+        }, false);
+
+        const badStringIndex = new BracketAccessExpression(
+            new VariableExpression('a%[]'),
+            new LiteralExpression({ type: EduBasicType.String, value: 'x' }),
+            null
+        );
+        expect(badStringIndex.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+
+        const complexIndex = new BracketAccessExpression(
+            new VariableExpression('a%[]'),
+            new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1.9, imaginary: 0 } }),
+            null
+        );
+        expect(complexIndex.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 10 });
+    });
+
+    it('returns direct structure members when key matches exactly', () =>
+    {
+        const context = new ExecutionContext();
+        const map = new Map<string, EduBasicValue>();
+        map.set('Foo$', { type: EduBasicType.String, value: 'bar' });
+        context.setVariable('s', { type: EduBasicType.Structure, value: map }, false);
+
+        const existing = new BracketAccessExpression(
+            new VariableExpression('s'),
+            null,
+            'Foo$'
+        );
+        expect(existing.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'bar' });
+    });
+
+    it('returns array defaults for missing structure members ending in []', () =>
+    {
+        const context = new ExecutionContext();
+        const map = new Map<string, EduBasicValue>();
+        context.setVariable('s', { type: EduBasicType.Structure, value: map }, false);
+
+        const missing = new BracketAccessExpression(
+            new VariableExpression('s'),
+            null,
+            'missing%[]'
+        );
+        const result = missing.evaluate(context);
+        expect(result.type).toBe(EduBasicType.Array);
+        if (result.type !== EduBasicType.Array)
+        {
+            return;
+        }
+        expect(result.elementType).toBe(EduBasicType.Integer);
+        expect(result.value).toEqual([]);
+    });
+
+    it('formats toString with empty inside', () =>
+    {
+        const expr = new BracketAccessExpression(
+            new VariableExpression('a%[]'),
+            null,
+            null
+        );
+        expect(expr.toString()).toBe('a%[][]');
+    });
 });
 
