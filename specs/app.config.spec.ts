@@ -1,4 +1,4 @@
-import { appConfig } from '../src/app/app.config';
+import { appConfig } from '@/app/app.config';
 
 describe('appConfig', () => {
     it('should export ApplicationConfig with providers', () => {

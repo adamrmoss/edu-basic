@@ -1,4 +1,4 @@
-import { getAllColorNames, getColorValue, isColorName } from '../src/lang/colors';
+import { getAllColorNames, getColorValue, isColorName } from '@/lang/colors';
 
 describe('colors (standard CSS named colors)', () =>
 {

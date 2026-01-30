@@ -1,5 +1,5 @@
-import { ExecutionContext } from '../src/lang/execution-context';
-import { EduBasicType } from '../src/lang/edu-basic-value';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('ExecutionContext', () =>
 {

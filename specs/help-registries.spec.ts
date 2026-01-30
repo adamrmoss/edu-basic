@@ -1,5 +1,5 @@
-import { StatementHelpRegistry as CommandHelpRegistry } from '../src/lang/statements/misc/command-help-registry';
-import { StatementHelpRegistry as StatementHelpRegistry } from '../src/lang/statements/misc/statement-help-registry';
+import { StatementHelpRegistry as CommandHelpRegistry } from '@/lang/statements/misc/command-help-registry';
+import { StatementHelpRegistry as StatementHelpRegistry } from '@/lang/statements/misc/statement-help-registry';
 
 describe('Help registries', () => {
     it('command help registry should return forms for known statements', () => {

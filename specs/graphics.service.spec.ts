@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { filter, take } from 'rxjs';
 
-import { GraphicsService } from '../src/app/interpreter/graphics.service';
+import { GraphicsService } from '@/app/interpreter/graphics.service';
 
 describe('GraphicsService', () => {
     let service: GraphicsService;

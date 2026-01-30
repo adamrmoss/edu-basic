@@ -1,4 +1,4 @@
-import { Tokenizer, TokenType } from '../src/app/interpreter/tokenizer.service';
+import { Tokenizer, TokenType } from '@/app/interpreter/tokenizer.service';
 
 describe('Tokenizer', () =>
 {

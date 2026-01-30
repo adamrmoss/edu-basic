@@ -1,4 +1,4 @@
-import { DirectoryNode, FileNode } from '../src/app/disk/filesystem-node';
+import { DirectoryNode, FileNode } from '@/app/disk/filesystem-node';
 
 describe('filesystem-node', () =>
 {

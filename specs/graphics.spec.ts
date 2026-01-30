@@ -1,4 +1,4 @@
-import { Graphics } from '../src/lang/graphics';
+import { Graphics } from '@/lang/graphics';
 
 function createContext(): { ctx: CanvasRenderingContext2D; putImageData: jest.Mock } {
     const putImageData = jest.fn();

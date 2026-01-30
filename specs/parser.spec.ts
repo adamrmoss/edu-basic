@@ -1,6 +1,6 @@
-import { ParserService } from '../src/app/interpreter/parser';
-import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
-import { DimStatement, LetStatement, LocalStatement } from '../src/lang/statements/variables';
+import { ParserService } from '@/app/interpreter/parser';
+import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { DimStatement, LetStatement, LocalStatement } from '@/lang/statements/variables';
 import {
     EndStatement,
     EndType,
@@ -9,13 +9,13 @@ import {
     IfStatement,
     LabelStatement,
     WhileStatement
-} from '../src/lang/statements/control-flow';
-import { ColorStatement, PrintStatement } from '../src/lang/statements/io';
-import { LineStatement, PsetStatement } from '../src/lang/statements/graphics';
-import { CloseStatement, FileMode, OpenStatement } from '../src/lang/statements/file-io';
-import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../src/lang/statements/audio';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { EduBasicType } from '../src/lang/edu-basic-value';
+} from '@/lang/statements/control-flow';
+import { ColorStatement, PrintStatement } from '@/lang/statements/io';
+import { LineStatement, PsetStatement } from '@/lang/statements/graphics';
+import { CloseStatement, FileMode, OpenStatement } from '@/lang/statements/file-io';
+import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '@/lang/statements/audio';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('ParserService', () =>
 {

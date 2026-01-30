@@ -1,24 +1,24 @@
 import { TestBed } from '@angular/core/testing';
 import { Injector } from '@angular/core';
 
-import { success, failure } from '../src/app/interpreter/parser/parse-result';
-import { ParserService, ParsedLine } from '../src/app/interpreter/parser';
+import { success, failure } from '@/app/interpreter/parser/parse-result';
+import { ParserService, ParsedLine } from '@/app/interpreter/parser';
 
-import { InterpreterService, InterpreterState } from '../src/app/interpreter/interpreter.service';
-import { GraphicsService } from '../src/app/interpreter/graphics.service';
-import { AudioService } from '../src/app/interpreter/audio.service';
-import { TabSwitchService } from '../src/app/tab-switch.service';
-import { FileSystemService } from '../src/app/disk/filesystem.service';
-import { ConsoleService } from '../src/app/console/console.service';
+import { InterpreterService, InterpreterState } from '@/app/interpreter/interpreter.service';
+import { GraphicsService } from '@/app/interpreter/graphics.service';
+import { AudioService } from '@/app/interpreter/audio.service';
+import { TabSwitchService } from '@/app/tab-switch.service';
+import { FileSystemService } from '@/app/disk/filesystem.service';
+import { ConsoleService } from '@/app/console/console.service';
 
-import { ExecutionContext } from '../src/lang/execution-context';
-import { Program } from '../src/lang/program';
-import { Graphics } from '../src/lang/graphics';
-import { Audio } from '../src/lang/audio';
-import { RuntimeExecution } from '../src/lang/runtime-execution';
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions';
-import { LetStatement } from '../src/lang/statements/variables';
+import { ExecutionContext } from '@/lang/execution-context';
+import { Program } from '@/lang/program';
+import { Graphics } from '@/lang/graphics';
+import { Audio } from '@/lang/audio';
+import { RuntimeExecution } from '@/lang/runtime-execution';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions';
+import { LetStatement } from '@/lang/statements/variables';
 
 describe('InterpreterService', () =>
 {

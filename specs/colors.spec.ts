@@ -1,4 +1,4 @@
-import { getAllColorInfo, getAllColorNames, getColorValue, isColorName } from '../src/lang/colors';
+import { getAllColorInfo, getAllColorNames, getColorValue, isColorName } from '@/lang/colors';
 
 describe('colors', () => {
     it('should resolve known color values case-insensitively', () => {

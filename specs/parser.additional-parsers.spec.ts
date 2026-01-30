@@ -1,8 +1,8 @@
-import { ParserService } from '../src/app/interpreter/parser';
-import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
+import { ParserService } from '@/app/interpreter/parser';
+import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
 
-import { ConsoleStatement, HelpStatement, RandomizeStatement, SetOption, SetStatement, SleepStatement } from '../src/lang/statements/misc';
-import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '../src/lang/statements/array';
+import { ConsoleStatement, HelpStatement, RandomizeStatement, SetOption, SetStatement, SleepStatement } from '@/lang/statements/misc';
+import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '@/lang/statements/array';
 import {
     CloseStatement,
     CopyStatement,
@@ -18,7 +18,7 @@ import {
     SeekStatement,
     WriteFileStatement,
     WritefileStatement
-} from '../src/lang/statements/file-io';
+} from '@/lang/statements/file-io';
 import {
     ArcStatement,
     CircleStatement,
@@ -31,8 +31,8 @@ import {
     RectangleStatement,
     TriangleStatement,
     TurtleStatement
-} from '../src/lang/statements/graphics';
-import { FileMode } from '../src/lang/statements/file-io/open-statement';
+} from '@/lang/statements/graphics';
+import { FileMode } from '@/lang/statements/file-io/open-statement';
 
 describe('ParserService (additional statement parsers)', () =>
 {

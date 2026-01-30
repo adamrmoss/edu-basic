@@ -1,4 +1,4 @@
-import { FileSystemService } from '../src/app/disk/filesystem.service';
+import { FileSystemService } from '@/app/disk/filesystem.service';
 
 describe('FileSystemService', () => {
     let service: FileSystemService;

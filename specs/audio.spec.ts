@@ -33,7 +33,7 @@ jest.mock('webaudio-tinysynth', () =>
     };
 });
 
-import { Audio } from '../src/lang/audio';
+import { Audio } from '@/lang/audio';
 
 describe('Audio', () =>
 {

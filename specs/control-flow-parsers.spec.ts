@@ -1,7 +1,7 @@
-import { ParserService } from '../src/app/interpreter/parser';
-import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
+import { ParserService } from '@/app/interpreter/parser';
+import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
 
-import { EduBasicType } from '../src/lang/edu-basic-value';
+import { EduBasicType } from '@/lang/edu-basic-value';
 import {
     CallStatement,
     ContinueStatement,
@@ -13,8 +13,8 @@ import {
     ExitTarget,
     SubStatement,
     ThrowStatement
-} from '../src/lang/statements/control-flow';
-import { UnparsableStatement } from '../src/lang/statements/unparsable-statement';
+} from '@/lang/statements/control-flow';
+import { UnparsableStatement } from '@/lang/statements/unparsable-statement';
 
 describe('ControlFlowParsers (via ParserService)', () =>
 {

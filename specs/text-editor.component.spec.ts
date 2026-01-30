@@ -1,5 +1,5 @@
 import { ElementRef } from '@angular/core';
-import { TextEditorComponent } from '../src/app/text-editor/text-editor.component';
+import { TextEditorComponent } from '@/app/text-editor/text-editor.component';
 
 describe('TextEditorComponent', () =>
 {

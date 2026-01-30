@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { DiskComponent } from '../src/app/disk/disk.component';
-import { DiskService } from '../src/app/disk/disk.service';
+import { DiskComponent } from '@/app/disk/disk.component';
+import { DiskService } from '@/app/disk/disk.service';
 import { BehaviorSubject } from 'rxjs';
-import { DirectoryNode, FileNode } from '../src/app/disk/filesystem-node';
+import { DirectoryNode, FileNode } from '@/app/disk/filesystem-node';
 
 describe('DiskComponent', () => {
     let component: DiskComponent;

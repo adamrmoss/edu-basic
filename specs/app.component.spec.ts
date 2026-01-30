@@ -1,7 +1,7 @@
 import { Subject } from 'rxjs';
-import { AppComponent } from '../src/app/app.component';
-import { TabSwitchService } from '../src/app/tab-switch.service';
-import { AudioService } from '../src/app/interpreter/audio.service';
+import { AppComponent } from '@/app/app.component';
+import { TabSwitchService } from '@/app/tab-switch.service';
+import { AudioService } from '@/app/interpreter/audio.service';
 
 describe('AppComponent', () => {
     let switchTabSubject: Subject<string>;

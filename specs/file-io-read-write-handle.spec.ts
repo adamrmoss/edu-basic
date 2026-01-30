@@ -1,7 +1,7 @@
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { LiteralExpression } from '../src/lang/expressions/literal-expression';
-import { VariableExpression } from '../src/lang/expressions/special/variable-expression';
-import { OpenStatement, FileMode, ReadFileStatement, WriteFileStatement } from '../src/lang/statements/file-io';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { VariableExpression } from '@/lang/expressions/special/variable-expression';
+import { OpenStatement, FileMode, ReadFileStatement, WriteFileStatement } from '@/lang/statements/file-io';
 
 import { createRuntimeFixture } from './statements/program-execution-test-fixtures';
 

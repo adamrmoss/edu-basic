@@ -1,15 +1,15 @@
-import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
-import { ParserContext } from '../src/app/interpreter/parser/parsers/parser-context';
-import { ArrayParsers } from '../src/app/interpreter/parser/parsers/array-parsers';
-import { AudioParsers } from '../src/app/interpreter/parser/parsers/audio-parsers';
-import { ControlFlowParsers } from '../src/app/interpreter/parser/parsers/control-flow-parsers';
-import { FileIoParsers } from '../src/app/interpreter/parser/parsers/file-io-parsers';
-import { GraphicsParsers } from '../src/app/interpreter/parser/parsers/graphics-parsers';
-import { IoParsers } from '../src/app/interpreter/parser/parsers/io-parsers';
-import { MiscParsers } from '../src/app/interpreter/parser/parsers/misc-parsers';
-import { VariableParsers } from '../src/app/interpreter/parser/parsers/variable-parsers';
-import { Token, TokenType } from '../src/app/interpreter/tokenizer.service';
-import { OpenStatement } from '../src/lang/statements/file-io';
+import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ParserContext } from '@/app/interpreter/parser/parsers/parser-context';
+import { ArrayParsers } from '@/app/interpreter/parser/parsers/array-parsers';
+import { AudioParsers } from '@/app/interpreter/parser/parsers/audio-parsers';
+import { ControlFlowParsers } from '@/app/interpreter/parser/parsers/control-flow-parsers';
+import { FileIoParsers } from '@/app/interpreter/parser/parsers/file-io-parsers';
+import { GraphicsParsers } from '@/app/interpreter/parser/parsers/graphics-parsers';
+import { IoParsers } from '@/app/interpreter/parser/parsers/io-parsers';
+import { MiscParsers } from '@/app/interpreter/parser/parsers/misc-parsers';
+import { VariableParsers } from '@/app/interpreter/parser/parsers/variable-parsers';
+import { Token, TokenType } from '@/app/interpreter/tokenizer.service';
+import { OpenStatement } from '@/lang/statements/file-io';
 
 describe('Parser parsers (edge cases)', () =>
 {

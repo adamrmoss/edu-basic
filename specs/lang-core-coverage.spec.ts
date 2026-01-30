@@ -1,19 +1,19 @@
-import { Program } from '../src/lang/program';
-import { ExecutionContext } from '../src/lang/execution-context';
-import { RuntimeExecution } from '../src/lang/runtime-execution';
-import { Graphics } from '../src/lang/graphics';
-import { Audio } from '../src/lang/audio';
-import { FileSystemService } from '../src/app/disk/filesystem.service';
+import { Program } from '@/lang/program';
+import { ExecutionContext } from '@/lang/execution-context';
+import { RuntimeExecution } from '@/lang/runtime-execution';
+import { Graphics } from '@/lang/graphics';
+import { Audio } from '@/lang/audio';
+import { FileSystemService } from '@/app/disk/filesystem.service';
 
-import { EduBasicType } from '../src/lang/edu-basic-value';
-import { BinaryExpression, BinaryOperator, BinaryOperatorCategory, LiteralExpression, VariableExpression } from '../src/lang/expressions';
-import { LetStatement } from '../src/lang/statements/variables';
-import { LabelStatement } from '../src/lang/statements/control-flow/label-statement';
-import { EndStatement, EndType } from '../src/lang/statements/control-flow/end-statement';
-import { IfStatement } from '../src/lang/statements/control-flow/if-statement';
-import { WhileStatement } from '../src/lang/statements/control-flow/while-statement';
-import { DoLoopStatement, DoLoopVariant } from '../src/lang/statements/control-flow/do-loop-statement';
-import { ForStatement } from '../src/lang/statements/control-flow/for-statement';
+import { EduBasicType } from '@/lang/edu-basic-value';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory, LiteralExpression, VariableExpression } from '@/lang/expressions';
+import { LetStatement } from '@/lang/statements/variables';
+import { LabelStatement } from '@/lang/statements/control-flow/label-statement';
+import { EndStatement, EndType } from '@/lang/statements/control-flow/end-statement';
+import { IfStatement } from '@/lang/statements/control-flow/if-statement';
+import { WhileStatement } from '@/lang/statements/control-flow/while-statement';
+import { DoLoopStatement, DoLoopVariant } from '@/lang/statements/control-flow/do-loop-statement';
+import { ForStatement } from '@/lang/statements/control-flow/for-statement';
 
 describe('Core language coverage', () =>
 {

@@ -1,4 +1,4 @@
-import { TabSwitchService } from '../src/app/tab-switch.service';
+import { TabSwitchService } from '@/app/tab-switch.service';
 
 describe('TabSwitchService', () => {
     it('should emit requested tab id', (done) => {

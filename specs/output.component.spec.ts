@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { OutputComponent } from '../src/app/output/output.component';
-import { GraphicsService } from '../src/app/interpreter/graphics.service';
+import { OutputComponent } from '@/app/output/output.component';
+import { GraphicsService } from '@/app/interpreter/graphics.service';
 
 describe('OutputComponent', () => {
     let fixture: ComponentFixture<OutputComponent>;

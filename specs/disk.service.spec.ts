@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { DiskService } from '../src/app/disk/disk.service';
-import { FileSystemService } from '../src/app/disk/filesystem.service';
+import { DiskService } from '@/app/disk/disk.service';
+import { FileSystemService } from '@/app/disk/filesystem.service';
 import JSZip from 'jszip';
 
 describe('DiskService', () => {

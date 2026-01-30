@@ -1,6 +1,6 @@
-import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
-import { ExecutionContext } from '../src/lang/execution-context';
-import { EduBasicType, EduBasicValue } from '../src/lang/edu-basic-value';
+import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ExecutionContext } from '@/lang/execution-context';
+import { EduBasicType, EduBasicValue } from '@/lang/edu-basic-value';
 
 describe('ExpressionParserService (bracket access)', () =>
 {

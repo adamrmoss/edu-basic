@@ -1,14 +1,14 @@
-import { ExpressionParserService } from '../src/app/interpreter/expression-parser.service';
-import { ParserContext } from '../src/app/interpreter/parser/parsers/parser-context';
-import { ArrayParsers } from '../src/app/interpreter/parser/parsers/array-parsers';
-import { AudioParsers } from '../src/app/interpreter/parser/parsers/audio-parsers';
-import { ControlFlowParsers } from '../src/app/interpreter/parser/parsers/control-flow-parsers';
-import { FileIoParsers } from '../src/app/interpreter/parser/parsers/file-io-parsers';
-import { GraphicsParsers } from '../src/app/interpreter/parser/parsers/graphics-parsers';
-import { IoParsers } from '../src/app/interpreter/parser/parsers/io-parsers';
-import { MiscParsers } from '../src/app/interpreter/parser/parsers/misc-parsers';
-import { VariableParsers } from '../src/app/interpreter/parser/parsers/variable-parsers';
-import { Token, TokenType } from '../src/app/interpreter/tokenizer.service';
+import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ParserContext } from '@/app/interpreter/parser/parsers/parser-context';
+import { ArrayParsers } from '@/app/interpreter/parser/parsers/array-parsers';
+import { AudioParsers } from '@/app/interpreter/parser/parsers/audio-parsers';
+import { ControlFlowParsers } from '@/app/interpreter/parser/parsers/control-flow-parsers';
+import { FileIoParsers } from '@/app/interpreter/parser/parsers/file-io-parsers';
+import { GraphicsParsers } from '@/app/interpreter/parser/parsers/graphics-parsers';
+import { IoParsers } from '@/app/interpreter/parser/parsers/io-parsers';
+import { MiscParsers } from '@/app/interpreter/parser/parsers/misc-parsers';
+import { VariableParsers } from '@/app/interpreter/parser/parsers/variable-parsers';
+import { Token, TokenType } from '@/app/interpreter/tokenizer.service';
 import {
     CallStatement,
     CaseStatement,
@@ -37,9 +37,9 @@ import {
     UntilStatement,
     WendStatement,
     WhileStatement
-} from '../src/lang/statements/control-flow';
-import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '../src/lang/statements/array';
-import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../src/lang/statements/audio';
+} from '@/lang/statements/control-flow';
+import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '@/lang/statements/array';
+import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '@/lang/statements/audio';
 import {
     CloseStatement,
     CopyStatement,
@@ -55,7 +55,7 @@ import {
     SeekStatement,
     WriteFileStatement,
     WritefileStatement
-} from '../src/lang/statements/file-io';
+} from '@/lang/statements/file-io';
 import {
     ArcStatement,
     CircleStatement,
@@ -68,10 +68,10 @@ import {
     RectangleStatement,
     TriangleStatement,
     TurtleStatement
-} from '../src/lang/statements/graphics';
-import { ClsStatement, ColorStatement, InputStatement, LocateStatement, PrintStatement } from '../src/lang/statements/io';
-import { ConsoleStatement, HelpStatement, RandomizeStatement, SetStatement, SleepStatement } from '../src/lang/statements/misc';
-import { DimStatement, LetStatement, LocalStatement } from '../src/lang/statements/variables';
+} from '@/lang/statements/graphics';
+import { ClsStatement, ColorStatement, InputStatement, LocateStatement, PrintStatement } from '@/lang/statements/io';
+import { ConsoleStatement, HelpStatement, RandomizeStatement, SetStatement, SleepStatement } from '@/lang/statements/misc';
+import { DimStatement, LetStatement, LocalStatement } from '@/lang/statements/variables';
 
 describe('Parser parsers (direct parser class calls)', () =>
 {
