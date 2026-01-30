@@ -1512,6 +1512,72 @@ describe('ExpressionParser', () =>
             expect(result.type).toBe(EduBasicType.Integer);
             expect(result.value).toBe(0);
         });
+
+        it('should parse ** exponentiation', () =>
+        {
+            const exprResult = parser.parseExpression('2 ** 3');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Real);
+            expect(result.value).toBeCloseTo(8.0);
+        });
+
+        it('should parse bracket access with identifier inside brackets', () =>
+        {
+            context.setVariable('key$', { type: EduBasicType.String, value: 'value' }, false);
+            context.setVariable('s', { type: EduBasicType.Structure, value: new Map([['key$', { type: EduBasicType.String, value: 'ok' }]]) }, false);
+
+            const exprResult = parser.parseExpression('s[key$]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.String);
+            expect(result.value).toBe('ok');
+        });
+
+        it('should parse bracket access with an expression inside brackets', () =>
+        {
+            context.setVariable('a%[]', {
+                type: EduBasicType.Array,
+                elementType: EduBasicType.Integer,
+                value: [
+                    { type: EduBasicType.Integer, value: 10 },
+                    { type: EduBasicType.Integer, value: 20 }
+                ]
+            }, false);
+
+            const exprResult = parser.parseExpression('a%[][1+1]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(20);
+        });
+
+        it('should return failure when extra tokens remain after a valid expression', () =>
+        {
+            const exprResult = parser.parseExpression('1 2');
+            expect(exprResult.success).toBe(false);
+        });
+
+        it('should return failure when a unary operator has a missing closing parenthesis', () =>
+        {
+            const exprResult = parser.parseExpression('SIN(1');
+            expect(exprResult.success).toBe(false);
+        });
     });
 });
 

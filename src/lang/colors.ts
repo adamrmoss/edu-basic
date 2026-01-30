@@ -2,7 +2,7 @@
  * CSS Color Names
  * 
  * Standard CSS color names with their RGBA values.
- * All colors use full opacity (alpha = 255) by default.
+ * Colors use full opacity (alpha = 255) by default, except `transparent`.
  * 
  * Color names are case-insensitive and support aliases (e.g., gray/grey, aqua/cyan).
  */
@@ -186,6 +186,7 @@ export const COLOR_NAMES: Map<string, number> = new Map([
     ['teal', 0x008080FF],
     ['thistle', 0xD8BFD8FF],
     ['tomato', 0xFF6347FF],
+    ['transparent', 0x00000000],
     ['turquoise', 0x40E0D0FF],
     
     // V
@@ -255,19 +256,10 @@ export interface ColorInfo
 export function getAllColorInfo(): ColorInfo[]
 {
     const info: ColorInfo[] = [];
-    const seen = new Set<string>();
     
     for (const [name, rgba] of COLOR_NAMES.entries())
     {
         const normalized = name.toLowerCase();
-        
-        // Skip aliases (we'll include the first occurrence)
-        if (seen.has(normalized))
-        {
-            continue;
-        }
-        
-        seen.add(normalized);
         
         const r = (rgba >> 24) & 0xFF;
         const g = (rgba >> 16) & 0xFF;

@@ -36,5 +36,15 @@ describe('colors', () => {
         expect(red!.hex).toBe('#ff0000');
         expect(red!.rgba).toEqual({ r: 255, g: 0, b: 0, a: 255 });
     });
+
+    it('should include standard aliases that map to the same RGBA', () => {
+        const info = getAllColorInfo();
+
+        const aqua = info.find(i => i.name === 'aqua');
+        const cyan = info.find(i => i.name === 'cyan');
+        expect(aqua).toBeDefined();
+        expect(cyan).toBeDefined();
+        expect(cyan!.rgba).toEqual(aqua!.rgba);
+    });
 });
 
