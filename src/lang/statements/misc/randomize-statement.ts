@@ -1,14 +1,16 @@
 import { Statement, ExecutionStatus, ExecutionResult } from '../statement';
+import { Expression } from '../../expressions/expression';
 import { ExecutionContext } from '../../execution-context';
 import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class RandomizeStatement extends Statement
 {
     public constructor(
-        public readonly seed: number | null = null
+        public readonly seed: Expression | null = null
     )
     {
         super();
@@ -22,7 +24,19 @@ export class RandomizeStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const seed = this.seed ?? Date.now();
+        let seed: number = Date.now();
+
+        if (this.seed !== null)
+        {
+            const seedValue = this.seed.evaluate(context);
+            if (seedValue.type !== EduBasicType.Integer && seedValue.type !== EduBasicType.Real)
+            {
+                throw new Error('RANDOMIZE: seed must be a number');
+            }
+
+            seed = Math.floor(seedValue.value as number);
+        }
+
         Math.random = this.seededRandom(seed);
         
         return { result: ExecutionResult.Continue };
@@ -43,7 +57,7 @@ export class RandomizeStatement extends Statement
     {
         if (this.seed !== null)
         {
-            return `RANDOMIZE ${this.seed}`;
+            return `RANDOMIZE ${this.seed.toString()}`;
         }
 
         return 'RANDOMIZE';

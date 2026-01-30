@@ -1053,6 +1053,48 @@ describe('Statement Implementations', () =>
                 
                 expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('SHIFT: arr%[] is empty');
             });
+
+            it('should shift without storing when no target variable', () =>
+            {
+                context.setVariable('arr%[]', {
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Integer, value: 1 },
+                        { type: EduBasicType.Integer, value: 2 }
+                    ],
+                    elementType: EduBasicType.Integer
+                });
+
+                context.setVariable('result%', { type: EduBasicType.Integer, value: 999 });
+
+                const stmt = new ShiftStatement('arr%[]', null);
+                const result = stmt.execute(context, graphics, audio, program, runtime);
+
+                expect(result.result).toBe(ExecutionResult.Continue);
+                expect(context.getVariable('result%')).toEqual({ type: EduBasicType.Integer, value: 999 });
+
+                const arr = context.getVariable('arr%[]');
+                expect((arr.value as any[]).length).toBe(1);
+                expect((arr.value as any[])[0]).toEqual({ type: EduBasicType.Integer, value: 2 });
+            });
+
+            it('should throw error if variable is not an array', () =>
+            {
+                context.setVariable('x%', { type: EduBasicType.Integer, value: 5 });
+
+                const stmt = new ShiftStatement('x%', null);
+
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('SHIFT: x% is not an array');
+            });
+
+            it('should format toString correctly', () =>
+            {
+                const withTarget = new ShiftStatement('arr%[]', 'result%');
+                expect(withTarget.toString()).toBe('SHIFT arr%[], result%');
+
+                const withoutTarget = new ShiftStatement('arr%[]', null);
+                expect(withoutTarget.toString()).toBe('SHIFT arr%[]');
+            });
         });
         
         describe('UNSHIFT Statement', () =>
@@ -1166,13 +1208,34 @@ describe('Statement Implementations', () =>
             const arr = context.getVariable('arr%[]');
             expect((arr.value as any[]).length).toBe(5);
         });
+
+        it('should create an empty array when no dimensions are provided', () =>
+        {
+            const stmt = new DimStatement('empty%[]', []);
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+
+            expect(result.result).toBe(ExecutionResult.Continue);
+            const arr = context.getVariable('empty%[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            expect((arr.value as any[]).length).toBe(0);
+        });
+
+        it('should format toString correctly', () =>
+        {
+            const stmt = new DimStatement('arr%[]', [
+                new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 3.5 })
+            ]);
+
+            expect(stmt.toString()).toBe('DIM arr%[][2, 3.5]');
+        });
     });
     
     describe('RANDOMIZE Statement', () =>
     {
         it('should seed random number generator with explicit seed', () =>
         {
-            const stmt = new RandomizeStatement(12345);
+            const stmt = new RandomizeStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 12345 }));
             const result = stmt.execute(context, graphics, audio, program, runtime);
             
             expect(result.result).toBe(ExecutionResult.Continue);
@@ -1188,11 +1251,20 @@ describe('Statement Implementations', () =>
         
         it('should have correct toString representation', () =>
         {
-            const stmt1 = new RandomizeStatement(42);
+            const stmt1 = new RandomizeStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             expect(stmt1.toString()).toBe('RANDOMIZE 42');
             
             const stmt2 = new RandomizeStatement(null);
             expect(stmt2.toString()).toBe('RANDOMIZE');
+        });
+
+        it('should validate seed type at runtime', () =>
+        {
+            const stmt = new RandomizeStatement(new LiteralExpression({ type: EduBasicType.String, value: 'nope' }));
+            expect(() =>
+            {
+                stmt.execute(context, graphics, audio, program, runtime);
+            }).toThrow('RANDOMIZE: seed must be a number');
         });
     });
     
@@ -1335,6 +1407,34 @@ describe('Statement Implementations', () =>
                 expect(audio.sequences).toHaveLength(1);
                 expect(audio.sequences[0].voiceIndex).toBe(1);
                 expect(audio.sequences[0].mml).toBe('O4 L4 C D E F G A B O5 C');
+            });
+
+            it('should default voice to 0 and MML to empty string for non-numeric / non-string expressions', () =>
+            {
+                const stmt = new PlayStatement(
+                    new LiteralExpression({ type: EduBasicType.String, value: 'not-a-number' }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 123 })
+                );
+
+                stmt.execute(context, graphics, audio, program, runtime);
+
+                expect(audio.sequences).toHaveLength(1);
+                expect(audio.sequences[0].voiceIndex).toBe(0);
+                expect(audio.sequences[0].mml).toBe('');
+            });
+
+            it('should floor real voice numbers', () =>
+            {
+                const stmt = new PlayStatement(
+                    new LiteralExpression({ type: EduBasicType.Real, value: 1.9 }),
+                    new LiteralExpression({ type: EduBasicType.String, value: 'C' })
+                );
+
+                stmt.execute(context, graphics, audio, program, runtime);
+
+                expect(audio.sequences).toHaveLength(1);
+                expect(audio.sequences[0].voiceIndex).toBe(1);
+                expect(audio.sequences[0].mml).toBe('C');
             });
         });
 

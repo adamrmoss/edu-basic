@@ -23,7 +23,7 @@ export class FileIoParsers
 {
     public static parseOpen(context: ParserContext): ParseResult<OpenStatement>
     {
-        const openTokenResult = context.consume(TokenType.Keyword, 'OPEN');
+        const openTokenResult = context.consumeKeyword('OPEN');
         if (!openTokenResult.success)
         {
             return openTokenResult;
@@ -35,7 +35,7 @@ export class FileIoParsers
             return filenameResult;
         }
         
-        const forTokenResult = context.consume(TokenType.Keyword, 'FOR');
+        const forTokenResult = context.consumeKeyword('FOR');
         if (!forTokenResult.success)
         {
             return forTokenResult;
@@ -63,7 +63,7 @@ export class FileIoParsers
                 return failure(`Invalid file mode: ${modeTokenResult.value.value}`);
         }
         
-        const asTokenResult = context.consume(TokenType.Keyword, 'AS');
+        const asTokenResult = context.consumeKeyword('AS');
         if (!asTokenResult.success)
         {
             return asTokenResult;
@@ -80,7 +80,7 @@ export class FileIoParsers
 
     public static parseClose(context: ParserContext): ParseResult<CloseStatement>
     {
-        const closeTokenResult = context.consume(TokenType.Keyword, 'CLOSE');
+        const closeTokenResult = context.consumeKeyword('CLOSE');
         if (!closeTokenResult.success)
         {
             return closeTokenResult;
@@ -97,7 +97,7 @@ export class FileIoParsers
 
     public static parseRead(context: ParserContext): ParseResult<ReadFileStatement>
     {
-        const readTokenResult = context.consume(TokenType.Keyword, 'READ');
+        const readTokenResult = context.consumeKeyword('READ');
         if (!readTokenResult.success)
         {
             return readTokenResult;
@@ -109,7 +109,7 @@ export class FileIoParsers
             return varNameTokenResult;
         }
         
-        const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+        const fromTokenResult = context.consumeKeyword('FROM');
         if (!fromTokenResult.success)
         {
             return fromTokenResult;
@@ -126,7 +126,7 @@ export class FileIoParsers
 
     public static parseWrite(context: ParserContext): ParseResult<WriteFileStatement>
     {
-        const writeTokenResult = context.consume(TokenType.Keyword, 'WRITE');
+        const writeTokenResult = context.consumeKeyword('WRITE');
         if (!writeTokenResult.success)
         {
             return writeTokenResult;
@@ -138,7 +138,7 @@ export class FileIoParsers
             return expressionResult;
         }
         
-        const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+        const toTokenResult = context.consumeKeyword('TO');
         if (!toTokenResult.success)
         {
             return toTokenResult;
@@ -155,7 +155,7 @@ export class FileIoParsers
 
     public static parseSeek(context: ParserContext): ParseResult<SeekStatement>
     {
-        const seekTokenResult = context.consume(TokenType.Keyword, 'SEEK');
+        const seekTokenResult = context.consumeKeyword('SEEK');
         if (!seekTokenResult.success)
         {
             return seekTokenResult;
@@ -167,7 +167,7 @@ export class FileIoParsers
             return positionResult;
         }
         
-        const inTokenResult = context.consume(TokenType.Keyword, 'IN');
+        const inTokenResult = context.consumeKeyword('IN');
         if (!inTokenResult.success)
         {
             return inTokenResult;
@@ -184,7 +184,7 @@ export class FileIoParsers
 
     public static parseReadfile(context: ParserContext): ParseResult<ReadfileStatement>
     {
-        const readfileTokenResult = context.consume(TokenType.Keyword, 'READFILE');
+        const readfileTokenResult = context.consumeKeyword('READFILE');
         if (!readfileTokenResult.success)
         {
             return readfileTokenResult;
@@ -196,7 +196,7 @@ export class FileIoParsers
             return varNameTokenResult;
         }
         
-        const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+        const fromTokenResult = context.consumeKeyword('FROM');
         if (!fromTokenResult.success)
         {
             return fromTokenResult;
@@ -213,7 +213,7 @@ export class FileIoParsers
 
     public static parseWritefile(context: ParserContext): ParseResult<WritefileStatement>
     {
-        const writefileTokenResult = context.consume(TokenType.Keyword, 'WRITEFILE');
+        const writefileTokenResult = context.consumeKeyword('WRITEFILE');
         if (!writefileTokenResult.success)
         {
             return writefileTokenResult;
@@ -225,7 +225,7 @@ export class FileIoParsers
             return contentResult;
         }
         
-        const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+        const toTokenResult = context.consumeKeyword('TO');
         if (!toTokenResult.success)
         {
             return toTokenResult;
@@ -242,7 +242,7 @@ export class FileIoParsers
 
     public static parseListdir(context: ParserContext): ParseResult<ListdirStatement>
     {
-        const listdirTokenResult = context.consume(TokenType.Keyword, 'LISTDIR');
+        const listdirTokenResult = context.consumeKeyword('LISTDIR');
         if (!listdirTokenResult.success)
         {
             return listdirTokenResult;
@@ -254,7 +254,7 @@ export class FileIoParsers
             return arrayVarTokenResult;
         }
         
-        const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+        const fromTokenResult = context.consumeKeyword('FROM');
         if (!fromTokenResult.success)
         {
             return fromTokenResult;
@@ -271,7 +271,7 @@ export class FileIoParsers
 
     public static parseMkdir(context: ParserContext): ParseResult<MkdirStatement>
     {
-        const mkdirTokenResult = context.consume(TokenType.Keyword, 'MKDIR');
+        const mkdirTokenResult = context.consumeKeyword('MKDIR');
         if (!mkdirTokenResult.success)
         {
             return mkdirTokenResult;
@@ -288,7 +288,7 @@ export class FileIoParsers
 
     public static parseRmdir(context: ParserContext): ParseResult<RmdirStatement>
     {
-        const rmdirTokenResult = context.consume(TokenType.Keyword, 'RMDIR');
+        const rmdirTokenResult = context.consumeKeyword('RMDIR');
         if (!rmdirTokenResult.success)
         {
             return rmdirTokenResult;
@@ -305,7 +305,7 @@ export class FileIoParsers
 
     public static parseCopy(context: ParserContext): ParseResult<CopyStatement>
     {
-        const copyTokenResult = context.consume(TokenType.Keyword, 'COPY');
+        const copyTokenResult = context.consumeKeyword('COPY');
         if (!copyTokenResult.success)
         {
             return copyTokenResult;
@@ -317,7 +317,7 @@ export class FileIoParsers
             return sourceResult;
         }
         
-        const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+        const toTokenResult = context.consumeKeyword('TO');
         if (!toTokenResult.success)
         {
             return toTokenResult;
@@ -334,7 +334,7 @@ export class FileIoParsers
 
     public static parseMove(context: ParserContext): ParseResult<MoveStatement>
     {
-        const moveTokenResult = context.consume(TokenType.Keyword, 'MOVE');
+        const moveTokenResult = context.consumeKeyword('MOVE');
         if (!moveTokenResult.success)
         {
             return moveTokenResult;
@@ -346,7 +346,7 @@ export class FileIoParsers
             return sourceResult;
         }
         
-        const toTokenResult = context.consume(TokenType.Keyword, 'TO');
+        const toTokenResult = context.consumeKeyword('TO');
         if (!toTokenResult.success)
         {
             return toTokenResult;
@@ -363,7 +363,7 @@ export class FileIoParsers
 
     public static parseDelete(context: ParserContext): ParseResult<DeleteStatement>
     {
-        const deleteTokenResult = context.consume(TokenType.Keyword, 'DELETE');
+        const deleteTokenResult = context.consumeKeyword('DELETE');
         if (!deleteTokenResult.success)
         {
             return deleteTokenResult;

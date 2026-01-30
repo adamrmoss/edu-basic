@@ -1,4 +1,5 @@
 import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
+import { ExecutionContext } from '../../execution-context';
 
 export enum Constant
 {
@@ -15,7 +16,7 @@ export enum Constant
 
 export class ConstantEvaluator
 {
-    public evaluate(constant: Constant): EduBasicValue
+    public evaluate(constant: Constant, context?: ExecutionContext): EduBasicValue
     {
         switch (constant)
         {
@@ -30,8 +31,7 @@ export class ConstantEvaluator
             case Constant.Rnd:
                 return { type: EduBasicType.Real, value: Math.random() };
             case Constant.Inkey:
-                // TODO: Implement keyboard input when available
-                return { type: EduBasicType.String, value: '' };
+                return { type: EduBasicType.String, value: context ? context.getInkey() : '' };
             case Constant.Date:
             {
                 const now = new Date();

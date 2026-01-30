@@ -4,7 +4,6 @@ export * from './expression';
 // Unified expression classes
 export * from './binary-expression';
 export * from './unary-expression';
-export * from './function-call-expression';
 
 // Literals
 export * from './literal-expression';
@@ -14,6 +13,9 @@ export * from './nullary-expression';
 
 // Special operators (parenthesized, variable, array access, structure member)
 export * from './special';
+
+// Infix and multi-part operators
+export * from './operators';
 
 // Helper evaluators
 export * from './helpers';

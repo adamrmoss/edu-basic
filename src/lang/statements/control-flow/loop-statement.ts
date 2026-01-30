@@ -27,55 +27,53 @@ export class LoopStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const doFrame = runtime.findControlFrame('do');
+        const top = runtime.getCurrentControlFrame();
 
-        if (doFrame)
+        if (top && top.type === 'do')
         {
-            const doStmt = program.getStatement(doFrame.startLine);
+            const doStmt = program.getStatement(top.startLine);
 
             if (doStmt instanceof DoLoopStatement)
             {
                 const variant = doStmt.variant;
-                const condition = doFrame.condition;
 
-                if (variant === DoLoopVariant.DoLoopWhile || variant === DoLoopVariant.DoLoopUntil)
+                if (variant === DoLoopVariant.DoLoop)
                 {
-                    if (condition)
-                    {
-                        const conditionValue = condition.evaluate(context);
-
-                        if (conditionValue.type !== EduBasicType.Integer)
-                        {
-                            throw new Error('LOOP condition must evaluate to an integer');
-                        }
-
-                        const shouldContinue = variant === DoLoopVariant.DoLoopWhile
-                            ? conditionValue.value !== 0
-                            : conditionValue.value === 0;
-
-                        if (shouldContinue)
-                        {
-                            if (doFrame.nestedStatements && doFrame.nestedStatements.length > 0)
-                            {
-                                doFrame.nestedIndex = 0;
-                                return { result: ExecutionResult.Goto, gotoTarget: doFrame.startLine };
-                            }
-                        }
-                        else
-                        {
-                            runtime.popControlFrame();
-                        }
-                    }
+                    return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
                 }
-                else if (variant === DoLoopVariant.DoLoop)
+
+                if (variant === DoLoopVariant.DoWhile || variant === DoLoopVariant.DoUntil ||
+                    variant === DoLoopVariant.DoLoopWhile || variant === DoLoopVariant.DoLoopUntil)
                 {
-                    if (doFrame.nestedStatements && doFrame.nestedStatements.length > 0)
+                    const condition = doStmt.condition;
+                    if (!condition)
                     {
-                        doFrame.nestedIndex = 0;
-                        return { result: ExecutionResult.Goto, gotoTarget: doFrame.startLine };
+                        throw new Error('LOOP condition is missing');
                     }
+
+                    const conditionValue = condition.evaluate(context);
+                    if (conditionValue.type !== EduBasicType.Integer)
+                    {
+                        throw new Error('LOOP condition must evaluate to an integer');
+                    }
+
+                    const shouldContinue = (variant === DoLoopVariant.DoWhile || variant === DoLoopVariant.DoLoopWhile)
+                        ? conditionValue.value !== 0
+                        : conditionValue.value === 0;
+
+                    if (shouldContinue)
+                    {
+                        return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
+                    }
+
+                    runtime.popControlFrame();
+                    return { result: ExecutionResult.Continue };
                 }
             }
+        }
+        else
+        {
+            throw new Error('LOOP without DO');
         }
 
         return { result: ExecutionResult.Continue };

@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class CopyStatement extends Statement
 {
@@ -24,7 +25,26 @@ export class CopyStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('COPY statement not yet implemented');
+        const sourceValue = this.source.evaluate(context);
+        const destinationValue = this.destination.evaluate(context);
+
+        if (sourceValue.type !== EduBasicType.String || destinationValue.type !== EduBasicType.String)
+        {
+            throw new Error('COPY: source and destination must be strings');
+        }
+
+        const sourcePath = sourceValue.value as string;
+        const destinationPath = destinationValue.value as string;
+
+        const fileSystem = runtime.getFileSystem();
+        const data = fileSystem.readFile(sourcePath);
+        if (!data)
+        {
+            throw new Error(`COPY: file not found: ${sourcePath}`);
+        }
+
+        fileSystem.writeFile(destinationPath, data);
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

@@ -467,6 +467,169 @@ describe('DiskComponent', () => {
         });
     });
 
+    describe('Rename, context menu, and drag-and-drop', () => {
+        beforeEach(() => {
+            fixture.detectChanges();
+        });
+
+        it('should rename a file', () => {
+            const fileNode = { name: 'old.txt', path: 'old.txt', type: 'file' as const, expanded: false };
+            component.selectedFile = fileNode;
+            jest.spyOn(window, 'prompt').mockReturnValue('new.txt');
+
+            component.onRenameFile();
+
+            expect(diskService.renameFile).toHaveBeenCalledWith('old.txt', 'new.txt');
+            expect(component.selectedFile).toBeNull();
+            expect(component.editorLines).toEqual(['']);
+        });
+
+        it('should rename a directory', () => {
+            const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
+            component.selectedFile = dirNode;
+            jest.spyOn(window, 'prompt').mockReturnValue('dir2');
+
+            component.onRenameFile();
+
+            expect(diskService.renameDirectory).toHaveBeenCalledWith('dir', 'dir2');
+            expect(component.selectedFile).toBeNull();
+            expect(component.editorLines).toEqual(['']);
+        });
+
+        it('should open context menu on a file and set parent path', () => {
+            component.fileTree = [
+                {
+                    name: 'dir',
+                    path: 'dir',
+                    type: 'directory',
+                    expanded: false,
+                    children: [
+                        { name: 'a.txt', path: 'dir/a.txt', type: 'file' }
+                    ]
+                }
+            ];
+
+            const event = {
+                preventDefault: jest.fn(),
+                stopPropagation: jest.fn(),
+                clientX: 10,
+                clientY: 20
+            } as any;
+
+            component.onContextMenu(event, 'dir/a.txt');
+
+            expect(event.preventDefault).toHaveBeenCalled();
+            expect(event.stopPropagation).toHaveBeenCalled();
+            expect(component.contextMenuClickedPath).toBe('dir/a.txt');
+            expect(component.contextMenuPath).toBe('dir');
+            expect(component.showContextMenu).toBe(true);
+        });
+
+        it('should delete a context-menu-selected file when confirmed', () => {
+            component.fileTree = [
+                {
+                    name: 'dir',
+                    path: 'dir',
+                    type: 'directory',
+                    expanded: false,
+                    children: [
+                        { name: 'a.txt', path: 'dir/a.txt', type: 'file' }
+                    ]
+                }
+            ];
+
+            jest.spyOn(window, 'confirm').mockReturnValue(true);
+
+            component.onContextMenu({
+                preventDefault: jest.fn(),
+                stopPropagation: jest.fn(),
+                clientX: 10,
+                clientY: 20
+            } as any, 'dir/a.txt');
+
+            component.onContextMenuDelete();
+
+            expect(diskService.deleteFile).toHaveBeenCalledWith('dir/a.txt');
+            expect(component.selectedFile).toBeNull();
+        });
+
+        it('should prevent dragging program.bas and allow dragging other nodes', () => {
+            const preventDefault = jest.fn();
+            const dataTransfer = {
+                effectAllowed: '',
+                setData: jest.fn()
+            } as any;
+
+            component.onDragStart({ preventDefault, dataTransfer } as any, { name: 'program.bas', path: 'program.bas', type: 'file' });
+            expect(preventDefault).toHaveBeenCalled();
+            expect(component.draggedNode).toBeNull();
+
+            component.onDragStart({ preventDefault: jest.fn(), dataTransfer } as any, { name: 'a.txt', path: 'a.txt', type: 'file' });
+            expect(component.draggedNode?.path).toBe('a.txt');
+            expect(dataTransfer.setData).toHaveBeenCalledWith('text/plain', 'a.txt');
+        });
+
+        it('should drop a file into a directory by renaming its path', () => {
+            component.draggedNode = { name: 'a.txt', path: 'a.txt', type: 'file' };
+            const target = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
+
+            component.onDrop({ preventDefault: jest.fn() } as any, target);
+
+            expect(diskService.renameFile).toHaveBeenCalledWith('a.txt', 'dir/a.txt');
+            expect(component.draggedNode).toBeNull();
+        });
+
+        it('should support drag-over and drop edge cases (no-op, descendant checks, file targets)', () =>
+        {
+            const preventDefault = jest.fn();
+            const dataTransfer = { dropEffect: '' } as any;
+
+            component.draggedNode = null;
+            component.onDragOver({ preventDefault, dataTransfer } as any, { name: 'dir', path: 'dir', type: 'directory' } as any);
+            expect(preventDefault).not.toHaveBeenCalled();
+
+            component.draggedNode = { name: 'a.txt', path: 'a.txt', type: 'file' };
+            component.onDragOver({ preventDefault, dataTransfer } as any, component.draggedNode as any);
+            expect(preventDefault).not.toHaveBeenCalled();
+
+            component.draggedNode = { name: 'dir', path: 'dir', type: 'directory' };
+            component.onDragOver({ preventDefault, dataTransfer } as any, { name: 'child', path: 'dir/child', type: 'directory' } as any);
+            expect(preventDefault).not.toHaveBeenCalled();
+
+            component.draggedNode = { name: 'a.txt', path: 'a.txt', type: 'file' };
+            component.onDragOver({ preventDefault, dataTransfer } as any, { name: 'b.txt', path: 'dir/b.txt', type: 'file' } as any);
+            expect(preventDefault).toHaveBeenCalled();
+            expect(dataTransfer.dropEffect).toBe('move');
+
+            diskService.renameFile.mockClear();
+            component.draggedNode = null;
+            component.onDrop({ preventDefault: jest.fn() } as any, { name: 'dir', path: 'dir', type: 'directory' } as any);
+            expect(diskService.renameFile).not.toHaveBeenCalled();
+
+            component.draggedNode = { name: 'a.txt', path: 'a.txt', type: 'file' };
+            component.onDrop({ preventDefault: jest.fn() } as any, { name: 'b.txt', path: 'dir/b.txt', type: 'file' } as any);
+            expect(diskService.renameFile).toHaveBeenCalledWith('a.txt', 'dir/a.txt');
+            expect(component.draggedNode).toBeNull();
+        });
+
+        it('isNodeInDraggedSubtree should only apply when dragging a directory', () =>
+        {
+            const file = { name: 'a.txt', path: 'a.txt', type: 'file' } as any;
+            const dir = { name: 'dir', path: 'dir', type: 'directory' } as any;
+            const descendant = { name: 'x', path: 'dir/x', type: 'file' } as any;
+
+            component.draggedNode = null;
+            expect(component.isNodeInDraggedSubtree(descendant)).toBe(false);
+
+            component.draggedNode = file;
+            expect(component.isNodeInDraggedSubtree(descendant)).toBe(false);
+
+            component.draggedNode = dir;
+            expect(component.isNodeInDraggedSubtree(descendant)).toBe(true);
+            expect(component.isNodeInDraggedSubtree({ name: 'other', path: 'other/x', type: 'file' } as any)).toBe(false);
+        });
+    });
+
     describe('Component Cleanup', () => {
         it('should unsubscribe on destroy', () => {
             fixture.detectChanges();

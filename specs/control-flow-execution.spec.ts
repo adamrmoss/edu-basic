@@ -7,6 +7,7 @@ import { FileSystemService } from '../src/app/disk/filesystem.service';
 import {
     DoLoopStatement,
     DoLoopVariant,
+    ElseStatement,
     EndStatement,
     EndType,
     IfStatement,
@@ -48,22 +49,27 @@ describe('Control Flow Execution', () =>
             ]);
             const ifStmt = new IfStatement(
                 new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                [printStmt],
+                [],
                 [],
                 null
             );
             const endIfStmt = new EndStatement(EndType.If);
 
             program.appendLine(ifStmt);
+            program.appendLine(printStmt);
             program.appendLine(endIfStmt);
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(0);
+            expect(context.getProgramCounter()).toBe(1);
 
             const result2 = runtime.executeStep();
             expect(result2).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(1);
+            expect(context.getProgramCounter()).toBe(2);
+
+            const result3 = runtime.executeStep();
+            expect(result3).toBe(ExecutionResult.Continue);
+            expect(context.getProgramCounter()).toBe(3);
         });
 
         it('should skip THEN branch when condition is false', () =>
@@ -73,18 +79,19 @@ describe('Control Flow Execution', () =>
             ]);
             const ifStmt = new IfStatement(
                 new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
-                [printStmt],
+                [],
                 [],
                 null
             );
             const endIfStmt = new EndStatement(EndType.If);
 
             program.appendLine(ifStmt);
+            program.appendLine(printStmt);
             program.appendLine(endIfStmt);
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(1);
+            expect(context.getProgramCounter()).toBe(2);
         });
 
         it('should execute ELSE branch when condition is false', () =>
@@ -97,18 +104,21 @@ describe('Control Flow Execution', () =>
             ]);
             const ifStmt = new IfStatement(
                 new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
-                [printThen],
                 [],
-                [printElse]
+                [],
+                null
             );
             const endIfStmt = new EndStatement(EndType.If);
 
             program.appendLine(ifStmt);
+            program.appendLine(printThen);
+            program.appendLine(new ElseStatement());
+            program.appendLine(printElse);
             program.appendLine(endIfStmt);
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(0);
+            expect(context.getProgramCounter()).toBe(2);
         });
     });
 
@@ -116,10 +126,6 @@ describe('Control Flow Execution', () =>
     {
         it('should loop while condition is true', () =>
         {
-            const counterVar = 'counter%';
-            context.setVariable(counterVar, { type: EduBasicType.Integer, value: 0 });
-
-            const incrementExpr = new LiteralExpression({ type: EduBasicType.Integer, value: 1 });
             const printStmt = new PrintStatement([
                 new LiteralExpression({ type: EduBasicType.String, value: 'loop' })
             ]);
@@ -130,15 +136,20 @@ describe('Control Flow Execution', () =>
             const wendStmt = new WendStatement();
 
             program.appendLine(whileStmt);
+            program.appendLine(printStmt);
             program.appendLine(wendStmt);
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(0);
+            expect(context.getProgramCounter()).toBe(1);
 
             const result2 = runtime.executeStep();
             expect(result2).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(0);
+            expect(context.getProgramCounter()).toBe(2);
+
+            const result3 = runtime.executeStep();
+            expect(result3).toBe(ExecutionResult.Continue);
+            expect(context.getProgramCounter()).toBe(1);
         });
 
         it('should exit loop when condition becomes false', () =>
@@ -154,7 +165,7 @@ describe('Control Flow Execution', () =>
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(1);
+            expect(context.getProgramCounter()).toBe(2);
         });
     });
 
@@ -173,15 +184,20 @@ describe('Control Flow Execution', () =>
             const loopStmt = new LoopStatement();
 
             program.appendLine(doStmt);
+            program.appendLine(printStmt);
             program.appendLine(loopStmt);
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(0);
+            expect(context.getProgramCounter()).toBe(1);
 
             const result2 = runtime.executeStep();
             expect(result2).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(0);
+            expect(context.getProgramCounter()).toBe(2);
+
+            const result3 = runtime.executeStep();
+            expect(result3).toBe(ExecutionResult.Continue);
+            expect(context.getProgramCounter()).toBe(1);
         });
 
         it('should execute DO WHILE when condition is true', () =>
@@ -197,11 +213,12 @@ describe('Control Flow Execution', () =>
             const loopStmt = new LoopStatement();
 
             program.appendLine(doStmt);
+            program.appendLine(printStmt);
             program.appendLine(loopStmt);
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(0);
+            expect(context.getProgramCounter()).toBe(1);
         });
 
         it('should skip DO WHILE when condition is false', () =>
@@ -217,11 +234,12 @@ describe('Control Flow Execution', () =>
             const loopStmt = new LoopStatement();
 
             program.appendLine(doStmt);
+            program.appendLine(printStmt);
             program.appendLine(loopStmt);
 
             const result1 = runtime.executeStep();
             expect(result1).toBe(ExecutionResult.Continue);
-            expect(context.getProgramCounter()).toBe(1);
+            expect(context.getProgramCounter()).toBe(3);
         });
     });
 

@@ -9,6 +9,7 @@ import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
 import { FileSystemService } from '../disk/filesystem.service';
 import { ConsoleService } from '../console/console.service';
+import { ParserService } from './parser';
 
 export enum InterpreterState
 {
@@ -39,6 +40,37 @@ export class InterpreterService
     private executionContext: ExecutionContext;
     private sharedProgram: Program;
     private runtimeExecution: RuntimeExecution | null = null;
+    private readonly keyDownHandler = (event: KeyboardEvent): void =>
+    {
+        if (this.shouldIgnoreKeyEvent(event))
+        {
+            return;
+        }
+
+        const key = this.normalizeKey(event);
+        if (!key)
+        {
+            return;
+        }
+
+        this.executionContext.setKeyDown(key);
+    };
+
+    private readonly keyUpHandler = (event: KeyboardEvent): void =>
+    {
+        if (this.shouldIgnoreKeyEvent(event))
+        {
+            return;
+        }
+
+        const key = this.normalizeKey(event);
+        if (!key)
+        {
+            return;
+        }
+
+        this.executionContext.setKeyUp(key);
+    };
 
     public readonly program$: Observable<Program | null> = this.programSubject.asObservable();
     public readonly state$: Observable<InterpreterState> = this.stateSubject.asObservable();
@@ -55,6 +87,7 @@ export class InterpreterService
     {
         this.executionContext = new ExecutionContext();
         this.sharedProgram = new Program();
+        this.initializeKeyboardListeners();
     }
 
     public get program(): Program | null
@@ -96,34 +129,45 @@ export class InterpreterService
     {
         this.stateSubject.next(InterpreterState.Parsing);
 
-        try
+        const parserService = this.injector.get(ParserService);
+        parserService.clear();
+
+        const program = this.createProgram();
+        const errors: string[] = [];
+
+        const lines = sourceCode.split(/\r?\n/);
+        for (let i = 0; i < lines.length; i++)
         {
-            const result: ParseResult = {
-                success: true,
-                errors: [],
-                warnings: []
-            };
+            const lineText = lines[i];
+            const parseLineResult = parserService.parseLine(i + 1, lineText);
 
-            this.parseResultSubject.next(result);
-            this.stateSubject.next(InterpreterState.Idle);
+            if (!parseLineResult.success)
+            {
+                errors.push(parseLineResult.error || `Line ${i + 1}: Parse error`);
+                continue;
+            }
 
-            return result;
+            const parsedLine = parseLineResult.value;
+            program.appendLine(parsedLine.statement);
+
+            if (parsedLine.hasError && parsedLine.errorMessage)
+            {
+                errors.push(`Line ${i + 1}: ${parsedLine.errorMessage}`);
+            }
         }
-        catch (error)
-        {
-            console.error('Error parsing source code:', error);
-            
-            const result: ParseResult = {
-                success: false,
-                errors: [error instanceof Error ? error.message : String(error)],
-                warnings: []
-            };
 
-            this.parseResultSubject.next(result);
-            this.stateSubject.next(InterpreterState.Error);
+        this.program = program;
 
-            return result;
-        }
+        const result: ParseResult = {
+            success: errors.length === 0,
+            errors,
+            warnings: []
+        };
+
+        this.parseResultSubject.next(result);
+        this.stateSubject.next(result.success ? InterpreterState.Idle : InterpreterState.Error);
+
+        return result;
     }
 
     public run(): void
@@ -208,5 +252,109 @@ export class InterpreterService
         }
 
         return this.runtimeExecution;
+    }
+
+    private initializeKeyboardListeners(): void
+    {
+        if (typeof window === 'undefined')
+        {
+            return;
+        }
+
+        window.addEventListener('keydown', this.keyDownHandler);
+        window.addEventListener('keyup', this.keyUpHandler);
+    }
+
+    private shouldIgnoreKeyEvent(event: KeyboardEvent): boolean
+    {
+        const target = event.target as HTMLElement | null;
+        if (!target)
+        {
+            return false;
+        }
+
+        const tagName = target.tagName?.toUpperCase();
+        if (tagName === 'INPUT' || tagName === 'TEXTAREA')
+        {
+            return true;
+        }
+
+        if (target.isContentEditable)
+        {
+            return true;
+        }
+
+        const contentEditable = (target as any).contentEditable;
+        if (typeof contentEditable === 'string' && contentEditable.toLowerCase() === 'true')
+        {
+            return true;
+        }
+
+        const attr = target.getAttribute?.('contenteditable');
+        if (attr !== null && attr !== undefined)
+        {
+            return attr.toLowerCase() !== 'false';
+        }
+
+        return false;
+    }
+
+    private normalizeKey(event: KeyboardEvent): string | null
+    {
+        const key = event.key;
+
+        switch (key)
+        {
+            case 'Escape':
+                return 'ESC';
+            case 'Enter':
+                return 'ENTER';
+            case 'Backspace':
+                return 'BACKSPACE';
+            case 'Tab':
+                return 'TAB';
+            case 'ArrowUp':
+                return 'ARROWUP';
+            case 'ArrowDown':
+                return 'ARROWDOWN';
+            case 'ArrowLeft':
+                return 'ARROWLEFT';
+            case 'ArrowRight':
+                return 'ARROWRIGHT';
+            case 'Home':
+                return 'HOME';
+            case 'End':
+                return 'END';
+            case 'PageUp':
+                return 'PAGEUP';
+            case 'PageDown':
+                return 'PAGEDOWN';
+            case 'Insert':
+                return 'INSERT';
+            case 'Delete':
+                return 'DELETE';
+            case 'Shift':
+                return 'SHIFT';
+            case 'Control':
+                return 'CTRL';
+            case 'Alt':
+                return 'ALT';
+            case 'CapsLock':
+                return 'CAPSLOCK';
+            case ' ':
+                return ' ';
+        }
+
+        if (key.startsWith('F') && key.length <= 3)
+        {
+            return key.toUpperCase();
+        }
+
+        if (key.length === 1)
+        {
+            return key;
+        }
+
+        return key.toUpperCase();
     }
 }

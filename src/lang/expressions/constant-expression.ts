@@ -16,7 +16,7 @@ export class NullaryExpression extends Expression
 
     public evaluate(context: ExecutionContext): EduBasicValue
     {
-        return this.constantEvaluator.evaluate(this.constant);
+        return this.constantEvaluator.evaluate(this.constant, context);
     }
 
     public toString(omitOuterParens?: boolean): string

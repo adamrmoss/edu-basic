@@ -50,7 +50,6 @@ export class SelectCaseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const currentPc = context.getProgramCounter();
         const testValue = this.testExpression.evaluate(context);
 
         for (const caseClause of this.cases)
@@ -59,35 +58,20 @@ export class SelectCaseStatement extends Statement
             {
                 if (caseClause.statements.length > 0)
                 {
-                    runtime.pushControlFrame({
-                        type: 'if',
-                        startLine: currentPc,
-                        endLine: this.findEndSelect(program, currentPc) ?? currentPc,
-                        nestedStatements: caseClause.statements,
-                        nestedIndex: 0
-                    });
+                    for (const stmt of caseClause.statements)
+                    {
+                        const status = stmt.execute(context, graphics, audio, program, runtime);
+                        if (status.result !== ExecutionResult.Continue)
+                        {
+                            return status;
+                        }
+                    }
 
                     return { result: ExecutionResult.Continue };
-                }
-                else
-                {
-                    const endSelectLine = this.findEndSelect(program, currentPc);
-
-                    if (endSelectLine !== undefined)
-                    {
-                        return { result: ExecutionResult.Goto, gotoTarget: endSelectLine };
-                    }
                 }
 
                 break;
             }
-        }
-
-        const endSelectLine = this.findEndSelect(program, currentPc);
-
-        if (endSelectLine !== undefined)
-        {
-            return { result: ExecutionResult.Goto, gotoTarget: endSelectLine };
         }
 
         return { result: ExecutionResult.Continue };

@@ -60,57 +60,31 @@ export class ForStatement extends Statement
 
         context.setVariable(this.variableName, startVal);
 
-        const nextLine = this.findNext(program, currentPc);
-
-        if (nextLine !== undefined)
+        const nextLine = runtime.findMatchingNext(currentPc);
+        if (nextLine === undefined)
         {
-            runtime.pushControlFrame({
-                type: 'for',
-                startLine: currentPc,
-                endLine: nextLine,
-                nestedStatements: this.body,
-                nestedIndex: 0,
-                loopVariable: this.variableName,
-                loopStartValue: startValueNum,
-                loopEndValue: endValueNum,
-                loopStepValue: stepValueNum
-            });
-
-            if (this.body.length > 0)
-            {
-                return { result: ExecutionResult.Continue };
-            }
+            throw new Error('FOR: missing NEXT');
         }
+
+        const shouldEnter = stepValueNum > 0
+            ? startValueNum <= endValueNum
+            : startValueNum >= endValueNum;
+
+        if (!shouldEnter)
+        {
+            return { result: ExecutionResult.Goto, gotoTarget: nextLine + 1 };
+        }
+
+        runtime.pushControlFrame({
+            type: 'for',
+            startLine: currentPc,
+            endLine: nextLine,
+            loopVariable: this.variableName,
+            loopEndValue: endValueNum,
+            loopStepValue: stepValueNum
+        });
 
         return { result: ExecutionResult.Continue };
-    }
-
-    private findNext(program: Program, startLine: number): number | undefined
-    {
-        const statements = program.getStatements();
-
-        for (let i = startLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof NextStatement)
-            {
-                if (stmt.variableName === null || stmt.variableName === this.variableName)
-                {
-                    if (stmt.indentLevel === this.indentLevel)
-                    {
-                        return i;
-                    }
-                }
-            }
-
-            if (stmt.indentLevel < this.indentLevel)
-            {
-                break;
-            }
-        }
-
-        return undefined;
     }
 
     public override toString(): string
@@ -121,15 +95,6 @@ export class ForStatement extends Statement
         {
             result += ` STEP ${this.stepValue.toString()}`;
         }
-
-        result += '\n';
-
-        for (const statement of this.body)
-        {
-            result += `    ${statement.toString()}\n`;
-        }
-
-        result += `NEXT ${this.variableName}`;
 
         return result;
     }

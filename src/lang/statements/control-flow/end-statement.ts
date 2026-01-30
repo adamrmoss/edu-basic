@@ -40,14 +40,32 @@ export class EndStatement extends Statement
             return { result: ExecutionResult.End };
         }
 
+        if (this.endType === EndType.Sub)
+        {
+            runtime.popControlFramesToAndIncluding('sub');
+            return { result: ExecutionResult.Return };
+        }
+
         if (this.endType === EndType.If)
         {
-            const ifFrame = runtime.findControlFrame('if');
-
-            if (ifFrame)
+            const top = runtime.getCurrentControlFrame();
+            if (!top || top.type !== 'if')
             {
-                runtime.popControlFrame();
+                throw new Error('END IF without IF');
             }
+
+            runtime.popControlFrame();
+        }
+
+        if (this.endType === EndType.Unless)
+        {
+            const top = runtime.getCurrentControlFrame();
+            if (!top || top.type !== 'unless')
+            {
+                throw new Error('END UNLESS without UNLESS');
+            }
+
+            runtime.popControlFrame();
         }
         
         return { result: ExecutionResult.Continue };

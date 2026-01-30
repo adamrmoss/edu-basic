@@ -29,7 +29,7 @@ export class ContinueStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        let frameType: 'if' | 'while' | 'do' | 'for' | undefined;
+        let frameType: 'while' | 'do' | 'for' | undefined;
 
         switch (this.target)
         {
@@ -50,11 +50,7 @@ export class ContinueStatement extends Statement
 
             if (frame)
             {
-                if (frame.nestedStatements && frame.nestedStatements.length > 0)
-                {
-                    frame.nestedIndex = 0;
-                    return { result: ExecutionResult.Goto, gotoTarget: frame.startLine };
-                }
+                return { result: ExecutionResult.Goto, gotoTarget: frame.endLine };
             }
         }
 

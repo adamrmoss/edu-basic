@@ -3,29 +3,32 @@ import { Statement, ExecutionResult } from './statements/statement';
 import { ExecutionContext } from './execution-context';
 import { Graphics } from './graphics';
 import { Audio } from './audio';
-import { DoLoopStatement, ForStatement, GotoStatement, IfStatement, WhileStatement } from './statements/control-flow';
-import { EduBasicType } from './edu-basic-value';
+import { ControlFlowFrameStack } from './control-flow-frame-stack';
+import { ControlStructureFrame, ControlStructureType } from './control-flow-frames';
+import {
+    DoLoopStatement,
+    ElseIfStatement,
+    ElseStatement,
+    EndStatement,
+    EndType,
+    ForStatement,
+    GotoStatement,
+    IfStatement,
+    LoopStatement,
+    NextStatement,
+    SubStatement,
+    UnlessStatement,
+    WendStatement,
+    WhileStatement
+} from './statements/control-flow';
 import { FileSystemService } from '../app/disk/filesystem.service';
 import { ConsoleService } from '../app/console/console.service';
 
-interface ControlStructureFrame
-{
-    type: 'if' | 'while' | 'do' | 'for';
-    startLine: number;
-    endLine: number;
-    nestedStatements?: Statement[];
-    nestedIndex?: number;
-    loopVariable?: string;
-    loopStartValue?: number;
-    loopEndValue?: number;
-    loopStepValue?: number;
-    condition?: any;
-}
-
 export class RuntimeExecution
 {
-    private controlStack: ControlStructureFrame[] = [];
+    private readonly controlFrames = new ControlFlowFrameStack();
     private tabSwitchCallback: ((tabId: string) => void) | null = null;
+    private sleepUntilMs: number | null = null;
 
     public constructor(
         private readonly program: Program,
@@ -63,56 +66,14 @@ export class RuntimeExecution
 
     public executeStep(): ExecutionResult
     {
-        const frame = this.getCurrentControlFrame();
-
-        if (frame && frame.nestedStatements && frame.nestedIndex !== undefined)
+        if (this.sleepUntilMs !== null)
         {
-            if (frame.nestedIndex < frame.nestedStatements.length)
+            if (Date.now() < this.sleepUntilMs)
             {
-                const nestedStmt = frame.nestedStatements[frame.nestedIndex];
-                const status = nestedStmt.execute(this.context, this.graphics, this.audio, this.program, this);
-
-                if (status.result === ExecutionResult.Goto && status.gotoTarget !== undefined)
-                {
-                    this.context.setProgramCounter(status.gotoTarget);
-                    this.popControlFrame();
-                    return ExecutionResult.Continue;
-                }
-
-                if (status.result === ExecutionResult.End)
-                {
-                    return ExecutionResult.End;
-                }
-
-                if (status.result === ExecutionResult.Return)
-                {
-                    const returnAddress = this.context.popStackFrame();
-
-                    if (returnAddress !== undefined)
-                    {
-                        this.context.setProgramCounter(returnAddress);
-                        this.popControlFrame();
-                        return ExecutionResult.Continue;
-                    }
-
-                    return ExecutionResult.End;
-                }
-
-                frame.nestedIndex++;
-
-                if (frame.nestedIndex >= frame.nestedStatements.length)
-                {
-                    frame.nestedIndex = undefined;
-
-                    if (frame.type === 'if')
-                    {
-                        this.popControlFrame();
-                        this.context.incrementProgramCounter();
-                    }
-                }
-
                 return ExecutionResult.Continue;
             }
+
+            this.sleepUntilMs = null;
         }
 
         const pc = this.context.getProgramCounter();
@@ -149,52 +110,251 @@ export class RuntimeExecution
             return ExecutionResult.End;
         }
 
-        const nextFrame = this.getCurrentControlFrame();
-
-        if (nextFrame && nextFrame.nestedStatements && Array.isArray(nextFrame.nestedStatements) && nextFrame.nestedStatements.length > 0)
-        {
-            const nestedIndex = nextFrame.nestedIndex;
-
-            if (nestedIndex !== undefined && nestedIndex !== null)
-            {
-                if (nestedIndex >= 0 && nestedIndex < nextFrame.nestedStatements.length)
-                {
-                    return ExecutionResult.Continue;
-                }
-            }
-        }
-
         this.context.incrementProgramCounter();
         return ExecutionResult.Continue;
     }
 
+    public sleep(milliseconds: number): void
+    {
+        const ms = Math.max(0, Math.floor(milliseconds));
+
+        if (ms === 0)
+        {
+            return;
+        }
+
+        this.sleepUntilMs = Date.now() + ms;
+    }
+
     public pushControlFrame(frame: ControlStructureFrame): void
     {
-        this.controlStack.push(frame);
+        this.controlFrames.push(frame);
     }
 
     public popControlFrame(): ControlStructureFrame | undefined
     {
-        return this.controlStack.pop();
+        return this.controlFrames.pop();
     }
 
     public getCurrentControlFrame(): ControlStructureFrame | undefined
     {
-        if (this.controlStack.length === 0)
-        {
-            return undefined;
-        }
-
-        return this.controlStack[this.controlStack.length - 1];
+        return this.controlFrames.peek();
     }
 
-    public findControlFrame(type: 'if' | 'while' | 'do' | 'for'): ControlStructureFrame | undefined
+    public findControlFrame(type: ControlStructureType): ControlStructureFrame | undefined
     {
-        for (let i = this.controlStack.length - 1; i >= 0; i--)
+        return this.controlFrames.find(type);
+    }
+
+    public popControlFramesToAndIncluding(type: ControlStructureType): void
+    {
+        this.controlFrames.popToAndIncluding(type);
+    }
+
+    public findMatchingEndIf(ifLine: number): number | undefined
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = ifLine + 1; i < statements.length; i++)
         {
-            if (this.controlStack[i].type === type)
+            const stmt = statements[i];
+
+            if (stmt instanceof IfStatement)
             {
-                return this.controlStack[i];
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
+            {
+                if (depth === 0)
+                {
+                    return i;
+                }
+
+                depth--;
+            }
+        }
+
+        return undefined;
+    }
+
+    public findMatchingEndUnless(unlessLine: number): number | undefined
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = unlessLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof UnlessStatement)
+            {
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.Unless)
+            {
+                if (depth === 0)
+                {
+                    return i;
+                }
+
+                depth--;
+            }
+        }
+
+        return undefined;
+    }
+
+    public findNextIfClauseOrEnd(fromLine: number, endIfLine: number): number
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = fromLine; i <= endIfLine && i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof IfStatement)
+            {
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
+            {
+                if (depth > 0)
+                {
+                    depth--;
+                    continue;
+                }
+            }
+
+            if (depth === 0)
+            {
+                if (stmt instanceof ElseIfStatement || stmt instanceof ElseStatement)
+                {
+                    return i;
+                }
+            }
+        }
+
+        return endIfLine;
+    }
+
+    public findMatchingNext(forLine: number): number | undefined
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = forLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof ForStatement)
+            {
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof NextStatement)
+            {
+                if (depth === 0)
+                {
+                    return i;
+                }
+
+                depth--;
+            }
+        }
+
+        return undefined;
+    }
+
+    public findMatchingWend(whileLine: number): number | undefined
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = whileLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof WhileStatement)
+            {
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof WendStatement)
+            {
+                if (depth === 0)
+                {
+                    return i;
+                }
+
+                depth--;
+            }
+        }
+
+        return undefined;
+    }
+
+    public findMatchingLoop(doLine: number): number | undefined
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = doLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof DoLoopStatement)
+            {
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof LoopStatement)
+            {
+                if (depth === 0)
+                {
+                    return i;
+                }
+
+                depth--;
+            }
+        }
+
+        return undefined;
+    }
+
+    public findMatchingEndSub(subLine: number): number | undefined
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = subLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof SubStatement)
+            {
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.Sub)
+            {
+                if (depth === 0)
+                {
+                    return i;
+                }
+
+                depth--;
             }
         }
 
@@ -222,7 +382,7 @@ export class RuntimeExecution
             {
                 if (stmt instanceof IfStatement && stmt.indentLevel === indentLevel - 1)
                 {
-                    const endIfIndex = this.findEndIf(i);
+                    const endIfIndex = this.findEndIfByText(i);
 
                     if (endIfIndex !== undefined)
                     {
@@ -232,7 +392,7 @@ export class RuntimeExecution
 
                 if (stmt.indentLevel < indentLevel)
                 {
-                    const endIfIndex = this.findEndIf(i);
+                    const endIfIndex = this.findEndIfByText(i);
 
                     if (endIfIndex !== undefined)
                     {
@@ -344,7 +504,7 @@ export class RuntimeExecution
         return undefined;
     }
 
-    private findEndIf(startIndex: number): number | undefined
+    private findEndIfByText(startIndex: number): number | undefined
     {
         const statements = this.program.getStatements();
 

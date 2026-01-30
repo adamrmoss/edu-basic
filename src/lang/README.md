@@ -187,20 +187,8 @@ Manages step-by-step program execution with control flow handling.
 - Program counter management
 
 **Control Structure Frames**:
-```typescript
-interface ControlStructureFrame {
-    type: 'if' | 'while' | 'do' | 'for';
-    startLine: number;
-    endLine: number;
-    nestedStatements?: Statement[];
-    nestedIndex?: number;
-    loopVariable?: string;
-    loopStartValue?: number;
-    loopEndValue?: number;
-    loopStepValue?: number;
-    condition?: any;
-}
-```
+- **Location**: `src/lang/control-flow-frames.ts`
+- Frames are stored in a dedicated stack structure: `src/lang/control-flow-frame-stack.ts`
 
 **Key Methods**:
 - `executeStep(): ExecutionResult` - Execute one step
@@ -212,22 +200,8 @@ interface ControlStructureFrame {
 - `requestTabSwitch(tabId)` - Request tab switch
 
 **Execution Flow**:
-```
-executeStep()
-    ↓
-Check for active control frame
-    ↓
-If frame exists:
-    Execute next nested statement
-    Increment nestedIndex
-    Check if frame complete
-    ↓
-Else:
-    Get statement at program counter
-    Execute statement
-    Handle result
-    Increment program counter
-```
+- The runtime executes a **flat program**: each `executeStep()` runs the statement at the current program counter.
+- Control flow statements (`IF`/`ELSEIF`/`ELSE`/`END IF`, loops, `CALL`/`SUB`) manipulate the program counter and maintain control frames on the stack to enable correct matching behavior.
 
 ## Graphics System
 

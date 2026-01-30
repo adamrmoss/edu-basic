@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { EduBasicType } from '../../edu-basic-value';
 
 export class RmdirStatement extends Statement
 {
@@ -23,7 +24,20 @@ export class RmdirStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        throw new Error('RMDIR statement not yet implemented');
+        const pathValue = this.path.evaluate(context);
+        if (pathValue.type !== EduBasicType.String)
+        {
+            throw new Error('RMDIR: path must be a string');
+        }
+
+        const path = pathValue.value as string;
+        const deleted = runtime.getFileSystem().deleteDirectory(path);
+        if (!deleted)
+        {
+            throw new Error(`RMDIR: could not remove directory: ${path}`);
+        }
+
+        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

@@ -33,6 +33,8 @@ const ARRAY_KEYWORDS = ['PUSH', 'POP', 'SHIFT', 'UNSHIFT'] as const;
 
 const MISC_STATEMENT_KEYWORDS = ['SLEEP', 'RANDOMIZE', 'SET', 'HELP', 'CONSOLE'] as const;
 
+const SET_MODIFIER_KEYWORDS = ['SPACING', 'TEXT', 'WRAP', 'AUDIO', 'ON', 'OFF'] as const;
+
 const FILE_IO_MODIFIER_KEYWORDS = ['EOF', 'LOC', 'EXISTS', 'APPEND', 'OVERWRITE', 'IN'] as const;
 
 const GRAPHICS_MODIFIER_KEYWORDS = ['FROM', 'WITH', 'AS', 'AT', 'RADIUS', 'RADII', 'FILLED', 'PRESET'] as const;
@@ -55,7 +57,7 @@ const COMPLEX_FUNCTION_KEYWORDS = ['REAL', 'IMAG', 'CONJ', 'CABS', 'CARG', 'CSQR
 
 const STRING_FUNCTION_KEYWORDS = [
     'ASC', 'CHR', 'STR', 'VAL', 'HEX', 'BIN', 'UCASE', 'LCASE',
-    'LTRIM', 'RTRIM', 'TRIM', 'REVERSE', 'LEN', 'LEFT', 'RIGHT', 'MID',
+    'LTRIM', 'RTRIM', 'TRIM', 'REVERSE', 'LEFT', 'RIGHT', 'MID',
     'INSTR', 'JOIN', 'REPLACE', 'FIND', 'INDEXOF', 'INCLUDES',
     'STARTSWITH', 'ENDSWITH'
 ] as const;
@@ -91,6 +93,7 @@ export class Keywords
     public static readonly audio = AUDIO_KEYWORDS;
     public static readonly array = ARRAY_KEYWORDS;
     public static readonly miscStatement = MISC_STATEMENT_KEYWORDS;
+    public static readonly setModifier = SET_MODIFIER_KEYWORDS;
     public static readonly fileIoModifier = FILE_IO_MODIFIER_KEYWORDS;
     public static readonly graphicsModifier = GRAPHICS_MODIFIER_KEYWORDS;
     public static readonly audioModifier = AUDIO_MODIFIER_KEYWORDS;
@@ -114,6 +117,7 @@ export class Keywords
         AUDIO_KEYWORDS,
         ARRAY_KEYWORDS,
         MISC_STATEMENT_KEYWORDS,
+        SET_MODIFIER_KEYWORDS,
         FILE_IO_MODIFIER_KEYWORDS,
         GRAPHICS_MODIFIER_KEYWORDS,
         AUDIO_MODIFIER_KEYWORDS,

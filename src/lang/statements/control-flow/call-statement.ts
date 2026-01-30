@@ -6,6 +6,8 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { SubStatement } from './sub-statement';
+import { VariableExpression } from '../../expressions/special/variable-expression';
+import { EduBasicValue } from '../../edu-basic-value';
 
 export class CallStatement extends Statement
 {
@@ -39,54 +41,53 @@ export class CallStatement extends Statement
                     throw new Error(`SUB ${this.subroutineName} expects ${stmt.parameters.length} parameters, got ${this.args.length}`);
                 }
 
+                const byRefBindings = new Map<string, string>();
+                const byValValues = new Map<string, EduBasicValue>();
+
                 for (let j = 0; j < stmt.parameters.length; j++)
                 {
                     const param = stmt.parameters[j];
-                    const argValue = this.args[j].evaluate(context);
 
                     if (param.byRef)
                     {
-                        throw new Error('BYREF parameters not yet implemented');
+                        const argExpr = this.args[j];
+                        if (!(argExpr instanceof VariableExpression))
+                        {
+                            throw new Error('CALL: BYREF argument must be a variable');
+                        }
+
+                        byRefBindings.set(param.name.toUpperCase(), argExpr.name);
+                        continue;
                     }
 
-                    context.setVariable(param.name, argValue, true);
+                    const argValue = this.args[j].evaluate(context);
+                    byValValues.set(param.name, argValue);
                 }
 
-                context.pushStackFrame(currentPc + 1);
+                context.pushStackFrame(currentPc + 1, byRefBindings);
 
-                if (stmt.body.length > 0)
+                for (const [paramName, value] of byValValues.entries())
                 {
-                    runtime.pushControlFrame({
-                        type: 'if',
-                        startLine: i,
-                        endLine: this.findEndSub(program, i) ?? i,
-                        nestedStatements: stmt.body,
-                        nestedIndex: 0
-                    });
-
-                    return { result: ExecutionResult.Goto, gotoTarget: i };
+                    context.setVariable(paramName, value, true);
                 }
+
+                const endSubLine = runtime.findMatchingEndSub(i);
+                if (endSubLine === undefined)
+                {
+                    throw new Error(`SUB ${this.subroutineName} is missing END SUB`);
+                }
+
+                runtime.pushControlFrame({
+                    type: 'sub',
+                    startLine: i,
+                    endLine: endSubLine
+                });
+
+                return { result: ExecutionResult.Goto, gotoTarget: i + 1 };
             }
         }
 
         throw new Error(`SUB ${this.subroutineName} not found`);
-    }
-
-    private findEndSub(program: Program, startLine: number): number | undefined
-    {
-        const statements = program.getStatements();
-
-        for (let i = startLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt.toString() === 'END SUB')
-            {
-                return i;
-            }
-        }
-
-        return undefined;
     }
 
     public override toString(): string

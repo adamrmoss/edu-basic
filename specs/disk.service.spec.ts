@@ -218,6 +218,58 @@ describe('DiskService', () => {
 
             service.createFile('new.dat');
         });
+
+        it('should not delete program.bas', () => {
+            service.programCode = 'PRINT "X"';
+            const before = service.getFile('program.bas');
+            expect(before).not.toBeNull();
+
+            service.deleteFile('program.bas');
+
+            const after = service.getFile('program.bas');
+            expect(after).not.toBeNull();
+        });
+
+        it('should update programCode when saving program.bas explicitly', () => {
+            service.saveFile('program.bas', new TextEncoder().encode('PRINT "Z"'));
+            expect(service.programCode).toBe('PRINT "Z"');
+        });
+
+        it('getProgramCodeFromFile returns empty string when file read returns null', () => {
+            jest.spyOn(fileSystemService, 'readFile').mockReturnValue(null);
+            expect(service.getProgramCodeFromFile()).toBe('');
+        });
+
+        it('renameFile should return false for program.bas', () => {
+            service.programCode = 'PRINT "X"';
+            expect(service.renameFile('program.bas', 'renamed.bas')).toBe(false);
+        });
+
+        it('renameFile should return false when source file does not exist', () => {
+            expect(service.renameFile('missing.dat', 'new.dat')).toBe(false);
+        });
+
+        it('renameFile should copy bytes and remove old file', () => {
+            service.saveFile('a.dat', new Uint8Array([1, 2, 3]));
+            expect(service.renameFile('a.dat', 'b.dat')).toBe(true);
+            expect(service.getFile('a.dat')).toBeNull();
+            expect(service.getFile('b.dat')).toEqual(new Uint8Array([1, 2, 3]));
+        });
+
+        it('deleteDirectory should return false when not empty and true when empty', () => {
+            service.createDirectory('dir');
+            service.createFile('dir/a.dat');
+            expect(service.deleteDirectory('dir')).toBe(false);
+
+            service.deleteFile('dir/a.dat');
+            expect(service.deleteDirectory('dir')).toBe(true);
+        });
+
+        it('isDirectory reflects filesystem state', () => {
+            service.createDirectory('dir');
+            expect(service.isDirectory('dir')).toBe(true);
+            expect(service.isDirectory('missing')).toBe(false);
+        });
     });
 
     describe('Save Disk', () => {

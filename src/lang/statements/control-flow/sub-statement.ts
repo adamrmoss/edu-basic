@@ -36,7 +36,14 @@ export class SubStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        return { result: ExecutionResult.Continue };
+        const currentPc = context.getProgramCounter();
+        const endSubLine = runtime.findMatchingEndSub(currentPc);
+        if (endSubLine === undefined)
+        {
+            throw new Error(`SUB ${this.name} is missing END SUB`);
+        }
+
+        return { result: ExecutionResult.Goto, gotoTarget: endSubLine + 1 };
     }
 
     public override toString(): string
@@ -45,22 +52,11 @@ export class SubStatement extends Statement
             (p.byRef ? 'BYREF ' : '') + p.name
         ).join(', ');
 
-        let result = `SUB ${this.name}`;
-
         if (params)
         {
-            result += ` ${params}`;
+            return `SUB ${this.name} ${params}`;
         }
 
-        result += '\n';
-
-        for (const statement of this.body)
-        {
-            result += `    ${statement.toString()}\n`;
-        }
-
-        result += 'END SUB';
-
-        return result;
+        return `SUB ${this.name}`;
     }
 }

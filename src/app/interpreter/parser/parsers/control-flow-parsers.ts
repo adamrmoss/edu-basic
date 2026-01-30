@@ -68,8 +68,20 @@ export class ControlFlowParsers
         {
             return elseifTokenResult;
         }
-        
-        return success(new ElseIfStatement());
+
+        const conditionResult = context.parseExpression();
+        if (!conditionResult.success)
+        {
+            return failure(conditionResult.error || 'Failed to parse condition expression');
+        }
+
+        const thenTokenResult = context.consume(TokenType.Keyword, 'THEN');
+        if (!thenTokenResult.success)
+        {
+            return thenTokenResult;
+        }
+
+        return success(new ElseIfStatement(conditionResult.value));
     }
 
     public static parseElse(context: ParserContext): ParseResult<ElseStatement>
@@ -327,7 +339,7 @@ export class ControlFlowParsers
         
         const parameters: SubParameter[] = [];
         
-        while (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
+        while (!context.isAtEnd() && (context.peek().type === TokenType.Identifier || context.peek().value.toUpperCase() === 'BYREF'))
         {
             const byRef = context.matchKeyword('BYREF');
             const paramNameResult = context.consume(TokenType.Identifier, 'parameter name');

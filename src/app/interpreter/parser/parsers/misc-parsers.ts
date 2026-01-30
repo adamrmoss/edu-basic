@@ -99,17 +99,18 @@ export class MiscParsers
             return randomizeTokenResult;
         }
         
-        let seed: number | null = null;
+        let seedExpression: any | null = null;
         if (!context.isAtEnd() && context.peek().type !== TokenType.EOF)
         {
             const exprResult = context.parseExpression();
-            if (exprResult.success)
+            if (!exprResult.success)
             {
-                seed = 0;
+                return failure(`RANDOMIZE: ${exprResult.error || 'Failed to parse seed expression'}`);
             }
+            seedExpression = exprResult.value;
         }
         
-        return success(new RandomizeStatement(seed));
+        return success(new RandomizeStatement(seedExpression));
     }
 
     public static parseHelp(context: ParserContext): ParseResult<HelpStatement>

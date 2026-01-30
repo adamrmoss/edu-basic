@@ -196,13 +196,30 @@ describe('Nullary Expressions (Built-in Values)', () =>
             }, 100);
         });
 
-        it('should return empty string for INKEY$ (not yet implemented)', () =>
+        it('should return empty string for INKEY$ when no key is pressed', () =>
         {
             const expr = new NullaryExpression(Constant.Inkey);
             const result = expr.evaluate(context);
 
             expect(result.type).toBe(EduBasicType.String);
             expect(result.value).toBe('');
+        });
+
+        it('should return current key for INKEY$ when a key is pressed', () =>
+        {
+            context.setKeyDown('ESC');
+
+            const expr = new NullaryExpression(Constant.Inkey);
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.String);
+            expect(result.value).toBe('ESC');
+
+            context.setKeyUp('ESC');
+
+            const resultAfter = expr.evaluate(context);
+            expect(resultAfter.type).toBe(EduBasicType.String);
+            expect(resultAfter.value).toBe('');
         });
     });
 
