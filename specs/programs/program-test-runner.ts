@@ -1,3 +1,15 @@
+/**
+ * Program spec runner (integration-style tests).
+ *
+ * This harness is intentionally "real interpreter, mocked I/O":
+ * - Real: `ParserService` -> `Program` -> `RuntimeExecution` stepping
+ * - Mocked: console/graphics/audio surfaces for deterministic, inspectable assertions
+ *
+ * Directory conventions:
+ * - Program specs: `specs/programs/*.spec.ts`
+ * - Program-spec mocks: `specs/programs/mocks/*`
+ * - Programs under test: `/programs/*.bas` (also usable in the IDE)
+ */
 import * as fs from 'fs';
 import * as path from 'path';
 
