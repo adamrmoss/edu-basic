@@ -960,6 +960,19 @@ describe('Parser parsers (direct parser class calls)', () =>
             expect(dimResult.success).toBe(true);
             if (!dimResult.success) { return; }
             expect(dimResult.value).toBeInstanceOf(DimStatement);
+
+            const dimRangeResult = VariableParsers.parseDim(ctx(eofTokens([
+                t(TokenType.Keyword, 'DIM'),
+                t(TokenType.Identifier, 'b%'),
+                t(TokenType.LeftBracket, '['),
+                t(TokenType.Integer, '0'),
+                t(TokenType.Keyword, 'TO'),
+                t(TokenType.Integer, '11'),
+                t(TokenType.RightBracket, ']')
+            ])));
+            expect(dimRangeResult.success).toBe(true);
+            if (!dimRangeResult.success) { return; }
+            expect(dimRangeResult.value).toBeInstanceOf(DimStatement);
         });
     });
 

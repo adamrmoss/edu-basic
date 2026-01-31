@@ -94,6 +94,24 @@ describe('ParserService', () =>
             const stmt = result.value.statement as DimStatement;
             expect(stmt.dimensions.length).toBe(2);
         });
+
+        it('should parse LET with bracket assignment (1D and 2D)', () =>
+        {
+            const oneD = parser.parseLine(1, 'LET a%[5] = 100');
+            expect(oneD.success).toBe(true);
+            if (!oneD.success) { return; }
+            expect(oneD.value.hasError).toBe(false);
+
+            const twoD = parser.parseLine(1, 'LET m#[1, 2] = 4.5');
+            expect(twoD.success).toBe(true);
+            if (!twoD.success) { return; }
+            expect(twoD.value.hasError).toBe(false);
+
+            const structMember = parser.parseLine(1, 'LET player[score%] = 100');
+            expect(structMember.success).toBe(true);
+            if (!structMember.success) { return; }
+            expect(structMember.value.hasError).toBe(false);
+        });
     });
 
     describe('Control Flow Statements', () =>

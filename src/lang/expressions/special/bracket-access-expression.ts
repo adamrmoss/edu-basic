@@ -20,20 +20,31 @@ export class BracketAccessExpression extends Expression
 
         if (baseValue.type === EduBasicType.Array)
         {
+            const dimensions = baseValue.dimensions;
+            if (dimensions && dimensions.length > 1)
+            {
+                throw new Error('BracketAccessExpression: multi-dimensional arrays require comma-separated indices (e.g., a#[i, j])');
+            }
+
             const indexValue = this.evaluateIndexValue(context);
             const index = this.toOneBasedIndex(indexValue);
             if (index === null)
             {
-                return BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
+                throw new Error('Array index is out of bounds');
             }
 
-            const jsIndex = index - 1;
-            if (jsIndex < 0 || jsIndex >= baseValue.value.length)
+            const lower = dimensions && dimensions.length === 1 ? dimensions[0].lower : 1;
+            const length = dimensions && dimensions.length === 1 ? dimensions[0].length : baseValue.value.length;
+            const stride = dimensions && dimensions.length === 1 ? dimensions[0].stride : 1;
+
+            const offset = index - lower;
+            const flatIndex = offset * stride;
+            if (offset < 0 || offset >= length || flatIndex < 0 || flatIndex >= baseValue.value.length)
             {
-                return BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
+                throw new Error('Array index is out of bounds');
             }
 
-            return baseValue.value[jsIndex] ?? BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
+            return baseValue.value[flatIndex] ?? BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
         }
 
         if (baseValue.type === EduBasicType.Structure)

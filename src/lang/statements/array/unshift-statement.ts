@@ -32,8 +32,18 @@ export class UnshiftStatement extends Statement
         {
             throw new Error(`UNSHIFT: ${this.arrayVariable} is not an array`);
         }
+
+        if (array.dimensions && array.dimensions.length > 1)
+        {
+            throw new Error(`UNSHIFT: ${this.arrayVariable} is multi-dimensional`);
+        }
         
         (array.value as any[]).unshift(valueResult);
+
+        if (array.dimensions && array.dimensions.length === 1)
+        {
+            array.dimensions[0].length = (array.value as any[]).length;
+        }
         
         return { result: ExecutionResult.Continue };
     }

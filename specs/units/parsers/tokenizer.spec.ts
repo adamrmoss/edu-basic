@@ -513,6 +513,16 @@ describe('Tokenizer', () =>
             expect(tokens[0].type).toBe(TokenType.Pipe);
             expect(tokens[1].type).toBe(TokenType.Exclamation);
         });
+
+        it('should tokenize ellipsis', () =>
+        {
+            const tokens = tokenizer.tokenize('... ...');
+
+            expect(tokens[0].type).toBe(TokenType.Ellipsis);
+            expect(tokens[0].value).toBe('...');
+            expect(tokens[1].type).toBe(TokenType.Ellipsis);
+            expect(tokens[1].value).toBe('...');
+        });
     });
 
     describe('Whitespace and Comments', () =>

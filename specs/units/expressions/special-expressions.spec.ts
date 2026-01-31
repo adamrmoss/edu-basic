@@ -38,7 +38,7 @@ describe('Special Expressions', () => {
         expect(second.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 20 });
     });
 
-    it('ArrayAccessExpression.evaluate should return default element when out of bounds', () => {
+    it('ArrayAccessExpression.evaluate should throw when out of bounds', () => {
         const context = new ExecutionContext();
         context.setVariable('arr%[]', {
             type: EduBasicType.Array,
@@ -53,7 +53,7 @@ describe('Special Expressions', () => {
             new LiteralExpression({ type: EduBasicType.Integer, value: 2 })
         );
 
-        expect(expr.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => expr.evaluate(context)).toThrow('Array index is out of bounds');
     });
 
     it('StructureMemberExpression.toString should format member access', () => {

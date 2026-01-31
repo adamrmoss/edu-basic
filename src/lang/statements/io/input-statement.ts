@@ -34,6 +34,11 @@ export class InputStatement extends Statement
             const elementType = this.getArrayElementType(this.variableName);
             let values: EduBasicValue[] = [];
 
+            if (existing.type === EduBasicType.Array && existing.dimensions && existing.dimensions.length > 1)
+            {
+                throw new Error('INPUT is only supported for 1D arrays');
+            }
+
             if (existing.type === EduBasicType.Array && existing.elementType === elementType && existing.value.length > 0)
             {
                 values = existing.value.slice();

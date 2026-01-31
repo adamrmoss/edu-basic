@@ -15,7 +15,7 @@ import {
     TriangleStatement
 } from '@/lang/statements/graphics';
 import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '@/lang/statements/array';
-import { DimStatement, LetStatement } from '@/lang/statements/variables';
+import { DimStatement, LetBracketStatement, LetStatement } from '@/lang/statements/variables';
 import { RandomizeStatement } from '@/lang/statements/misc';
 import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '@/lang/statements/audio';
 
@@ -986,7 +986,7 @@ describe('Statement Implementations', () =>
         {
             const stmt = new DimStatement(
                 'arr%[]',
-                [new LiteralExpression({ type: EduBasicType.Integer, value: 5 })]
+                [{ type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 5 }) }]
             );
             
             const result = stmt.execute(context, graphics, audio, program, runtime);
@@ -994,7 +994,10 @@ describe('Statement Implementations', () =>
             expect(result.result).toBe(ExecutionResult.Continue);
             const arr = context.getVariable('arr%[]');
             expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
+            expect(arr.elementType).toBe(EduBasicType.Integer);
             expect((arr.value as any[]).length).toBe(5);
+            expect(arr.dimensions).toEqual([{ lower: 1, length: 5, stride: 1 }]);
         });
         
         it('should create 2D array', () =>
@@ -1002,16 +1005,20 @@ describe('Statement Implementations', () =>
             const stmt = new DimStatement(
                 'matrix%[]',
                 [
-                    new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
-                    new LiteralExpression({ type: EduBasicType.Integer, value: 4 })
+                    { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) },
+                    { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 4 }) }
                 ]
             );
             
             stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('matrix%[]');
-            expect((arr.value as any[]).length).toBe(3);
-            expect((arr.value as any[])[0].length).toBe(4);
+            if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
+            expect(arr.dimensions).toEqual([
+                { lower: 1, length: 3, stride: 4 },
+                { lower: 1, length: 4, stride: 1 }
+            ]);
+            expect((arr.value as any[]).length).toBe(12);
         });
         
         it('should create 3D array', () =>
@@ -1019,25 +1026,29 @@ describe('Statement Implementations', () =>
             const stmt = new DimStatement(
                 'cube%[]',
                 [
-                    new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                    new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
-                    new LiteralExpression({ type: EduBasicType.Integer, value: 4 })
+                    { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
+                    { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) },
+                    { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 4 }) }
                 ]
             );
             
             stmt.execute(context, graphics, audio, program, runtime);
             
             const arr = context.getVariable('cube%[]');
-            expect((arr.value as any[]).length).toBe(2);
-            expect((arr.value as any[])[0].length).toBe(3);
-            expect((arr.value as any[])[0][0].length).toBe(4);
+            if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
+            expect(arr.dimensions).toEqual([
+                { lower: 1, length: 2, stride: 12 },
+                { lower: 1, length: 3, stride: 4 },
+                { lower: 1, length: 4, stride: 1 }
+            ]);
+            expect((arr.value as any[]).length).toBe(24);
         });
         
         it('should throw error for negative dimensions', () =>
         {
             const stmt = new DimStatement(
                 'arr%[]',
-                [new LiteralExpression({ type: EduBasicType.Integer, value: -5 })]
+                [{ type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: -5 }) }]
             );
             
             expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('DIM: Array dimension cannot be negative');
@@ -1047,7 +1058,7 @@ describe('Statement Implementations', () =>
         {
             const stmt = new DimStatement(
                 'arr%[]',
-                [new LiteralExpression({ type: EduBasicType.Real, value: 5.9 })]
+                [{ type: 'size', size: new LiteralExpression({ type: EduBasicType.Real, value: 5.9 }) }]
             );
             
             stmt.execute(context, graphics, audio, program, runtime);
@@ -1070,11 +1081,25 @@ describe('Statement Implementations', () =>
         it('should format toString correctly', () =>
         {
             const stmt = new DimStatement('arr%[]', [
-                new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                new LiteralExpression({ type: EduBasicType.Real, value: 3.5 })
+                { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
+                { type: 'size', size: new LiteralExpression({ type: EduBasicType.Real, value: 3.5 }) }
             ]);
 
             expect(stmt.toString()).toBe('DIM arr%[][2, 3.5]');
+        });
+
+        it('should create a ranged array with explicit bounds', () =>
+        {
+            const stmt = new DimStatement('r%[]', [
+                { type: 'range', start: new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), end: new LiteralExpression({ type: EduBasicType.Integer, value: 11 }) }
+            ]);
+
+            stmt.execute(context, graphics, audio, program, runtime);
+
+            const arr = context.getVariable('r%[]');
+            if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
+            expect(arr.dimensions).toEqual([{ lower: 0, length: 12, stride: 1 }]);
+            expect((arr.value as any[]).length).toBe(12);
         });
     });
     
@@ -1955,6 +1980,108 @@ describe('Statement Implementations', () =>
                 expect(arr.value[1].type).toBe(EduBasicType.Integer);
                 expect(arr.value[1].value).toBe(3);
             }
+        });
+    });
+
+    describe('LET [ ] assignment', () =>
+    {
+        it('should assign to a 1D typed array element and auto-grow when not dimensioned', () =>
+        {
+            const stmt = new LetBracketStatement(
+                'a%',
+                [{ type: 'indices', indices: [new LiteralExpression({ type: EduBasicType.Integer, value: 3 })] }],
+                new LiteralExpression({ type: EduBasicType.Integer, value: 7 })
+            );
+
+            const result = stmt.execute(context, graphics, audio, program, runtime);
+            expect(result.result).toBe(ExecutionResult.Continue);
+
+            const arr = context.getVariable('a%[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
+
+            expect(arr.elementType).toBe(EduBasicType.Integer);
+            expect(arr.value.length).toBe(3);
+            expect(arr.value[2]).toEqual({ type: EduBasicType.Integer, value: 7 });
+        });
+
+        it('should assign to a structure member and coerce by sigil', () =>
+        {
+            const stmt = new LetBracketStatement(
+                'player',
+                [{ type: 'identifier', identifier: 'score%' }],
+                new LiteralExpression({ type: EduBasicType.Real, value: 3.14 })
+            );
+
+            stmt.execute(context, graphics, audio, program, runtime);
+
+            const player = context.getVariable('player');
+            expect(player.type).toBe(EduBasicType.Structure);
+            if (player.type !== EduBasicType.Structure) { throw new Error('Expected structure'); }
+
+            const score = player.value.get('score%');
+            expect(score).toEqual({ type: EduBasicType.Integer, value: 3 });
+        });
+
+        it('should assign to a 2D DIM\'d array using comma-separated indices', () =>
+        {
+            const dim = new DimStatement('m#[]', [
+                { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
+                { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) }
+            ]);
+            dim.execute(context, graphics, audio, program, runtime);
+
+            const set = new LetBracketStatement(
+                'm#',
+                [{ type: 'indices', indices: [
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 2 })
+                ]}],
+                new LiteralExpression({ type: EduBasicType.Real, value: 4.5 })
+            );
+
+            set.execute(context, graphics, audio, program, runtime);
+
+            const arr = context.getVariable('m#[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
+
+            expect(arr.dimensions?.length).toBe(2);
+            expect(arr.value[1]).toEqual({ type: EduBasicType.Real, value: 4.5 });
+        });
+
+        it('should throw when assigning multi-dimensional indices without DIM', () =>
+        {
+            const stmt = new LetBracketStatement(
+                'm#',
+                [{ type: 'indices', indices: [
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 2 })
+                ]}],
+                new LiteralExpression({ type: EduBasicType.Real, value: 1.0 })
+            );
+
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('requires DIM');
+        });
+
+        it('should throw on out-of-bounds assignment for DIM\'d arrays', () =>
+        {
+            const dim = new DimStatement('m%[]', [
+                { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
+                { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) }
+            ]);
+            dim.execute(context, graphics, audio, program, runtime);
+
+            const stmt = new LetBracketStatement(
+                'm%',
+                [{ type: 'indices', indices: [
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+                ]}],
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+            );
+
+            expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('out of bounds');
         });
     });
 });

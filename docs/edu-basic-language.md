@@ -744,6 +744,15 @@ DIM matrix#[5, 10]    ' Resize to 5×10 matrix, creates array if it doesn't exis
 DIM grid%[1 TO 10, 1 TO 20]    ' Resize with custom ranges
 ```
 
+**Important (true multi-dimensional arrays):**
+- Multi-dimensional arrays in EduBASIC are **true N-dimensional arrays** (a single rectangular block), not jagged “arrays of arrays”.
+- Indexing a multi-dimensional array must use **comma-separated indices in a single bracket** (e.g. `matrix#[row%, col%]`).
+- Index mapping uses **row-major order** (the **rightmost index varies fastest**).
+- For multi-dimensional arrays, you must `DIM` the array first so it has well-defined bounds.
+- **Strict semantics:** anything “list-like” is **1D-only**. Multi-dimensional arrays only support:
+  - element indexing/assignment (`a#[i, j]`, `LET a#[i, j] = ...`)
+  - total element count (`|a#[]|`)
+
 #### Array Literals
 
 Arrays can be initialized using array literals with square brackets:
@@ -767,12 +776,20 @@ LET numbers%[5] = 100
 LET name$ = names$[2]
 ```
 
+**Bounds checking:**
+- Array indexing is **bounds-checked** at runtime.
+- Reading or writing an element **outside the declared bounds** is a runtime error.
+
 Arrays support multi-dimensional indexing:
 
 ```
 LET value# = matrix#[2, 3]
 LET matrix#[1, 5] = 42.5
 ```
+
+**Notes:**
+- `matrix#[2, 3]` is the supported form for 2D indexing (not `matrix#[2][3]`).
+- Assignments to array elements use the `LET array[index] = value` and `LET array[i, j] = value` forms.
 
 #### Array Slicing
 
@@ -786,6 +803,7 @@ LET all%[] = numbers%[... TO ...]    ' Entire array
 ```
 
 Slicing creates a new array containing the specified range of elements.
+Slicing is only supported for **1D arrays**.
 
 #### Array Concatenation
 
@@ -797,6 +815,7 @@ LET all%[] = [1, 2] + numbers%[] + [9, 10]
 ```
 
 Concatenation creates a new array containing all elements from the left array followed by all elements from the right array.
+Concatenation is only supported for **1D arrays**.
 
 #### Array Length
 

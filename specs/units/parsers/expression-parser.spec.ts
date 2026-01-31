@@ -219,6 +219,143 @@ describe('ExpressionParser', () =>
         });
     });
 
+    describe('Bracket indexing', () =>
+    {
+        it('should parse and evaluate comma-separated bracket indexing for multi-dimensional arrays', () =>
+        {
+            context.setVariable('m#[]', {
+                type: EduBasicType.Array,
+                elementType: EduBasicType.Real,
+                value: [
+                    { type: EduBasicType.Real, value: 1 },
+                    { type: EduBasicType.Real, value: 2 },
+                    { type: EduBasicType.Real, value: 3 },
+                    { type: EduBasicType.Real, value: 4 },
+                    { type: EduBasicType.Real, value: 5 },
+                    { type: EduBasicType.Real, value: 6 }
+                ],
+                dimensions: [
+                    { lower: 1, length: 2, stride: 3 },
+                    { lower: 1, length: 3, stride: 1 }
+                ]
+            }, false);
+
+            const exprResult = parser.parseExpression('m#[2, 3]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success) { return; }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result).toEqual({ type: EduBasicType.Real, value: 6 });
+        });
+    });
+
+    describe('Array literals, concatenation, and slicing', () =>
+    {
+        it('should parse and evaluate array literals', () =>
+        {
+            const exprResult = parser.parseExpression('[1, 2, 3]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success) { return; }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value.type).toBe(EduBasicType.Array);
+            if (value.type !== EduBasicType.Array) { return; }
+
+            expect(value.elementType).toBe(EduBasicType.Integer);
+            expect(value.value).toEqual([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Integer, value: 2 },
+                { type: EduBasicType.Integer, value: 3 }
+            ]);
+        });
+
+        it('should concatenate 1D arrays with +', () =>
+        {
+            const exprResult = parser.parseExpression('[1, 2] + [3, 4]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success) { return; }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value.type).toBe(EduBasicType.Array);
+            if (value.type !== EduBasicType.Array) { return; }
+
+            expect(value.elementType).toBe(EduBasicType.Integer);
+            expect(value.value).toEqual([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Integer, value: 2 },
+                { type: EduBasicType.Integer, value: 3 },
+                { type: EduBasicType.Integer, value: 4 }
+            ]);
+        });
+
+        it('should slice 1D arrays with [start TO end] and ellipsis bounds', () =>
+        {
+            const exprResult = parser.parseExpression('[1, 2, 3, 4, 5][2 TO 4]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success) { return; }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value.type).toBe(EduBasicType.Array);
+            if (value.type !== EduBasicType.Array) { return; }
+
+            expect(value.value).toEqual([
+                { type: EduBasicType.Integer, value: 2 },
+                { type: EduBasicType.Integer, value: 3 },
+                { type: EduBasicType.Integer, value: 4 }
+            ]);
+
+            const tailResult = parser.parseExpression('[1, 2, 3][2 TO ...]');
+            expect(tailResult.success).toBe(true);
+            if (!tailResult.success) { return; }
+            const tail = tailResult.value.evaluate(context);
+            expect(tail.type).toBe(EduBasicType.Array);
+            if (tail.type !== EduBasicType.Array) { return; }
+            expect(tail.value).toEqual([
+                { type: EduBasicType.Integer, value: 2 },
+                { type: EduBasicType.Integer, value: 3 }
+            ]);
+
+            const headResult = parser.parseExpression('[1, 2, 3][... TO 2]');
+            expect(headResult.success).toBe(true);
+            if (!headResult.success) { return; }
+            const head = headResult.value.evaluate(context);
+            expect(head.type).toBe(EduBasicType.Array);
+            if (head.type !== EduBasicType.Array) { return; }
+            expect(head.value).toEqual([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Integer, value: 2 }
+            ]);
+        });
+
+        it('should throw for list-like operations on multi-dimensional arrays', () =>
+        {
+            context.setVariable('m#[]', {
+                type: EduBasicType.Array,
+                elementType: EduBasicType.Real,
+                value: [
+                    { type: EduBasicType.Real, value: 1 },
+                    { type: EduBasicType.Real, value: 2 },
+                    { type: EduBasicType.Real, value: 3 },
+                    { type: EduBasicType.Real, value: 4 },
+                ],
+                dimensions: [
+                    { lower: 1, length: 2, stride: 2 },
+                    { lower: 1, length: 2, stride: 1 }
+                ]
+            }, false);
+
+            const concat = parser.parseExpression('m#[] + m#[]');
+            expect(concat.success).toBe(true);
+            if (!concat.success) { return; }
+            expect(() => concat.value.evaluate(context)).toThrow('Array concatenation is only supported for 1D arrays');
+
+            const slice = parser.parseExpression('m#[1 TO 2]');
+            expect(slice.success).toBe(true);
+            if (!slice.success) { return; }
+            expect(() => slice.value.evaluate(context)).toThrow('Array slicing is only supported for 1D arrays');
+        });
+    });
+
     describe('Arithmetic Operations', () =>
     {
         describe('Addition', () =>

@@ -32,8 +32,18 @@ export class PushStatement extends Statement
         {
             throw new Error(`PUSH: ${this.arrayVariable} is not an array`);
         }
+
+        if (array.dimensions && array.dimensions.length > 1)
+        {
+            throw new Error(`PUSH: ${this.arrayVariable} is multi-dimensional`);
+        }
         
         (array.value as any[]).push(valueResult);
+
+        if (array.dimensions && array.dimensions.length === 1)
+        {
+            array.dimensions[0].length = (array.value as any[]).length;
+        }
         
         return { result: ExecutionResult.Continue };
     }

@@ -25,7 +25,7 @@ describe('ArrayAccessExpression', () =>
         expect(expr.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 10 });
     });
 
-    it('returns a default when the index cannot be parsed', () =>
+    it('throws when the index cannot be parsed', () =>
     {
         const context = new ExecutionContext();
         context.setVariable('a%[]', {
@@ -41,10 +41,10 @@ describe('ArrayAccessExpression', () =>
             new LiteralExpression({ type: EduBasicType.String, value: 'x' })
         );
 
-        expect(expr.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => expr.evaluate(context)).toThrow('Array index is out of bounds');
     });
 
-    it('supports real and complex indices (truncated) and returns defaults when out of range', () =>
+    it('supports real and complex indices (truncated) and throws when out of range', () =>
     {
         const context = new ExecutionContext();
         context.setVariable('a%[]', {
@@ -72,7 +72,7 @@ describe('ArrayAccessExpression', () =>
             new VariableExpression('a%[]'),
             new LiteralExpression({ type: EduBasicType.Integer, value: 99 })
         );
-        expect(outOfRange.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => outOfRange.evaluate(context)).toThrow('Array index is out of bounds');
     });
 
     it('returns a default when the array slot is nullish', () =>
@@ -92,7 +92,7 @@ describe('ArrayAccessExpression', () =>
         expect(expr.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
     });
 
-    it('returns a structured default when element type is STRUCTURE', () =>
+    it('throws when out-of-bounds even if element type is STRUCTURE', () =>
     {
         const context = new ExecutionContext();
         context.setVariable('s[]', {
@@ -106,8 +106,7 @@ describe('ArrayAccessExpression', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
         );
 
-        const value = expr.evaluate(context);
-        expect(value.type).toBe(EduBasicType.Structure);
+        expect(() => expr.evaluate(context)).toThrow('Array index is out of bounds');
     });
 
     it('throws when base expression is not an array', () =>

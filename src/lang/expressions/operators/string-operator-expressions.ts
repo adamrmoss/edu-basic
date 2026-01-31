@@ -245,6 +245,11 @@ export class JoinOperatorExpression extends Expression
         {
             throw new Error(`JOIN requires array as left operand, got ${arrayValue.type}`);
         }
+
+        if (arrayValue.dimensions && arrayValue.dimensions.length > 1)
+        {
+            throw new Error('JOIN is only supported for 1D arrays');
+        }
         if (separatorValue.type !== EduBasicType.String)
         {
             throw new Error(`JOIN requires string separator, got ${separatorValue.type}`);

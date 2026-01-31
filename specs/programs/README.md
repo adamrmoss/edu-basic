@@ -10,11 +10,11 @@ Program specs are integration-style tests that execute **real `.bas` programs** 
 
 - Program specs validate the end-to-end behavior that users experience in the IDE.
 - They reduce the chance of “unit-test lies” where behavior is accidentally mocked/stubbed incorrectly.
-- They are also useful as a curated library of example programs (`/programs/*.BAS`) that can be opened and run in the IDE.
+- They are also useful as a curated library of example programs (`/programs/*.bas`) that can be opened and run in the IDE.
 
-### Where the `.BAS` files live
+### Where the `.bas` files live
 
-- Programs under test live in the repo root `programs/` directory (ordinary `.BAS` / `.bas` files).
+- Programs under test live in the repo root `programs/` directory (ordinary `.bas` files).
 
 ### How program specs run programs
 

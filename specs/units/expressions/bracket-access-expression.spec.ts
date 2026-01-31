@@ -6,7 +6,7 @@ import { VariableExpression } from '@/lang/expressions/special/variable-expressi
 
 describe('BracketAccessExpression', () =>
 {
-    it('reads array elements using one-based indexing and returns defaults for out-of-range', () =>
+    it('reads array elements using one-based indexing and throws for out-of-range', () =>
     {
         const context = new ExecutionContext();
         context.setVariable('a%[]', {
@@ -37,14 +37,14 @@ describe('BracketAccessExpression', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
             null
         );
-        expect(index0.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => index0.evaluate(context)).toThrow('Array index is out of bounds');
 
         const outOfRange = new BracketAccessExpression(
             new VariableExpression('a%[]'),
             new LiteralExpression({ type: EduBasicType.Integer, value: 99 }),
             null
         );
-        expect(outOfRange.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => outOfRange.evaluate(context)).toThrow('Array index is out of bounds');
     });
 
     it('treats typed bases as arrays when not declared', () =>
@@ -57,7 +57,7 @@ describe('BracketAccessExpression', () =>
             null
         );
 
-        expect(expr.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => expr.evaluate(context)).toThrow('Array index is out of bounds');
     });
 
     it('reads structure members case-insensitively and returns defaults when missing', () =>
@@ -158,7 +158,7 @@ describe('BracketAccessExpression', () =>
             null,
             null
         );
-        expect(arrayExpr.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => arrayExpr.evaluate(context)).toThrow('Array index is out of bounds');
 
         const structExpr = new BracketAccessExpression(
             new VariableExpression('s'),
@@ -184,7 +184,7 @@ describe('BracketAccessExpression', () =>
             new LiteralExpression({ type: EduBasicType.String, value: 'x' }),
             null
         );
-        expect(badStringIndex.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
+        expect(() => badStringIndex.evaluate(context)).toThrow('Array index is out of bounds');
 
         const complexIndex = new BracketAccessExpression(
             new VariableExpression('a%[]'),
@@ -290,8 +290,7 @@ describe('BracketAccessExpression', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
             null
         );
-        const a = arrayOfArrays.evaluate(context);
-        expect(a.type).toBe(EduBasicType.Array);
+        expect(() => arrayOfArrays.evaluate(context)).toThrow('Array index is out of bounds');
 
         context.setVariable('ss%[]', { type: EduBasicType.Array, elementType: EduBasicType.Structure, value: [] } as any, false);
         const arrayOfStructs = new BracketAccessExpression(
@@ -299,8 +298,7 @@ describe('BracketAccessExpression', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
             null
         );
-        const s = arrayOfStructs.evaluate(context);
-        expect(s.type).toBe(EduBasicType.Structure);
+        expect(() => arrayOfStructs.evaluate(context)).toThrow('Array index is out of bounds');
     });
 });
 

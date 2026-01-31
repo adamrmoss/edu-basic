@@ -14,13 +14,20 @@ export interface ComplexValue
     imaginary: number;
 }
 
+export interface ArrayDimension
+{
+    lower: number;
+    length: number;
+    stride: number;
+}
+
 export type EduBasicValue = 
     | { type: EduBasicType.Integer; value: number }
     | { type: EduBasicType.Real; value: number }
     | { type: EduBasicType.Complex; value: ComplexValue }
     | { type: EduBasicType.String; value: string }
     | { type: EduBasicType.Structure; value: Map<string, EduBasicValue> }
-    | { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType };
+    | { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType; dimensions?: ArrayDimension[] };
 
 /**
  * Finds the most specific common type from a list of types.

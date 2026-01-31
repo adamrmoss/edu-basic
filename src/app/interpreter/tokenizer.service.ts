@@ -38,6 +38,8 @@ export enum TokenType
     Semicolon,
     Pipe,
     Exclamation,
+
+    Ellipsis,
 }
 
 export interface Token
@@ -89,6 +91,17 @@ export class Tokenizer
     {
         const startColumn = this.column;
         const char = this.peek();
+
+        if (char === '.' &&
+            this.position + 2 < this.source.length &&
+            this.source[this.position + 1] === '.' &&
+            this.source[this.position + 2] === '.')
+        {
+            this.advance();
+            this.advance();
+            this.advance();
+            return this.makeToken(TokenType.Ellipsis, '...', startColumn);
+        }
 
         if (char === '"')
         {

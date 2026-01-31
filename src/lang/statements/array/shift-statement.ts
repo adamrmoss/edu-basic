@@ -30,6 +30,11 @@ export class ShiftStatement extends Statement
         {
             throw new Error(`SHIFT: ${this.arrayVariable} is not an array`);
         }
+
+        if (array.dimensions && array.dimensions.length > 1)
+        {
+            throw new Error(`SHIFT: ${this.arrayVariable} is multi-dimensional`);
+        }
         
         const arrayData = array.value as any[];
         
@@ -39,6 +44,11 @@ export class ShiftStatement extends Statement
         }
         
         const value = arrayData.shift();
+
+        if (array.dimensions && array.dimensions.length === 1)
+        {
+            array.dimensions[0].length = arrayData.length;
+        }
         
         if (this.targetVariable)
         {
