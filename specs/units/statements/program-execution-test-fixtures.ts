@@ -1,29 +1,17 @@
 import { ExecutionContext } from '@/lang/execution-context';
 import { Program } from '@/lang/program';
 import { RuntimeExecution } from '@/lang/runtime-execution';
-import { Audio } from '@/lang/audio';
 import { FileSystemService } from '@/app/disk/filesystem.service';
 
 import { EduBasicType } from '@/lang/edu-basic-value';
 import { LiteralExpression } from '@/lang/expressions/literal-expression';
 import { LetStatement } from '@/lang/statements/variables';
 
-import { TrackingGraphics } from '../../mocks';
+import { TrackingAudio, TrackingGraphics } from '../../mocks';
 
 export function createLetIntStatement(variableName: string, value: number): LetStatement
 {
     return new LetStatement(variableName, new LiteralExpression({ type: EduBasicType.Integer, value }));
-}
-
-export class TrackingAudio extends Audio
-{
-    public mutedCalls: boolean[] = [];
-
-    public override setMuted(muted: boolean): void
-    {
-        this.mutedCalls.push(muted);
-        super.setMuted(muted);
-    }
 }
 
 export interface RuntimeFixture
@@ -55,4 +43,3 @@ export function createRuntimeFixture(): RuntimeFixture
         runtime,
     };
 }
-

@@ -34,6 +34,7 @@ jest.mock('webaudio-tinysynth', () =>
 });
 
 import { Audio } from '@/lang/audio';
+import { mockAudioContext } from '../../mocks';
 
 describe('Audio', () =>
 {
@@ -46,17 +47,7 @@ describe('Audio', () =>
         mockSynthInstance.setTsMode.mockClear();
         mockSynthInstance.setChVol.mockClear();
 
-        (window as any).AudioContext = jest.fn().mockImplementation(() => ({
-            sampleRate: 44100,
-            state: 'running',
-            currentTime: 0,
-            destination: {},
-            createGain: jest.fn().mockReturnValue({
-                gain: { value: 1 },
-                connect: jest.fn(),
-                disconnect: jest.fn(),
-            }),
-        }));
+        mockAudioContext();
 
         audio = new Audio();
     });
@@ -186,13 +177,7 @@ describe('Audio', () =>
                 disconnect: jest.fn(),
             };
             const mockDestination = {};
-            (window as any).AudioContext = jest.fn().mockImplementation(() => ({
-                currentTime: 0,
-                destination: mockDestination,
-                sampleRate: 44100,
-                state: 'running',
-                createGain: jest.fn().mockReturnValue(mockGain),
-            }));
+            mockAudioContext({ destination: mockDestination, createGainReturn: mockGain });
             const audioInstance = new Audio();
             expect(audioInstance.getMuted()).toBe(false);
             audioInstance.setMuted(true);
