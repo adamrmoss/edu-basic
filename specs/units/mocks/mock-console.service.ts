@@ -7,3 +7,4 @@ export class MockConsoleService
         this.output.push(message);
     });
 }
+

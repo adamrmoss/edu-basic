@@ -34,7 +34,7 @@ jest.mock('webaudio-tinysynth', () =>
 });
 
 import { Audio } from '@/lang/audio';
-import { mockAudioContext } from '../../mocks';
+import { mockAudioContext } from '../mocks';
 
 describe('Audio', () =>
 {

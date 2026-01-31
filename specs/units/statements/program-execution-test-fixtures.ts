@@ -7,7 +7,7 @@ import { EduBasicType } from '@/lang/edu-basic-value';
 import { LiteralExpression } from '@/lang/expressions/literal-expression';
 import { LetStatement } from '@/lang/statements/variables';
 
-import { TrackingAudio, TrackingGraphics } from '../../mocks';
+import { TrackingAudio, TrackingGraphics } from '../mocks';
 
 export function createLetIntStatement(variableName: string, value: number): LetStatement
 {

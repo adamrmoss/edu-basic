@@ -5,7 +5,7 @@ import { UnparsableStatement } from '@/lang/statements/unparsable-statement';
 import { ConsoleStatement, HelpStatement, SetOption, SetStatement, SleepStatement } from '@/lang/statements/misc';
 import { RuntimeExecution } from '@/lang/runtime-execution';
 
-import { MockConsoleService, TrackingGraphics } from '../../mocks';
+import { MockConsoleService, TrackingGraphics } from '../mocks';
 import { createRuntimeFixture } from './program-execution-test-fixtures';
 
 describe('Misc statements', () =>

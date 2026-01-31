@@ -23,7 +23,7 @@ import { LiteralExpression } from '@/lang/expressions/literal-expression';
 import { coerceArrayElements } from '@/lang/edu-basic-value';
 import { FileSystemService } from '@/app/disk/filesystem.service';
 
-import { MockAudio, MockGraphics, mockAudioContext } from '../../mocks';
+import { MockAudio, MockGraphics, mockAudioContext } from '../mocks';
 
 describe('Statement Implementations', () =>
 {

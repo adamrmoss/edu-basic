@@ -45,3 +45,4 @@ export class MockAudio extends Audio
         this.sequences.push({ voiceIndex, mml });
     }
 }
+

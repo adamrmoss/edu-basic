@@ -11,7 +11,7 @@ import { LiteralExpression } from '@/lang/expressions/literal-expression';
 
 import { PaintStatement, PutStatement, GetStatement } from '@/lang/statements/graphics';
 
-import { BufferGraphics } from '../../mocks';
+import { BufferGraphics } from '../mocks';
 
 function setPixel(buffer: ImageData, width: number, height: number, x: number, y: number, rgba: number): void
 {

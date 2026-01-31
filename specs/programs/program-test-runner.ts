@@ -9,7 +9,7 @@ import { FileSystemService } from '@/app/disk/filesystem.service';
 import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
 import { ParserService } from '@/app/interpreter/parser';
 
-import { MockConsoleService, TrackingAudio, TrackingGraphics } from '../mocks';
+import { TestAudio, TestConsoleService, TestGraphics } from './mocks';
 
 export interface BasProgramRunResult
 {
@@ -18,10 +18,10 @@ export interface BasProgramRunResult
 
     context: ExecutionContext;
     program: Program;
-    graphics: TrackingGraphics;
-    audio: TrackingAudio;
+    graphics: TestGraphics;
+    audio: TestAudio;
     fileSystem: FileSystemService;
-    consoleService: MockConsoleService;
+    consoleService: TestConsoleService;
     runtime: RuntimeExecution;
     tabSwitches: string[];
 
@@ -80,11 +80,11 @@ export class BasProgramTestRunner
         const context = new ExecutionContext();
         context.setProgramCounter(0);
 
-        const graphics = new TrackingGraphics();
-        const audio = new TrackingAudio();
+        const graphics = new TestGraphics();
+        const audio = new TestAudio();
         const fileSystem = new FileSystemService();
-        const consoleService = new MockConsoleService();
-        const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem, consoleService as any);
+        const consoleService = new TestConsoleService();
+        const runtime = new RuntimeExecution(program, context, graphics as any, audio as any, fileSystem, consoleService as any);
         const tabSwitches: string[] = [];
         runtime.setTabSwitchCallback((tabId: string) =>
         {
