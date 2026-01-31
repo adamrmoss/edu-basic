@@ -146,9 +146,19 @@ export class RuntimeExecution
         return this.controlFrames.find(type);
     }
 
+    public findControlFrameWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
+    {
+        return this.controlFrames.findWhere(predicate);
+    }
+
     public popControlFramesToAndIncluding(type: ControlStructureType): void
     {
         this.controlFrames.popToAndIncluding(type);
+    }
+
+    public popControlFramesToAndIncludingWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
+    {
+        return this.controlFrames.popToAndIncludingWhere(predicate);
     }
 
     public findMatchingEndIf(ifLine: number): number | undefined

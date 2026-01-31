@@ -560,7 +560,11 @@ describe('Control-flow statements (unit)', () =>
 
         const noFrame = new ExitStatement(ExitTarget.For);
         expect(noFrame.toString()).toBe('EXIT FOR');
-        expect(noFrame.execute(context, graphics, audio, program, { findControlFrame: () => null } as any)).toEqual({ result: ExecutionResult.Continue });
+        expect(noFrame.execute(context, graphics, audio, program, {
+            findControlFrame: () => null,
+            findControlFrameWhere: () => null,
+            popControlFramesToAndIncludingWhere: () => null,
+        } as any)).toEqual({ result: ExecutionResult.Continue });
 
         const frames: any[] = [
             { type: 'if' },
@@ -568,8 +572,22 @@ describe('Control-flow statements (unit)', () =>
         ];
         const runtime = {
             findControlFrame: (type: string) => frames.find((f) => f.type === type) ?? null,
+            findControlFrameWhere: (predicate: (frame: any) => boolean) => frames.slice().reverse().find(predicate) ?? null,
             getCurrentControlFrame: () => frames[frames.length - 1] ?? null,
-            popControlFrame: () => frames.pop()
+            popControlFrame: () => frames.pop(),
+            popControlFramesToAndIncludingWhere: (predicate: (frame: any) => boolean) =>
+            {
+                while (frames.length > 0)
+                {
+                    const popped = frames.pop();
+                    if (popped && predicate(popped))
+                    {
+                        return popped;
+                    }
+                }
+
+                return null;
+            }
         } as any;
 
         const exitFor = new ExitStatement(ExitTarget.For);
@@ -578,14 +596,62 @@ describe('Control-flow statements (unit)', () =>
         const framesNoEnd: any[] = [{ type: 'for' }];
         const runtimeNoEnd = {
             findControlFrame: () => framesNoEnd[0],
+            findControlFrameWhere: (predicate: (frame: any) => boolean) => framesNoEnd.slice().reverse().find(predicate) ?? null,
             getCurrentControlFrame: () => framesNoEnd[framesNoEnd.length - 1] ?? null,
-            popControlFrame: () => framesNoEnd.pop()
+            popControlFrame: () => framesNoEnd.pop(),
+            popControlFramesToAndIncludingWhere: (predicate: (frame: any) => boolean) =>
+            {
+                while (framesNoEnd.length > 0)
+                {
+                    const popped = framesNoEnd.pop();
+                    if (popped && predicate(popped))
+                    {
+                        return popped;
+                    }
+                }
+
+                return null;
+            }
         } as any;
         expect(exitFor.execute(context, graphics, audio, program, runtimeNoEnd)).toEqual({ result: ExecutionResult.Continue });
 
         const unknown = new ExitStatement(999 as any);
         expect(unknown.toString()).toBe('EXIT');
         expect(unknown.execute(context, graphics, audio, program, {} as any)).toEqual({ result: ExecutionResult.Continue });
+    });
+
+    it('ExitStatement should support EXIT FOR variableName for nested loops', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = {} as any;
+
+        const frames: any[] = [
+            { type: 'for', loopVariable: 'i%', endLine: 100 },
+            { type: 'for', loopVariable: 'j%', endLine: 200 },
+        ];
+
+        const runtime = {
+            findControlFrameWhere: (predicate: (frame: any) => boolean) => frames.slice().reverse().find(predicate) ?? null,
+            popControlFramesToAndIncludingWhere: (predicate: (frame: any) => boolean) =>
+            {
+                while (frames.length > 0)
+                {
+                    const popped = frames.pop();
+                    if (popped && predicate(popped))
+                    {
+                        return popped;
+                    }
+                }
+
+                return null;
+            }
+        } as any;
+
+        const exitInner = new ExitStatement(ExitTarget.For, 'j%');
+        expect(exitInner.toString()).toBe('EXIT FOR j%');
+        expect(exitInner.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 201 });
     });
 
     it('NextStatement should update loop variable and format toString', () =>
@@ -602,8 +668,24 @@ describe('Control-flow statements (unit)', () =>
         expect(withoutVar.toString()).toBe('NEXT');
 
         context.setVariable('i%', { type: EduBasicType.Integer, value: 4 }, false);
-        const frame = { type: 'for', loopVariable: 'i%', loopEndValue: 5, loopStepValue: 1, startLine: 10 };
-        const runtime = { findControlFrame: () => frame } as any;
+        const frames: any[] = [{ type: 'for', loopVariable: 'i%', loopEndValue: 5, loopStepValue: 1, startLine: 10 }];
+        const runtime = {
+            findControlFrame: () => frames[0],
+            findControlFrameWhere: (predicate: (frame: any) => boolean) => frames.slice().reverse().find(predicate) ?? null,
+            popControlFramesToAndIncludingWhere: (predicate: (frame: any) => boolean) =>
+            {
+                while (frames.length > 0)
+                {
+                    const popped = frames.pop();
+                    if (popped && predicate(popped))
+                    {
+                        return popped;
+                    }
+                }
+
+                return null;
+            }
+        } as any;
 
         const cont = withVar.execute(context, graphics, audio, program, runtime);
         expect(cont).toEqual({ result: ExecutionResult.Goto, gotoTarget: 11 });
@@ -780,7 +862,7 @@ describe('Control-flow statements (unit)', () =>
 
         const elseStmt = new ElseStatement();
         program.appendLine(new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null));
-        program.appendLine(new IfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null));
+        program.appendLine(new IfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], [], null));
         program.appendLine(new ElseStatement());
         program.appendLine(new EndStatement(EndType.If));
         program.appendLine(new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null));

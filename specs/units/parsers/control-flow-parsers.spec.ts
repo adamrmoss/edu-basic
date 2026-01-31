@@ -107,14 +107,23 @@ describe('ControlFlowParsers (via ParserService)', () =>
         expect(exitFor.value.hasError).toBe(false);
         expect(exitFor.value.statement).toBeInstanceOf(ExitStatement);
         expect((exitFor.value.statement as ExitStatement).target).toBe(ExitTarget.For);
+        expect((exitFor.value.statement as ExitStatement).forVariableName).toBeNull();
 
-        const contDo = parser.parseLine(2, 'CONTINUE DO');
+        const exitForVar = parser.parseLine(2, 'EXIT FOR i%');
+        expect(exitForVar.success).toBe(true);
+        if (!exitForVar.success) { return; }
+        expect(exitForVar.value.hasError).toBe(false);
+        expect(exitForVar.value.statement).toBeInstanceOf(ExitStatement);
+        expect((exitForVar.value.statement as ExitStatement).target).toBe(ExitTarget.For);
+        expect((exitForVar.value.statement as ExitStatement).forVariableName).toBe('i%');
+
+        const contDo = parser.parseLine(3, 'CONTINUE DO');
         expect(contDo.success).toBe(true);
         if (!contDo.success) { return; }
         expect(contDo.value.hasError).toBe(false);
         expect(contDo.value.statement).toBeInstanceOf(ContinueStatement);
 
-        const badExit = parser.parseLine(3, 'EXIT');
+        const badExit = parser.parseLine(4, 'EXIT');
         expect(badExit.success).toBe(true);
         if (!badExit.success) { return; }
         expect(badExit.value.hasError).toBe(true);

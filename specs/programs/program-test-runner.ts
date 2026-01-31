@@ -4,14 +4,12 @@ import * as path from 'path';
 import { ExecutionContext } from '@/lang/execution-context';
 import { Program } from '@/lang/program';
 import { RuntimeExecution } from '@/lang/runtime-execution';
-import { Graphics } from '@/lang/graphics';
-import { Audio } from '@/lang/audio';
 import { ExecutionResult } from '@/lang/statements/statement';
 import { FileSystemService } from '@/app/disk/filesystem.service';
 import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
 import { ParserService } from '@/app/interpreter/parser';
 
-import { MockConsoleService } from '../mocks';
+import { MockConsoleService, TrackingAudio, TrackingGraphics } from '../mocks';
 
 export interface BasProgramRunResult
 {
@@ -20,11 +18,12 @@ export interface BasProgramRunResult
 
     context: ExecutionContext;
     program: Program;
-    graphics: Graphics;
-    audio: Audio;
+    graphics: TrackingGraphics;
+    audio: TrackingAudio;
     fileSystem: FileSystemService;
     consoleService: MockConsoleService;
     runtime: RuntimeExecution;
+    tabSwitches: string[];
 
     stepsExecuted: number;
     ended: boolean;
@@ -40,7 +39,7 @@ export class BasProgramTestRunner
     public static runFile(programFileName: string, options?: RunBasProgramOptions): BasProgramRunResult
     {
         const programsDir = path.resolve(__dirname, '../../programs');
-        const programPath = path.resolve(programsDir, programFileName);
+        const programPath = this.resolveProgramPath(programsDir, programFileName);
         const sourceCode = fs.readFileSync(programPath, 'utf8');
 
         return this.runSource(sourceCode, options);
@@ -81,11 +80,16 @@ export class BasProgramTestRunner
         const context = new ExecutionContext();
         context.setProgramCounter(0);
 
-        const graphics = new Graphics();
-        const audio = new Audio();
+        const graphics = new TrackingGraphics();
+        const audio = new TrackingAudio();
         const fileSystem = new FileSystemService();
         const consoleService = new MockConsoleService();
         const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem, consoleService as any);
+        const tabSwitches: string[] = [];
+        runtime.setTabSwitchCallback((tabId: string) =>
+        {
+            tabSwitches.push(tabId);
+        });
 
         let stepsExecuted = 0;
         let ended = false;
@@ -116,10 +120,31 @@ export class BasProgramTestRunner
             fileSystem,
             consoleService,
             runtime,
+            tabSwitches,
 
             stepsExecuted,
             ended
         };
+    }
+
+    private static resolveProgramPath(programsDir: string, programFileName: string): string
+    {
+        const directPath = path.resolve(programsDir, programFileName);
+        if (fs.existsSync(directPath))
+        {
+            return directPath;
+        }
+
+        const target = programFileName.toLowerCase();
+        const entries = fs.readdirSync(programsDir);
+        const match = entries.find(e => e.toLowerCase() === target);
+
+        if (!match)
+        {
+            throw new Error(`Program file not found: ${programFileName}`);
+        }
+
+        return path.resolve(programsDir, match);
     }
 }
 

@@ -149,6 +149,51 @@ describe('Control-flow statements (program execution)', () =>
             expect(context.getVariable('skipped%')).toEqual({ type: EduBasicType.Integer, value: 0 });
         });
 
+        it('EXIT FOR should exit only the innermost FOR in nested loops', () =>
+        {
+            const { context, program, runtime, fileSystem } = createRuntimeFixture();
+            fileSystem.clear();
+
+            context.setVariable('outerCount%', { type: EduBasicType.Integer, value: 0 }, false);
+            context.setVariable('innerCount%', { type: EduBasicType.Integer, value: 0 }, false);
+
+            program.appendLine(new ForStatement(
+                'i%',
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
+                null,
+                []
+            )); // 0
+
+            program.appendLine(new ForStatement(
+                'j%',
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
+                null,
+                []
+            )); // 1
+
+            program.appendLine(createIncrementIntStatement('innerCount%')); // 2
+            program.appendLine(new ExitStatement(ExitTarget.For)); // 3 (exit inner loop)
+            program.appendLine(new NextStatement('j%')); // 4
+
+            program.appendLine(createIncrementIntStatement('outerCount%')); // 5 (runs after inner loop)
+            program.appendLine(new NextStatement('i%')); // 6
+
+            for (let step = 0; step < 200; step++)
+            {
+                runtime.executeStep();
+                if (context.getProgramCounter() >= 7)
+                {
+                    break;
+                }
+            }
+
+            expect(context.getVariable('innerCount%')).toEqual({ type: EduBasicType.Integer, value: 3 });
+            expect(context.getVariable('outerCount%')).toEqual({ type: EduBasicType.Integer, value: 3 });
+            expect(context.getProgramCounter()).toBe(7);
+        });
+
         it('WHILE/WEND should loop and stop when condition becomes false', () =>
         {
             const { context, program, runtime, fileSystem } = createRuntimeFixture();

@@ -538,7 +538,19 @@ export class ControlFlowParsers
         
         if (context.matchKeyword('FOR'))
         {
-            return success(new ExitStatement(ExitTarget.For));
+            let varName: string | null = null;
+            if (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
+            {
+                const varNameResult = context.consume(TokenType.Identifier, 'variable name');
+                if (!varNameResult.success)
+                {
+                    return varNameResult;
+                }
+
+                varName = varNameResult.value.value;
+            }
+
+            return success(new ExitStatement(ExitTarget.For, varName));
         }
         else if (context.matchKeyword('WHILE'))
         {
