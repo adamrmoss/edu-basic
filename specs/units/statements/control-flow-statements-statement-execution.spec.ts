@@ -7,6 +7,7 @@ import { LetStatement } from '@/lang/statements/variables';
 import { Audio } from '@/lang/audio';
 import { Graphics } from '@/lang/graphics';
 import {
+    CaseStatement,
     ContinueStatement,
     ContinueTarget,
     DoLoopStatement,
@@ -24,7 +25,6 @@ import {
     LoopStatement,
     NextStatement,
     SelectCaseStatement,
-    CaseMatchType,
     SubStatement,
     TryStatement,
     ThrowStatement,
@@ -875,146 +875,107 @@ describe('Control-flow statements (unit)', () =>
         expect(status).toEqual({ result: ExecutionResult.Goto, gotoTarget: 6 });
     });
 
-    it('SelectCaseStatement should match value/range/relational/else and format toString', () =>
+    it('SelectCaseStatement should enter a SELECT frame and jump to the first CASE', () =>
     {
         const context = new ExecutionContext();
         const graphics = new Graphics();
         const audio = new Audio();
         const program = new Program();
-        const runtime = {} as any;
 
-        const valueMatch = new SelectCaseStatement(
-            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-            [
-                {
-                    matchType: CaseMatchType.Value,
-                    values: [
-                        new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                        new LiteralExpression({ type: EduBasicType.Integer, value: 5 })
-                    ],
-                    statements: [new LetStatement('hit%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
-                }
-            ]
-        );
-        expect(valueMatch.getIndentAdjustment()).toBe(1);
-        expect(valueMatch.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
-        expect(context.getVariable('hit%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+        const runtime = {
+            findMatchingEndSelect: () => 10,
+            findNextCaseOrEndSelect: () => 3,
+            pushControlFrame: jest.fn()
+        } as any;
 
-        const earlyReturn = new SelectCaseStatement(
-            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-            [
-                {
-                    matchType: CaseMatchType.Value,
-                    values: [new LiteralExpression({ type: EduBasicType.Integer, value: 5 })],
-                    statements: [new EndStatement(EndType.Program)]
-                }
-            ]
-        );
-        expect(earlyReturn.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.End });
+        context.setProgramCounter(0);
 
-        const rangeMatch = new SelectCaseStatement(
-            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-            [
-                {
-                    matchType: CaseMatchType.Range,
-                    rangeStart: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
-                    rangeEnd: new LiteralExpression({ type: EduBasicType.Integer, value: 7 }),
-                    statements: [new LetStatement('range%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
-                }
-            ]
-        );
-        rangeMatch.execute(context, graphics, audio, program, runtime);
-        expect(context.getVariable('range%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+        const select = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 5 }));
+        expect(select.getIndentAdjustment()).toBe(1);
+        expect(select.toString()).toBe('SELECT CASE 5');
 
-        const relationalMatch = new SelectCaseStatement(
-            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-            [
-                {
-                    matchType: CaseMatchType.Relational,
-                    relationalOp: '>=',
-                    relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-                    statements: [new LetStatement('rel%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
-                }
-            ]
-        );
-        relationalMatch.execute(context, graphics, audio, program, runtime);
-        expect(context.getVariable('rel%')).toEqual({ type: EduBasicType.Integer, value: 1 });
-
-        const elseMatch = new SelectCaseStatement(
-            new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-            [
-                {
-                    matchType: CaseMatchType.Value,
-                    values: [new LiteralExpression({ type: EduBasicType.Integer, value: 1 })],
-                    statements: []
-                },
-                {
-                    matchType: CaseMatchType.Else,
-                    statements: [new LetStatement('else%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
-                }
-            ]
-        );
-        elseMatch.execute(context, graphics, audio, program, runtime);
-        expect(context.getVariable('else%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+        const status = select.execute(context, graphics, audio, program, runtime);
+        expect(status).toEqual({ result: ExecutionResult.Goto, gotoTarget: 3 });
+        expect(runtime.pushControlFrame).toHaveBeenCalledWith({
+            type: 'select',
+            startLine: 0,
+            endLine: 10,
+            selectTestValue: { type: EduBasicType.Integer, value: 5 },
+            selectMatched: false
+        });
 
         expect(() =>
         {
-            new SelectCaseStatement(
-                new LiteralExpression({ type: EduBasicType.Integer, value: 5 }),
-                [
-                    {
-                        matchType: CaseMatchType.Relational,
-                        relationalOp: '??',
-                        relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                        statements: []
-                    }
-                ]
-            ).execute(context, graphics, audio, program, runtime);
+            select.execute(context, graphics, audio, program, { findMatchingEndSelect: () => undefined } as any);
+        }).toThrow('SELECT CASE: missing END SELECT');
+    });
+
+    it('CaseStatement should match selectors / else and skip after match', () =>
+    {
+        const context = new ExecutionContext();
+        const graphics = new Graphics();
+        const audio = new Audio();
+        const program = new Program();
+
+        const frame = {
+            type: 'select',
+            startLine: 0,
+            endLine: 99,
+            selectTestValue: { type: EduBasicType.Integer, value: 5 },
+            selectMatched: false
+        };
+
+        const runtime = {
+            findControlFrame: () => frame,
+            findNextCaseOrEndSelect: () => 42
+        } as any;
+
+        const valueCase = new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 5 }) }]);
+        expect(valueCase.toString()).toBe('CASE 5');
+        expect(valueCase.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
+        expect(frame.selectMatched).toBe(true);
+
+        const afterMatch = new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }]);
+        expect(afterMatch.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 99 });
+
+        const noMatchFrame = {
+            type: 'select',
+            startLine: 0,
+            endLine: 12,
+            selectTestValue: { type: EduBasicType.Integer, value: 5 },
+            selectMatched: false
+        };
+        const noMatchRuntime = {
+            findControlFrame: () => noMatchFrame,
+            findNextCaseOrEndSelect: () => 7
+        } as any;
+        context.setProgramCounter(1);
+        const noMatchCase = new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 123 }) }]);
+        expect(noMatchCase.execute(context, graphics, audio, program, noMatchRuntime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 7 });
+
+        const elseCase = new CaseStatement(true, []);
+        expect(elseCase.toString()).toBe('CASE ELSE');
+        expect(elseCase.execute(context, graphics, audio, program, noMatchRuntime)).toEqual({ result: ExecutionResult.Continue });
+        expect(noMatchFrame.selectMatched).toBe(true);
+
+        expect(() =>
+        {
+            new CaseStatement(false, []).execute(context, graphics, audio, program, { findControlFrame: () => undefined } as any);
+        }).toThrow('CASE without SELECT');
+
+        expect(() =>
+        {
+            const badOp = new CaseStatement(false, [{ type: 'relational', op: '??', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }]);
+            badOp.execute(context, graphics, audio, program, {
+                findControlFrame: () => ({
+                    type: 'select',
+                    startLine: 0,
+                    endLine: 12,
+                    selectTestValue: { type: EduBasicType.Integer, value: 1 },
+                    selectMatched: false
+                })
+            } as any);
         }).toThrow('Unknown relational operator: ??');
-
-        const s = new SelectCaseStatement(
-            new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-            [
-                {
-                    matchType: CaseMatchType.Value,
-                    values: [new LiteralExpression({ type: EduBasicType.Integer, value: 1 })],
-                    statements: [new LetStatement('x%', new LiteralExpression({ type: EduBasicType.Integer, value: 1 }))]
-                },
-                {
-                    matchType: CaseMatchType.Range,
-                    rangeStart: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                    rangeEnd: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                    statements: []
-                },
-                {
-                    matchType: CaseMatchType.Relational,
-                    relationalOp: '=',
-                    relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                    statements: []
-                },
-                {
-                    matchType: CaseMatchType.Else,
-                    statements: []
-                }
-            ]
-        );
-        const text = s.toString();
-        expect(text).toContain('SELECT CASE');
-        expect(text).toContain('CASE');
-        expect(text).toContain('CASE ELSE');
-        expect(text).toContain('END SELECT');
-
-        const findEnd = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), []);
-        (findEnd as any).indentLevel = 1;
-        const endSelect = new EndStatement(EndType.Select);
-        (endSelect as any).indentLevel = 1;
-        const inner = new LetStatement('inner%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 }));
-        (inner as any).indentLevel = 1;
-        program.clear();
-        program.appendLine(findEnd);
-        program.appendLine(inner);
-        program.appendLine(endSelect);
-        expect((findEnd as any).findEndSelect(program, 0)).toBe(2);
     });
 });
 

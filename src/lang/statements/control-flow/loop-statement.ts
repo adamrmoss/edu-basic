@@ -6,10 +6,21 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { DoLoopStatement, DoLoopVariant } from './do-loop-statement';
 import { EduBasicType } from '../../edu-basic-value';
+import { Expression } from '../../expressions/expression';
+
+export enum LoopConditionVariant
+{
+    None,
+    While,
+    Until
+}
 
 export class LoopStatement extends Statement
 {
-    public constructor()
+    public constructor(
+        public readonly conditionVariant: LoopConditionVariant = LoopConditionVariant.None,
+        public readonly condition: Expression | null = null
+    )
     {
         super();
     }
@@ -39,7 +50,33 @@ export class LoopStatement extends Statement
 
                 if (variant === DoLoopVariant.DoLoop)
                 {
-                    return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
+                    if (this.conditionVariant === LoopConditionVariant.None)
+                    {
+                        return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
+                    }
+
+                    if (!this.condition)
+                    {
+                        throw new Error('LOOP condition is missing');
+                    }
+
+                    const conditionValue = this.condition.evaluate(context);
+                    if (conditionValue.type !== EduBasicType.Integer)
+                    {
+                        throw new Error('LOOP condition must evaluate to an integer');
+                    }
+
+                    const shouldContinue = this.conditionVariant === LoopConditionVariant.While
+                        ? conditionValue.value !== 0
+                        : conditionValue.value === 0;
+
+                    if (shouldContinue)
+                    {
+                        return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
+                    }
+
+                    runtime.popControlFrame();
+                    return { result: ExecutionResult.Continue };
                 }
 
                 if (variant === DoLoopVariant.DoWhile || variant === DoLoopVariant.DoUntil ||
@@ -81,6 +118,14 @@ export class LoopStatement extends Statement
 
     public override toString(): string
     {
-        return 'LOOP';
+        switch (this.conditionVariant)
+        {
+            case LoopConditionVariant.None:
+                return 'LOOP';
+            case LoopConditionVariant.While:
+                return `LOOP WHILE ${this.condition?.toString() ?? ''}`.trim();
+            case LoopConditionVariant.Until:
+                return `LOOP UNTIL ${this.condition?.toString() ?? ''}`.trim();
+        }
     }
 }

@@ -255,7 +255,7 @@ describe('Tokenizer', () =>
     {
         it('should recognize control flow keywords', () =>
         {
-            const keywords = 'IF THEN ELSE ELSEIF END FOR TO STEP NEXT WHILE WEND DO LOOP UNTIL UNLESS'.split(' ');
+            const keywords = 'IF THEN ELSE ELSEIF END FOR TO STEP NEXT WHILE WEND DO LOOP UNTIL UNLESS IS'.split(' ');
             const tokens = tokenizer.tokenize(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>

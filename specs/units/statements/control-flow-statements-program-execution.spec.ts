@@ -4,8 +4,6 @@ import { ExecutionResult } from '@/lang/statements/statement';
 
 import { LetStatement } from '@/lang/statements/variables';
 import {
-    CaseMatchType,
-    CaseClause,
     CaseStatement,
     CatchClause,
     CatchStatement,
@@ -547,77 +545,79 @@ describe('Control-flow statements (program execution)', () =>
             expect(() => runtime.executeStep()).toThrow('LOOP without DO');
         });
 
-        it('SelectCaseStatement should execute the first matching case (Value, Range, Relational, Else)', () =>
+        it('SELECT CASE / CASE / END SELECT should route to the first matching CASE and skip the rest', () =>
         {
-            const { context, program, runtime, graphics, audio } = createRuntimeFixture();
-            context.setVariable('x%', { type: EduBasicType.Integer, value: 0 }, false);
+            const { context, program, runtime } = createRuntimeFixture();
 
-            const cases: CaseClause[] = [
+            program.appendLine(createLetIntStatement('x%', 0)); // 0
+            program.appendLine(new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 2 }))); // 1
+            program.appendLine(new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }])); // 2
+            program.appendLine(createLetIntStatement('x%', 10)); // 3
+            program.appendLine(new CaseStatement(false, [
+                { type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
+                { type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) }
+            ])); // 4
+            program.appendLine(createLetIntStatement('x%', 20)); // 5
+            program.appendLine(new CaseStatement(false, [{ type: 'relational', op: '>=', value: new LiteralExpression({ type: EduBasicType.Integer, value: 99 }) }])); // 6
+            program.appendLine(createLetIntStatement('x%', 30)); // 7
+            program.appendLine(new CaseStatement(true, [])); // 8
+            program.appendLine(createLetIntStatement('x%', 40)); // 9
+            program.appendLine(new EndStatement(EndType.Select)); // 10
+            program.appendLine(new EndStatement(EndType.Program)); // 11
+
+            for (let i = 0; i < 50; i++)
+            {
+                const result = runtime.executeStep();
+                if (result === ExecutionResult.End)
                 {
-                    matchType: CaseMatchType.Value,
-                    values: [new LiteralExpression({ type: EduBasicType.Integer, value: 1 })],
-                    statements: [createLetIntStatement('x%', 10)]
-                },
-                {
-                    matchType: CaseMatchType.Range,
-                    rangeStart: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
-                    rangeEnd: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }),
-                    statements: [createLetIntStatement('x%', 20)]
-                },
-                {
-                    matchType: CaseMatchType.Relational,
-                    relationalOp: '>=',
-                    relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 99 }),
-                    statements: [createLetIntStatement('x%', 30)]
-                },
-                {
-                    matchType: CaseMatchType.Else,
-                    statements: [createLetIntStatement('x%', 40)]
+                    break;
                 }
-            ];
+            }
 
-            const select = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 2 }), cases);
-            const status = select.execute(context, graphics, audio, program, runtime);
-
-            expect(status.result).toBe(ExecutionResult.Continue);
             expect(context.getVariable('x%')).toEqual({ type: EduBasicType.Integer, value: 20 });
-            expect(select.toString()).toContain('SELECT CASE');
-            expect(select.toString()).toContain('CASE');
-            expect(select.toString()).toContain('END SELECT');
         });
 
-        it('SelectCaseStatement should return a non-Continue status from a case body', () =>
+        it('SELECT CASE should fall through to CASE ELSE when nothing matches', () =>
+        {
+            const { context, program, runtime } = createRuntimeFixture();
+
+            program.appendLine(createLetIntStatement('x%', 0)); // 0
+            program.appendLine(new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }))); // 1
+            program.appendLine(new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }])); // 2
+            program.appendLine(createLetIntStatement('x%', 10)); // 3
+            program.appendLine(new CaseStatement(false, [{ type: 'range', start: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }), end: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) }])); // 4
+            program.appendLine(createLetIntStatement('x%', 20)); // 5
+            program.appendLine(new CaseStatement(true, [])); // 6
+            program.appendLine(createLetIntStatement('x%', 99)); // 7
+            program.appendLine(new EndStatement(EndType.Select)); // 8
+            program.appendLine(new EndStatement(EndType.Program)); // 9
+
+            for (let i = 0; i < 50; i++)
+            {
+                const result = runtime.executeStep();
+                if (result === ExecutionResult.End)
+                {
+                    break;
+                }
+            }
+
+            expect(context.getVariable('x%')).toEqual({ type: EduBasicType.Integer, value: 99 });
+        });
+
+        it('CaseStatement should throw on unknown relational operator', () =>
         {
             const { context, program, runtime, graphics, audio } = createRuntimeFixture();
 
-            const cases: CaseClause[] = [
-                {
-                    matchType: CaseMatchType.Else,
-                    statements: [new EndStatement(EndType.Program)]
-                }
-            ];
-
-            const select = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), cases);
-            const status = select.execute(context, graphics, audio, program, runtime);
-
-            expect(status.result).toBe(ExecutionResult.End);
-        });
-
-        it('SelectCaseStatement should throw on unknown relational operator', () =>
-        {
-            const { context, program, runtime, graphics, audio } = createRuntimeFixture();
-
-            const cases: CaseClause[] = [
-                {
-                    matchType: CaseMatchType.Relational,
-                    relationalOp: '??',
-                    relationalValue: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                    statements: []
-                }
-            ];
-
-            const select = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), cases);
-            expect(() => select.execute(context, graphics, audio, program, runtime)).toThrow('Unknown relational operator');
+            const caseStmt = new CaseStatement(false, [{ type: 'relational', op: '??', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }]);
+            expect(() => caseStmt.execute(context, graphics, audio, program, {
+                findControlFrame: () => ({
+                    type: 'select',
+                    startLine: 0,
+                    endLine: 1,
+                    selectTestValue: { type: EduBasicType.Integer, value: 1 },
+                    selectMatched: false
+                })
+            } as any)).toThrow('Unknown relational operator: ??');
         });
 
         it('TryStatement should execute tryBody and render catch/finally in toString', () =>
@@ -625,7 +625,7 @@ describe('Control-flow statements (program execution)', () =>
             const { context, program, runtime, graphics, audio } = createRuntimeFixture();
 
             const catches: CatchClause[] = [
-                { variableName: null, body: [new CaseStatement()] }
+                { variableName: null, body: [createLetIntStatement('caught%', 1)] }
             ];
 
             const stmt = new TryStatement(
@@ -654,11 +654,9 @@ describe('Control-flow statements (program execution)', () =>
         {
             const { context, program, runtime, graphics, audio } = createRuntimeFixture();
 
-            expect(new CaseStatement().execute(context, graphics, audio, program, runtime).result).toBe(ExecutionResult.Continue);
             expect(new CatchStatement().execute(context, graphics, audio, program, runtime).result).toBe(ExecutionResult.Continue);
             expect(new FinallyStatement().execute(context, graphics, audio, program, runtime).result).toBe(ExecutionResult.Continue);
 
-            expect(new CaseStatement().toString()).toBe('CASE');
             expect(new CatchStatement().toString()).toBe('CATCH');
             expect(new FinallyStatement().toString()).toBe('FINALLY');
         });

@@ -140,7 +140,8 @@ describe('Parser parsers (direct parser class calls)', () =>
             expect(selectCaseResult.value).toBeInstanceOf(SelectCaseStatement);
 
             const caseResult = ControlFlowParsers.parseCase(ctx(eofTokens([
-                t(TokenType.Keyword, 'CASE')
+                t(TokenType.Keyword, 'CASE'),
+                t(TokenType.Integer, '1')
             ])));
             expect(caseResult.success).toBe(true);
             if (!caseResult.success) { return; }
