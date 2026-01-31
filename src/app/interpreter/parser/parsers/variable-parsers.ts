@@ -41,7 +41,7 @@ export class VariableParsers
                         return rightBracketResult;
                     }
 
-                    segments.push({ type: 'identifier', identifier });
+                    segments.push({ type: 'accessor', identifier });
                     continue;
                 }
             }

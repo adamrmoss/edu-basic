@@ -81,9 +81,9 @@ FOR i% = 1 TO nStudents%
 
     LET avg# = sum# / nScores%
 
-    LET classroom[students][(i%)][stats][avg#] = avg#
-    LET classroom[students][(i%)][stats][min#] = min#
-    LET classroom[students][(i%)][stats][max#] = max#
+    LET classroom[students][i%][stats][avg#] = avg#
+    LET classroom[students][i%][stats][min#] = min#
+    LET classroom[students][i%][stats][max#] = max#
 
     CONSOLE classroom[students][i%][name$] + " AVG = " + STR(avg#)
 
@@ -113,7 +113,7 @@ CONSOLE "HONOR COUNT (>=90) = " + STR(honorCount%)
 CONSOLE "TOP STUDENT = " + topName$
 
 LET key$ = "name$"
-CONSOLE "ADA NAME via key$ = " + classroom[students][1][(key$)]
+CONSOLE "ADA NAME via key$ = " + classroom[students][1][key$]
 CONSOLE "ADA NAME via NAME$ = " + classroom[students][1][NAME$]
 CONSOLE "ADA MISSING% DEFAULT = " + STR(classroom[students][1][missing%])
 

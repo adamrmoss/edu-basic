@@ -151,6 +151,26 @@ export class BracketAccessExpression extends Expression
             return '';
         }
 
+        if (this.bracketExpr instanceof VariableExpression)
+        {
+            const name = this.bracketExpr.name;
+
+            // Runtime-polymorphic structure key:
+            // - If the variable is not defined: treat as literal key (legacy behavior)
+            // - If the variable is defined and evaluates to a string: treat as computed key
+            // - Otherwise: treat as literal key (prevents numeric vars like `avg#` becoming `"85"` keys)
+            if (!context.hasVariable(name))
+            {
+                return name;
+            }
+
+            const maybeKey = context.getVariable(name);
+            if (maybeKey.type !== EduBasicType.String)
+            {
+                return name;
+            }
+        }
+
         const value = this.bracketExpr.evaluate(context);
         if (value.type === EduBasicType.String)
         {

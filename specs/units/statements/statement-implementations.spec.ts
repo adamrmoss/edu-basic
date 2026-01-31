@@ -2009,7 +2009,7 @@ describe('Statement Implementations', () =>
         {
             const stmt = new LetBracketStatement(
                 'player',
-                [{ type: 'identifier', identifier: 'score%' }],
+                [{ type: 'accessor', identifier: 'score%' }],
                 new LiteralExpression({ type: EduBasicType.Real, value: 3.14 })
             );
 

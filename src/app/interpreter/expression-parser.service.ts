@@ -754,7 +754,10 @@ export class ExpressionParserService
                         return rightBracketResult;
                     }
 
-                    expr = new BracketAccessExpression(expr, null, identifier);
+                    // Runtime-polymorphic bracket access:
+                    // - Arrays: index via identifier variable value
+                    // - Structures: treat as literal key unless the identifier is a defined variable (computed key)
+                    expr = new BracketAccessExpression(expr, new VariableExpression(identifier), null);
                     continue;
                 }
             }

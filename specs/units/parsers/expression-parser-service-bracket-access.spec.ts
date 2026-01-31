@@ -53,6 +53,24 @@ describe('ExpressionParserService (bracket access)', () =>
         expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'John' });
     });
 
+    it('should parse and evaluate structure member access with computed string key', () =>
+    {
+        const members = new Map<string, EduBasicValue>();
+        members.set('firstName$', { type: EduBasicType.String, value: 'John' });
+
+        context.setVariable('person', { type: EduBasicType.Structure, value: members });
+        context.setVariable('key$', { type: EduBasicType.String, value: 'firstName$' });
+
+        const exprResult = parser.parseExpression('person[key$]');
+        expect(exprResult.success).toBe(true);
+        if (!exprResult.success)
+        {
+            return;
+        }
+
+        expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'John' });
+    });
+
     it('should support chained bracket access for nested structures', () =>
     {
         const name = new Map<string, EduBasicValue>();

@@ -1787,12 +1787,29 @@ describe('ExpressionParser', () =>
             expect(result.value).toBeCloseTo(8.0);
         });
 
-        it('should parse bracket access with identifier inside brackets', () =>
+        it('should parse bracket access with computed string key (no mandatory parentheses)', () =>
+        {
+            context.setVariable('key$', { type: EduBasicType.String, value: 'value' }, false);
+            context.setVariable('s', { type: EduBasicType.Structure, value: new Map([['value', { type: EduBasicType.String, value: 'ok' }]]) }, false);
+
+            const exprResult = parser.parseExpression('s[key$]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.String);
+            expect(result.value).toBe('ok');
+        });
+
+        it('should allow forcing a literal structure key using a string literal', () =>
         {
             context.setVariable('key$', { type: EduBasicType.String, value: 'value' }, false);
             context.setVariable('s', { type: EduBasicType.Structure, value: new Map([['key$', { type: EduBasicType.String, value: 'ok' }]]) }, false);
 
-            const exprResult = parser.parseExpression('s[key$]');
+            const exprResult = parser.parseExpression('s["key$"]');
             expect(exprResult.success).toBe(true);
             if (!exprResult.success)
             {

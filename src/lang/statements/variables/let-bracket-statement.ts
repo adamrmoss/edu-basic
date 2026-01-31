@@ -6,9 +6,10 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, coerceValue } from '../../edu-basic-value';
+import { VariableExpression } from '../../expressions/special';
 
 export type LetBracketSegment =
-    | { type: 'identifier'; identifier: string }
+    | { type: 'accessor'; identifier: string }
     | { type: 'indices'; indices: Expression[] };
 
 export class LetBracketStatement extends Statement
@@ -62,7 +63,7 @@ export class LetBracketStatement extends Statement
         {
             switch (s.type)
             {
-                case 'identifier':
+                case 'accessor':
                     return `[${s.identifier}]`;
                 case 'indices':
                     return `[${s.indices.map(x => x.toString()).join(', ')}]`;
@@ -105,10 +106,10 @@ export class LetBracketStatement extends Statement
     {
         switch (segment.type)
         {
-            case 'identifier':
-                return this.getOrCreateStructureMember(context, current, segment.identifier, next);
+            case 'accessor':
+                return this.resolveAccessorForTraversal(context, current, segment.identifier, next);
             case 'indices':
-                return this.getArrayElementValue(context, current, segment.indices);
+                return this.resolveIndicesForTraversal(context, current, segment.indices, next);
         }
     }
 
@@ -116,13 +117,214 @@ export class LetBracketStatement extends Statement
     {
         switch (segment.type)
         {
-            case 'identifier':
-                this.setStructureMember(current, segment.identifier, value);
+            case 'accessor':
+                this.assignAtAccessor(context, current, segment.identifier, value);
                 return;
             case 'indices':
-                this.setArrayElementValue(context, current, segment.indices, value);
+                this.assignAtIndices(context, current, segment.indices, value);
                 return;
         }
+    }
+
+    private resolveAccessorForTraversal(
+        context: ExecutionContext,
+        current: EduBasicValue,
+        identifier: string,
+        next: LetBracketSegment
+    ): EduBasicValue
+    {
+        if (current.type === EduBasicType.Structure)
+        {
+            if (context.hasVariable(identifier))
+            {
+                const maybeKey = context.getVariable(identifier);
+                if (maybeKey.type === EduBasicType.String)
+                {
+                    const key = this.getStructureKeyForExpression(context, new VariableExpression(identifier));
+                    return this.getOrCreateStructureMemberByKey(context, current, key, next);
+                }
+            }
+
+            return this.getOrCreateStructureMember(context, current, identifier, next);
+        }
+
+        if (current.type === EduBasicType.Array)
+        {
+            return this.getArrayElementValue(context, current, [new VariableExpression(identifier)]);
+        }
+
+        throw new Error('LET: bracket access requires a structure or array');
+    }
+
+    private assignAtAccessor(
+        context: ExecutionContext,
+        current: EduBasicValue,
+        identifier: string,
+        value: EduBasicValue
+    ): void
+    {
+        if (current.type === EduBasicType.Structure)
+        {
+            if (context.hasVariable(identifier))
+            {
+                const maybeKey = context.getVariable(identifier);
+                if (maybeKey.type === EduBasicType.String)
+                {
+                    const key = this.getStructureKeyForExpression(context, new VariableExpression(identifier));
+                    this.setStructureMemberByKey(current, key, value);
+                    return;
+                }
+            }
+
+            this.setStructureMember(current, identifier, value);
+            return;
+        }
+
+        if (current.type === EduBasicType.Array)
+        {
+            this.setArrayElementValue(context, current, [new VariableExpression(identifier)], value);
+            return;
+        }
+
+        throw new Error('LET: bracket assignment requires a structure or array');
+    }
+
+    private resolveIndicesForTraversal(
+        context: ExecutionContext,
+        current: EduBasicValue,
+        indices: Expression[],
+        next: LetBracketSegment
+    ): EduBasicValue
+    {
+        if (current.type === EduBasicType.Array)
+        {
+            return this.getArrayElementValue(context, current, indices);
+        }
+
+        if (current.type === EduBasicType.Structure)
+        {
+            if (indices.length !== 1)
+            {
+                throw new Error('LET: structure member access requires a single key expression');
+            }
+
+            const key = this.getStructureKeyForExpression(context, indices[0]);
+            return this.getOrCreateStructureMemberByKey(context, current, key, next);
+        }
+
+        throw new Error('LET: bracket access requires a structure or array');
+    }
+
+    private assignAtIndices(
+        context: ExecutionContext,
+        current: EduBasicValue,
+        indices: Expression[],
+        value: EduBasicValue
+    ): void
+    {
+        if (current.type === EduBasicType.Array)
+        {
+            this.setArrayElementValue(context, current, indices, value);
+            return;
+        }
+
+        if (current.type === EduBasicType.Structure)
+        {
+            if (indices.length !== 1)
+            {
+                throw new Error('LET: structure member assignment requires a single key expression');
+            }
+
+            const key = this.getStructureKeyForExpression(context, indices[0]);
+            this.setStructureMemberByKey(current, key, value);
+            return;
+        }
+
+        throw new Error('LET: bracket assignment requires a structure or array');
+    }
+
+    private getStructureKeyForExpression(context: ExecutionContext, expr: Expression): string
+    {
+        if (expr instanceof VariableExpression)
+        {
+            const name = expr.name;
+
+            if (!context.hasVariable(name))
+            {
+                return name;
+            }
+
+            const maybeKey = context.getVariable(name);
+            if (maybeKey.type !== EduBasicType.String)
+            {
+                return name;
+            }
+        }
+
+        const value = expr.evaluate(context);
+
+        if (value.type === EduBasicType.String)
+        {
+            return value.value;
+        }
+
+        if (value.type === EduBasicType.Integer || value.type === EduBasicType.Real)
+        {
+            return String(value.value);
+        }
+
+        if (value.type === EduBasicType.Complex)
+        {
+            return `${value.value.real}+${value.value.imaginary}i`;
+        }
+
+        return value.type;
+    }
+
+    private getOrCreateStructureMemberByKey(
+        context: ExecutionContext,
+        current: EduBasicValue,
+        key: string,
+        next: LetBracketSegment
+    ): EduBasicValue
+    {
+        if (current.type !== EduBasicType.Structure)
+        {
+            throw new Error('LET: structure member access requires a structure');
+        }
+
+        const map = current.value;
+        const existing = map.get(key);
+        if (existing)
+        {
+            return existing;
+        }
+
+        let created: EduBasicValue;
+
+        if (next.type === 'indices')
+        {
+            const elementType = this.getTypedElementTypeFromName(key);
+            created = { type: EduBasicType.Array, value: [], elementType };
+        }
+        else
+        {
+            created = this.getDefaultValueForName(key);
+        }
+
+        map.set(key, created);
+        return created;
+    }
+
+    private setStructureMemberByKey(current: EduBasicValue, key: string, value: EduBasicValue): void
+    {
+        if (current.type !== EduBasicType.Structure)
+        {
+            throw new Error('LET: structure member assignment requires a structure');
+        }
+
+        const coerced = this.coerceToName(value, key);
+        current.value.set(key, coerced);
     }
 
     private getOrCreateStructureMember(
