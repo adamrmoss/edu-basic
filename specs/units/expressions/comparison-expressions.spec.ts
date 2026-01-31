@@ -181,6 +181,18 @@ describe('Comparison Expressions', () =>
         });
     });
 
+    describe('Structure Comparisons', () =>
+    {
+        it('should throw when comparing structures', () =>
+        {
+            const left = new LiteralExpression({ type: EduBasicType.Structure, value: new Map() });
+            const right = new LiteralExpression({ type: EduBasicType.Structure, value: new Map() });
+            const expr = new BinaryExpression(left, BinaryOperator.Equal, right, BinaryOperatorCategory.Comparison);
+
+            expect(() => expr.evaluate(context)).toThrow('Cannot convert STRUCTURE to number');
+        });
+    });
+
     describe('Edge Cases', () =>
     {
         it('should handle zero comparisons', () =>

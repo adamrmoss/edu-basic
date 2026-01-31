@@ -10,6 +10,7 @@ import {
     BracketAccessExpression,
     MultiIndexBracketAccessExpression,
     ParenthesizedExpression,
+    StructureLiteralExpression,
     VariableExpression,
 } from '../../lang/expressions/special';
 import { NullaryExpression } from '../../lang/expressions/nullary-expression';
@@ -595,6 +596,56 @@ export class ExpressionParserService
             }
 
             expr = new ArrayLiteralExpression(elements);
+        }
+        else if (this.match(TokenType.LeftBrace))
+        {
+            const members: { name: string; value: Expression }[] = [];
+
+            if (!this.check(TokenType.RightBrace))
+            {
+                while (!this.isAtEnd() && !this.check(TokenType.RightBrace))
+                {
+                    const memberNameResult = this.consume(TokenType.Identifier, 'structure member name');
+                    if (!memberNameResult.success)
+                    {
+                        return memberNameResult;
+                    }
+
+                    const colonResult = this.consume(TokenType.Colon, "Expected ':' after structure member name");
+                    if (!colonResult.success)
+                    {
+                        return colonResult;
+                    }
+
+                    const valueResult = this.parseExpressionUntil([TokenType.Comma, TokenType.RightBrace]);
+                    if (!valueResult.success)
+                    {
+                        return valueResult;
+                    }
+
+                    members.push({ name: memberNameResult.value.value, value: valueResult.value });
+
+                    if (this.match(TokenType.Comma))
+                    {
+                        if (this.check(TokenType.RightBrace))
+                        {
+                            break;
+                        }
+
+                        continue;
+                    }
+
+                    break;
+                }
+            }
+
+            const rightBraceResult = this.consume(TokenType.RightBrace, "Expected '}' after structure literal");
+            if (!rightBraceResult.success)
+            {
+                return rightBraceResult;
+            }
+
+            expr = new StructureLiteralExpression(members);
         }
         else if (this.check(TokenType.Identifier))
         {

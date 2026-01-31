@@ -3,6 +3,7 @@ export * from './variable-expression';
 export * from './array-access-expression';
 export * from './array-slice-expression';
 export * from './array-literal-expression';
+export * from './structure-literal-expression';
 export * from './structure-member-expression';
 export * from './bracket-access-expression';
 export * from './multi-index-bracket-access-expression';

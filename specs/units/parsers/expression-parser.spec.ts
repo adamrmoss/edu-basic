@@ -269,6 +269,102 @@ describe('ExpressionParser', () =>
             ]);
         });
 
+        it('should parse and evaluate empty structure literals', () =>
+        {
+            const exprResult = parser.parseExpression('{ }');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value.type).toBe(EduBasicType.Structure);
+            if (value.type !== EduBasicType.Structure)
+            {
+                return;
+            }
+
+            expect(value.value.size).toBe(0);
+        });
+
+        it('should parse and evaluate structure literals', () =>
+        {
+            const exprResult = parser.parseExpression('{ a%: 1, b$: "x", c#: 2.5 }');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value.type).toBe(EduBasicType.Structure);
+            if (value.type !== EduBasicType.Structure)
+            {
+                return;
+            }
+
+            expect(value.value.size).toBe(3);
+            expect(value.value.get('a%')).toEqual({ type: EduBasicType.Integer, value: 1 });
+            expect(value.value.get('b$')).toEqual({ type: EduBasicType.String, value: 'x' });
+            expect(value.value.get('c#')).toEqual({ type: EduBasicType.Real, value: 2.5 });
+        });
+
+        it('should allow arrays of structure literals', () =>
+        {
+            const exprResult = parser.parseExpression('[{ a%: 1 }, { a%: 2 }]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value.type).toBe(EduBasicType.Array);
+            if (value.type !== EduBasicType.Array)
+            {
+                return;
+            }
+
+            expect(value.elementType).toBe(EduBasicType.Structure);
+            expect(value.value).toHaveLength(2);
+            expect(value.value[0].type).toBe(EduBasicType.Structure);
+            expect(value.value[1].type).toBe(EduBasicType.Structure);
+        });
+
+        it('should allow bracket member access on structure literals', () =>
+        {
+            const exprResult = parser.parseExpression('{ a%: 1 }[a%]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value).toEqual({ type: EduBasicType.Integer, value: 1 });
+        });
+
+        it('should concatenate arrays of structures with +', () =>
+        {
+            const exprResult = parser.parseExpression('[{ a%: 1 }] + [{ a%: 2 }]');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const value = exprResult.value.evaluate(context);
+            expect(value.type).toBe(EduBasicType.Array);
+            if (value.type !== EduBasicType.Array)
+            {
+                return;
+            }
+
+            expect(value.elementType).toBe(EduBasicType.Structure);
+            expect(value.value).toHaveLength(2);
+        });
+
         it('should concatenate 1D arrays with +', () =>
         {
             const exprResult = parser.parseExpression('[1, 2] + [3, 4]');

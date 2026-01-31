@@ -127,5 +127,15 @@ describe('Array operators', () =>
         const len = new BarsExpression(arr);
         expect(len.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 3 });
     });
-});
 
+    it('| | should throw for structures', () =>
+    {
+        const s = new LiteralExpression({
+            type: EduBasicType.Structure,
+            value: new Map()
+        });
+
+        const len = new BarsExpression(s);
+        expect(() => len.evaluate(context)).toThrow('Cannot apply | | operator to a structure');
+    });
+});
