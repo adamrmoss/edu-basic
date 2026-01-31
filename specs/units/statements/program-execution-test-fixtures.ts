@@ -1,7 +1,6 @@
 import { ExecutionContext } from '@/lang/execution-context';
 import { Program } from '@/lang/program';
 import { RuntimeExecution } from '@/lang/runtime-execution';
-import { Graphics } from '@/lang/graphics';
 import { Audio } from '@/lang/audio';
 import { FileSystemService } from '@/app/disk/filesystem.service';
 
@@ -9,32 +8,11 @@ import { EduBasicType } from '@/lang/edu-basic-value';
 import { LiteralExpression } from '@/lang/expressions/literal-expression';
 import { LetStatement } from '@/lang/statements/variables';
 
+import { TrackingGraphics } from '../../mocks';
+
 export function createLetIntStatement(variableName: string, value: number): LetStatement
 {
     return new LetStatement(variableName, new LiteralExpression({ type: EduBasicType.Integer, value }));
-}
-
-export class MockConsoleService
-{
-    public printOutput = jest.fn();
-}
-
-export class TrackingGraphics extends Graphics
-{
-    public lineSpacingCalls: boolean[] = [];
-    public textWrapCalls: boolean[] = [];
-
-    public override setLineSpacing(enabled: boolean): void
-    {
-        this.lineSpacingCalls.push(enabled);
-        super.setLineSpacing(enabled);
-    }
-
-    public override setTextWrap(enabled: boolean): void
-    {
-        this.textWrapCalls.push(enabled);
-        super.setTextWrap(enabled);
-    }
 }
 
 export class TrackingAudio extends Audio

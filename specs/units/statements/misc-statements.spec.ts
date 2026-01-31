@@ -4,27 +4,9 @@ import { ExecutionResult } from '@/lang/statements/statement';
 import { UnparsableStatement } from '@/lang/statements/unparsable-statement';
 import { ConsoleStatement, HelpStatement, SetOption, SetStatement, SleepStatement } from '@/lang/statements/misc';
 import { RuntimeExecution } from '@/lang/runtime-execution';
-import { Graphics } from '@/lang/graphics';
 
-import { createRuntimeFixture, MockConsoleService } from './program-execution-test-fixtures';
-
-class CursorTrackingGraphics extends Graphics
-{
-    public lastCursor: { row: number; column: number } | null = null;
-    public newLineCalls: number = 0;
-
-    public override setCursorPosition(row: number, column: number): void
-    {
-        super.setCursorPosition(row, column);
-        this.lastCursor = { row, column };
-    }
-
-    public override newLine(): void
-    {
-        this.newLineCalls++;
-        super.newLine();
-    }
-}
+import { MockConsoleService, TrackingGraphics } from '../../mocks';
+import { createRuntimeFixture } from './program-execution-test-fixtures';
 
 describe('Misc statements', () =>
 {
@@ -101,7 +83,7 @@ describe('Misc statements', () =>
         it('should toggle text wrap and line spacing in Graphics behavior', () =>
         {
             const { context, program, audio, runtime } = createRuntimeFixture();
-            const graphics = new CursorTrackingGraphics();
+            const graphics = new TrackingGraphics();
 
             new SetStatement(SetOption.TextWrapOff).execute(context, graphics, audio, program, runtime);
             new SetStatement(SetOption.LineSpacingOn).execute(context, graphics, audio, program, runtime);

@@ -11,18 +11,7 @@ import { LiteralExpression } from '@/lang/expressions/literal-expression';
 
 import { PaintStatement, PutStatement, GetStatement } from '@/lang/statements/graphics';
 
-class BufferGraphics extends Graphics
-{
-    public constructor(private readonly testBuffer: ImageData)
-    {
-        super();
-    }
-
-    public override getBuffer(): ImageData | null
-    {
-        return this.testBuffer;
-    }
-}
+import { BufferGraphics } from '../../mocks';
 
 function setPixel(buffer: ImageData, width: number, height: number, x: number, y: number, rgba: number): void
 {
@@ -91,8 +80,23 @@ describe('Graphics sprite statements', () =>
 
         const sprite = context.getVariable('sprite%[]');
         expect(sprite.type).toBe(EduBasicType.Array);
+        if (sprite.type !== EduBasicType.Array)
+        {
+            throw new Error('Expected sprite%[] to be an array');
+        }
+
         expect(sprite.elementType).toBe(EduBasicType.Integer);
-        expect(sprite.value.map(v => v.value)).toEqual([1, 1, 0x11223344]);
+
+        const values = sprite.value.map(v =>
+        {
+            if (v.type !== EduBasicType.Integer)
+            {
+                throw new Error('Expected sprite%[] elements to be INTEGER');
+            }
+
+            return v.value;
+        });
+        expect(values).toEqual([1, 1, 0x11223344]);
     });
 
     it('PUT should alpha-blend sprite pixels onto the buffer', () =>
