@@ -77,7 +77,7 @@ Disks are saved as `.disk` files (ZIP archives) that directly represent the file
 
 ```
 project-name.disk
-├── program.bas          # BASIC program code
+├── Program.bas          # BASIC program code (canonical name inside .disk)
 ├── data.txt            # Files at root level
 ├── scores.bin
 └── folder/             # Nested directories
@@ -86,7 +86,11 @@ project-name.disk
         └── file2.txt
 ```
 
-The ZIP file structure exactly matches the in-memory file system - all files and directories are stored at their relative paths, with no additional metadata files or wrapper folders.
+The ZIP file structure closely matches the in-memory file system - all files and directories are stored at their relative paths, with no additional metadata files or wrapper folders.
+
+Canonical program file name:
+- Internally (in-memory filesystem): `program.bas`
+- In saved `.disk` files (ZIP): `Program.bas`
 
 ## BASIC File I/O Integration
 

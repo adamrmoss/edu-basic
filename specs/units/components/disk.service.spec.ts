@@ -330,11 +330,11 @@ describe('DiskService', () => {
     });
 
     describe('Load Disk', () => {
-        async function createTestZip(diskName: string, programCode: string, files: Map<string, Uint8Array>): Promise<File>
+        async function createTestZip(diskName: string, programCode: string, files: Map<string, Uint8Array>, programPath: string = 'Program.bas'): Promise<File>
         {
             const zip = new JSZip();
 
-            zip.file('program.bas', programCode);
+            zip.file(programPath, programCode);
 
             for (const [path, data] of files.entries())
             {
@@ -414,7 +414,7 @@ describe('DiskService', () => {
 
         it('should use filename as disk name', async () => {
             const zip = new JSZip();
-            zip.file('program.bas', 'TEST');
+            zip.file('Program.bas', 'TEST');
 
             const blob = await zip.generateAsync({ type: 'blob' });
             const file = new File([blob], 'FromFilename.disk', { type: 'application/zip' });
@@ -422,6 +422,18 @@ describe('DiskService', () => {
             await service.loadDisk(file);
 
             expect(service.diskName).toBe('FromFilename');
+        });
+
+        it('should load legacy program.bas from ZIP for backwards compatibility', async () =>
+        {
+            const files = new Map<string, Uint8Array>();
+            const zipFile = await createTestZip('LegacyDisk', 'PRINT "Legacy"', files, 'program.bas');
+
+            await service.loadDisk(zipFile);
+
+            expect(service.diskName).toBe('LegacyDisk');
+            expect(service.programCode).toBe('PRINT "Legacy"');
+            expect(fileSystemService.fileExists('program.bas')).toBe(true);
         });
 
         it('should handle ZIP without program file', async () => {

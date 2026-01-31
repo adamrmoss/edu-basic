@@ -9,6 +9,9 @@ import { DirectoryNode } from './filesystem-node';
 })
 export class DiskService
 {
+    private static readonly INTERNAL_PROGRAM_PATH = 'program.bas';
+    private static readonly DISK_PROGRAM_PATH = 'Program.bas';
+
     private readonly diskNameSubject = new BehaviorSubject<string>('Untitled');
     private readonly programCodeSubject = new BehaviorSubject<string>('');
     private readonly filesChangedSubject = new BehaviorSubject<void>(undefined);
@@ -41,7 +44,7 @@ export class DiskService
         this.programCodeSubject.next(code);
         const encoder = new TextEncoder();
         const data = encoder.encode(code);
-        this.fileSystemService.writeFile('program.bas', data);
+        this.fileSystemService.writeFile(DiskService.INTERNAL_PROGRAM_PATH, data);
         this.filesChangedSubject.next();
     }
 
@@ -52,7 +55,7 @@ export class DiskService
         this.fileSystemService.clear();
         const encoder = new TextEncoder();
         const data = encoder.encode('');
-        this.fileSystemService.writeFile('program.bas', data);
+        this.fileSystemService.writeFile(DiskService.INTERNAL_PROGRAM_PATH, data);
         this.filesChangedSubject.next();
     }
 
@@ -64,7 +67,7 @@ export class DiskService
         for (const [path, data] of files.entries())
         {
             const buffer = new Uint8Array(data).buffer;
-            zip.file(path, buffer);
+            zip.file(this.toDiskPath(path), buffer);
         }
 
         const blob = await zip.generateAsync({ type: 'blob' });
@@ -93,14 +96,25 @@ export class DiskService
                 fileEntries.push([relativePath, zipEntry]);
             }
         });
-        
-        for (const [relativePath, zipEntry] of fileEntries)
+
+        const programCandidates = fileEntries.filter(([p]) => p.toLowerCase() === DiskService.INTERNAL_PROGRAM_PATH);
+        const otherEntries = fileEntries.filter(([p]) => p.toLowerCase() !== DiskService.INTERNAL_PROGRAM_PATH);
+
+        for (const [relativePath, zipEntry] of otherEntries)
         {
             const data = await zipEntry.async('uint8array');
             this.fileSystemService.writeFile(relativePath, data);
         }
 
-        const programFileData = this.fileSystemService.readFile('program.bas');
+        const canonicalProgram = programCandidates.find(([p]) => p === DiskService.DISK_PROGRAM_PATH);
+        const fallbackProgram = canonicalProgram ?? programCandidates[0] ?? null;
+        if (fallbackProgram)
+        {
+            const data = await fallbackProgram[1].async('uint8array');
+            this.fileSystemService.writeFile(DiskService.INTERNAL_PROGRAM_PATH, data);
+        }
+
+        const programFileData = this.fileSystemService.readFile(DiskService.INTERNAL_PROGRAM_PATH);
         let programText = '';
         
         if (programFileData)
@@ -127,12 +141,12 @@ export class DiskService
 
     private ensureProgramBasExists(): void
     {
-        if (!this.fileSystemService.fileExists('program.bas'))
+        if (!this.fileSystemService.fileExists(DiskService.INTERNAL_PROGRAM_PATH))
         {
             const encoder = new TextEncoder();
             const code = this.programCodeSubject.value;
             const data = encoder.encode(code);
-            this.fileSystemService.writeFile('program.bas', data);
+            this.fileSystemService.writeFile(DiskService.INTERNAL_PROGRAM_PATH, data);
         }
     }
 
@@ -144,7 +158,7 @@ export class DiskService
     public getProgramCodeFromFile(): string
     {
         this.ensureProgramBasExists();
-        const fileData = this.fileSystemService.readFile('program.bas');
+        const fileData = this.fileSystemService.readFile(DiskService.INTERNAL_PROGRAM_PATH);
         
         if (fileData)
         {
@@ -159,7 +173,7 @@ export class DiskService
     {
         this.fileSystemService.writeFile(path, data);
         
-        if (path === 'program.bas')
+        if (path === DiskService.INTERNAL_PROGRAM_PATH)
         {
             const decoder = new TextDecoder('utf-8');
             const code = decoder.decode(data);
@@ -171,7 +185,7 @@ export class DiskService
 
     public deleteFile(path: string): void
     {
-        if (path === 'program.bas')
+        if (path === DiskService.INTERNAL_PROGRAM_PATH)
         {
             return;
         }
@@ -206,7 +220,7 @@ export class DiskService
 
     public renameFile(oldPath: string, newPath: string): boolean
     {
-        if (oldPath === 'program.bas')
+        if (oldPath === DiskService.INTERNAL_PROGRAM_PATH)
         {
             return false;
         }
@@ -239,5 +253,15 @@ export class DiskService
     public isDirectory(path: string): boolean
     {
         return this.fileSystemService.directoryExists(path);
+    }
+
+    private toDiskPath(path: string): string
+    {
+        if (path === DiskService.INTERNAL_PROGRAM_PATH)
+        {
+            return DiskService.DISK_PROGRAM_PATH;
+        }
+
+        return path;
     }
 }
