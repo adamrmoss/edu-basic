@@ -67,6 +67,9 @@ Handles non-arithmetic infix operators and multi-keyword operator forms that are
 - **String/array operators**: `string$ LEFT n%`, `string$ RIGHT n%`, `string$ MID start% TO end%`, `string$ INSTR substring$ [FROM start%]`, `string$ REPLACE old$ WITH new$`, `array$[] JOIN separator$`
 - **String prefix/suffix operators**: `string$ STARTSWITH prefix$`, `string$ ENDSWITH suffix$`
 - **Absolute value / length / norm operator**: `| x |`
+- **Angle conversion postfix operators**:
+  - `expr DEG` (degrees → radians)
+  - `expr RAD` (radians → degrees)
 
 ## Nullary Expressions
 
@@ -209,6 +212,7 @@ NOT 0            → -1 (true)
 ### Mathematical
 ```
 SIN(PI# / 2)     → 1.0 (Real)
+SIN 45 DEG       → 0.707106... (Real)
 SQRT(16)         → 4.0 (Real)
 SQRT(-4)         → (0+2i) (Complex, automatic upcast)
 LOG(-1)          → (0+πi) (Complex, automatic upcast)
@@ -270,6 +274,6 @@ HEX(255)         → "FF" (String)
 ## Expression Testing
 
 Expressions are tested via:
-- Unit tests in `specs/expressions/`
+- Unit tests in `specs/units/expressions/`
 - Integration tests in statement tests
 - Manual testing in console

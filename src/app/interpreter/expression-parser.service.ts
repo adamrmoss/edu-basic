@@ -19,6 +19,8 @@ import { NullaryExpression } from '../../lang/expressions/nullary-expression';
 import {
     ArraySearchExpression,
     ArraySearchOperator,
+    AngleConversionExpression,
+    AngleConversionOperator,
     BarsExpression,
     EndsWithOperatorExpression,
     InstrOperatorExpression,
@@ -746,6 +748,18 @@ export class ExpressionParserService
             if (this.match(TokenType.Exclamation))
             {
                 expr = new FactorialExpression(expr);
+                continue;
+            }
+
+            if (this.matchKeyword('DEG'))
+            {
+                expr = new AngleConversionExpression(expr, AngleConversionOperator.Deg);
+                continue;
+            }
+
+            if (this.matchKeyword('RAD'))
+            {
+                expr = new AngleConversionExpression(expr, AngleConversionOperator.Rad);
                 continue;
             }
 
