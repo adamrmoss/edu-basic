@@ -102,12 +102,12 @@ abstract class Statement extends RuntimeNode {
 - Target for GOTO/GOSUB
 
 **SubStatement**:
-- `SUB name(param1, param2) ... END SUB`
+- `SUB name param1, param2 ... END SUB`
 - Subroutine definition
 - Parameters passed by value
 
 **CallStatement**:
-- `CALL name(arg1, arg2)` - Call subroutine
+- `CALL name arg1, arg2` - Call subroutine
 - Executes subroutine with arguments
 
 **ReturnStatement**:
@@ -150,10 +150,10 @@ abstract class Statement extends RuntimeNode {
 - `PUSH arr%[], value` - Add to end
 
 **PopStatement**:
-- `POP arr%[]` - Remove from end
+- `POP arr%[] INTO result%` - Remove from end
 
 **ShiftStatement**:
-- `SHIFT arr%[]` - Remove from beginning
+- `SHIFT arr%[] INTO result%` - Remove from beginning
 
 **UnshiftStatement**:
 - `UNSHIFT arr%[], value` - Add to beginning

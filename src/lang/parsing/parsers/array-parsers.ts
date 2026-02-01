@@ -44,13 +44,9 @@ export class ArrayParsers
     {
         // Spec: docs/edu-basic-language.md
         //
-        // NOTE: The language reference documents:
         // POP array[] INTO variable
         //
-        // Current implementation parses:
-        // POP array[][, targetVar]
-        //
-        // There is no value expression here; POP mutates the array and optionally assigns.
+        // There is no value expression here; POP mutates the array and assigns to the target variable.
         const popTokenResult = context.consume(TokenType.Keyword, 'POP');
         if (!popTokenResult.success)
         {
@@ -62,32 +58,29 @@ export class ArrayParsers
         {
             return arrayVarTokenResult;
         }
-        
-        let targetVar: string | null = null;
-        if (context.match(TokenType.Comma))
+
+        const intoTokenResult = context.consumeKeyword('INTO');
+        if (!intoTokenResult.success)
         {
-            const targetVarTokenResult = context.consume(TokenType.Identifier, 'target variable');
-            if (!targetVarTokenResult.success)
-            {
-                return targetVarTokenResult;
-            }
-            targetVar = targetVarTokenResult.value.value;
+            return intoTokenResult;
         }
-        
-        return success(new PopStatement(arrayVarTokenResult.value.value, targetVar));
+
+        const targetVarTokenResult = context.consume(TokenType.Identifier, 'target variable');
+        if (!targetVarTokenResult.success)
+        {
+            return targetVarTokenResult;
+        }
+
+        return success(new PopStatement(arrayVarTokenResult.value.value, targetVarTokenResult.value.value));
     }
 
     public static parseShift(context: ParserContext): ParseResult<ShiftStatement>
     {
         // Spec: docs/edu-basic-language.md
         //
-        // NOTE: The language reference documents:
         // SHIFT array[] INTO variable
         //
-        // Current implementation parses:
-        // SHIFT array[][, targetVar]
-        //
-        // SHIFT removes from the front of the array.
+        // SHIFT removes from the front of the array and assigns to the target variable.
         const shiftTokenResult = context.consume(TokenType.Keyword, 'SHIFT');
         if (!shiftTokenResult.success)
         {
@@ -99,19 +92,20 @@ export class ArrayParsers
         {
             return arrayVarTokenResult;
         }
-        
-        let targetVar: string | null = null;
-        if (context.match(TokenType.Comma))
+
+        const intoTokenResult = context.consumeKeyword('INTO');
+        if (!intoTokenResult.success)
         {
-            const targetVarTokenResult = context.consume(TokenType.Identifier, 'target variable');
-            if (!targetVarTokenResult.success)
-            {
-                return targetVarTokenResult;
-            }
-            targetVar = targetVarTokenResult.value.value;
+            return intoTokenResult;
         }
-        
-        return success(new ShiftStatement(arrayVarTokenResult.value.value, targetVar));
+
+        const targetVarTokenResult = context.consume(TokenType.Identifier, 'target variable');
+        if (!targetVarTokenResult.success)
+        {
+            return targetVarTokenResult;
+        }
+
+        return success(new ShiftStatement(arrayVarTokenResult.value.value, targetVarTokenResult.value.value));
     }
 
     public static parseUnshift(context: ParserContext): ParseResult<UnshiftStatement>

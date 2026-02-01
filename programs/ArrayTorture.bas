@@ -7,8 +7,8 @@ PUSH a%[], 4
 UNSHIFT a%[], 0
 CONSOLE a%[]
 
-POP a%[], p%
-SHIFT a%[], s%
+POP a%[] INTO p%
+SHIFT a%[] INTO s%
 CONSOLE p%
 CONSOLE s%
 CONSOLE a%[]

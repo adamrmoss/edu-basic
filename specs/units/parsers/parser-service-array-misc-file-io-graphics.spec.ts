@@ -66,13 +66,12 @@ describe('ParserService (additional statement parsers)', () =>
                 return;
             }
 
-            expect(result.value.hasError).toBe(false);
-            expect(result.value.statement).toBeInstanceOf(PopStatement);
+            expect(result.value.hasError).toBe(true);
         });
 
         it('should parse POP statement with target variable', () =>
         {
-            const result = parser.parseLine(1, 'POP arr%[], result%');
+            const result = parser.parseLine(1, 'POP arr%[] INTO result%');
             expect(result.success).toBe(true);
             if (!result.success)
             {
@@ -92,13 +91,12 @@ describe('ParserService (additional statement parsers)', () =>
                 return;
             }
 
-            expect(result.value.hasError).toBe(false);
-            expect(result.value.statement).toBeInstanceOf(ShiftStatement);
+            expect(result.value.hasError).toBe(true);
         });
 
         it('should parse SHIFT statement with target variable', () =>
         {
-            const result = parser.parseLine(1, 'SHIFT arr$[], result$');
+            const result = parser.parseLine(1, 'SHIFT arr$[] INTO result$');
             expect(result.success).toBe(true);
             if (!result.success)
             {

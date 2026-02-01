@@ -86,10 +86,6 @@ export class FileIoParsers
         // Spec: docs/edu-basic-language.md
         //
         // CLOSE fileHandleExpr
-        //
-        // Note: The language reference uses `#fileHandle%` in some file I/O forms
-        // (e.g. SEEK ... IN #fileHandle%). That prefix is not currently tokenized/supported;
-        // we parse handles as plain expressions.
         const closeTokenResult = context.consumeKeyword('CLOSE');
         if (!closeTokenResult.success)
         {

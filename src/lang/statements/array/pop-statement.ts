@@ -62,7 +62,7 @@ export class PopStatement extends Statement
     {
         if (this.targetVariable)
         {
-            return `POP ${this.arrayVariable}, ${this.targetVariable}`;
+            return `POP ${this.arrayVariable} INTO ${this.targetVariable}`;
         }
 
         return `POP ${this.arrayVariable}`;

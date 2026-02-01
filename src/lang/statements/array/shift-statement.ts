@@ -62,7 +62,7 @@ export class ShiftStatement extends Statement
     {
         if (this.targetVariable)
         {
-            return `SHIFT ${this.arrayVariable}, ${this.targetVariable}`;
+            return `SHIFT ${this.arrayVariable} INTO ${this.targetVariable}`;
         }
 
         return `SHIFT ${this.arrayVariable}`;

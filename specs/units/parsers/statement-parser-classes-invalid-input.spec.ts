@@ -599,32 +599,20 @@ describe('Parser parsers (edge cases)', () =>
 
     describe('ArrayParsers', () =>
     {
-        it('parses POP/SHIFT with and without a target variable', () =>
+        it('parses POP/SHIFT with a target variable', () =>
         {
-            const popNoTarget = ArrayParsers.parsePop(ctx(eofTokens([
-                t(TokenType.Keyword, 'POP'),
-                t(TokenType.Identifier, 'arr%[]')
-            ])));
-            expect(popNoTarget.success).toBe(true);
-
             const popWithTarget = ArrayParsers.parsePop(ctx(eofTokens([
                 t(TokenType.Keyword, 'POP'),
                 t(TokenType.Identifier, 'arr%[]'),
-                t(TokenType.Comma, ','),
+                t(TokenType.Keyword, 'INTO'),
                 t(TokenType.Identifier, 'x%')
             ])));
             expect(popWithTarget.success).toBe(true);
 
-            const shiftNoTarget = ArrayParsers.parseShift(ctx(eofTokens([
-                t(TokenType.Keyword, 'SHIFT'),
-                t(TokenType.Identifier, 'arr%[]')
-            ])));
-            expect(shiftNoTarget.success).toBe(true);
-
             const shiftWithTarget = ArrayParsers.parseShift(ctx(eofTokens([
                 t(TokenType.Keyword, 'SHIFT'),
                 t(TokenType.Identifier, 'arr%[]'),
-                t(TokenType.Comma, ','),
+                t(TokenType.Keyword, 'INTO'),
                 t(TokenType.Identifier, 'x%')
             ])));
             expect(shiftWithTarget.success).toBe(true);

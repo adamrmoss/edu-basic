@@ -474,18 +474,10 @@ describe('Parser parsers (direct parser class calls)', () =>
             if (!pushResult.success) { return; }
             expect(pushResult.value).toBeInstanceOf(PushStatement);
 
-            const popNoTargetResult = ArrayParsers.parsePop(ctx(eofTokens([
-                t(TokenType.Keyword, 'POP'),
-                t(TokenType.Identifier, 'a%[]')
-            ])));
-            expect(popNoTargetResult.success).toBe(true);
-            if (!popNoTargetResult.success) { return; }
-            expect(popNoTargetResult.value).toBeInstanceOf(PopStatement);
-
             const popWithTargetResult = ArrayParsers.parsePop(ctx(eofTokens([
                 t(TokenType.Keyword, 'POP'),
                 t(TokenType.Identifier, 'a%[]'),
-                t(TokenType.Comma, ','),
+                t(TokenType.Keyword, 'INTO'),
                 t(TokenType.Identifier, 'x%')
             ])));
             expect(popWithTargetResult.success).toBe(true);
@@ -495,7 +487,7 @@ describe('Parser parsers (direct parser class calls)', () =>
             const shiftWithTargetResult = ArrayParsers.parseShift(ctx(eofTokens([
                 t(TokenType.Keyword, 'SHIFT'),
                 t(TokenType.Identifier, 'a%[]'),
-                t(TokenType.Comma, ','),
+                t(TokenType.Keyword, 'INTO'),
                 t(TokenType.Identifier, 'x%')
             ])));
             expect(shiftWithTargetResult.success).toBe(true);

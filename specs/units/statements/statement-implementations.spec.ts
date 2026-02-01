@@ -937,7 +937,7 @@ describe('Statement Implementations', () =>
             it('should format toString correctly', () =>
             {
                 const withTarget = new ShiftStatement('arr%[]', 'result%');
-                expect(withTarget.toString()).toBe('SHIFT arr%[], result%');
+                expect(withTarget.toString()).toBe('SHIFT arr%[] INTO result%');
 
                 const withoutTarget = new ShiftStatement('arr%[]', null);
                 expect(withoutTarget.toString()).toBe('SHIFT arr%[]');

@@ -34,7 +34,7 @@ export class StatementHelpRegistry
             'LET array[] = expression',
             'LET array[index] = expression',
             'LET array[index1, index2, ...] = expression',
-            'LET structure[member] = expression'
+            'LET structure.member = expression'
         ]],
         ['DIM', [
             'DIM array[] [dimension1, dimension2, ...]',
@@ -126,10 +126,11 @@ export class StatementHelpRegistry
             'THROW message$'
         ]],
         ['SUB', [
-            'SUB name(param1, param2) ... END SUB'
+            'SUB name param1, param2 ... END SUB',
+            'SUB name BYREF param1, param2 ... END SUB'
         ]],
         ['CALL', [
-            'CALL name(arg1, arg2)'
+            'CALL name arg1, arg2'
         ]],
         ['LABEL', [
             'LABEL name'
@@ -183,24 +184,24 @@ export class StatementHelpRegistry
             'TURTLE command$, ...'
         ]],
         ['OPEN', [
-            'OPEN "filename" FOR READ AS #handle%',
-            'OPEN "filename" FOR APPEND AS #handle%',
-            'OPEN "filename" FOR OVERWRITE AS #handle%'
+            'OPEN "filename" FOR READ AS handle%',
+            'OPEN "filename" FOR APPEND AS handle%',
+            'OPEN "filename" FOR OVERWRITE AS handle%'
         ]],
         ['CLOSE', [
-            'CLOSE #handle%'
+            'CLOSE handle%'
         ]],
         ['READ', [
-            'READ variable FROM #handle%'
+            'READ variable FROM handle%'
         ]],
         ['WRITE', [
-            'WRITE expression TO #handle%'
+            'WRITE expression TO handle%'
         ]],
         ['LINE INPUT', [
-            'LINE INPUT variable$ FROM #handle%'
+            'LINE INPUT variable$ FROM handle%'
         ]],
         ['SEEK', [
-            'SEEK position% IN #handle%'
+            'SEEK position% IN handle%'
         ]],
         ['READFILE', [
             'READFILE variable$ FROM "filename"'
@@ -230,12 +231,10 @@ export class StatementHelpRegistry
             'PUSH array[], value'
         ]],
         ['POP', [
-            'POP array[]',
-            'POP array[], variable'
+            'POP array[] INTO variable'
         ]],
         ['SHIFT', [
-            'SHIFT array[]',
-            'SHIFT array[], variable'
+            'SHIFT array[] INTO variable'
         ]],
         ['UNSHIFT', [
             'UNSHIFT array[], value'

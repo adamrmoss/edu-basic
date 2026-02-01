@@ -69,6 +69,6 @@ export class LineInputStatement extends Statement
 
     public override toString(): string
     {
-        return `LINE INPUT ${this.variableName} FROM #${this.fileHandle.toString()}`;
+        return `LINE INPUT ${this.variableName} FROM ${this.fileHandle.toString()}`;
     }
 }

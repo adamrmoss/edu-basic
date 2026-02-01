@@ -542,7 +542,7 @@ describe('File I/O Statements', () => {
         it('LINE INPUT should format toString correctly', () =>
         {
             const stmt = new LineInputStatement('line$', new LiteralExpression({ type: EduBasicType.Integer, value: 7 }));
-            expect(stmt.toString()).toBe('LINE INPUT line$ FROM #7');
+            expect(stmt.toString()).toBe('LINE INPUT line$ FROM 7');
         });
     });
 

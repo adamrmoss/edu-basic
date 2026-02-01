@@ -2,6 +2,12 @@
 
 *Copyright © 2025 Dietz-Moss Publishing. Licensed under the MIT License.*
 
+EduBASIC intentionally favors **explicit, keyword-driven syntax** over terse “punctuation tricks”.
+This makes programs easier to read aloud, easier to teach, and easier to parse consistently.
+
+When you’re unsure about a statement’s exact form, use `HELP <keyword>` in the console to see the
+syntax forms supported by the interpreter.
+
 ## Table of Contents
 
 - [Data Types, Variables, Arithmetic, and Boolean Operations](#data-types-variables-arithmetic-and-boolean-operations)
@@ -1580,7 +1586,7 @@ WEND
 
 ```
 WHILE NOT EOF fileHandle%
-    LINE INPUT line$ FROM #fileHandle%
+    LINE INPUT line$ FROM fileHandle%
     PRINT line$
 WEND
 ```
@@ -2955,7 +2961,7 @@ The `LINE INPUT` statement reads a complete line of text from a file.
 
 **Syntax:**
 ```
-LINE INPUT lineVariable$ FROM #fileHandle%
+LINE INPUT lineVariable$ FROM fileHandle%
 ```
 
 **Rules:**
@@ -2968,7 +2974,7 @@ LINE INPUT lineVariable$ FROM #fileHandle%
 OPEN "data.txt" FOR READ AS file%
 
 WHILE NOT EOF file%
-    LINE INPUT line$ FROM #file%
+    LINE INPUT line$ FROM file%
     PRINT line$
 WEND
 
@@ -3071,7 +3077,7 @@ The `SEEK` statement positions the file pointer at a specific byte position.
 
 **Syntax:**
 ```
-SEEK position% IN #fileHandle%
+SEEK position% IN fileHandle%
 ```
 
 **Rules:**
@@ -3084,10 +3090,10 @@ SEEK position% IN #fileHandle%
 ```
 OPEN "data.bin" FOR READ AS file%
 
-SEEK 100 IN #file%    ' Jump to byte 100
+SEEK 100 IN file%    ' Jump to byte 100
 READ value% FROM file%
 
-SEEK 0 IN #file%      ' Return to beginning
+SEEK 0 IN file%      ' Return to beginning
 CLOSE file%
 ```
 
@@ -3107,7 +3113,7 @@ EOF fileHandle%
 OPEN "data.txt" FOR READ AS file%
 
 WHILE NOT EOF file%
-    LINE INPUT line$ FROM #file%
+    LINE INPUT line$ FROM file%
     PRINT line$
 WEND
 
@@ -3285,7 +3291,7 @@ OPEN "students.txt" FOR READ AS inputFile%
 OPEN "grades.txt" FOR OVERWRITE AS outputFile%
 
 WHILE NOT EOF inputFile%
-    LINE INPUT line$ FROM #inputFile%
+    LINE INPUT line$ FROM inputFile%
     ' Parse line$ to extract name$ and score%
     ' (parsing logic here)
     
@@ -4731,7 +4737,7 @@ END TRY
 ```
 OPEN "data.txt" FOR READ AS file%
 WHILE NOT EOF file%
-    LINE INPUT line$ FROM #file%
+    LINE INPUT line$ FROM file%
     PRINT line$
 WEND
 CLOSE file%
@@ -5218,13 +5224,13 @@ LET firstChar$ = text$ LEFT 1    ' "H"
 ### LINE INPUT
 
 **Type:** Command (File I/O)  
-**Syntax:** `LINE INPUT lineVariable$ FROM #fileHandle%`  
+**Syntax:** `LINE INPUT lineVariable$ FROM fileHandle%`  
 **Description:** Reads a complete line of text from a file, including the newline character. At end of file, an error occurs (check with `EOF` first).  
 **Example:**
 ```
 OPEN "data.txt" FOR READ AS file%
 WHILE NOT EOF file%
-    LINE INPUT line$ FROM #file%
+    LINE INPUT line$ FROM file%
     PRINT line$
 WEND
 CLOSE file%
@@ -5926,14 +5932,14 @@ END SELECT
 ### SEEK
 
 **Type:** Command (File I/O)  
-**Syntax:** `SEEK position% IN #fileHandle%`  
+**Syntax:** `SEEK position% IN fileHandle%`  
 **Description:** Positions the file pointer at a specific byte position (0-based). Position 0 is the beginning of the file. For text files, positions refer to UTF-8 byte positions. Seeking past end of file is allowed (file will extend on write).  
 **Example:**
 ```
 OPEN "data.bin" FOR READ AS file%
-SEEK 100 IN #file%    ' Jump to byte 100
+SEEK 100 IN file%    ' Jump to byte 100
 READ value% FROM file%
-SEEK 0 IN #file%      ' Return to beginning
+SEEK 0 IN file%      ' Return to beginning
 CLOSE file%
 ```
 

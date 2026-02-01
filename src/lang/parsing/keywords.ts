@@ -42,6 +42,8 @@ const GRAPHICS_MODIFIER_KEYWORDS = ['FROM', 'WITH', 'AS', 'AT', 'RADIUS', 'RADII
 
 const AUDIO_MODIFIER_KEYWORDS = ['INSTRUMENT', 'ADSR'] as const;
 
+const GENERAL_MODIFIER_KEYWORDS = ['INTO'] as const;
+
 const DATA_KEYWORDS = ['DATA', 'RESTORE'] as const;
 
 const PARAMETER_KEYWORDS = ['BYREF'] as const;
@@ -81,6 +83,7 @@ const STATEMENT_START_KEYWORDS = [
 
 const EXPRESSION_TERMINATOR_KEYWORDS = [
     'ADSR', 'APPEND', 'AS', 'AT', 'FILLED', 'FOR', 'FROM', 'IN', 'INSTRUMENT',
+    'INTO',
     'OVERWRITE', 'PRESET', 'RADII', 'RADIUS', 'READ', 'STEP', 'THEN', 'TO', 'WITH'
 ] as const;
 
@@ -98,6 +101,7 @@ export class Keywords
     public static readonly fileIoModifier = FILE_IO_MODIFIER_KEYWORDS;
     public static readonly graphicsModifier = GRAPHICS_MODIFIER_KEYWORDS;
     public static readonly audioModifier = AUDIO_MODIFIER_KEYWORDS;
+    public static readonly generalModifier = GENERAL_MODIFIER_KEYWORDS;
     public static readonly data = DATA_KEYWORDS;
     public static readonly parameter = PARAMETER_KEYWORDS;
     public static readonly logicalOperator = LOGICAL_OPERATOR_KEYWORDS;
@@ -122,6 +126,7 @@ export class Keywords
         FILE_IO_MODIFIER_KEYWORDS,
         GRAPHICS_MODIFIER_KEYWORDS,
         AUDIO_MODIFIER_KEYWORDS,
+        GENERAL_MODIFIER_KEYWORDS,
         DATA_KEYWORDS,
         PARAMETER_KEYWORDS,
         LOGICAL_OPERATOR_KEYWORDS,

@@ -48,6 +48,6 @@ export class SeekStatement extends Statement
 
     public override toString(): string
     {
-        return `SEEK ${this.position.toString()} IN #${this.fileHandle.toString()}`;
+        return `SEEK ${this.position.toString()} IN ${this.fileHandle.toString()}`;
     }
 }
