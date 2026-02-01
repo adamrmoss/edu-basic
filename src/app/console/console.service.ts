@@ -16,6 +16,14 @@ export interface ConsoleEntry
     timestamp: Date;
 }
 
+/**
+ * Implements the interactive console (REPL-like) experience.
+ *
+ * Responsibilities:
+ * - Maintains console display history (input/output/error) and input recall history.
+ * - Parses user input as either an expression or a statement.
+ * - Executes the resulting statement against the shared runtime objects from `InterpreterService`.
+ */
 @Injectable({
     providedIn: 'root'
 })

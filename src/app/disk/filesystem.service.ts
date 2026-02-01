@@ -9,6 +9,17 @@ export interface FileHandle
     buffer: Uint8Array;
 }
 
+/**
+ * In-memory hierarchical file system used by the app and language runtime.
+ *
+ * Features:
+ * - Directory and file nodes rooted at a single `DirectoryNode`.
+ * - Byte-oriented file read/write APIs for disk + interpreter statements.
+ * - Simple open-handle model (`openFile`, `readBytes`, `writeBytes`, `seek`, `tell`, `eof`, `closeFile`).
+ *
+ * This is intentionally not backed by the host OS filesystem; it is a virtual filesystem that can be
+ * saved/loaded via `DiskService`.
+ */
 @Injectable({
     providedIn: 'root'
 })

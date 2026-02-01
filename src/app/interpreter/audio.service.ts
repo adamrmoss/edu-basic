@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Audio } from '../../lang/audio';
 
+/**
+ * Owns the shared `Audio` runtime instance and provides simple UI-facing controls.
+ *
+ * The underlying audio implementation lives in `src/lang/audio.ts` and uses `webaudio-tinysynth`.
+ */
 @Injectable({
     providedIn: 'root'
 })

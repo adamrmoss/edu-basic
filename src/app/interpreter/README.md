@@ -1,339 +1,119 @@
 # Interpreter Services
 
-This document describes all Angular services in the interpreter layer.
+This document covers the Angular services under `src/app/interpreter/`.
 
-## Service Architecture
+If you’re looking for the *language* parsing implementation (tokenizer, keyword tables, statement dispatch, expression precedence, etc.), see:
 
-All services are:
-- **Injectable** with `providedIn: 'root'` (singleton)
-- Use **RxJS** for reactive data flow
-- Follow Angular dependency injection patterns
+- `src/lang/parsing/README.md`
+- `src/lang/expressions/README.md`
+- `src/lang/statements/README.md`
 
-## Core Interpreter Services
+## What “interpreter” means in the app
+
+In this codebase, the interpreter layer is primarily responsible for wiring the UI to the language runtime:
+
+- **Program building**: turning editor text into a `Program` (a sequence of `Statement`s).
+- **Shared runtime objects**: providing an `ExecutionContext`, `Graphics`, `Audio`, and a `RuntimeExecution`.
+- **Execution state**: tracking whether the UI considers the program idle/running/paused, and supporting keyboard input.
+
+Actual “step execution” (\(RuntimeExecution.executeStep()\)) is driven by the UI (currently `CodeEditorComponent`), not by `InterpreterService`.
+
+## Services
 
 ### InterpreterService
 
 **Location**: `src/app/interpreter/interpreter.service.ts`
 
-**Purpose**: Central service managing program execution state and shared execution context.
+**Purpose**: Holds the shared runtime objects and interpreter state used by both the code editor “run loop” and console commands.
 
-**Key Responsibilities**:
-- Manages shared `ExecutionContext`, `Program`, and `RuntimeExecution` instances
-- Tracks interpreter state (Idle, Parsing, Running, Paused, Error)
-- Provides access to execution context for console commands
-- Coordinates between parser, graphics, and audio services
+**Owns / provides**
 
-**Key Properties**:
-- `program$: Observable<Program | null>` - Current program
-- `state$: Observable<InterpreterState>` - Execution state
-- `parseResult$: Observable<ParseResult | null>` - Parse results
-- `isRunning$: Observable<boolean>` - Running state
+- A long-lived `ExecutionContext` (`getExecutionContext()`).
+- A shared `Program` instance (`getSharedProgram()`).
+- A lazily-created, cached `RuntimeExecution` (`getRuntimeExecution()`), wired to:
+  - `GraphicsService.getGraphics()`
+  - `AudioService.getAudio()`
+  - `FileSystemService`
+  - `ConsoleService` (resolved lazily via `Injector`)
+  - `TabSwitchService` (callback from `RuntimeExecution`)
 
-**Key Methods**:
-- `getExecutionContext()`: Returns shared execution context
-- `getSharedProgram()`: Returns shared program instance
-- `getRuntimeExecution()`: Returns or creates RuntimeExecution instance
-- `parse(sourceCode: string)`: Parses source code
-- `run()`, `pause()`, `resume()`, `stop()`, `reset()`: Execution control
+**State (RxJS)**
 
-**Shared Context Management**:
-The service maintains a single `ExecutionContext` instance that persists across all console commands, allowing variables and state to be maintained between statements.
+- `program$`: current `Program | null` (set via the `program` setter).
+- `state$`: `InterpreterState` (Idle/Parsing/Running/Paused/Error).
+- `parseResult$`: lightweight parse status (`{ success, errors, warnings }`) for bulk parsing (note: this is currently not used by `CodeEditorComponent`).
+- `isRunning$`: boolean mirror used by the UI.
 
-**Dependencies**:
-- `ConsoleService` - Error reporting
-- `GraphicsService` - Graphics instance
-- `AudioService` - Audio instance
-- `TabSwitchService` - Tab switching coordination
+**Execution control**
+
+- `run()`, `pause()`, `resume()`, `stop()` update state only.
+- Stepping is performed elsewhere (see `src/app/code-editor/code-editor.component.ts` which loops `runtime.executeStep()` while state is `Running`).
+
+**Keyboard integration**
+
+On construction it registers `window` `keydown`/`keyup` listeners (when running in a browser) and forwards normalized key names into the shared `ExecutionContext`. Key events originating from text inputs / contenteditable elements are ignored.
+
+**Important nuance**
+
+`reset()` clears the service’s observable state (`program`, `parseResult`, `state`, `isRunning`), but it does **not** create a new `ExecutionContext` or `RuntimeExecution`. Callers that need a “fresh” runtime should explicitly reset the underlying runtime objects (for example, `CodeEditorComponent` clears the shared `Program` before building a new one).
 
 ### ParserService
 
 **Location**: `src/app/interpreter/parser.service.ts`
 
-**Purpose**: Parses BASIC source code into statement objects.
+**Purpose**: Parses a single line of BASIC source into a `Statement`, and tracks per-line parse results (including indentation level).
 
-**Core parsing implementation**: `src/lang/parsing/` (keywords, tokenizer, statement dispatch, statement parsers, expression parser).
+**How it reports errors**
 
-**Detailed documentation**: see `src/lang/parsing/README.md`.
+`parseLine(lineNumber, sourceText)` returns a `ParseResult<ParsedLine>`, but in practice it **always returns** `success(...)` and puts recoverable parse errors into:
 
-**Key Responsibilities**:
-- Tokenizes source code
-- Parses statements from tokens
-- Tracks parsed lines and indent levels
-- Handles all statement types (control flow, I/O, graphics, etc.)
+- `ParsedLine.hasError: boolean`
+- `ParsedLine.errorMessage?: string`
 
-**Key Properties**:
-- `parsedLines$: Observable<Map<number, ParsedLine>>` - Parsed statements
-- `currentIndentLevel$: Observable<number>` - Current indentation
+Invalid or non-executable lines are represented with `UnparsableStatement`:
 
-**Key Methods**:
-- `parseLine(lineNumber: number, sourceText: string): ParseResult<ParsedLine>` - Parse single line
+- Empty/comment-only lines (\(starting with `'`\)) become an `UnparsableStatement` with `hasError: false`.
+- Tokenization/statement parse failures become an `UnparsableStatement` with `hasError: true`.
 
-**Parsing Flow**:
-```
-Source Text
-    ↓
-Tokenizer.tokenize() → ParseResult<Token[]>
-    ↓
-Token Stream (Token[])
-    ↓
-ParserService.parseLine()
-    ↓
-Statement Object
-```
+This “always success + hasError” convention is used so the editor can keep a `Statement` placeholder for each line even when parsing fails.
 
-**How statement parsing actually works (step-by-step)**:
+**State (RxJS)**
 
-- `ParserService.parseLine(lineNumber, sourceText)` trims the line and short-circuits for:
-  - empty lines
-  - comment lines starting with `'`
-  In those cases it returns an `UnparsableStatement` with `hasError: false` (used as a “non-executable line” placeholder).
-- Otherwise it tokenizes the trimmed line using `Tokenizer.tokenize(...)` and creates a `ParserContext` over:
-  - `tokens: Token[]` (from a successful tokenization result)
-  - `current: { value: number }` (shared mutable cursor)
-  - `expressionParser: ExpressionParser` (used for sub-expressions)
-- The first token must be a keyword. `ParserService` uses that keyword to look up a statement parse method via `getStatementParser(keyword)` (from `src/lang/parsing/statement-dispatch.ts`).
-- The chosen parser method consumes the rest of the tokens using `ParserContext` helpers:
-  - `consume(...)` / `consumeKeyword(...)` for mandatory tokens/keywords
-  - `match(...)` / `matchKeyword(...)` for optional tokens/keywords
-  - `parseExpression()` for “parse an expression here”
-- If the dispatch lookup fails, parsing fails with `Unknown keyword: ...`.
+- `parsedLines$`: a `Map<number, ParsedLine>` keyed by the caller-provided `lineNumber`.
+- `currentIndentLevel$`: a numeric indent level that is applied to parsed statements and adjusted by `statement.getIndentAdjustment()`.
 
-**Parser structure**:
-- **keywords.ts** – Single source of truth for all language keywords. Keywords are grouped into small arrays (variable, controlFlow, io, graphics, fileIo, audio, array, etc.); `Keywords.all` is built from those via set union. Also provides `statementStart`, `expressionTerminator`, and helpers `isKeyword()`, `isStatementStartKeyword()`, `isExpressionTerminatorKeyword()`.
-- **parser/statement-dispatch.ts** – Map from statement-start keyword to parser parse method. Adding a new statement type requires adding the keyword to `Keywords` (if new) and one entry in the dispatch table.
+**Implementation note**
 
-**Expression parsing inside statements (`ParserContext.parseExpression()`)**:
-
-Statement parsers do not directly call `ExpressionParser` on the full remaining token stream. Instead:
-
-- `ParserContext.parseExpression()` delegates to `ExpressionHelpers.parseExpression(...)`.
-- `ExpressionHelpers.parseExpression(...)`:
-  - collects a *slice* of the token stream into `exprTokens` until it hits a stop condition, while tracking nesting depth for `()`, `[]`, and `{}`.
-  - stop conditions include:
-    - `,` / `;`
-    - closing delimiters `)` / `]` / `}`
-    - any keyword in `Keywords.expressionTerminator` (e.g. `THEN`, `TO`, `WITH`, etc.)
-  - converts `exprTokens` back into a string (`exprSource`)
-  - then calls `ExpressionParser.parseExpression(exprSource)`
-
-This “token slice → string → re-tokenize → parse” approach is convenient and keeps statement parsers simple, but it’s a key source of complexity: the correctness of many statement grammars depends on choosing the right expression terminators.
-
-
-**Statement Types Parsed**:
-- Control flow: IF, FOR, WHILE, DO, GOTO, etc.
-- I/O: PRINT, INPUT, COLOR, LOCATE, CLS
-- Graphics: PSET, LINE, CIRCLE, RECTANGLE, etc.
-- Audio: PLAY, TEMPO, VOICE, VOLUME
-- Variables: LET, DIM, LOCAL
-- Arrays: PUSH, POP, SHIFT, UNSHIFT
-- File I/O: OPEN, READFILE, WRITEFILE, etc.
-
-**Dependencies**:
-- `ExpressionParser` (pure class in `src/lang/parsing/expression-parser.ts`) - For parsing expressions within statements
-
-### Tokenizer
-
-**Location**: `src/lang/parsing/tokenizer.ts`
-
-**Purpose**: Converts source code into tokens.
-
-**Key Responsibilities**:
-- Tokenizes BASIC source code
-- Identifies keywords, identifiers, literals, operators
-- Tracks line and column positions for error reporting
-
-**Token Types**:
-- `EOF` - End of file
-- `Integer`, `Real`, `Complex`, `String` - Literals
-- `Identifier` - Variable names
-- `Keyword` - Language keywords
-- Operators: `Plus`, `Minus`, `Star`, `Slash`, `Caret`, etc.
-- Comparison: `Equal`, `NotEqual`, `Less`, `Greater`, etc.
-- Punctuation: `LeftParen`, `RightParen`, `Comma`, `Semicolon`, etc.
-
-**Key Methods**:
-- `tokenize(source: string): ParseResult<Token[]>` - Convert source to tokens (recoverable failures)
-
-**Token Interface**:
-```typescript
-interface Token {
-    type: TokenType;
-    value: string;
-    line: number;
-    column: number;
-}
-```
-
-### ExpressionParser
-
-**Location**: `src/lang/parsing/expression-parser.ts`
-
-**Purpose**: Parses expressions with proper operator precedence.
-
-**Key Responsibilities**:
-- Parses expressions from tokens
-- Handles operator precedence (logical, comparison, arithmetic)
-- Supports unary operators
-- Handles parenthesized expressions
-
-**Operator Precedence** (lowest to highest):
-1. IMP (implication)
-2. XOR, XNOR
-3. OR, NOR
-4. AND, NAND
-5. NOT
-6. Comparison operators (=, <>, <, >, <=, >=)
-7. Arithmetic operators (+, -, *, /, ^, **)
-8. Unary operators (-, +)
-
-**Key Methods**:
-- `parseExpression(source: string): ParseResult<Expression>` - Parse expression string
-
-**Notes**:
-- The expression parser supports postfix operators (e.g. factorial `!`, angle conversion `DEG`/`RAD`) via a dedicated postfix parse phase.
-- Expression operator exports are consumed via the barrel `@/lang/expressions/operators`.
-
-**Parsing Methods**:
-- `expression()` - Entry point
-- `imp()`, `xorXnor()`, `orNor()`, `andNand()`, `not()` - Logical operators
-- `comparison()` - Comparison operators
-- `stringOperators()` / `arraySearchOperators()` - Non-arithmetic operators
-- `addSub()` / `mulDiv()` / `unaryPlusMinus()` / `exponentiation()` - Arithmetic precedence ladder
-- `primary()` - Literals, variables, parentheses, array/structure access, unary operator application
-- `parsePostfix()` - Postfix operators and accessors (`!`, `.member`, `[index]`, `DEG`, `RAD`, etc.)
-
-**Dependencies**:
-- `Tokenizer` - For tokenization
-
-## Runtime Services
+The heavy lifting is in `src/lang/parsing/` (tokenizer, statement dispatch, expression parsing). `ParserService` mainly adapts those building blocks to the UI and maintains UI-friendly state.
 
 ### GraphicsService
 
 **Location**: `src/app/interpreter/graphics.service.ts`
 
-**Purpose**: Manages graphics instance and buffer updates.
+**Purpose**: Owns a single `Graphics` instance and exposes buffer updates for the UI.
 
-**Key Responsibilities**:
-- Maintains single `Graphics` instance
-- Provides graphics instance to execution context
-- Emits buffer updates via RxJS observable
-- Connects graphics flush callbacks to UI updates
+**API**
 
-**Key Properties**:
-- `buffer$: Observable<ImageData | null>` - Graphics buffer updates
+- `getGraphics()`: returns the shared `Graphics`.
+- `setContext(context: CanvasRenderingContext2D)`: sets the canvas context and installs a flush callback that emits `ImageData` on `buffer$`.
 
-**Key Methods**:
-- `getGraphics()`: Returns Graphics instance
-- `setContext(context: CanvasRenderingContext2D)`: Sets canvas context and flush callback
+**State (RxJS)**
 
-**Buffer Update Flow**:
-```
-Graphics.flush()
-    ↓
-Flush callback triggered
-    ↓
-GraphicsService.buffer$.next(buffer)
-    ↓
-OutputComponent subscribes
-    ↓
-Canvas rendering
-```
-
-**Dependencies**: None (root service)
+- `buffer$`: emits the latest `ImageData` when `Graphics.flush()` produces a buffer.
 
 ### AudioService
 
 **Location**: `src/app/interpreter/audio.service.ts`
 
-**Purpose**: Manages audio synthesis instance.
+**Purpose**: Owns a single `Audio` instance (language runtime audio facade) and exposes basic mute control.
 
-**Key Responsibilities**:
-- Maintains single `Audio` instance
-- Provides audio instance to execution context
-- Uses webaudio-tinysynth (General MIDI) via `Audio` class
+**API**
 
-**Key Methods**:
-- `getAudio()`: Returns Audio instance
+- `getAudio()`: returns the shared `Audio`.
+- `setMuted(muted: boolean)`
+- `getMuted(): boolean`
 
-**Dependencies**: None (root service)
+## Related (call sites)
 
-## Service Communication Patterns
-
-### Reactive Data Flow
-
-Services use RxJS observables for reactive communication:
-
-```typescript
-// Service emits updates
-private subject = new BehaviorSubject<Data>(initialValue);
-public readonly data$ = this.subject.asObservable();
-
-// Component subscribes
-this.service.data$.pipe(takeUntil(this.destroy$))
-    .subscribe(data => { /* handle update */ });
-```
-
-### Dependency Injection
-
-Services are injected via constructor:
-
-```typescript
-constructor(
-    private readonly serviceA: ServiceA,
-    private readonly serviceB: ServiceB
-) { }
-```
-
-### Singleton Pattern
-
-All services use `providedIn: 'root'`, making them application-wide singletons.
-
-## Service Lifecycle
-
-### Initialization
-- Services are created on first injection
-- Constructor dependencies are resolved automatically
-- No explicit initialization hooks needed
-
-### State Management
-- Services maintain state via BehaviorSubject
-- State persists for application lifetime
-- State can be reset via service methods (e.g., `reset()`)
-
-### Cleanup
-- Services don't require explicit cleanup
-- RxJS subscriptions should be unsubscribed in components
-- Use `takeUntil(destroy$)` pattern
-
-## Error Handling
-
-### Parser Errors
-- `ParserService` returns `ParsedLine` with `hasError: true`
-- Error messages included in `errorMessage` field
-- `ConsoleService` displays errors to user
-
-### Execution Errors
-- Caught in `ConsoleService.executeCommand()`
-- Displayed via `printError()`
-- Don't crash the application
-
-### Service Errors
-- Services handle errors internally
-- Errors reported via console or observables
-- Graceful degradation where possible
-
-## Testing Services
-
-Services can be tested independently:
-- Mock dependencies
-- Test observable emissions
-- Verify state changes
-- Test error handling
-
-## Future Enhancements
-
-Potential service additions:
-- **FileService**: File system operations
-- **ThemeService**: UI theme management
-- **SettingsService**: User preferences
-- **HistoryService**: Program execution history
+- **Program run loop**: `src/app/code-editor/code-editor.component.ts`
+- **Console execution**: `src/app/console/console.service.ts` (parses an expression or statement and executes it against the shared runtime objects)

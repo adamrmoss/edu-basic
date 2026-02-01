@@ -18,6 +18,16 @@ export interface ParsedLine
     errorMessage?: string;
 }
 
+/**
+ * Parses BASIC source lines into `Statement` objects for the editor and console.
+ *
+ * Notes on error reporting:
+ * - `parseLine(...)` typically returns `success(...)` even when parsing fails.
+ * - Recoverable failures are represented as a `ParsedLine` where `hasError` is true and the `statement`
+ *   is an `UnparsableStatement` carrying an error message.
+ *
+ * This lets the UI keep a placeholder statement per line and surface errors without throwing.
+ */
 @Injectable({
     providedIn: 'root'
 })

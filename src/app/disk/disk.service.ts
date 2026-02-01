@@ -4,6 +4,15 @@ import JSZip from 'jszip';
 import { FileSystemService } from './filesystem.service';
 import { DirectoryNode } from './filesystem-node';
 
+/**
+ * Manages the in-browser “disk” abstraction (a zip-backed virtual file system).
+ *
+ * Responsibilities:
+ * - Tracks disk name and the current program text.
+ * - Persists program text into the in-memory `FileSystemService`.
+ * - Saves/loads `.disk` files as a zip archive via `JSZip`.
+ * - Emits change notifications used by UI components (program editor, file tree).
+ */
 @Injectable({
     providedIn: 'root'
 })

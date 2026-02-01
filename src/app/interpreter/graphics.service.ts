@@ -2,6 +2,14 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Graphics } from '../../lang/graphics';
 
+/**
+ * Owns the shared `Graphics` runtime instance and exposes buffer flushes to the UI.
+ *
+ * Typical flow:
+ * - UI provides a `CanvasRenderingContext2D` via `setContext(...)`.
+ * - The language runtime calls `Graphics.flush()`.
+ * - A flush callback reads `Graphics.getBuffer()` and emits it on `buffer$`.
+ */
 @Injectable({
     providedIn: 'root'
 })

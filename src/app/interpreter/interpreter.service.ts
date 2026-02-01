@@ -27,6 +27,17 @@ export interface ParseResult
     warnings: string[];
 }
 
+/**
+ * Holds shared runtime objects for program execution and console commands.
+ *
+ * This service is primarily a state + dependency hub:
+ * - Provides a long-lived `ExecutionContext` and a shared `Program`.
+ * - Lazily creates (and caches) a `RuntimeExecution` wired to graphics, audio, disk, console, and tab switching.
+ * - Tracks interpreter state (Idle/Running/Paused/etc.) for UI components.
+ * - Forwards global keyboard events into `ExecutionContext` (when running in a browser).
+ *
+ * Important: program stepping is performed by the UI (see `CodeEditorComponent`), not by this service.
+ */
 @Injectable({
     providedIn: 'root'
 })
@@ -116,7 +127,8 @@ export class InterpreterService
         this.parseResultSubject.next(null);
         if (program)
         {
-            this.sharedProgram = program; // Update shared program (though we're reusing the same instance now)
+            // Update shared program reference (some call sites reuse the same instance).
+            this.sharedProgram = program;
         }
     }
 
