@@ -36,12 +36,43 @@ import { ParseResult, success, failure } from './parse-result';
 
 export class ExpressionParser
 {
+    // Expression parsing is intentionally centralized here so that:
+    // - statement parsers can remain simple (they delegate to ExpressionParser via ParserContext)
+    // - operator precedence and associativity rules live in one place
+    //
+    // Design notes:
+    // - Tokenizer normalizes keyword tokens to uppercase, so matchKeyword(...) uses uppercase strings.
+    // - Most "operators" in EduBASIC are keyword-operators (e.g. AND, MOD, LEFT, FIND) rather than symbols.
+    // - Some nested constructs (array/structure literals, bracket access) need "parse until delimiter" behavior.
+    //   We implement that by slicing tokens, reconstructing source text, and re-parsing with a nested ExpressionParser
+    //   to keep precedence rules consistent without duplicating a second precedence ladder.
     private tokens: Token[] = [];
     private current: number = 0;
     private tokenizer: Tokenizer = new Tokenizer();
 
+    private static readonly stringOperatorKeywords = [
+        'LEFT',
+        'RIGHT',
+        'MID',
+        'INSTR',
+        'REPLACE',
+        'JOIN',
+        'STARTSWITH',
+        'ENDSWITH'
+    ] as const;
+
+    private static readonly arraySearchOperatorKeywords = [
+        'FIND',
+        'INDEXOF',
+        'INCLUDES'
+    ] as const;
+
     public parseExpression(source: string): ParseResult<Expression>
     {
+        // Public entry point:
+        // - tokenize the provided expression source
+        // - parse the expression using the precedence ladder below
+        // - ensure the entire input was consumed (no trailing junk tokens)
         const tokenizeResult = this.tokenizer.tokenize(source);
         if (!tokenizeResult.success)
         {
@@ -68,11 +99,14 @@ export class ExpressionParser
 
     private expression(): ParseResult<Expression>
     {
+        // Precedence ladder entry.
         return this.imp();
     }
 
     private imp(): ParseResult<Expression>
     {
+        // Left-associative:
+        // a IMP b IMP c  =>  (a IMP b) IMP c
         const exprResult = this.xorXnor();
         
         if (!exprResult.success)
@@ -97,6 +131,8 @@ export class ExpressionParser
 
     private xorXnor(): ParseResult<Expression>
     {
+        // Left-associative:
+        // a XOR b XOR c  =>  (a XOR b) XOR c
         const exprResult = this.orNor();
         
         if (!exprResult.success)
@@ -122,6 +158,8 @@ export class ExpressionParser
 
     private orNor(): ParseResult<Expression>
     {
+        // Left-associative:
+        // a OR b OR c  =>  (a OR b) OR c
         const exprResult = this.andNand();
         
         if (!exprResult.success)
@@ -147,6 +185,8 @@ export class ExpressionParser
 
     private andNand(): ParseResult<Expression>
     {
+        // Left-associative:
+        // a AND b AND c  =>  (a AND b) AND c
         const exprResult = this.not();
         
         if (!exprResult.success)
@@ -172,6 +212,8 @@ export class ExpressionParser
 
     private not(): ParseResult<Expression>
     {
+        // Right-associative prefix:
+        // NOT NOT x  =>  NOT (NOT x)
         if (this.matchKeyword('NOT'))
         {
             const operandResult = this.not();
@@ -187,6 +229,7 @@ export class ExpressionParser
 
     private comparison(): ParseResult<Expression>
     {
+        // Comparisons bind looser than arithmetic and keyword-operators below.
         const exprResult = this.stringOperators();
         
         if (!exprResult.success)
@@ -239,6 +282,8 @@ export class ExpressionParser
 
     private stringOperators(): ParseResult<Expression>
     {
+        // Keyword-operator phase for string operations that sit between comparisons and arithmetic.
+        // These are infix operators with a left operand already parsed.
         const exprResult = this.arraySearchOperators();
         
         if (!exprResult.success)
@@ -248,17 +293,9 @@ export class ExpressionParser
 
         let expr = exprResult.value;
 
-        while (this.matchKeyword('LEFT') ||
-               this.matchKeyword('RIGHT') ||
-               this.matchKeyword('MID') ||
-               this.matchKeyword('INSTR') ||
-               this.matchKeyword('REPLACE') ||
-               this.matchKeyword('JOIN') ||
-               this.matchKeyword('STARTSWITH') ||
-               this.matchKeyword('ENDSWITH'))
+        let operatorToken: string | null = this.matchAnyKeyword(ExpressionParser.stringOperatorKeywords);
+        while (operatorToken !== null)
         {
-            const operatorToken = this.previous().value;
-
             switch (operatorToken)
             {
                 case 'LEFT':
@@ -382,6 +419,8 @@ export class ExpressionParser
                 default:
                     return failure(`Unknown string operator: ${operatorToken}`);
             }
+
+            operatorToken = this.matchAnyKeyword(ExpressionParser.stringOperatorKeywords);
         }
 
         return success(expr);
@@ -389,6 +428,8 @@ export class ExpressionParser
 
     private arraySearchOperators(): ParseResult<Expression>
     {
+        // Keyword-operator phase for array search operators (FIND/INDEXOF/INCLUDES).
+        // These are infix operators with a left operand already parsed.
         const exprResult = this.addSub();
         
         if (!exprResult.success)
@@ -398,9 +439,9 @@ export class ExpressionParser
 
         let expr = exprResult.value;
 
-        while (this.matchKeyword('FIND') || this.matchKeyword('INDEXOF') || this.matchKeyword('INCLUDES'))
+        let operatorToken: string | null = this.matchAnyKeyword(ExpressionParser.arraySearchOperatorKeywords);
+        while (operatorToken !== null)
         {
-            const operatorToken = this.previous().value;
             let operator: ArraySearchOperator;
 
             switch (operatorToken)
@@ -425,6 +466,8 @@ export class ExpressionParser
             }
 
             expr = new ArraySearchExpression(expr, operator, rightResult.value);
+
+            operatorToken = this.matchAnyKeyword(ExpressionParser.arraySearchOperatorKeywords);
         }
 
         return success(expr);
@@ -432,6 +475,8 @@ export class ExpressionParser
 
     private addSub(): ParseResult<Expression>
     {
+        // Left-associative:
+        // a - b - c  =>  (a - b) - c
         const exprResult = this.mulDiv();
         
         if (!exprResult.success)
@@ -458,6 +503,10 @@ export class ExpressionParser
 
     private mulDiv(): ParseResult<Expression>
     {
+        // Left-associative:
+        // a / b / c  =>  (a / b) / c
+        //
+        // Note: MOD is a keyword-operator at the same precedence as * and /.
         const exprResult = this.unaryPlusMinus();
         
         if (!exprResult.success)
@@ -500,6 +549,8 @@ export class ExpressionParser
 
     private unaryPlusMinus(): ParseResult<Expression>
     {
+        // Right-associative prefix:
+        // - -x  =>  -( -x )
         if (this.match(TokenType.Plus, TokenType.Minus))
         {
             const operatorToken = this.previous().value;
@@ -517,6 +568,8 @@ export class ExpressionParser
 
     private exponentiation(): ParseResult<Expression>
     {
+        // Right-associative:
+        // a ^ b ^ c  =>  a ^ (b ^ c)
         const exprResult = this.primary();
         
         if (!exprResult.success)
@@ -543,6 +596,12 @@ export class ExpressionParser
 
     private primary(): ParseResult<Expression>
     {
+        // Primary expressions are the "atoms" of the grammar.
+        // After recognizing a primary, we always delegate to parsePostfix(...) so accessors like:
+        // - factorial (!)
+        // - member access (.name)
+        // - bracket access/slicing ([...])
+        // can chain as long as they apply.
         let expr: Expression | null = null;
 
         if (this.match(TokenType.Integer))
@@ -671,38 +730,31 @@ export class ExpressionParser
         else if (this.check(TokenType.Keyword))
         {
             const keyword = this.peek().value;
-            const unaryOp = this.parseUnaryFunction(keyword);
+            const unaryOp = this.parseUnaryOperatorKeyword(keyword);
             if (unaryOp !== null)
             {
                 this.advance();
 
-                if (this.match(TokenType.LeftParen))
+                // Unary keyword-operators bind like prefix operators:
+                // - SIN x
+                // - SIN (x + y)
+                //
+                // Parentheses are only grouping in EduBASIC, so they must be represented in the AST.
+                // We therefore do not treat '(' as operator syntax here; we simply parse the next
+                // expression at prefix precedence, and if that expression starts with '(' it will be
+                // parsed as a ParenthesizedExpression by primary().
+                const argumentResult = this.unaryPlusMinus();
+                if (!argumentResult.success)
                 {
-                    const argumentResult = this.expression();
-                    if (!argumentResult.success)
-                    {
-                        return argumentResult;
-                    }
-                    const rightParenResult = this.consume(TokenType.RightParen, `Expected ')' after ${keyword} argument`);
-                    if (!rightParenResult.success)
-                    {
-                        return rightParenResult;
-                    }
-                    expr = new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category);
+                    return argumentResult;
                 }
-                else
-                {
-                    const argumentResult = this.unaryPlusMinus();
-                    if (!argumentResult.success)
-                    {
-                        return argumentResult;
-                    }
-                    expr = new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category);
-                }
+
+                expr = new UnaryExpression(unaryOp.operator, argumentResult.value, unaryOp.category);
             }
         }
         else if (this.match(TokenType.Pipe))
         {
+            // Bars expression: |x| for absolute-value-like semantics.
             const insideResult = this.expression();
             if (!insideResult.success)
             {
@@ -719,6 +771,7 @@ export class ExpressionParser
         }
         else if (this.match(TokenType.LeftParen))
         {
+            // Parenthesized grouping.
             const exprResult = this.expression();
             if (!exprResult.success)
             {
@@ -743,6 +796,8 @@ export class ExpressionParser
 
     private parsePostfix(baseExpr: Expression): ParseResult<Expression>
     {
+        // Postfix operators and accessors are applied greedily.
+        // Example: a![i].x  parses as (((a!) [i]) .x).
         let expr = baseExpr;
 
         while (true)
@@ -782,35 +837,20 @@ export class ExpressionParser
                 break;
             }
 
-            if (this.check(TokenType.Identifier))
-            {
-                const identifier = this.peek().value;
-                const nextIndex = this.current + 1;
-                if (nextIndex < this.tokens.length && this.tokens[nextIndex].type === TokenType.RightBracket)
-                {
-                    this.advance();
-                    const rightBracketResult = this.consume(TokenType.RightBracket, "Expected ']' after member name");
-                    if (!rightBracketResult.success)
-                    {
-                        return rightBracketResult;
-                    }
-
-                    // Runtime-polymorphic bracket access:
-                    // - Arrays: index via identifier variable value
-                    // - Structures: (no longer supported for member access; use dot operator)
-                    expr = new BracketAccessExpression(expr, new VariableExpression(identifier), null);
-                    continue;
-                }
-            }
+            // Bracket syntax is reserved for array access/slicing.
+            // The bracket contents are always parsed as expressions (including a single identifier,
+            // which becomes a VariableExpression). Structure member access uses the dot operator.
 
             let startExpr: Expression | null = null;
 
             if (this.match(TokenType.Ellipsis))
             {
+                // Slice start omitted: expr[... TO end]
                 startExpr = null;
             }
             else
             {
+                // Parse the start/index expression, but stop if we hit TO at depth 0.
                 const startResult = this.parseExpressionUntil([TokenType.Comma, TokenType.RightBracket], ['TO']);
                 if (!startResult.success)
                 {
@@ -821,10 +861,12 @@ export class ExpressionParser
 
             if (this.matchKeyword('TO'))
             {
+                // Slice form: expr[start TO end], with either side optionally omitted via '...'.
                 let endExpr: Expression | null = null;
 
                 if (this.match(TokenType.Ellipsis))
                 {
+                    // Slice end omitted: expr[start TO ...]
                     endExpr = null;
                 }
                 else
@@ -849,11 +891,13 @@ export class ExpressionParser
 
             if (startExpr === null)
             {
+                // expr[... ] is not meaningful without TO.
                 return failure("Expected 'TO' after '...'");
             }
 
             if (this.match(TokenType.Comma))
             {
+                // Multi-index form: expr[i, j, k]
                 const indices: Expression[] = [startExpr];
 
                 while (!this.check(TokenType.RightBracket) && !this.isAtEnd())
@@ -897,6 +941,16 @@ export class ExpressionParser
 
     private parseExpressionUntil(stopTypes: TokenType[], stopKeywords: string[] = []): ParseResult<Expression>
     {
+        // Parse a sub-expression by collecting tokens until we hit a delimiter token/keyword at depth 0.
+        //
+        // This is used for:
+        // - array literals: [a, b, c]
+        // - structure literals: { x: 1, y: 2 }
+        // - bracket access: expr[i], expr[i, j], expr[i TO j], expr[... TO j], expr[i TO ...]
+        //
+        // Note: We reconstitute tokens back into source text and re-tokenize for the nested parse.
+        // This is less efficient than a "token-native" nested parse, but it keeps operator precedence
+        // centralized in one ladder and avoids a second parsing codepath.
         const exprTokens: Token[] = [];
         let parenDepth = 0;
         let bracketDepth = 0;
@@ -960,6 +1014,8 @@ export class ExpressionParser
 
     private tokensToSource(tokens: Token[]): string
     {
+        // Convert a token slice back to source code suitable for re-tokenization.
+        // Strings are re-quoted; most tokens are appended verbatim.
         const parts: string[] = [];
 
         for (let i = 0; i < tokens.length; i++)
@@ -987,6 +1043,9 @@ export class ExpressionParser
 
     private needsSpace(prev: Token, current: Token): boolean
     {
+        // Space insertion is intentionally simple:
+        // - keep punctuation tight (no extra spaces after '(' or before ')', etc.)
+        // - otherwise insert a single space to prevent accidental token merging
         if (prev.type === TokenType.LeftParen || prev.type === TokenType.LeftBracket || prev.type === TokenType.LeftBrace)
         {
             return false;
@@ -1007,6 +1066,7 @@ export class ExpressionParser
 
     private parseConstant(name: string): Constant | null
     {
+        // Constants are recognized by name at parse time so they can be represented as nullary expressions.
         const upperName = name.toUpperCase();
         switch (upperName)
         {
@@ -1042,11 +1102,13 @@ export class ExpressionParser
         }
     }
 
-    private parseUnaryFunction(keyword: string): { operator: UnaryOperator; category: UnaryOperatorCategory } | null
+    private parseUnaryOperatorKeyword(keyword: string): { operator: UnaryOperator; category: UnaryOperatorCategory } | null
     {
+        // Map a keyword token to a unary operator implementation (if any).
+        // This is one of the main extension points when adding new unary keyword-operators.
         switch (keyword.toUpperCase())
         {
-            // Mathematical
+            // Mathematical operators
             case 'SIN':
                 return { operator: UnaryOperator.Sin, category: UnaryOperatorCategory.Mathematical };
             case 'COS':
@@ -1098,7 +1160,7 @@ export class ExpressionParser
             case 'ABS':
                 return { operator: UnaryOperator.Abs, category: UnaryOperatorCategory.Mathematical };
             
-            // Complex
+            // Complex operators
             case 'REAL':
                 return { operator: UnaryOperator.Real, category: UnaryOperatorCategory.Complex };
             case 'IMAG':
@@ -1116,7 +1178,7 @@ export class ExpressionParser
             case 'CSQRT':
                 return { operator: UnaryOperator.Csqrt, category: UnaryOperatorCategory.Complex };
             
-            // String manipulation
+            // String manipulation operators
             case 'ASC':
                 return { operator: UnaryOperator.Asc, category: UnaryOperatorCategory.StringManipulation };
             case 'CHR':
@@ -1143,7 +1205,7 @@ export class ExpressionParser
             case 'REVERSE$':
                 return { operator: UnaryOperator.Reverse, category: UnaryOperatorCategory.StringManipulation };
             
-            // Type conversion
+            // Type conversion operators
             case 'INT':
             case 'CINT':
                 return { operator: UnaryOperator.Int, category: UnaryOperatorCategory.TypeConversion };
@@ -1167,6 +1229,8 @@ export class ExpressionParser
 
     private parseComplexLiteral(text: string): { real: number; imaginary: number } | null
     {
+        // Complex token text is produced by Tokenizer (e.g. "3+4i", "10.5-2.5i").
+        // This method turns that text into a structured { real, imaginary } value.
         const imagOnly = /^([+-]?[\d.]+(?:[eE][+-]?\d+)?)[iI]$/;
         const fullComplex = /^([+-]?[\d.]+(?:[eE][+-]?\d+)?)([+-][\d.]+(?:[eE][+-]?\d+)?)[iI]$/;
 
@@ -1210,6 +1274,17 @@ export class ExpressionParser
         }
 
         return false;
+    }
+
+    private matchAnyKeyword(keywords: readonly string[]): string | null
+    {
+        if (this.check(TokenType.Keyword) && keywords.includes(this.peek().value))
+        {
+            this.advance();
+            return this.previous().value;
+        }
+
+        return null;
     }
 
     private check(type: TokenType): boolean
