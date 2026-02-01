@@ -1,57 +1,203 @@
 import { Keywords } from './keywords';
 import { failure, ParseResult, success } from './parse-result';
 
+/**
+ * Token kinds emitted by `Tokenizer`.
+ */
 export enum TokenType
 {
+    /**
+     * End-of-file sentinel token.
+     */
     EOF,
     
+    /**
+     * Integer literal token.
+     */
     Integer,
+
+    /**
+     * Real literal token.
+     */
     Real,
+
+    /**
+     * Complex literal token.
+     */
     Complex,
+
+    /**
+     * String literal token.
+     */
     String,
     
+    /**
+     * Identifier token.
+     */
     Identifier,
+
+    /**
+     * Keyword token (recognized via `Keywords`).
+     */
     Keyword,
     
+    /**
+     * Plus operator (`+`).
+     */
     Plus,
+
+    /**
+     * Minus operator (`-`).
+     */
     Minus,
+
+    /**
+     * Multiplication operator (`*`).
+     */
     Star,
+
+    /**
+     * Division operator (`/`).
+     */
     Slash,
+
+    /**
+     * Power operator (`^`).
+     */
     Caret,
+
+    /**
+     * Power operator (`**`).
+     */
     StarStar,
     
+    /**
+     * Equality operator (`=`).
+     */
     Equal,
+
+    /**
+     * Inequality operator (`<>`).
+     */
     NotEqual,
+
+    /**
+     * Less-than operator (`<`).
+     */
     Less,
+
+    /**
+     * Greater-than operator (`>`).
+     */
     Greater,
+
+    /**
+     * Less-than-or-equal operator (`<=`).
+     */
     LessEqual,
+
+    /**
+     * Greater-than-or-equal operator (`>=`).
+     */
     GreaterEqual,
     
+    /**
+     * Left parenthesis (`(`).
+     */
     LeftParen,
+
+    /**
+     * Right parenthesis (`)`).
+     */
     RightParen,
+
+    /**
+     * Left bracket (`[`).
+     */
     LeftBracket,
+
+    /**
+     * Right bracket (`]`).
+     */
     RightBracket,
+
+    /**
+     * Left brace (`{`).
+     */
     LeftBrace,
+
+    /**
+     * Right brace (`}`).
+     */
     RightBrace,
     
+    /**
+     * Comma delimiter (`,`).
+     */
     Comma,
+
+    /**
+     * Colon delimiter (`:`).
+     */
     Colon,
+
+    /**
+     * Semicolon delimiter (`;`).
+     */
     Semicolon,
+
+    /**
+     * Pipe token (`|`).
+     */
     Pipe,
+
+    /**
+     * Exclamation token (`!`).
+     */
     Exclamation,
+
+    /**
+     * Dot token (`.`).
+     */
     Dot,
 
+    /**
+     * Ellipsis token (`...`).
+     */
     Ellipsis,
 }
 
+/**
+ * Token produced by `Tokenizer`.
+ */
 export interface Token
 {
+    /**
+     * Token kind.
+     */
     type: TokenType;
+
+    /**
+     * Source text for the token (normalized for keywords).
+     */
     value: string;
+
+    /**
+     * 1-based line number in the source string.
+     */
     line: number;
+
+    /**
+     * 1-based column number in the source string.
+     */
     column: number;
 }
 
+/**
+ * Tokenizer for EduBASIC source and expressions.
+ *
+ * Produces a flat token stream consumed by the parser and expression parser.
+ */
 export class Tokenizer
 {
     private source: string = '';
@@ -59,6 +205,12 @@ export class Tokenizer
     private line: number = 1;
     private column: number = 1;
 
+    /**
+     * Tokenize a source string into an array of tokens.
+     *
+     * @param source Source string to tokenize.
+     * @returns Token list including a trailing EOF token.
+     */
     public tokenize(source: string): ParseResult<Token[]>
     {
         // Tokenization is a single left-to-right pass.

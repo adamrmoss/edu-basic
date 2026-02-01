@@ -73,6 +73,12 @@ export class AppComponent implements OnInit, OnDestroy
 
     private readonly destroy$ = new Subject<void>();
 
+    /**
+     * Create a new root app component.
+     *
+     * @param tabSwitchService Tab switch event bus.
+     * @param audioService Audio service used for mute state.
+     */
     constructor(
         private readonly tabSwitchService: TabSwitchService,
         private readonly audioService: AudioService

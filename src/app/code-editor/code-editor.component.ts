@@ -46,6 +46,13 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
     private readonly destroy$ = new Subject<void>();
 
+    /**
+     * Create a new code editor component.
+     *
+     * @param diskService Disk service used for persisting program code.
+     * @param interpreterService Interpreter service used to run programs.
+     * @param parserService Parser service used for line validation and canonicalization.
+     */
     constructor(
         private readonly diskService: DiskService,
         private readonly interpreterService: InterpreterService,

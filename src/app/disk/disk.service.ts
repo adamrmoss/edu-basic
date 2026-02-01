@@ -40,6 +40,11 @@ export class DiskService
      */
     public readonly filesChanged$: Observable<void> = this.filesChangedSubject.asObservable();
 
+    /**
+     * Create a new disk service.
+     *
+     * @param fileSystemService In-memory filesystem used for file operations.
+     */
     constructor(private readonly fileSystemService: FileSystemService)
     {
     }

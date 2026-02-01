@@ -30,6 +30,11 @@ export class ConsoleComponent implements OnInit, OnDestroy
 
     private readonly destroy$ = new Subject<void>();
 
+    /**
+     * Create a new console component.
+     *
+     * @param consoleService Console service backing input parsing and execution.
+     */
     constructor(private readonly consoleService: ConsoleService)
     {
     }

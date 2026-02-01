@@ -46,6 +46,16 @@ export class RuntimeExecution
     private tabSwitchCallback: ((tabId: string) => void) | null = null;
     private sleepUntilMs: number | null = null;
 
+    /**
+     * Create a new runtime execution engine.
+     *
+     * @param program Program to execute.
+     * @param context Shared execution context (variables, call frames, program counter).
+     * @param graphics Graphics runtime for drawing statements.
+     * @param audio Audio runtime for audio statements.
+     * @param fileSystem Virtual filesystem used by file I/O statements.
+     * @param consoleService Optional console service for interactive hosts.
+     */
     public constructor(
         private readonly program: Program,
         private readonly context: ExecutionContext,

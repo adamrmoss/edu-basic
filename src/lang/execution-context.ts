@@ -60,6 +60,9 @@ export class ExecutionContext
     private lastPressedKey: string | null;
     private audio: Audio | null;
 
+    /**
+     * Create a new execution context with empty global/local state.
+     */
     public constructor()
     {
         this.globalVariables = new Map<string, EduBasicValue>();

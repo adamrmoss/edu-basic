@@ -1,10 +1,11 @@
+import { toSet } from '../../collections';
+
 /**
  * Central keyword definitions for the EduBASIC language.
+ *
  * Categories are defined as small arrays; larger sets are built via set operations
  * so there is a single source of truth and no duplication.
  */
-
-import { toSet } from '../../collections';
 
 const VARIABLE_KEYWORDS = ['LET', 'DIM', 'LOCAL'] as const;
 
@@ -89,30 +90,124 @@ const EXPRESSION_TERMINATOR_KEYWORDS = [
 
 export class Keywords
 {
+    /**
+     * Variable statement keywords.
+     */
     public static readonly variable = VARIABLE_KEYWORDS;
+
+    /**
+     * Control-flow statement keywords.
+     */
     public static readonly controlFlow = CONTROL_FLOW_KEYWORDS;
+
+    /**
+     * I/O statement keywords.
+     */
     public static readonly io = IO_KEYWORDS;
+
+    /**
+     * Graphics statement keywords.
+     */
     public static readonly graphics = GRAPHICS_KEYWORDS;
+
+    /**
+     * File I/O statement keywords.
+     */
     public static readonly fileIo = FILE_IO_KEYWORDS;
+
+    /**
+     * Audio statement keywords.
+     */
     public static readonly audio = AUDIO_KEYWORDS;
+
+    /**
+     * Array statement keywords.
+     */
     public static readonly array = ARRAY_KEYWORDS;
+
+    /**
+     * Miscellaneous statement keywords.
+     */
     public static readonly miscStatement = MISC_STATEMENT_KEYWORDS;
+
+    /**
+     * `SET` modifier keywords.
+     */
     public static readonly setModifier = SET_MODIFIER_KEYWORDS;
+
+    /**
+     * File I/O modifier keywords.
+     */
     public static readonly fileIoModifier = FILE_IO_MODIFIER_KEYWORDS;
+
+    /**
+     * Graphics modifier keywords.
+     */
     public static readonly graphicsModifier = GRAPHICS_MODIFIER_KEYWORDS;
+
+    /**
+     * Audio modifier keywords.
+     */
     public static readonly audioModifier = AUDIO_MODIFIER_KEYWORDS;
+
+    /**
+     * General modifier keywords.
+     */
     public static readonly generalModifier = GENERAL_MODIFIER_KEYWORDS;
+
+    /**
+     * DATA/RESTORE keywords.
+     */
     public static readonly data = DATA_KEYWORDS;
+
+    /**
+     * Parameter modifier keywords (e.g. `BYREF`).
+     */
     public static readonly parameter = PARAMETER_KEYWORDS;
+
+    /**
+     * Logical operator keywords.
+     */
     public static readonly logicalOperator = LOGICAL_OPERATOR_KEYWORDS;
+
+    /**
+     * Math operator keywords.
+     */
     public static readonly mathFunction = MATH_FUNCTION_KEYWORDS;
+
+    /**
+     * Complex-number operator keywords.
+     */
     public static readonly complexFunction = COMPLEX_FUNCTION_KEYWORDS;
+
+    /**
+     * String operator keywords.
+     */
     public static readonly stringFunction = STRING_FUNCTION_KEYWORDS;
+
+    /**
+     * Built-in constant keywords.
+     */
     public static readonly constant = CONSTANT_KEYWORDS;
+
+    /**
+     * Other operator keywords.
+     */
     public static readonly otherOperator = OTHER_OPERATOR_KEYWORDS;
+
+    /**
+     * Keywords that can begin a statement.
+     */
     public static readonly statementStart = STATEMENT_START_KEYWORDS;
+
+    /**
+     * Keywords that terminate expression parsing in statement contexts.
+     */
     public static readonly expressionTerminator = EXPRESSION_TERMINATOR_KEYWORDS;
 
+    /**
+     * Set containing all defined keywords.
+     */
     public static readonly all = toSet(
         VARIABLE_KEYWORDS,
         CONTROL_FLOW_KEYWORDS,
@@ -137,19 +232,41 @@ export class Keywords
         OTHER_OPERATOR_KEYWORDS
     );
 
+    /**
+     * Set containing keywords that can begin a statement.
+     */
     public static readonly statementStartSet = new Set(STATEMENT_START_KEYWORDS) as Set<string>;
+
+    /**
+     * Set containing keywords that terminate expressions in statement contexts.
+     */
     public static readonly expressionTerminatorSet = new Set(EXPRESSION_TERMINATOR_KEYWORDS) as Set<string>;
 
+    /**
+     * Determine whether a word is a recognized keyword (case-insensitive).
+     *
+     * @param word Word to test.
+     */
     public static isKeyword(word: string): boolean
     {
         return this.all.has(word.toUpperCase());
     }
 
+    /**
+     * Determine whether a word is a recognized statement-start keyword (case-insensitive).
+     *
+     * @param word Word to test.
+     */
     public static isStatementStartKeyword(word: string): boolean
     {
         return this.statementStartSet.has(word.toUpperCase());
     }
 
+    /**
+     * Determine whether a word is a recognized expression-terminator keyword (case-insensitive).
+     *
+     * @param word Word to test.
+     */
     public static isExpressionTerminatorKeyword(word: string): boolean
     {
         return this.expressionTerminatorSet.has(word.toUpperCase());

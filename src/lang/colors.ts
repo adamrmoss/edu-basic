@@ -1,15 +1,18 @@
 /**
- * CSS Color Names
- * 
- * Standard CSS color names with their RGBA values.
- * Colors use full opacity (alpha = 255) by default, except `transparent`.
- * 
- * Color names are case-insensitive and support aliases (e.g., gray/grey, aqua/cyan).
+ * CSS color name utilities for the runtime.
+ *
+ * Exposes a mapping of standard CSS color names to packed RGBA values, plus
+ * helper APIs for lookup and listing.
  */
 
 /**
- * Color name to RGBA mapping
- * RGBA format: 32-bit integer with format 0xRRGGBBAA
+ * Color name to packed RGBA mapping.
+ *
+ * Notes:
+ * - Keys are stored lowercase for case-insensitive lookup.
+ * - Values are 32-bit integers in the format \(0xRRGGBBAA\).
+ * - Most entries use full opacity (alpha = 255); `transparent` uses alpha 0.
+ * - The map includes aliases (for example, gray/grey and aqua/cyan).
  */
 export const COLOR_NAMES: Map<string, number> = new Map([
     // A
@@ -203,9 +206,10 @@ export const COLOR_NAMES: Map<string, number> = new Map([
 ]);
 
 /**
- * Gets the RGBA value for a color name (case-insensitive)
- * @param colorName Color name (case-insensitive)
- * @returns RGBA value as 32-bit integer, or undefined if not found
+ * Get the packed RGBA value for a color name (case-insensitive).
+ *
+ * @param colorName Color name.
+ * @returns Packed RGBA value in the format \(0xRRGGBBAA\), or `undefined` if not found.
  */
 export function getColorValue(colorName: string): number | undefined
 {
@@ -214,9 +218,10 @@ export function getColorValue(colorName: string): number | undefined
 }
 
 /**
- * Checks if a string is a valid color name (case-insensitive)
- * @param colorName Color name to check
- * @returns True if the color name is valid
+ * Determine whether a string is a valid color name (case-insensitive).
+ *
+ * @param colorName Color name to check.
+ * @returns `true` if the color name is recognized.
  */
 export function isColorName(colorName: string): boolean
 {
@@ -225,8 +230,9 @@ export function isColorName(colorName: string): boolean
 }
 
 /**
- * Gets all color names in alphabetical order
- * @returns Array of color names
+ * Get all color names in alphabetical order.
+ *
+ * @returns Array of lowercase color names.
  */
 export function getAllColorNames(): string[]
 {
@@ -240,18 +246,30 @@ export function getAllColorNames(): string[]
 }
 
 /**
- * Color information for documentation
+ * Color metadata for UI/documentation.
  */
 export interface ColorInfo
 {
+    /**
+     * Lowercase color name.
+     */
     name: string;
+
+    /**
+     * Hex RGB string in the form `#RRGGBB` (alpha is omitted).
+     */
     hex: string;
+
+    /**
+     * RGBA components extracted from the packed value.
+     */
     rgba: { r: number; g: number; b: number; a: number };
 }
 
 /**
- * Gets all color information for documentation
- * @returns Array of color info, sorted alphabetically
+ * Get all color metadata for UI/documentation.
+ *
+ * @returns Array of color info, sorted alphabetically by name.
  */
 export function getAllColorInfo(): ColorInfo[]
 {

@@ -50,6 +50,9 @@ export class Audio
     private scheduledNotes: Map<number, ScheduledNote[]> = new Map();
     private nextNoteTime: Map<number, number> = new Map();
 
+    /**
+     * Create a new audio runtime instance and begin async initialization.
+     */
     public constructor()
     {
         this.initializeAudio();

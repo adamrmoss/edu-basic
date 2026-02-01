@@ -15,9 +15,24 @@
  */
 export interface Color
 {
+    /**
+     * Red channel component (0..255).
+     */
     r: number;
+
+    /**
+     * Green channel component (0..255).
+     */
     g: number;
+
+    /**
+     * Blue channel component (0..255).
+     */
     b: number;
+
+    /**
+     * Alpha channel component (0..255).
+     */
     a: number;
 }
 
@@ -31,11 +46,34 @@ export interface Color
  */
 export class Graphics
 {
+    /**
+     * Surface width in pixels.
+     */
     public readonly width: number = 640;
+
+    /**
+     * Surface height in pixels.
+     */
     public readonly height: number = 480;
+
+    /**
+     * Text glyph width in pixels.
+     */
     public readonly charWidth: number = 8;
+
+    /**
+     * Text glyph height in pixels.
+     */
     public readonly charHeight: number = 16;
+
+    /**
+     * Number of text rows in the text grid.
+     */
     public readonly rows: number = 30;
+
+    /**
+     * Number of text columns in the text grid.
+     */
     public readonly columns: number = 80;
 
     private context: CanvasRenderingContext2D | null = null;

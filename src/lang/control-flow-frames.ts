@@ -13,8 +13,19 @@ export type ControlStructureType = 'if' | 'unless' | 'while' | 'do' | 'for' | 's
  */
 export interface ControlStructureFrame
 {
+    /**
+     * Control structure discriminator.
+     */
     type: ControlStructureType;
+
+    /**
+     * 0-based statement index where the block starts.
+     */
     startLine: number;
+
+    /**
+     * 0-based statement index where the block ends.
+     */
     endLine: number;
 
     /**

@@ -34,6 +34,12 @@ import { EduBasicType } from '../edu-basic-value';
 import { Constant } from '../expressions/helpers/constant-evaluator';
 import { ParseResult, success, failure } from './parse-result';
 
+/**
+ * Parser for EduBASIC expressions.
+ *
+ * Produces an expression AST from a token stream, applying operator precedence and
+ * associativity rules consistent with the language runtime.
+ */
 export class ExpressionParser
 {
     // Expression parsing is intentionally centralized here so that:
@@ -67,6 +73,12 @@ export class ExpressionParser
         'INCLUDES'
     ] as const;
 
+    /**
+     * Parse an expression from source text.
+     *
+     * @param source Expression source text.
+     * @returns Parsed expression result.
+     */
     public parseExpression(source: string): ParseResult<Expression>
     {
         // Public entry point:

@@ -19,6 +19,9 @@ export class Program
     private statements: Statement[];
     private labelMap: Map<string, number>;
 
+    /**
+     * Create a new empty program.
+     */
     public constructor()
     {
         this.statements = [];

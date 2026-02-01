@@ -1,27 +1,90 @@
+/**
+ * Core runtime value types for EduBASIC.
+ *
+ * This module defines the runtime value domain (`EduBasicValue`) plus helpers for:
+ * - array rank suffix parsing/formatting (e.g. `[]`, `[,,]`)
+ * - numeric type coercion (Integer → Real → Complex)
+ * - canonical string formatting for display
+ */
 export enum EduBasicType
 {
+    /**
+     * Integer numeric type.
+     */
     Integer = 'INTEGER',
+
+    /**
+     * Real (floating-point) numeric type.
+     */
     Real = 'REAL',
+
+    /**
+     * Complex numeric type.
+     */
     Complex = 'COMPLEX',
+
+    /**
+     * String type.
+     */
     String = 'STRING',
+
+    /**
+     * Structure type (map of member name to value).
+     */
     Structure = 'STRUCTURE',
+
+    /**
+     * Array type (linear buffer plus optional dimension metadata).
+     */
     Array = 'ARRAY',
 }
 
+/**
+ * Runtime representation of a complex number value.
+ */
 export interface ComplexValue
 {
+    /**
+     * Real component.
+     */
     real: number;
+
+    /**
+     * Imaginary component.
+     */
     imaginary: number;
 }
 
+/**
+ * One dimension of an EduBASIC array.
+ */
 export interface ArrayDimension
 {
+    /**
+     * Lower bound for this dimension.
+     */
     lower: number;
+
+    /**
+     * Number of elements in this dimension.
+     */
     length: number;
+
+    /**
+     * Linear stride for this dimension in the underlying storage.
+     */
     stride: number;
 }
 
-export type EduBasicValue = 
+/**
+ * Runtime value for the EduBASIC interpreter.
+ *
+ * Notes:
+ * - Values are tagged unions keyed by `type`.
+ * - Arrays store elements in a linear `value` buffer and include an `elementType`.
+ * - Structures store members in a `Map` keyed by member name.
+ */
+export type EduBasicValue =
     | { type: EduBasicType.Integer; value: number }
     | { type: EduBasicType.Real; value: number }
     | { type: EduBasicType.Complex; value: ComplexValue }
@@ -29,6 +92,17 @@ export type EduBasicValue =
     | { type: EduBasicType.Structure; value: Map<string, EduBasicValue> }
     | { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType; dimensions?: ArrayDimension[] };
 
+/**
+ * Build the array-rank suffix for a given rank.
+ *
+ * Examples:
+ * - rank 1 → `[]`
+ * - rank 2 → `[,]`
+ * - rank 3 → `[,,]`
+ *
+ * @param rank Array rank (number of indices).
+ * @returns The corresponding suffix string.
+ */
 export function getArrayRankSuffix(rank: number): string
 {
     if (rank < 1)
@@ -39,6 +113,12 @@ export function getArrayRankSuffix(rank: number): string
     return `[${','.repeat(rank - 1)}]`;
 }
 
+/**
+ * Try to extract an array-rank suffix from a name.
+ *
+ * @param name Variable name that may include a suffix (e.g. `A[,]`).
+ * @returns Parsed suffix metadata, or `null` if no valid suffix is present.
+ */
 export function tryGetArrayRankSuffixFromName(name: string): { baseName: string; rank: number; suffix: string } | null
 {
     const left = name.lastIndexOf('[');
@@ -68,12 +148,13 @@ export function tryGetArrayRankSuffixFromName(name: string): { baseName: string;
 }
 
 /**
- * Finds the most specific common type from a list of types.
- * Follows the hierarchy: Integer → Real → Complex.
- * String and Structure types cannot be coerced to numeric types.
- * 
- * @param types Array of types to find common type for
- * @returns The most specific common type, or null if types are incompatible
+ * Find the most specific common numeric type from a list of types.
+ *
+ * Coercion hierarchy:
+ * - Integer → Real → Complex
+ *
+ * @param types Types to unify.
+ * @returns The most specific common type, or `null` if types are incompatible.
  */
 export function findMostSpecificCommonType(types: EduBasicType[]): EduBasicType | null
 {
@@ -115,11 +196,12 @@ export function findMostSpecificCommonType(types: EduBasicType[]): EduBasicType 
 }
 
 /**
- * Coerces array elements to the most specific common type.
+ * Coerce array elements to the most specific common numeric type.
+ *
  * Used when creating array literals from evaluated expressions.
- * 
- * @param elements Array of evaluated values
- * @returns Array value with coerced elements and determined elementType
+ *
+ * @param elements Evaluated element values.
+ * @returns Array value with coerced elements and the determined `elementType`.
  */
 export function coerceArrayElements(elements: EduBasicValue[]): { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType }
 {
@@ -166,12 +248,14 @@ export function coerceArrayElements(elements: EduBasicValue[]): { type: EduBasic
 }
 
 /**
- * Coerces a value to a target type.
- * Follows the hierarchy: Integer → Real → Complex.
- * 
- * @param value The value to coerce
- * @param targetType The target type to coerce to
- * @returns The coerced value
+ * Coerce a numeric value to a target numeric type.
+ *
+ * Coercion hierarchy:
+ * - Integer → Real → Complex
+ *
+ * @param value Value to coerce.
+ * @param targetType Target numeric type.
+ * @returns The coerced value.
  */
 export function coerceValue(value: EduBasicValue, targetType: EduBasicType): EduBasicValue
 {
@@ -220,11 +304,10 @@ export function coerceValue(value: EduBasicValue, targetType: EduBasicType): Edu
 }
 
 /**
- * Converts an EduBasicValue to its canonical string representation.
- * This is the standard formatting used for printing and display.
- * 
- * @param value The value to convert
- * @returns Canonical string representation
+ * Convert an EduBASIC value to its canonical display string.
+ *
+ * @param value Value to convert.
+ * @returns Canonical string representation.
  */
 export function valueToString(value: EduBasicValue): string
 {
@@ -237,11 +320,12 @@ export function valueToString(value: EduBasicValue): string
 }
 
 /**
- * Converts an EduBasicValue to its expression string representation.
+ * Convert an EduBASIC value to an expression string representation.
+ *
  * This includes quotes around strings and is used for expression display.
- * 
- * @param value The value to convert
- * @returns Expression string representation
+ *
+ * @param value Value to convert.
+ * @returns Expression string representation.
  */
 export function valueToExpressionString(value: EduBasicValue): string
 {

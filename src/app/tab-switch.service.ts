@@ -14,8 +14,16 @@ export class TabSwitchService
 {
     private readonly switchTabSubject = new Subject<string>();
 
+    /**
+     * Observable stream of requested tab ids.
+     */
     public readonly switchTab$: Observable<string> = this.switchTabSubject.asObservable();
 
+    /**
+     * Request that the UI switch to a specific tab.
+     *
+     * @param tabId Tab id to activate.
+     */
     public requestTabSwitch(tabId: string): void
     {
         this.switchTabSubject.next(tabId);
