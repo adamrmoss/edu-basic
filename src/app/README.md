@@ -19,7 +19,8 @@ All components are **standalone** (no NgModules) and follow Angular 19 best prac
 
 **Key Features**:
 - Manages tab switching via `TabSwitchService`
-- Contains the main window with tabs for Console, Code, Files, and Output
+- Contains the main window with tabs for Console, Code, and Disk
+- Renders the graphics output as a side panel (hidden while the Disk tab is active)
 - Subscribes to tab switch requests and programmatically switches tabs
 
 **Dependencies**:
@@ -37,7 +38,6 @@ All components are **standalone** (no NgModules) and follow Angular 19 best prac
     <luna-tab id="console">...</luna-tab>
     <luna-tab id="code">...</luna-tab>
     <luna-tab id="disk">...</luna-tab>
-    <luna-tab id="output">...</luna-tab>
   </luna-tabs>
 </luna-window>
 ```
@@ -75,7 +75,7 @@ User Input → ConsoleComponent.onKeyDown()
     ↓
 ConsoleService.executeCommand()
     ↓
-ParserService.parseLine()
+ExpressionParserService.parseExpression() OR ParserService.parseLine()
     ↓
 Statement.execute()
     ↓
@@ -129,7 +129,7 @@ Results displayed in console/output
 **Key Features**:
 - Canvas-based rendering (640×480 pixels)
 - Subscribes to `GraphicsService.buffer$` for updates
-- Automatically switches to this tab when graphics operations occur
+- Displays in a persistent output panel (not a separate tab)
 
 **Dependencies**:
 - `GraphicsService` - For graphics buffer updates
@@ -199,7 +199,7 @@ Canvas displays updated graphics
 interface FileNode {
     name: string;
     path: string;
-    type: 'file';
+    type: 'file' | 'directory';
 }
 ```
 
@@ -213,7 +213,7 @@ interface FileNode {
 
 **Integration**:
 - Data files are accessible from BASIC programs via file I/O statements
-- Program code is stored separately (not shown in file list)
+- Program code is stored in the virtual filesystem as `program.bas` (protected from deletion/rename)
 - All files are persisted in ZIP format when disk is saved
 
 See [Disk Component](disk/README.md) for detailed documentation.

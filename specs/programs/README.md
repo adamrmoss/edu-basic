@@ -32,6 +32,12 @@ Program specs are intended to use **real application code** for everything below
 - **Real**: parsing, execution, control-flow frame stack, language runtime semantics
 - **Mocked**: console service, graphics, audio (see `specs/programs/mocks/`)
 
+### Where output goes (important for assertions)
+
+- **`CONSOLE expr`**: writes to `TestConsoleService.output` (this is the easiest surface to assert against).
+- **`PRINT ...`**: writes to `Graphics.printText(...)` (capturable via `TestGraphics.printedText` / `getPrintedOutput()`), and may request an `output` tab switch (`tabSwitches`) for the UI.
+- If you want program specs to assert numeric results, prefer `CONSOLE` so values are captured directly without dealing with graphical text buffering.
+
 ### Program-spec mocks
 
 Program-spec mocks live under `specs/programs/mocks/` and are intentionally scoped to program specs:

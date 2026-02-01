@@ -41,7 +41,7 @@ Handles all binary (infix) operators.
 
 **Location**: `src/lang/expressions/unary-expression.ts`
 
-Handles all unary operators and single-argument functions.
+Handles all unary operators and single-argument operators.
 
 **Operators**:
 - **Prefix**: `+`, `-`, `NOT`
@@ -51,7 +51,7 @@ Handles all unary operators and single-argument functions.
 - **Type Conversion**: `INT`, `STR`, `VAL`, `HEX`, `BIN`
 
 **Type Handling**:
-- Mathematical functions automatically upcast to Complex when needed (e.g., `SQRT(-1)`, `LOG(-1)`)
+- Mathematical operators automatically upcast to Complex when needed (e.g., `SQRT(-1)`, `LOG(-1)`)
 - `REALPART` and `IMAGPART` work on any numeric type (extract real/imaginary parts)
 - `REAL` and `IMAG` require complex operands
 - Results preserve type when possible (e.g., `ABS` of integer may return integer)
@@ -61,6 +61,10 @@ Handles all unary operators and single-argument functions.
 **Location**: `src/lang/expressions/operators/`
 
 Handles non-arithmetic infix operators and multi-keyword operator forms that are defined by the language reference.
+
+**Exports**:
+- Importing `from '@/lang/expressions/operators'` resolves to the file `src/lang/expressions/operators.ts` (the top-level barrel).
+- The directory `src/lang/expressions/operators/` also has its own `index.ts`, but it is not what consumers get from the path `.../expressions/operators`.
 
 **Examples**:
 - **Array search operators**: `array[] FIND value`, `array[] INDEXOF value`, `array[] INCLUDES value`
@@ -104,10 +108,10 @@ Special-purpose expressions that don't fit the unified pattern:
 
 Helper classes encapsulate evaluation logic:
 
-- `MathematicalFunctionEvaluator` - Mathematical functions with automatic complex upcasting
+- `MathematicalFunctionEvaluator` - Mathematical operators with automatic complex upcasting
 - `ComplexFunctionEvaluator` - Complex number operations (`REAL`, `IMAG`, `REALPART`, `IMAGPART`, `CONJ`, `CABS`, `CARG`, `CSQRT`)
-- `StringFunctionEvaluator` - String manipulation functions
-- `TypeConversionEvaluator` - Type conversion functions
+- `StringFunctionEvaluator` - String manipulation operators
+- `TypeConversionEvaluator` - Type conversion operators
 - `ConstantEvaluator` - Built-in constants
 
 ## Expression Parsing
@@ -123,7 +127,7 @@ From lowest to highest:
 5. **NOT** (Unary)
 6. **Comparison** (`=`, `<>`, `<`, `>`, `<=`, `>=`)
 7. **Arithmetic** (`+`, `-`, `*`, `/`, `MOD`, `^`, `**`)
-8. **Unary** (`+`, `-`, `NOT`, function calls)
+8. **Unary** (`+`, `-`, `NOT`, unary operators)
 9. **Primary** (literals, variables, parentheses, array access, structure access)
 
 ### Parsing Methods
@@ -140,8 +144,9 @@ From lowest to highest:
 - `addSub()` - Addition, subtraction
 - `mulDiv()` - Multiplication, division, modulo
 - `exponentiation()` - Power operators
-- `unary()` - Unary operators and function calls
-- `primary()` - Literals, variables, parentheses, array access, structure access, function calls
+- `unaryPlusMinus()` - Unary prefix `+` / `-`
+- `primary()` - Literals, variables, parentheses, array/structure access, unary operator application
+- `parsePostfix()` - Postfix operators and accessors (`!`, `.member`, `[index]`, `DEG`, `RAD`, etc.)
 
 ## Type System
 
@@ -161,7 +166,7 @@ Structure
 - Real → Complex: Real part set, imaginary = 0
 - Integer → Complex: Real part set, imaginary = 0
 
-**Mathematical Functions**:
+**Mathematical Operators**:
 - Automatically upcast to Complex when operation requires it:
   - `SQRT` of negative → Complex
   - `LOG` of negative → Complex
@@ -233,12 +238,12 @@ CABS((3+4i))     → 5.0 (Real)
 ```
 LEFT("Hello", 3)  → "Hel" (String)
 MID("Hello", 2, 3) → "ell" (String)
-LEN("Hello")      → 5 (Integer)
+| "Hello" |       → 5 (Integer)
 ```
 
-### Array Functions
+### Array Operators
 ```
-SIZE([1, 2, 3])  → 3 (Integer)
+| [1, 2, 3] |    → 3 (Integer)
 FIND([1, 2, 3], 2) → 1 (Integer, 0-based)
 JOIN([1, 2, 3], ",") → "1,2,3" (String)
 ```
@@ -268,7 +273,7 @@ HEX(255)         → "FF" (String)
 - Suggests using `REALPART` or `IMAGPART`
 
 **Domain Errors**:
-- Mathematical functions automatically upcast to Complex when needed
+- Mathematical operators automatically upcast to Complex when needed
 - Operations that would produce NaN instead produce Complex results
 
 ## Expression Testing

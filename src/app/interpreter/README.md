@@ -47,7 +47,7 @@ The service maintains a single `ExecutionContext` instance that persists across 
 
 ### ParserService
 
-**Location**: `src/app/interpreter/parser.service.ts`
+**Location**: `src/app/interpreter/parser/parser.service.ts`
 
 **Purpose**: Parses BASIC source code into statement objects.
 
@@ -62,7 +62,7 @@ The service maintains a single `ExecutionContext` instance that persists across 
 - `currentIndentLevel$: Observable<number>` - Current indentation
 
 **Key Methods**:
-- `parseLine(lineNumber: number, sourceText: string): ParsedLine` - Parse single line
+- `parseLine(lineNumber: number, sourceText: string): ParseResult<ParsedLine>` - Parse single line
 
 **Parsing Flow**:
 ```
@@ -79,7 +79,7 @@ Statement Object
 
 **Parser structure**:
 - **keywords.ts** – Single source of truth for all language keywords. Keywords are grouped into small arrays (variable, controlFlow, io, graphics, fileIo, audio, array, etc.); `Keywords.all` is built from those via set union. Also provides `statementStart`, `expressionTerminator`, and helpers `isKeyword()`, `isStatementStartKeyword()`, `isExpressionTerminatorKeyword()`.
-- **parser/statement-dispatch.ts** – Map from statement-start keyword to parser function. Adding a new statement type requires adding the keyword to `Keywords` (if new) and one entry in the dispatch table.
+- **parser/statement-dispatch.ts** – Map from statement-start keyword to parser parse method. Adding a new statement type requires adding the keyword to `Keywords` (if new) and one entry in the dispatch table.
 
 **Statement Types Parsed**:
 - Control flow: IF, FOR, WHILE, DO, GOTO, etc.
@@ -93,7 +93,7 @@ Statement Object
 **Dependencies**:
 - `ExpressionParserService` - For parsing expressions within statements
 
-### TokenizerService
+### Tokenizer
 
 **Location**: `src/app/interpreter/tokenizer.service.ts`
 
@@ -149,13 +149,20 @@ interface Token {
 8. Unary operators (-, +)
 
 **Key Methods**:
-- `parseExpression(source: string): Expression` - Parse expression string
+- `parseExpression(source: string): ParseResult<Expression>` - Parse expression string
+
+**Notes**:
+- The expression parser supports postfix operators (e.g. factorial `!`, angle conversion `DEG`/`RAD`) via a dedicated postfix parse phase.
+- Expression operator exports are consumed via the top-level barrel `src/lang/expressions/operators.ts` (import path `@/lang/expressions/operators`).
 
 **Parsing Methods**:
 - `expression()` - Entry point
 - `imp()`, `xorXnor()`, `orNor()`, `andNand()`, `not()` - Logical operators
 - `comparison()` - Comparison operators
-- `term()`, `factor()`, `unary()`, `primary()` - Arithmetic and literals
+- `stringOperators()` / `arraySearchOperators()` - Non-arithmetic operators
+- `addSub()` / `mulDiv()` / `unaryPlusMinus()` / `exponentiation()` - Arithmetic precedence ladder
+- `primary()` - Literals, variables, parentheses, array/structure access, unary operator application
+- `parsePostfix()` - Postfix operators and accessors (`!`, `.member`, `[index]`, `DEG`, `RAD`, etc.)
 
 **Dependencies**:
 - `Tokenizer` - For tokenization

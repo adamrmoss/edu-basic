@@ -34,7 +34,7 @@ abstract class Statement extends RuntimeNode {
 - `PRINT expr1, expr2, ...` - Print values
 - `PRINT expr1; expr2; ...` - Print without spacing
 - `PRINT` - Print blank line
-- Automatically switches to output tab
+- Writes to the graphics output surface
 
 **InputStatement**:
 - `INPUT var$` - Read string input
@@ -200,14 +200,15 @@ abstract class Statement extends RuntimeNode {
 **Location**: `src/lang/statements/audio/`
 
 **PlayStatement**:
-- `PLAY "C D E F G A B"` - Play notes
+- `PLAY voice%, mml$` - Play an MML-style sequence on the specified voice
 - Uses webaudio-tinysynth (General MIDI)
 
 **TempoStatement**:
 - `TEMPO bpm%` - Set tempo
 
 **VoiceStatement**:
-- `VOICE voice%, preset$` - Set voice preset
+- `VOICE voice% INSTRUMENT instrument` - Set instrument for a voice
+  - `instrument` can be a number (General MIDI program number) or a string (instrument name)
 
 **VolumeStatement**:
 - `VOLUME volume%` - Set volume (0-100)
@@ -217,29 +218,30 @@ abstract class Statement extends RuntimeNode {
 **Location**: `src/lang/statements/file-io/`
 
 **OpenStatement**:
-- `OPEN "file.txt" FOR mode AS #handle%` - Open file
-- Modes: READ, WRITE, APPEND
+- `OPEN filename$ FOR READ|APPEND|OVERWRITE AS handle%` - Open file (handle-based)
 
 **CloseStatement**:
-- `CLOSE #handle%` - Close file
-
-**ReadfileStatement**:
-- `READFILE #handle%, var$` - Read file to string
-
-**WritefileStatement**:
-- `WRITEFILE #handle%, text$` - Write string to file
+- `CLOSE handle%` - Close file
 
 **ReadFileStatement**:
-- `READ FILE "file.txt" INTO var$` - Read entire file
+- `READ var% FROM handle%` - Read a typed value from an open file handle
+- `READ var$ FROM handle%` - Read a string (length-prefixed) from an open file handle
+- `READ array[] FROM handle%` - Bulk read into an already-dimensioned array
 
-**WriteFileStatement**:
-- `WRITE FILE "file.txt" FROM text$` - Write entire file
+**WritefileStatement**:
+- `WRITE expr TO handle%` - Write a typed value to an open file handle
+
+**ReadfileStatement**:
+- `READFILE var$ FROM filename$` - Read an entire file into a string variable
+
+**WritefileStatement**:
+- `WRITEFILE text$ TO filename$` - Write a string into a file (overwrites)
 
 **LineInputStatement**:
-- `LINE INPUT #handle%, var$` - Read line from file
+- `LINE INPUT var$ FROM handle%` - Read a line of UTF-8 text from an open file handle
 
 **SeekStatement**:
-- `SEEK #handle%, position%` - Set file position
+- `SEEK position% IN handle%` - Set file position (bytes)
 
 **ListdirStatement**:
 - `LISTDIR "path" INTO arr$[]` - List directory
@@ -379,9 +381,9 @@ CIRCLE (320, 240), 50 WITH &HFF00FF00
 
 ### Audio
 ```
-PLAY "C D E F G A B"
+PLAY 0, "C D E F G A B"
 TEMPO 120
-VOICE 0, "sawtooth"
+VOICE 0 INSTRUMENT "sawtooth"
 VOLUME 80
 ```
 
@@ -403,7 +405,7 @@ Statements may throw errors:
 ## Statement Testing
 
 Statements are tested via:
-- Unit tests in `specs/statements/`
+- Unit tests in `specs/units/statements/`
 - Integration tests
 - Manual testing in console
 
