@@ -25,29 +25,52 @@ export class DiskService
     private readonly programCodeSubject = new BehaviorSubject<string>('');
     private readonly filesChangedSubject = new BehaviorSubject<void>(undefined);
 
+    /**
+     * Observable stream of disk name changes.
+     */
     public readonly diskName$: Observable<string> = this.diskNameSubject.asObservable();
+
+    /**
+     * Observable stream of program code changes.
+     */
     public readonly programCode$: Observable<string> = this.programCodeSubject.asObservable();
+
+    /**
+     * Observable stream emitting when files change.
+     */
     public readonly filesChanged$: Observable<void> = this.filesChangedSubject.asObservable();
 
     constructor(private readonly fileSystemService: FileSystemService)
     {
     }
 
+    /**
+     * Current disk name.
+     */
     public get diskName(): string
     {
         return this.diskNameSubject.value;
     }
 
+    /**
+     * Update the disk name.
+     */
     public set diskName(name: string)
     {
         this.diskNameSubject.next(name);
     }
 
+    /**
+     * Current program code text.
+     */
     public get programCode(): string
     {
         return this.programCodeSubject.value;
     }
 
+    /**
+     * Update the program code and persist it to the internal program file.
+     */
     public set programCode(code: string)
     {
         this.programCodeSubject.next(code);
@@ -57,6 +80,11 @@ export class DiskService
         this.filesChangedSubject.next();
     }
 
+    /**
+     * Create a new empty disk and reset the virtual file system.
+     *
+     * @param name New disk name.
+     */
     public newDisk(name: string = 'Untitled'): void
     {
         this.diskNameSubject.next(name);
@@ -68,6 +96,9 @@ export class DiskService
         this.filesChangedSubject.next();
     }
 
+    /**
+     * Save the current disk as a `.disk` zip archive.
+     */
     public async saveDisk(): Promise<void>
     {
         const zip = new JSZip();
@@ -89,6 +120,11 @@ export class DiskService
         URL.revokeObjectURL(link.href);
     }
 
+    /**
+     * Load a `.disk` zip archive into the virtual file system.
+     *
+     * @param file Disk file selected by the user.
+     */
     public async loadDisk(file: File): Promise<void>
     {
         const zip = await JSZip.loadAsync(file);
@@ -136,12 +172,18 @@ export class DiskService
         this.filesChangedSubject.next();
     }
 
+    /**
+     * Get a flat list of all file paths in the virtual disk.
+     */
     public getFileList(): string[]
     {
         this.ensureProgramBasExists();
         return this.fileSystemService.listFiles();
     }
 
+    /**
+     * Get the root directory node for the virtual disk.
+     */
     public getFileSystemRoot(): DirectoryNode
     {
         this.ensureProgramBasExists();
@@ -159,11 +201,20 @@ export class DiskService
         }
     }
 
+    /**
+     * Read a file from the virtual disk.
+     *
+     * @param path File path.
+     * @returns File data, or `null` if the file does not exist.
+     */
     public getFile(path: string): Uint8Array | null
     {
         return this.fileSystemService.readFile(path);
     }
 
+    /**
+     * Read the current program source text from `program.bas`.
+     */
     public getProgramCodeFromFile(): string
     {
         this.ensureProgramBasExists();
@@ -178,6 +229,12 @@ export class DiskService
         return '';
     }
 
+    /**
+     * Write a file to the virtual disk and emit change notifications.
+     *
+     * @param path File path.
+     * @param data File contents.
+     */
     public saveFile(path: string, data: Uint8Array): void
     {
         this.fileSystemService.writeFile(path, data);
@@ -192,6 +249,13 @@ export class DiskService
         this.filesChangedSubject.next();
     }
 
+    /**
+     * Delete a file from the virtual disk.
+     *
+     * The internal `program.bas` file cannot be deleted.
+     *
+     * @param path File path.
+     */
     public deleteFile(path: string): void
     {
         if (path === DiskService.INTERNAL_PROGRAM_PATH)
@@ -203,18 +267,34 @@ export class DiskService
         this.filesChangedSubject.next();
     }
 
+    /**
+     * Create a new empty file in the virtual disk.
+     *
+     * @param path File path.
+     */
     public createFile(path: string): void
     {
         this.fileSystemService.writeFile(path, new Uint8Array(0));
         this.filesChangedSubject.next();
     }
 
+    /**
+     * Create a new directory in the virtual disk.
+     *
+     * @param path Directory path.
+     */
     public createDirectory(path: string): void
     {
         this.fileSystemService.createDirectory(path);
         this.filesChangedSubject.next();
     }
 
+    /**
+     * Delete a directory from the virtual disk.
+     *
+     * @param path Directory path.
+     * @returns `true` when deletion succeeds.
+     */
     public deleteDirectory(path: string): boolean
     {
         const deleted = this.fileSystemService.deleteDirectory(path);
@@ -227,6 +307,15 @@ export class DiskService
         return deleted;
     }
 
+    /**
+     * Rename a file in the virtual disk.
+     *
+     * The internal `program.bas` file cannot be renamed.
+     *
+     * @param oldPath Existing file path.
+     * @param newPath New file path.
+     * @returns `true` when rename succeeds.
+     */
     public renameFile(oldPath: string, newPath: string): boolean
     {
         if (oldPath === DiskService.INTERNAL_PROGRAM_PATH)
@@ -247,6 +336,13 @@ export class DiskService
         return true;
     }
 
+    /**
+     * Rename a directory in the virtual disk.
+     *
+     * @param oldPath Existing directory path.
+     * @param newPath New directory path.
+     * @returns `true` when rename succeeds.
+     */
     public renameDirectory(oldPath: string, newPath: string): boolean
     {
         const result = this.fileSystemService.renameDirectory(oldPath, newPath);
@@ -259,6 +355,12 @@ export class DiskService
         return result;
     }
 
+    /**
+     * Determine whether a path exists and is a directory.
+     *
+     * @param path Path to check.
+     * @returns `true` when the path exists as a directory.
+     */
     public isDirectory(path: string): boolean
     {
         return this.fileSystemService.directoryExists(path);

@@ -4,6 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ConsoleService, ConsoleEntry } from './console.service';
 
+/**
+ * Console UI component for interacting with the EduBASIC runtime.
+ *
+ * Displays console history and forwards user input to `ConsoleService`.
+ */
 @Component({
     selector: 'app-console',
     standalone: true,
@@ -13,7 +18,14 @@ import { ConsoleService, ConsoleEntry } from './console.service';
 })
 export class ConsoleComponent implements OnInit, OnDestroy
 {
+    /**
+     * Entries displayed in the console window.
+     */
     public consoleHistory: ConsoleEntry[] = [];
+
+    /**
+     * Current input line in the console prompt.
+     */
     public currentInput: string = '';
 
     private readonly destroy$ = new Subject<void>();
@@ -22,6 +34,9 @@ export class ConsoleComponent implements OnInit, OnDestroy
     {
     }
 
+    /**
+     * Subscribe to the display history observable.
+     */
     public ngOnInit(): void
     {
         this.consoleService.displayHistory$
@@ -31,12 +46,22 @@ export class ConsoleComponent implements OnInit, OnDestroy
             });
     }
 
+    /**
+     * Clean up subscriptions created by this component.
+     */
     public ngOnDestroy(): void
     {
         this.destroy$.next();
         this.destroy$.complete();
     }
 
+    /**
+     * Handle key presses in the console input.
+     *
+     * Enter executes the command; ArrowUp/ArrowDown navigates input history.
+     *
+     * @param event Keyboard event from the console input.
+     */
     public onKeyDown(event: KeyboardEvent): void
     {
         switch (event.key)

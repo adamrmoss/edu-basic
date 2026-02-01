@@ -9,6 +9,12 @@ import { OutputComponent } from './output/output.component';
 import { TabSwitchService } from './tab-switch.service';
 import { AudioService } from './interpreter/audio.service';
 
+/**
+ * Root application component.
+ *
+ * Hosts the main tabbed UI (console, editor, disk, output) and coordinates
+ * cross-cutting UI actions such as tab switching and audio mute state.
+ */
 @Component({
     selector: 'app-root',
     standalone: true,
@@ -28,16 +34,41 @@ import { AudioService } from './interpreter/audio.service';
 })
 export class AppComponent implements OnInit, OnDestroy
 {
+    /**
+     * Reference to the rendered tab control component.
+     */
     @ViewChild('tabsComponent', { static: false })
     public tabsComponent!: TabsComponent;
 
+    /**
+     * Collection of rendered tab components.
+     */
     @ViewChildren(TabComponent)
     public tabs!: QueryList<TabComponent>;
 
+    /**
+     * Title displayed in the application window chrome.
+     */
     public title = 'EduBASIC';
+
+    /**
+     * Currently active tab id.
+     */
     public activeTabId: string = 'console';
+
+    /**
+     * Whether audio output is currently muted.
+     */
     public muted: boolean = false;
+
+    /**
+     * Icon used when audio is muted.
+     */
     public readonly muteIcon = X;
+
+    /**
+     * Icon used when audio is not muted.
+     */
     public readonly unmuteIcon = Check;
 
     private readonly destroy$ = new Subject<void>();
@@ -49,6 +80,9 @@ export class AppComponent implements OnInit, OnDestroy
     {
     }
 
+    /**
+     * Initialize tab-switch subscriptions and load initial mute state.
+     */
     public ngOnInit(): void
     {
         this.tabSwitchService.switchTab$
@@ -60,12 +94,18 @@ export class AppComponent implements OnInit, OnDestroy
         this.muted = this.audioService.getMuted();
     }
 
+    /**
+     * Toggle the audio mute state.
+     */
     public toggleMute(): void
     {
         this.muted = !this.muted;
         this.audioService.setMuted(this.muted);
     }
 
+    /**
+     * Determine whether the Disk tab is currently active.
+     */
     public isDiskTabActive(): boolean
     {
         if (this.tabsComponent)
@@ -77,6 +117,9 @@ export class AppComponent implements OnInit, OnDestroy
         return this.activeTabId === 'disk';
     }
 
+    /**
+     * Clean up subscriptions created by this component.
+     */
     public ngOnDestroy(): void
     {
         this.destroy$.next();
