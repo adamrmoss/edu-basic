@@ -4,8 +4,17 @@ import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 
+/**
+ * Statement parsers for console I/O statements.
+ */
 export class IoParsers
 {
+    /**
+     * Parse the `PRINT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePrint(context: ParserContext): ParseResult<PrintStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -57,6 +66,12 @@ export class IoParsers
         return success(new PrintStatement(expressions, hasNewline));
     }
 
+    /**
+     * Parse the `INPUT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseInput(context: ParserContext): ParseResult<InputStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -77,6 +92,12 @@ export class IoParsers
         return success(new InputStatement(varNameTokenResult.value.value));
     }
 
+    /**
+     * Parse the `COLOR` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseColor(context: ParserContext): ParseResult<ColorStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -128,6 +149,12 @@ export class IoParsers
         return success(new ColorStatement(foreground, background));
     }
 
+    /**
+     * Parse the `LOCATE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLocate(context: ParserContext): ParseResult<LocateStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -159,6 +186,12 @@ export class IoParsers
         return success(new LocateStatement(rowResult.value, columnResult.value));
     }
 
+    /**
+     * Parse the `CLS` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseCls(context: ParserContext): ParseResult<ClsStatement>
     {
         // Spec: docs/edu-basic-language.md

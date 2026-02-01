@@ -5,8 +5,17 @@ import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, failure, success } from '../parse-result';
 
+/**
+ * Statement parsers for variable statements.
+ */
 export class VariableParsers
 {
+    /**
+     * Parse the `LET` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLet(context: ParserContext): ParseResult<Statement>
     {
         // Spec: docs/edu-basic-language.md
@@ -99,6 +108,12 @@ export class VariableParsers
         return success(new LetStatement(varNameTokenResult.value.value, exprResult.value));
     }
 
+    /**
+     * Parse the `LOCAL` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLocal(context: ParserContext): ParseResult<LocalStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -131,6 +146,12 @@ export class VariableParsers
         return success(new LocalStatement(varNameTokenResult.value.value, exprResult.value));
     }
 
+    /**
+     * Parse the `DIM` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseDim(context: ParserContext): ParseResult<DimStatement>
     {
         // Spec: docs/edu-basic-language.md

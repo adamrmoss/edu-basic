@@ -4,8 +4,17 @@ import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success } from '../parse-result';
 
+/**
+ * Statement parsers for array statements.
+ */
 export class ArrayParsers
 {
+    /**
+     * Parse the `PUSH` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePush(context: ParserContext): ParseResult<PushStatement>
     {
         // Grammar:
@@ -40,6 +49,12 @@ export class ArrayParsers
         return success(new PushStatement(arrayVarTokenResult.value.value, valueResult.value));
     }
 
+    /**
+     * Parse the `POP` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePop(context: ParserContext): ParseResult<PopStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -74,6 +89,12 @@ export class ArrayParsers
         return success(new PopStatement(arrayVarTokenResult.value.value, targetVarTokenResult.value.value));
     }
 
+    /**
+     * Parse the `SHIFT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseShift(context: ParserContext): ParseResult<ShiftStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -108,6 +129,12 @@ export class ArrayParsers
         return success(new ShiftStatement(arrayVarTokenResult.value.value, targetVarTokenResult.value.value));
     }
 
+    /**
+     * Parse the `UNSHIFT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseUnshift(context: ParserContext): ParseResult<UnshiftStatement>
     {
         // Grammar:

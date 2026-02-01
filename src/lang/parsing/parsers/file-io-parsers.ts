@@ -19,8 +19,17 @@ import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 
+/**
+ * Statement parsers for file I/O statements.
+ */
 export class FileIoParsers
 {
+    /**
+     * Parse the `OPEN` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseOpen(context: ParserContext): ParseResult<OpenStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -81,6 +90,12 @@ export class FileIoParsers
         return success(new OpenStatement(filenameResult.value, mode, handleVarTokenResult.value.value));
     }
 
+    /**
+     * Parse the `CLOSE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseClose(context: ParserContext): ParseResult<CloseStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -101,6 +116,12 @@ export class FileIoParsers
         return success(new CloseStatement(fileHandleResult.value));
     }
 
+    /**
+     * Parse the `READ` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseRead(context: ParserContext): ParseResult<ReadFileStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -133,6 +154,12 @@ export class FileIoParsers
         return success(new ReadFileStatement(varNameTokenResult.value.value, fileHandleResult.value));
     }
 
+    /**
+     * Parse the `WRITE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseWrite(context: ParserContext): ParseResult<WriteFileStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -165,6 +192,12 @@ export class FileIoParsers
         return success(new WriteFileStatement(expressionResult.value, fileHandleResult.value));
     }
 
+    /**
+     * Parse the `SEEK` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseSeek(context: ParserContext): ParseResult<SeekStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -197,6 +230,12 @@ export class FileIoParsers
         return success(new SeekStatement(positionResult.value, fileHandleResult.value));
     }
 
+    /**
+     * Parse the `READFILE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseReadfile(context: ParserContext): ParseResult<ReadfileStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -233,6 +272,12 @@ export class FileIoParsers
         return success(new ReadfileStatement(varNameTokenResult.value.value, filenameResult.value));
     }
 
+    /**
+     * Parse the `WRITEFILE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseWritefile(context: ParserContext): ParseResult<WritefileStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -265,6 +310,12 @@ export class FileIoParsers
         return success(new WritefileStatement(contentResult.value, filenameResult.value));
     }
 
+    /**
+     * Parse the `LISTDIR` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseListdir(context: ParserContext): ParseResult<ListdirStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -301,6 +352,12 @@ export class FileIoParsers
         return success(new ListdirStatement(arrayVarTokenResult.value.value, pathResult.value));
     }
 
+    /**
+     * Parse the `MKDIR` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseMkdir(context: ParserContext): ParseResult<MkdirStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -321,6 +378,12 @@ export class FileIoParsers
         return success(new MkdirStatement(pathResult.value));
     }
 
+    /**
+     * Parse the `RMDIR` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseRmdir(context: ParserContext): ParseResult<RmdirStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -341,6 +404,12 @@ export class FileIoParsers
         return success(new RmdirStatement(pathResult.value));
     }
 
+    /**
+     * Parse the `COPY` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseCopy(context: ParserContext): ParseResult<CopyStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -373,6 +442,12 @@ export class FileIoParsers
         return success(new CopyStatement(sourceResult.value, destinationResult.value));
     }
 
+    /**
+     * Parse the `MOVE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseMove(context: ParserContext): ParseResult<MoveStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -405,6 +480,12 @@ export class FileIoParsers
         return success(new MoveStatement(sourceResult.value, destinationResult.value));
     }
 
+    /**
+     * Parse the `DELETE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseDelete(context: ParserContext): ParseResult<DeleteStatement>
     {
         // Spec: docs/edu-basic-language.md

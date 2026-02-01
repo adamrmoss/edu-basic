@@ -1,8 +1,18 @@
 import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
 import { UnaryOperator } from '../unary-expression';
 
+/**
+ * Evaluator for type conversion unary operators.
+ */
 export class TypeConversionEvaluator
 {
+    /**
+     * Evaluate a type conversion unary operator.
+     *
+     * @param operator Unary operator to evaluate.
+     * @param argValue Argument value.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
         switch (operator)

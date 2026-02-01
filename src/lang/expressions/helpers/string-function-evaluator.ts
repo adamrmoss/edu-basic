@@ -1,8 +1,18 @@
 import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
 import { UnaryOperator } from '../unary-expression';
 
+/**
+ * Evaluator for string manipulation unary operators.
+ */
 export class StringFunctionEvaluator
 {
+    /**
+     * Evaluate a string manipulation unary operator.
+     *
+     * @param operator Unary operator to evaluate.
+     * @param argValue Argument value.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
         switch (operator)

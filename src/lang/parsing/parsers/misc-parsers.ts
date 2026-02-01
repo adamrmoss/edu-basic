@@ -5,8 +5,17 @@ import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 import { Statement } from '../../statements/statement';
 
+/**
+ * Statement parsers for miscellaneous statements.
+ */
 export class MiscParsers
 {
+    /**
+     * Parse the `SLEEP` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseSleep(context: ParserContext): ParseResult<SleepStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -27,6 +36,12 @@ export class MiscParsers
         return success(new SleepStatement(millisecondsResult.value));
     }
 
+    /**
+     * Parse the `SET` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseSet(context: ParserContext): ParseResult<SetStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -107,6 +122,12 @@ export class MiscParsers
         }
     }
 
+    /**
+     * Parse the `RANDOMIZE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseRandomize(context: ParserContext): ParseResult<RandomizeStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -133,6 +154,12 @@ export class MiscParsers
         return success(new RandomizeStatement(seedExpression));
     }
 
+    /**
+     * Parse the `HELP` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseHelp(context: ParserContext): ParseResult<HelpStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -153,6 +180,12 @@ export class MiscParsers
         return success(new HelpStatement(keywordTokenResult.value.value));
     }
 
+    /**
+     * Parse the `CONSOLE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseConsole(context: ParserContext): ParseResult<ConsoleStatement>
     {
         // Spec: docs/edu-basic-language.md

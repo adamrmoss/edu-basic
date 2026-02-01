@@ -2,16 +2,40 @@ import { Expression } from '../expression';
 import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Expression nodes for string operator keywords.
+ */
 export class LeftOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly stringExpr: Expression,
-        public readonly lengthExpr: Expression
-    )
+    /**
+     * String operand expression (left side).
+     */
+    public readonly stringExpr: Expression;
+
+    /**
+     * Length operand expression (right side).
+     */
+    public readonly lengthExpr: Expression;
+
+    /**
+     * Create a new `LEFT` operator expression.
+     *
+     * @param stringExpr String operand expression.
+     * @param lengthExpr Length operand expression.
+     */
+    public constructor(stringExpr: Expression, lengthExpr: Expression)
     {
         super();
+        this.stringExpr = stringExpr;
+        this.lengthExpr = lengthExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `LEFT` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const strValue = this.stringExpr.evaluate(context);
@@ -43,16 +67,40 @@ export class LeftOperatorExpression extends Expression
     }
 }
 
+/**
+ * Expression node for the `RIGHT` operator.
+ */
 export class RightOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly stringExpr: Expression,
-        public readonly lengthExpr: Expression
-    )
+    /**
+     * String operand expression (left side).
+     */
+    public readonly stringExpr: Expression;
+
+    /**
+     * Length operand expression (right side).
+     */
+    public readonly lengthExpr: Expression;
+
+    /**
+     * Create a new `RIGHT` operator expression.
+     *
+     * @param stringExpr String operand expression.
+     * @param lengthExpr Length operand expression.
+     */
+    public constructor(stringExpr: Expression, lengthExpr: Expression)
     {
         super();
+        this.stringExpr = stringExpr;
+        this.lengthExpr = lengthExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `RIGHT` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const strValue = this.stringExpr.evaluate(context);
@@ -85,17 +133,47 @@ export class RightOperatorExpression extends Expression
     }
 }
 
+/**
+ * Expression node for the `MID ... TO ...` operator.
+ */
 export class MidOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly stringExpr: Expression,
-        public readonly startExpr: Expression,
-        public readonly endExpr: Expression
-    )
+    /**
+     * String operand expression (left side).
+     */
+    public readonly stringExpr: Expression;
+
+    /**
+     * Start index expression (1-based).
+     */
+    public readonly startExpr: Expression;
+
+    /**
+     * End index expression (1-based).
+     */
+    public readonly endExpr: Expression;
+
+    /**
+     * Create a new `MID` operator expression.
+     *
+     * @param stringExpr String operand expression.
+     * @param startExpr Start index expression (1-based).
+     * @param endExpr End index expression (1-based).
+     */
+    public constructor(stringExpr: Expression, startExpr: Expression, endExpr: Expression)
     {
         super();
+        this.stringExpr = stringExpr;
+        this.startExpr = startExpr;
+        this.endExpr = endExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `MID` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const strValue = this.stringExpr.evaluate(context);
@@ -137,17 +215,47 @@ export class MidOperatorExpression extends Expression
     }
 }
 
+/**
+ * Expression node for the `INSTR` operator.
+ */
 export class InstrOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly haystackExpr: Expression,
-        public readonly needleExpr: Expression,
-        public readonly fromExpr: Expression | null
-    )
+    /**
+     * Haystack string expression.
+     */
+    public readonly haystackExpr: Expression;
+
+    /**
+     * Needle string expression.
+     */
+    public readonly needleExpr: Expression;
+
+    /**
+     * Optional 1-based starting index expression.
+     */
+    public readonly fromExpr: Expression | null;
+
+    /**
+     * Create a new `INSTR` operator expression.
+     *
+     * @param haystackExpr Haystack string expression.
+     * @param needleExpr Needle string expression.
+     * @param fromExpr Optional 1-based start index expression.
+     */
+    public constructor(haystackExpr: Expression, needleExpr: Expression, fromExpr: Expression | null)
     {
         super();
+        this.haystackExpr = haystackExpr;
+        this.needleExpr = needleExpr;
+        this.fromExpr = fromExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `INSTR` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const haystackValue = this.haystackExpr.evaluate(context);
@@ -194,17 +302,47 @@ export class InstrOperatorExpression extends Expression
     }
 }
 
+/**
+ * Expression node for the `REPLACE ... WITH ...` operator.
+ */
 export class ReplaceOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly stringExpr: Expression,
-        public readonly oldExpr: Expression,
-        public readonly newExpr: Expression
-    )
+    /**
+     * String operand expression.
+     */
+    public readonly stringExpr: Expression;
+
+    /**
+     * Substring to replace.
+     */
+    public readonly oldExpr: Expression;
+
+    /**
+     * Replacement substring.
+     */
+    public readonly newExpr: Expression;
+
+    /**
+     * Create a new `REPLACE` operator expression.
+     *
+     * @param stringExpr String operand expression.
+     * @param oldExpr Substring to replace.
+     * @param newExpr Replacement substring.
+     */
+    public constructor(stringExpr: Expression, oldExpr: Expression, newExpr: Expression)
     {
         super();
+        this.stringExpr = stringExpr;
+        this.oldExpr = oldExpr;
+        this.newExpr = newExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `REPLACE` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const strValue = this.stringExpr.evaluate(context);
@@ -226,16 +364,40 @@ export class ReplaceOperatorExpression extends Expression
     }
 }
 
+/**
+ * Expression node for the `JOIN` operator.
+ */
 export class JoinOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly arrayExpr: Expression,
-        public readonly separatorExpr: Expression
-    )
+    /**
+     * Array operand expression (left side).
+     */
+    public readonly arrayExpr: Expression;
+
+    /**
+     * Separator expression (right side).
+     */
+    public readonly separatorExpr: Expression;
+
+    /**
+     * Create a new `JOIN` operator expression.
+     *
+     * @param arrayExpr Array operand expression.
+     * @param separatorExpr Separator expression.
+     */
+    public constructor(arrayExpr: Expression, separatorExpr: Expression)
     {
         super();
+        this.arrayExpr = arrayExpr;
+        this.separatorExpr = separatorExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `JOIN` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const arrayValue = this.arrayExpr.evaluate(context);
@@ -273,16 +435,40 @@ export class JoinOperatorExpression extends Expression
     }
 }
 
+/**
+ * Expression node for the `STARTSWITH` operator.
+ */
 export class StartsWithOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly stringExpr: Expression,
-        public readonly prefixExpr: Expression
-    )
+    /**
+     * String operand expression (left side).
+     */
+    public readonly stringExpr: Expression;
+
+    /**
+     * Prefix expression (right side).
+     */
+    public readonly prefixExpr: Expression;
+
+    /**
+     * Create a new `STARTSWITH` operator expression.
+     *
+     * @param stringExpr String operand expression.
+     * @param prefixExpr Prefix expression.
+     */
+    public constructor(stringExpr: Expression, prefixExpr: Expression)
     {
         super();
+        this.stringExpr = stringExpr;
+        this.prefixExpr = prefixExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `STARTSWITH` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const strValue = this.stringExpr.evaluate(context);
@@ -302,16 +488,40 @@ export class StartsWithOperatorExpression extends Expression
     }
 }
 
+/**
+ * Expression node for the `ENDSWITH` operator.
+ */
 export class EndsWithOperatorExpression extends Expression
 {
-    public constructor(
-        public readonly stringExpr: Expression,
-        public readonly suffixExpr: Expression
-    )
+    /**
+     * String operand expression (left side).
+     */
+    public readonly stringExpr: Expression;
+
+    /**
+     * Suffix expression (right side).
+     */
+    public readonly suffixExpr: Expression;
+
+    /**
+     * Create a new `ENDSWITH` operator expression.
+     *
+     * @param stringExpr String operand expression.
+     * @param suffixExpr Suffix expression.
+     */
+    public constructor(stringExpr: Expression, suffixExpr: Expression)
     {
         super();
+        this.stringExpr = stringExpr;
+        this.suffixExpr = suffixExpr;
     }
 
+    /**
+     * Evaluate the operands and apply the `ENDSWITH` operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const strValue = this.stringExpr.evaluate(context);

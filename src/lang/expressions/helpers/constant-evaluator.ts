@@ -1,6 +1,9 @@
 import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Built-in constant keywords exposed in expressions.
+ */
 export enum Constant
 {
     Rnd = 'RND#',
@@ -14,8 +17,18 @@ export enum Constant
     False = 'FALSE%',
 }
 
+/**
+ * Evaluator for built-in constants.
+ */
 export class ConstantEvaluator
 {
+    /**
+     * Evaluate a constant keyword.
+     *
+     * @param constant Constant keyword to evaluate.
+     * @param context Optional execution context for context-dependent constants (e.g. `INKEY$`).
+     * @returns The evaluated runtime value.
+     */
     public evaluate(constant: Constant, context?: ExecutionContext): EduBasicValue
     {
         switch (constant)

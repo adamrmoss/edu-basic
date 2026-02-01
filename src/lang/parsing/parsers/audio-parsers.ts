@@ -4,8 +4,17 @@ import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success } from '../parse-result';
 
+/**
+ * Statement parsers for audio statements.
+ */
 export class AudioParsers
 {
+    /**
+     * Parse the `TEMPO` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseTempo(context: ParserContext): ParseResult<TempoStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -26,6 +35,12 @@ export class AudioParsers
         return success(new TempoStatement(bpmResult.value));
     }
 
+    /**
+     * Parse the `VOLUME` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseVolume(context: ParserContext): ParseResult<VolumeStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -46,6 +61,12 @@ export class AudioParsers
         return success(new VolumeStatement(levelResult.value));
     }
 
+    /**
+     * Parse the `VOICE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseVoice(context: ParserContext): ParseResult<VoiceStatement>
     {
         // Spec: docs/edu-basic-language.md
@@ -78,6 +99,12 @@ export class AudioParsers
         return success(new VoiceStatement(voiceNumberResult.value, instrumentResult.value));
     }
 
+    /**
+     * Parse the `PLAY` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePlay(context: ParserContext): ParseResult<PlayStatement>
     {
         // Spec: docs/edu-basic-language.md
