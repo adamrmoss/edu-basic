@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `READFILE` statement.
+ */
 export class ReadfileStatement extends Statement
 {
-    public constructor(
-        public readonly variableName: string,
-        public readonly filename: Expression
-    )
+    /**
+     * Target string variable name.
+     */
+    public readonly variableName: string;
+
+    /**
+     * Filename expression.
+     */
+    public readonly filename: Expression;
+
+    /**
+     * Create a new `READFILE` statement.
+     *
+     * @param variableName Target string variable name.
+     * @param filename Filename expression.
+     */
+    public constructor(variableName: string, filename: Expression)
     {
         super();
+        this.variableName = variableName;
+        this.filename = filename;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

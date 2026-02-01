@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, valueToString } from '../../edu-basic-value';
 
+/**
+ * Implements the `WRITE` statement.
+ */
 export class WriteFileStatement extends Statement
 {
-    public constructor(
-        public readonly expression: Expression,
-        public readonly fileHandle: Expression
-    )
+    /**
+     * Expression producing the value to write.
+     */
+    public readonly expression: Expression;
+
+    /**
+     * File handle expression.
+     */
+    public readonly fileHandle: Expression;
+
+    /**
+     * Create a new `WRITE` statement.
+     *
+     * @param expression Expression producing the value to write.
+     * @param fileHandle File handle expression.
+     */
+    public constructor(expression: Expression, fileHandle: Expression)
     {
         super();
+        this.expression = expression;
+        this.fileHandle = fileHandle;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

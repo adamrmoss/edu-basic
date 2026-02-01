@@ -6,13 +6,25 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `NEXT` statement.
+ */
 export class NextStatement extends Statement
 {
-    public constructor(
-        public readonly variableName: string | null
-    )
+    /**
+     * Optional loop variable name for `NEXT var%`.
+     */
+    public readonly variableName: string | null;
+
+    /**
+     * Create a new `NEXT` statement.
+     *
+     * @param variableName Optional loop variable name.
+     */
+    public constructor(variableName: string | null)
     {
         super();
+        this.variableName = variableName;
     }
 
     public override getIndentAdjustment(): number
@@ -20,6 +32,11 @@ export class NextStatement extends Statement
         return -1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

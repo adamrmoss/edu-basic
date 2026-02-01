@@ -7,6 +7,9 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { WhileStatement } from './while-statement';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `WEND` statement.
+ */
 export class WendStatement extends Statement
 {
     public constructor()
@@ -14,11 +17,21 @@ export class WendStatement extends Statement
         super();
     }
 
+    /**
+     * Get the editor indent adjustment.
+     *
+     * @returns Indent delta for this statement.
+     */
     public override getIndentAdjustment(): number
     {
         return -1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

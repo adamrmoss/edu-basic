@@ -10,16 +10,51 @@ import { EndStatement, EndType } from './end-statement';
 import { ElseStatement } from './else-statement';
 import { ElseIfStatement } from './elseif-statement';
 
+/**
+ * Implements the `IF` statement.
+ */
 export class IfStatement extends Statement
 {
+    /**
+     * Condition expression.
+     */
+    public readonly condition: Expression;
+
+    /**
+     * Then-branch statements (block construction).
+     */
+    public readonly thenBranch: Statement[];
+
+    /**
+     * Else-if branches (block construction).
+     */
+    public readonly elseIfBranches: { condition: Expression; statements: Statement[] }[];
+
+    /**
+     * Else branch statements (block construction), if present.
+     */
+    public readonly elseBranch: Statement[] | null;
+
+    /**
+     * Create a new `IF` statement.
+     *
+     * @param condition Condition expression.
+     * @param thenBranch Then-branch statements.
+     * @param elseIfBranches Else-if branches.
+     * @param elseBranch Else branch statements, if present.
+     */
     public constructor(
-        public readonly condition: Expression,
-        public readonly thenBranch: Statement[],
-        public readonly elseIfBranches: { condition: Expression; statements: Statement[] }[],
-        public readonly elseBranch: Statement[] | null
+        condition: Expression,
+        thenBranch: Statement[],
+        elseIfBranches: { condition: Expression; statements: Statement[] }[],
+        elseBranch: Statement[] | null
     )
     {
         super();
+        this.condition = condition;
+        this.thenBranch = thenBranch;
+        this.elseIfBranches = elseIfBranches;
+        this.elseBranch = elseBranch;
     }
 
     public override getIndentAdjustment(): number
@@ -27,6 +62,11 @@ export class IfStatement extends Statement
         return 1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

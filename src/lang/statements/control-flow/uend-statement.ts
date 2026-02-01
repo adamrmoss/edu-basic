@@ -7,6 +7,9 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { UntilStatement } from './until-statement';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `UEND` statement.
+ */
 export class UendStatement extends Statement
 {
     public constructor()
@@ -19,6 +22,11 @@ export class UendStatement extends Statement
         return -1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

@@ -5,6 +5,9 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * `EXIT` statement targets.
+ */
 export enum ExitTarget
 {
     For,
@@ -13,16 +16,39 @@ export enum ExitTarget
     Sub
 }
 
+/**
+ * Implements the `EXIT` statement.
+ */
 export class ExitStatement extends Statement
 {
-    public constructor(
-        public readonly target: ExitTarget,
-        public readonly forVariableName: string | null = null
-    )
+    /**
+     * Target control-flow construct to exit.
+     */
+    public readonly target: ExitTarget;
+
+    /**
+     * Optional FOR loop variable name filter.
+     */
+    public readonly forVariableName: string | null;
+
+    /**
+     * Create a new `EXIT` statement.
+     *
+     * @param target Target control-flow construct to exit.
+     * @param forVariableName Optional FOR loop variable name filter.
+     */
+    public constructor(target: ExitTarget, forVariableName: string | null = null)
     {
         super();
+        this.target = target;
+        this.forVariableName = forVariableName;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

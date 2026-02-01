@@ -8,17 +8,59 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { NextStatement } from './next-statement';
 
+/**
+ * Implements the `FOR` statement.
+ */
 export class ForStatement extends Statement
 {
+    /**
+     * Loop variable name.
+     */
+    public readonly variableName: string;
+
+    /**
+     * Loop start value expression.
+     */
+    public readonly startValue: Expression;
+
+    /**
+     * Loop end value expression.
+     */
+    public readonly endValue: Expression;
+
+    /**
+     * Optional step value expression.
+     */
+    public readonly stepValue: Expression | null;
+
+    /**
+     * Statement body for block construction (not executed directly here).
+     */
+    public readonly body: Statement[];
+
+    /**
+     * Create a new `FOR` statement.
+     *
+     * @param variableName Loop variable name.
+     * @param startValue Loop start value expression.
+     * @param endValue Loop end value expression.
+     * @param stepValue Optional step value expression.
+     * @param body Statement body.
+     */
     public constructor(
-        public readonly variableName: string,
-        public readonly startValue: Expression,
-        public readonly endValue: Expression,
-        public readonly stepValue: Expression | null,
-        public readonly body: Statement[]
+        variableName: string,
+        startValue: Expression,
+        endValue: Expression,
+        stepValue: Expression | null,
+        body: Statement[]
     )
     {
         super();
+        this.variableName = variableName;
+        this.startValue = startValue;
+        this.endValue = endValue;
+        this.stepValue = stepValue;
+        this.body = body;
     }
 
     public override getIndentAdjustment(): number
@@ -26,6 +68,11 @@ export class ForStatement extends Statement
         return 1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

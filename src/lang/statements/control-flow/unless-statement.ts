@@ -10,15 +10,39 @@ import { EndStatement, EndType } from './end-statement';
 import { ElseStatement } from './else-statement';
 import { IfStatement } from './if-statement';
 
+/**
+ * Implements the `UNLESS` statement.
+ */
 export class UnlessStatement extends Statement
 {
-    public constructor(
-        public readonly condition: Expression,
-        public readonly thenBranch: Statement[],
-        public readonly elseBranch: Statement[] | null
-    )
+    /**
+     * Condition expression.
+     */
+    public readonly condition: Expression;
+
+    /**
+     * Then-branch statements (block construction).
+     */
+    public readonly thenBranch: Statement[];
+
+    /**
+     * Else branch statements (block construction), if present.
+     */
+    public readonly elseBranch: Statement[] | null;
+
+    /**
+     * Create a new `UNLESS` statement.
+     *
+     * @param condition Condition expression.
+     * @param thenBranch Then-branch statements.
+     * @param elseBranch Else branch statements, if present.
+     */
+    public constructor(condition: Expression, thenBranch: Statement[], elseBranch: Statement[] | null)
     {
         super();
+        this.condition = condition;
+        this.thenBranch = thenBranch;
+        this.elseBranch = elseBranch;
     }
 
     public override getIndentAdjustment(): number
@@ -26,6 +50,11 @@ export class UnlessStatement extends Statement
         return 1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

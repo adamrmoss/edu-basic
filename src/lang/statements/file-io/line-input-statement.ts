@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `LINE INPUT` statement.
+ */
 export class LineInputStatement extends Statement
 {
-    public constructor(
-        public readonly variableName: string,
-        public readonly fileHandle: Expression
-    )
+    /**
+     * Target string variable name.
+     */
+    public readonly variableName: string;
+
+    /**
+     * File handle expression.
+     */
+    public readonly fileHandle: Expression;
+
+    /**
+     * Create a new `LINE INPUT` statement.
+     *
+     * @param variableName Target string variable name.
+     * @param fileHandle File handle expression.
+     */
+    public constructor(variableName: string, fileHandle: Expression)
     {
         super();
+        this.variableName = variableName;
+        this.fileHandle = fileHandle;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

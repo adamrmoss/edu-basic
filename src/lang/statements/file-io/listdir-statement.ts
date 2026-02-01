@@ -8,16 +8,39 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 import { DirectoryNode, FileSystemNode } from '../../../app/disk/filesystem-node';
 
+/**
+ * Implements the `LISTDIR` statement.
+ */
 export class ListdirStatement extends Statement
 {
-    public constructor(
-        public readonly arrayVariable: string,
-        public readonly path: Expression
-    )
+    /**
+     * Destination string array variable name.
+     */
+    public readonly arrayVariable: string;
+
+    /**
+     * Directory path expression.
+     */
+    public readonly path: Expression;
+
+    /**
+     * Create a new `LISTDIR` statement.
+     *
+     * @param arrayVariable Destination string array variable name.
+     * @param path Directory path expression.
+     */
+    public constructor(arrayVariable: string, path: Expression)
     {
         super();
+        this.arrayVariable = arrayVariable;
+        this.path = path;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

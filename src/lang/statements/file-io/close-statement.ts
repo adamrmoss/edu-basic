@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `CLOSE` statement.
+ */
 export class CloseStatement extends Statement
 {
-    public constructor(
-        public readonly fileHandle: Expression
-    )
+    /**
+     * File handle expression.
+     */
+    public readonly fileHandle: Expression;
+
+    /**
+     * Create a new `CLOSE` statement.
+     *
+     * @param fileHandle File handle expression.
+     */
+    public constructor(fileHandle: Expression)
     {
         super();
+        this.fileHandle = fileHandle;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

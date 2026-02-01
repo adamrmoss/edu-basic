@@ -7,19 +7,40 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Selector clause used by the `CASE` statement.
+ */
 export type CaseSelector =
     | { type: 'value'; value: Expression }
     | { type: 'range'; start: Expression; end: Expression }
     | { type: 'relational'; op: string; value: Expression };
 
+/**
+ * Implements the `CASE` statement.
+ */
 export class CaseStatement extends Statement
 {
-    public constructor(
-        public readonly isElse: boolean,
-        public readonly selectors: CaseSelector[]
-    )
+    /**
+     * Whether this is the `CASE ELSE` clause.
+     */
+    public readonly isElse: boolean;
+
+    /**
+     * Clause selectors (ignored for `CASE ELSE`).
+     */
+    public readonly selectors: CaseSelector[];
+
+    /**
+     * Create a new `CASE` statement.
+     *
+     * @param isElse Whether this is the `CASE ELSE` clause.
+     * @param selectors Clause selectors.
+     */
+    public constructor(isElse: boolean, selectors: CaseSelector[])
     {
         super();
+        this.isElse = isElse;
+        this.selectors = selectors;
     }
 
     public override getIndentAdjustment(): number
@@ -27,6 +48,11 @@ export class CaseStatement extends Statement
         return 0;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

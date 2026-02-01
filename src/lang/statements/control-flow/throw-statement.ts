@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { valueToString } from '../../edu-basic-value';
 
+/**
+ * Implements the `THROW` statement.
+ */
 export class ThrowStatement extends Statement
 {
-    public constructor(
-        public readonly message: Expression
-    )
+    /**
+     * Message expression.
+     */
+    public readonly message: Expression;
+
+    /**
+     * Create a new `THROW` statement.
+     *
+     * @param message Message expression.
+     */
+    public constructor(message: Expression)
     {
         super();
+        this.message = message;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @throws Always throws an error containing the message.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

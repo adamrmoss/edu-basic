@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `SEEK` statement.
+ */
 export class SeekStatement extends Statement
 {
-    public constructor(
-        public readonly position: Expression,
-        public readonly fileHandle: Expression
-    )
+    /**
+     * Position expression.
+     */
+    public readonly position: Expression;
+
+    /**
+     * File handle expression.
+     */
+    public readonly fileHandle: Expression;
+
+    /**
+     * Create a new `SEEK` statement.
+     *
+     * @param position Position expression.
+     * @param fileHandle File handle expression.
+     */
+    public constructor(position: Expression, fileHandle: Expression)
     {
         super();
+        this.position = position;
+        this.fileHandle = fileHandle;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

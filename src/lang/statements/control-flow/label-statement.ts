@@ -5,15 +5,34 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Implements the `LABEL` statement.
+ */
 export class LabelStatement extends Statement
 {
-    public constructor(
-        public readonly labelName: string
-    )
+    /**
+     * Label identifier.
+     */
+    public readonly labelName: string;
+
+    /**
+     * Create a new `LABEL` statement.
+     *
+     * @param labelName Label identifier.
+     */
+    public constructor(labelName: string)
     {
         super();
+        this.labelName = labelName;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * Labels are no-ops at runtime; they are used for jump targets.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

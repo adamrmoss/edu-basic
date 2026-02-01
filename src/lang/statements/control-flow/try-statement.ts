@@ -5,21 +5,55 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Catch clause data for a `TRY` statement.
+ */
 export interface CatchClause
 {
+    /**
+     * Optional variable name to receive the error value.
+     */
     variableName: string | null;
+
+    /**
+     * Catch clause body.
+     */
     body: Statement[];
 }
 
+/**
+ * Implements the `TRY` statement.
+ */
 export class TryStatement extends Statement
 {
-    public constructor(
-        public readonly tryBody: Statement[],
-        public readonly catchClauses: CatchClause[],
-        public readonly finallyBody: Statement[] | null
-    )
+    /**
+     * TRY body statements.
+     */
+    public readonly tryBody: Statement[];
+
+    /**
+     * CATCH clause definitions.
+     */
+    public readonly catchClauses: CatchClause[];
+
+    /**
+     * FINALLY body statements, if present.
+     */
+    public readonly finallyBody: Statement[] | null;
+
+    /**
+     * Create a new `TRY` statement.
+     *
+     * @param tryBody TRY body statements.
+     * @param catchClauses CATCH clause definitions.
+     * @param finallyBody FINALLY body statements, if present.
+     */
+    public constructor(tryBody: Statement[], catchClauses: CatchClause[], finallyBody: Statement[] | null)
     {
         super();
+        this.tryBody = tryBody;
+        this.catchClauses = catchClauses;
+        this.finallyBody = finallyBody;
     }
 
     public override getIndentAdjustment(): number
@@ -27,6 +61,13 @@ export class TryStatement extends Statement
         return 1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * Note: Structured TRY/CATCH control flow is also coordinated by the runtime using control frames.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

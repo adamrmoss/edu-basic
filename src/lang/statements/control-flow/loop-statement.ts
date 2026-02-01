@@ -8,6 +8,9 @@ import { DoLoopStatement, DoLoopVariant } from './do-loop-statement';
 import { EduBasicType } from '../../edu-basic-value';
 import { Expression } from '../../expressions/expression';
 
+/**
+ * Condition variants for the `LOOP` statement.
+ */
 export enum LoopConditionVariant
 {
     None,
@@ -15,14 +18,32 @@ export enum LoopConditionVariant
     Until
 }
 
+/**
+ * Implements the `LOOP` statement.
+ */
 export class LoopStatement extends Statement
 {
-    public constructor(
-        public readonly conditionVariant: LoopConditionVariant = LoopConditionVariant.None,
-        public readonly condition: Expression | null = null
-    )
+    /**
+     * Condition variant discriminator.
+     */
+    public readonly conditionVariant: LoopConditionVariant;
+
+    /**
+     * Optional loop condition expression.
+     */
+    public readonly condition: Expression | null;
+
+    /**
+     * Create a new `LOOP` statement.
+     *
+     * @param conditionVariant Condition variant discriminator.
+     * @param condition Optional loop condition expression.
+     */
+    public constructor(conditionVariant: LoopConditionVariant = LoopConditionVariant.None, condition: Expression | null = null)
     {
         super();
+        this.conditionVariant = conditionVariant;
+        this.condition = condition;
     }
 
     public override getIndentAdjustment(): number
@@ -30,6 +51,11 @@ export class LoopStatement extends Statement
         return -1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

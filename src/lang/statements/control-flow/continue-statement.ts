@@ -5,22 +5,53 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Target frame types supported by the `CONTINUE` statement.
+ */
 export enum ContinueTarget
 {
+    /**
+     * Continue a `FOR` loop.
+     */
     For,
+
+    /**
+     * Continue a `WHILE` loop.
+     */
     While,
+
+    /**
+     * Continue a `DO` loop.
+     */
     Do
 }
 
+/**
+ * Implements the `CONTINUE` statement.
+ */
 export class ContinueStatement extends Statement
 {
-    public constructor(
-        public readonly target: ContinueTarget
-    )
+    /**
+     * Continue target discriminator.
+     */
+    public readonly target: ContinueTarget;
+
+    /**
+     * Create a new `CONTINUE` statement.
+     *
+     * @param target Continue target discriminator.
+     */
+    public constructor(target: ContinueTarget)
     {
         super();
+        this.target = target;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

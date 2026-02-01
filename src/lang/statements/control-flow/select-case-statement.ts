@@ -6,14 +6,32 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Implements the `SELECT CASE` statement.
+ */
 export class SelectCaseStatement extends Statement
 {
-    public constructor(
-        public readonly testExpression: Expression,
-        public readonly cases: any[] = []
-    )
+    /**
+     * Test expression used for subsequent `CASE` matching.
+     */
+    public readonly testExpression: Expression;
+
+    /**
+     * Placeholder list for case clauses (block construction).
+     */
+    public readonly cases: any[];
+
+    /**
+     * Create a new `SELECT CASE` statement.
+     *
+     * @param testExpression Test expression.
+     * @param cases Case list placeholder.
+     */
+    public constructor(testExpression: Expression, cases: any[] = [])
     {
         super();
+        this.testExpression = testExpression;
+        this.cases = cases;
     }
 
     public override getIndentAdjustment(): number
@@ -21,6 +39,11 @@ export class SelectCaseStatement extends Statement
         return 1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

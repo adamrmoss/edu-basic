@@ -5,6 +5,9 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Implements the `RETURN` statement.
+ */
 export class ReturnStatement extends Statement
 {
     public constructor()
@@ -12,6 +15,11 @@ export class ReturnStatement extends Statement
         super();
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

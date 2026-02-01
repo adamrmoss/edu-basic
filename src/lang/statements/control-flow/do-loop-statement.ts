@@ -8,6 +8,9 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { LoopStatement } from './loop-statement';
 
+/**
+ * `DO` statement variants.
+ */
 export enum DoLoopVariant
 {
     DoWhile,
@@ -17,15 +20,39 @@ export enum DoLoopVariant
     DoLoop
 }
 
+/**
+ * Implements the `DO` statement.
+ */
 export class DoLoopStatement extends Statement
 {
-    public constructor(
-        public readonly variant: DoLoopVariant,
-        public readonly condition: Expression | null,
-        public readonly body: Statement[]
-    )
+    /**
+     * Variant discriminator for this `DO` statement.
+     */
+    public readonly variant: DoLoopVariant;
+
+    /**
+     * Optional loop condition expression.
+     */
+    public readonly condition: Expression | null;
+
+    /**
+     * Statement body for block construction (not executed directly here).
+     */
+    public readonly body: Statement[];
+
+    /**
+     * Create a new `DO` statement.
+     *
+     * @param variant Variant discriminator.
+     * @param condition Optional loop condition expression.
+     * @param body Statement body.
+     */
+    public constructor(variant: DoLoopVariant, condition: Expression | null, body: Statement[])
     {
         super();
+        this.variant = variant;
+        this.condition = condition;
+        this.body = body;
     }
 
     public override getIndentAdjustment(): number
@@ -33,6 +60,11 @@ export class DoLoopStatement extends Statement
         return 1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

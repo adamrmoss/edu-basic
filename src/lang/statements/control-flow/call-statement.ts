@@ -9,16 +9,39 @@ import { SubStatement } from './sub-statement';
 import { VariableExpression } from '../../expressions/special/variable-expression';
 import { EduBasicValue } from '../../edu-basic-value';
 
+/**
+ * Implements the `CALL` statement.
+ */
 export class CallStatement extends Statement
 {
-    public constructor(
-        public readonly subroutineName: string,
-        public readonly args: Expression[]
-    )
+    /**
+     * Subroutine name to invoke.
+     */
+    public readonly subroutineName: string;
+
+    /**
+     * Argument expressions.
+     */
+    public readonly args: Expression[];
+
+    /**
+     * Create a new `CALL` statement.
+     *
+     * @param subroutineName Subroutine name to invoke.
+     * @param args Argument expressions.
+     */
+    public constructor(subroutineName: string, args: Expression[])
     {
         super();
+        this.subroutineName = subroutineName;
+        this.args = args;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

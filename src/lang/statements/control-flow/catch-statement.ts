@@ -5,6 +5,9 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Implements the `CATCH` statement.
+ */
 export class CatchStatement extends Statement
 {
     public constructor()
@@ -12,11 +15,23 @@ export class CatchStatement extends Statement
         super();
     }
 
+    /**
+     * Get the editor indent adjustment.
+     *
+     * @returns Indent delta for this statement.
+     */
     public override getIndentAdjustment(): number
     {
         return 0;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * `CATCH` is a structural statement; runtime flow is coordinated by the surrounding `TRY` frame.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,
