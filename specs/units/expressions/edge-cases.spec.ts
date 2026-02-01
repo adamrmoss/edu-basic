@@ -445,4 +445,31 @@ describe('Expression Edge Cases', () =>
             }
         });
     });
+
+    describe('Audio Operators', () =>
+    {
+        it('should evaluate NOTES to 0 when audio is unavailable', () =>
+        {
+            const arg = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const expr = new UnaryExpression(UnaryOperator.Notes, arg, UnaryOperatorCategory.Audio);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(0);
+        });
+
+        it('should evaluate NOTES using context audio when available', () =>
+        {
+            const arg = new LiteralExpression({ type: EduBasicType.Integer, value: 1 });
+            const expr = new UnaryExpression(UnaryOperator.Notes, arg, UnaryOperatorCategory.Audio);
+
+            context.setAudio({ getNotesRemaining: (_voice: number) => 42 } as any);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Integer);
+            expect(result.value).toBe(42);
+        });
+    });
 });

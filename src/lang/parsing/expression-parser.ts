@@ -1221,6 +1221,10 @@ export class ExpressionParser
             case 'BIN':
             case 'BIN$':
                 return { operator: UnaryOperator.Bin, category: UnaryOperatorCategory.TypeConversion };
+
+            // Audio operators
+            case 'NOTES':
+                return { operator: UnaryOperator.Notes, category: UnaryOperatorCategory.Audio };
             
             default:
                 return null;

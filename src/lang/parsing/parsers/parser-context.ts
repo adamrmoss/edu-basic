@@ -14,6 +14,10 @@ export class ParserContext
     {
     }
 
+    // ParserContext is a thin convenience wrapper for statement parsers.
+    // It intentionally does not own parsing policy; it just centralizes:
+    // - token stream cursor operations (match/consume)
+    // - "parse an expression here" behavior (ExpressionHelpers + ExpressionParser)
     public peek(): Token
     {
         return TokenHelpers.peek(this.tokens, this.current.value);
@@ -61,6 +65,10 @@ export class ParserContext
 
     public parseExpression(): ParseResult<any>
     {
+        // Expressions embedded in statements are parsed by:
+        // - slicing tokens until a statement-specific terminator
+        // - reconstructing expression source
+        // - delegating to ExpressionParser so precedence stays centralized
         return ExpressionHelpers.parseExpression(this.tokens, this.current, this.expressionParser);
     }
 }

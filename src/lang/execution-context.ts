@@ -1,4 +1,5 @@
 import { EduBasicValue, EduBasicType, tryGetArrayRankSuffixFromName } from './edu-basic-value';
+import type { Audio } from './audio';
 
 interface StackFrame
 {
@@ -16,6 +17,7 @@ export class ExecutionContext
     private programCounter: number;
     private pressedKeys: Set<string>;
     private lastPressedKey: string | null;
+    private audio: Audio | null;
 
     public constructor()
     {
@@ -25,6 +27,17 @@ export class ExecutionContext
         this.programCounter = 0;
         this.pressedKeys = new Set<string>();
         this.lastPressedKey = null;
+        this.audio = null;
+    }
+
+    public getAudio(): Audio | null
+    {
+        return this.audio;
+    }
+
+    public setAudio(audio: Audio | null): void
+    {
+        this.audio = audio;
     }
 
     public getProgramCounter(): number

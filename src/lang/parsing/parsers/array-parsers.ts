@@ -8,6 +8,12 @@ export class ArrayParsers
 {
     public static parsePush(context: ParserContext): ParseResult<PushStatement>
     {
+        // Grammar:
+        // PUSH <arrayIdentifier>, <valueExpr>
+        //
+        // Notes:
+        // - The array variable is parsed as a single Identifier token (including any sigil / rank suffix).
+        // - The pushed value is a full expression; terminators are controlled by ExpressionHelpers (see parsing/README.md).
         const pushTokenResult = context.consume(TokenType.Keyword, 'PUSH');
         if (!pushTokenResult.success)
         {
@@ -36,6 +42,15 @@ export class ArrayParsers
 
     public static parsePop(context: ParserContext): ParseResult<PopStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // NOTE: The language reference documents:
+        // POP array[] INTO variable
+        //
+        // Current implementation parses:
+        // POP array[][, targetVar]
+        //
+        // There is no value expression here; POP mutates the array and optionally assigns.
         const popTokenResult = context.consume(TokenType.Keyword, 'POP');
         if (!popTokenResult.success)
         {
@@ -64,6 +79,15 @@ export class ArrayParsers
 
     public static parseShift(context: ParserContext): ParseResult<ShiftStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // NOTE: The language reference documents:
+        // SHIFT array[] INTO variable
+        //
+        // Current implementation parses:
+        // SHIFT array[][, targetVar]
+        //
+        // SHIFT removes from the front of the array.
         const shiftTokenResult = context.consume(TokenType.Keyword, 'SHIFT');
         if (!shiftTokenResult.success)
         {
@@ -92,6 +116,12 @@ export class ArrayParsers
 
     public static parseUnshift(context: ParserContext): ParseResult<UnshiftStatement>
     {
+        // Grammar:
+        // UNSHIFT <arrayIdentifier>, <valueExpr>
+        //
+        // Notes:
+        // - UNSHIFT adds to the front of the array.
+        // - The added value is a full expression.
         const unshiftTokenResult = context.consume(TokenType.Keyword, 'UNSHIFT');
         if (!unshiftTokenResult.success)
         {

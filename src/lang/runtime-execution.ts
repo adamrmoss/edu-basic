@@ -41,6 +41,7 @@ export class RuntimeExecution
         private readonly consoleService: ConsoleService | null = null
     )
     {
+        this.context.setAudio(this.audio);
     }
 
     public getFileSystem(): FileSystemService

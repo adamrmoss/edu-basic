@@ -183,6 +183,5 @@ The Angular wrapper `ParserService` treats statement parse failures as “succes
 
 ## Known “edges” worth understanding
 
-- **Keyword artifacts**: `keywords.ts` currently includes `NOTES` as an operator keyword but there is no corresponding parsing/evaluation support. If this is accidental, it should be removed; if it’s planned, it needs an implementation path.
 - **Token slicing + re-tokenizing**: parsing expressions inside statements currently reconstructs source text from tokens and re-tokenizes it. This is convenient, but it’s also one of the major complexity hotspots; see `docs/refactor-seams.md`.
 

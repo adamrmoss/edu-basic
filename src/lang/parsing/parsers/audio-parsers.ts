@@ -8,6 +8,9 @@ export class AudioParsers
 {
     public static parseTempo(context: ParserContext): ParseResult<TempoStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // TEMPO bpmExpr
         const tempoTokenResult = context.consume(TokenType.Keyword, 'TEMPO');
         if (!tempoTokenResult.success)
         {
@@ -25,6 +28,9 @@ export class AudioParsers
 
     public static parseVolume(context: ParserContext): ParseResult<VolumeStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // VOLUME levelExpr
         const volumeTokenResult = context.consume(TokenType.Keyword, 'VOLUME');
         if (!volumeTokenResult.success)
         {
@@ -42,6 +48,9 @@ export class AudioParsers
 
     public static parseVoice(context: ParserContext): ParseResult<VoiceStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // VOICE voiceNumberExpr INSTRUMENT instrumentExpr
         const voiceTokenResult = context.consume(TokenType.Keyword, 'VOICE');
         if (!voiceTokenResult.success)
         {
@@ -71,6 +80,9 @@ export class AudioParsers
 
     public static parsePlay(context: ParserContext): ParseResult<PlayStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // PLAY voiceNumberExpr, mmlStringExpr
         const playTokenResult = context.consume(TokenType.Keyword, 'PLAY');
         if (!playTokenResult.success)
         {

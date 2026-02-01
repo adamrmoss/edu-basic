@@ -253,6 +253,7 @@ export class Audio
         this.synth.noteOn(voice, midiNote, Math.round(127 * this.volume / 100), startTime);
         this.synth.noteOff(voice, midiNote, startTime + duration);
 
+        this.recordScheduledNote(voice, midiNote, startTime, duration, Math.round(127 * this.volume / 100));
         this.nextNoteTime.set(voice, startTime + duration);
     }
 
@@ -279,6 +280,7 @@ export class Audio
         this.synth.noteOn(voice, midiNote, vel, startTime);
         this.synth.noteOff(voice, midiNote, startTime + duration);
 
+        this.recordScheduledNote(voice, midiNote, startTime, duration, vel);
         this.nextNoteTime.set(voice, startTime + duration);
     }
 
@@ -331,11 +333,42 @@ export class Audio
                 this.synth.noteOn(voice, note.midiNote, vel, time);
                 this.synth.noteOff(voice, note.midiNote, time + duration);
 
+                this.recordScheduledNote(voice, note.midiNote, time, duration, vel);
                 time += duration;
             }
         }
 
         this.nextNoteTime.set(voice, time);
+    }
+
+    public getNotesRemaining(voiceIndex: number): number
+    {
+        if (!this.ready || !this.audioContext)
+        {
+            return 0;
+        }
+
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const notes = this.scheduledNotes.get(voice) ?? [];
+        const now = this.audioContext.currentTime;
+
+        // Keep only notes that have not finished yet.
+        const remainingNotes = notes.filter((n) => (n.startTime + n.duration) > now);
+        this.scheduledNotes.set(voice, remainingNotes);
+
+        return remainingNotes.length;
+    }
+
+    private recordScheduledNote(voice: number, midiNote: number, startTime: number, duration: number, velocity: number): void
+    {
+        const current = this.scheduledNotes.get(voice) ?? [];
+        current.push({
+            duration,
+            frequency: this.midiNoteToFrequency(midiNote),
+            startTime,
+            velocity
+        });
+        this.scheduledNotes.set(voice, current);
     }
 
     private parseMml(mml: string): Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }>

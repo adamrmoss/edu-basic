@@ -20,8 +20,21 @@ import { ParseResult, success, failure } from '../parse-result';
 
 export class GraphicsParsers
 {
+    // Spec: docs/edu-basic-language.md
+    //
+    // Graphics commands use parentheses to denote planar points: (x, y).
+    // This is an explicit exception to EduBASIC's general rule that parentheses are only for
+    // grouping expressions.
+    //
+    // Parser shape:
+    // - Most graphics statements have an imperative keyword and then a fixed grammar of point tuples,
+    //   optional modifiers (FROM/TO/WITH/FILLED/etc.), and trailing expressions.
+    // - We keep these parsers "token-native" (consume punctuation directly) because the syntax is
+    //   very statement-specific.
     public static parsePset(context: ParserContext): ParseResult<PsetStatement>
     {
+        // Grammar:
+        // PSET (xExpr, yExpr) [WITH colorExpr]
         const psetTokenResult = context.consume(TokenType.Keyword, 'PSET');
         if (!psetTokenResult.success)
         {
@@ -71,6 +84,8 @@ export class GraphicsParsers
 
     public static parseRectangle(context: ParserContext): ParseResult<RectangleStatement>
     {
+        // Grammar:
+        // RECTANGLE FROM (x1Expr, y1Expr) TO (x2Expr, y2Expr) [WITH colorExpr] [FILLED]
         const rectTokenResult = context.consume(TokenType.Keyword, 'RECTANGLE');
         if (!rectTokenResult.success)
         {
@@ -712,6 +727,15 @@ export class GraphicsParsers
 
     public static parseLineInputOrGraphics(context: ParserContext): ParseResult<Statement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // LINE is overloaded in the language:
+        // - LINE INPUT ... is file I/O
+        // - LINE FROM (x1, y1) TO (x2, y2) ... is graphics
+        //
+        // This method resolves the shared-prefix by looking at the next keyword after LINE:
+        // - INPUT -> file I/O form
+        // - FROM  -> graphics form
         const lineTokenResult = context.consume(TokenType.Keyword, 'LINE');
         if (!lineTokenResult.success)
         {

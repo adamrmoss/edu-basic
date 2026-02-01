@@ -8,6 +8,16 @@ export class IoParsers
 {
     public static parsePrint(context: ParserContext): ParseResult<PrintStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // PRINT forms:
+        // - PRINT                    (blank line)
+        // - PRINT expr1, expr2, ...  (comma-separated values)
+        // - PRINT ...;               (semicolon suppresses trailing newline when last token)
+        //
+        // Implementation detail:
+        // ParserContext.parseExpression() stops on comma/semicolon at depth 0, so we can loop
+        // and parse multiple expressions without having to manually slice tokens.
         const printTokenResult = context.consume(TokenType.Keyword, 'PRINT');
         if (!printTokenResult.success)
         {
@@ -49,6 +59,9 @@ export class IoParsers
 
     public static parseInput(context: ParserContext): ParseResult<InputStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // INPUT <variable>
         const inputTokenResult = context.consume(TokenType.Keyword, 'INPUT');
         if (!inputTokenResult.success)
         {
@@ -66,6 +79,9 @@ export class IoParsers
 
     public static parseColor(context: ParserContext): ParseResult<ColorStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // COLOR foregroundExpr[, backgroundExpr]
         const colorTokenResult = context.consume(TokenType.Keyword, 'COLOR');
         if (!colorTokenResult.success)
         {
@@ -114,6 +130,9 @@ export class IoParsers
 
     public static parseLocate(context: ParserContext): ParseResult<LocateStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // LOCATE rowExpr, columnExpr
         const locateTokenResult = context.consume(TokenType.Keyword, 'LOCATE');
         if (!locateTokenResult.success)
         {
@@ -142,6 +161,9 @@ export class IoParsers
 
     public static parseCls(context: ParserContext): ParseResult<ClsStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // CLS
         const clsTokenResult = context.consume(TokenType.Keyword, 'CLS');
         if (!clsTokenResult.success)
         {
