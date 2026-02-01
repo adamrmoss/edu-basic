@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
+/**
+ * Implements the `INPUT` statement.
+ */
 export class InputStatement extends Statement
 {
-    public constructor(
-        public readonly variableName: string
-    )
+    /**
+     * Target variable name (scalar or 1D array).
+     */
+    public readonly variableName: string;
+
+    /**
+     * Create a new `INPUT` statement.
+     *
+     * @param variableName Target variable name.
+     */
+    public constructor(variableName: string)
     {
         super();
+        this.variableName = variableName;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

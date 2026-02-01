@@ -39,6 +39,9 @@ import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 
+/**
+ * Statement parsers for control-flow statements.
+ */
 export class ControlFlowParsers
 {
     // Spec: docs/edu-basic-language.md
@@ -48,6 +51,12 @@ export class ControlFlowParsers
     // the per-line parse methods generally produce "skeleton" statements with empty bodies.
     // The block structure is assembled later by the program builder / runtime using indent
     // levels and control-flow frame tracking.
+    /**
+     * Parse the `IF` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseIf(context: ParserContext): ParseResult<IfStatement>
     {
         // Grammar:
@@ -72,6 +81,12 @@ export class ControlFlowParsers
         return success(new IfStatement(conditionResult.value, [], [], null));
     }
 
+    /**
+     * Parse the `ELSEIF` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseElseIf(context: ParserContext): ParseResult<ElseIfStatement>
     {
         // Grammar:
@@ -97,6 +112,12 @@ export class ControlFlowParsers
         return success(new ElseIfStatement(conditionResult.value));
     }
 
+    /**
+     * Parse the `ELSE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseElse(context: ParserContext): ParseResult<ElseStatement>
     {
         // Grammar:
@@ -110,6 +131,12 @@ export class ControlFlowParsers
         return success(new ElseStatement());
     }
 
+    /**
+     * Parse the `UNLESS` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseUnless(context: ParserContext): ParseResult<UnlessStatement>
     {
         // Grammar:
@@ -134,6 +161,12 @@ export class ControlFlowParsers
         return success(new UnlessStatement(conditionResult.value, [], null));
     }
 
+    /**
+     * Parse the `SELECT CASE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseSelectCase(context: ParserContext): ParseResult<SelectCaseStatement>
     {
         // Grammar:
@@ -158,6 +191,12 @@ export class ControlFlowParsers
         return success(new SelectCaseStatement(testExpressionResult.value, []));
     }
 
+    /**
+     * Parse the `CASE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseCase(context: ParserContext): ParseResult<CaseStatement>
     {
         // Grammar:
@@ -248,6 +287,12 @@ export class ControlFlowParsers
         return success(new CaseStatement(false, selectors));
     }
 
+    /**
+     * Parse the `FOR` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseFor(context: ParserContext): ParseResult<ForStatement>
     {
         // Grammar:
@@ -303,6 +348,12 @@ export class ControlFlowParsers
         return success(new ForStatement(varName, startValueResult.value, endValueResult.value, stepValue, []));
     }
 
+    /**
+     * Parse the `NEXT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseNext(context: ParserContext): ParseResult<NextStatement>
     {
         // Grammar:
@@ -327,6 +378,12 @@ export class ControlFlowParsers
         return success(new NextStatement(varName));
     }
 
+    /**
+     * Parse the `WHILE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseWhile(context: ParserContext): ParseResult<WhileStatement>
     {
         // Grammar:
@@ -346,6 +403,12 @@ export class ControlFlowParsers
         return success(new WhileStatement(conditionResult.value, []));
     }
 
+    /**
+     * Parse the `WEND` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseWend(context: ParserContext): ParseResult<WendStatement>
     {
         const wendTokenResult = context.consume(TokenType.Keyword, 'WEND');
@@ -357,6 +420,12 @@ export class ControlFlowParsers
         return success(new WendStatement());
     }
 
+    /**
+     * Parse the `UNTIL` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseUntil(context: ParserContext): ParseResult<UntilStatement>
     {
         const untilTokenResult = context.consume(TokenType.Keyword, 'UNTIL');
@@ -374,6 +443,12 @@ export class ControlFlowParsers
         return success(new UntilStatement(conditionResult.value, []));
     }
 
+    /**
+     * Parse the `UEND` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseUend(context: ParserContext): ParseResult<UendStatement>
     {
         const uendTokenResult = context.consume(TokenType.Keyword, 'UEND');
@@ -385,6 +460,12 @@ export class ControlFlowParsers
         return success(new UendStatement());
     }
 
+    /**
+     * Parse the `DO` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseDo(context: ParserContext): ParseResult<DoLoopStatement>
     {
         // Grammar:
@@ -419,6 +500,12 @@ export class ControlFlowParsers
         return success(new DoLoopStatement(DoLoopVariant.DoLoop, null, []));
     }
 
+    /**
+     * Parse the `LOOP` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLoop(context: ParserContext): ParseResult<LoopStatement>
     {
         // Grammar:
@@ -456,6 +543,12 @@ export class ControlFlowParsers
         return success(new LoopStatement());
     }
 
+    /**
+     * Parse the `SUB` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseSub(context: ParserContext): ParseResult<SubStatement>
     {
         // Grammar:
@@ -498,6 +591,12 @@ export class ControlFlowParsers
         return success(new SubStatement(name, parameters, []));
     }
 
+    /**
+     * Parse the `CALL` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseCall(context: ParserContext): ParseResult<CallStatement>
     {
         // Grammar:
@@ -537,6 +636,12 @@ export class ControlFlowParsers
         return success(new CallStatement(subName, args));
     }
 
+    /**
+     * Parse the `TRY` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseTry(context: ParserContext): ParseResult<TryStatement>
     {
         const tryTokenResult = context.consume(TokenType.Keyword, 'TRY');
@@ -548,6 +653,12 @@ export class ControlFlowParsers
         return success(new TryStatement([], [], null));
     }
 
+    /**
+     * Parse the `CATCH` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseCatch(context: ParserContext): ParseResult<CatchStatement>
     {
         const catchTokenResult = context.consume(TokenType.Keyword, 'CATCH');
@@ -559,6 +670,12 @@ export class ControlFlowParsers
         return success(new CatchStatement());
     }
 
+    /**
+     * Parse the `FINALLY` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseFinally(context: ParserContext): ParseResult<FinallyStatement>
     {
         const finallyTokenResult = context.consume(TokenType.Keyword, 'FINALLY');
@@ -570,6 +687,12 @@ export class ControlFlowParsers
         return success(new FinallyStatement());
     }
 
+    /**
+     * Parse the `GOTO` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseGoto(context: ParserContext): ParseResult<GotoStatement>
     {
         const gotoTokenResult = context.consume(TokenType.Keyword, 'GOTO');
@@ -588,6 +711,12 @@ export class ControlFlowParsers
         return success(new GotoStatement(labelName));
     }
 
+    /**
+     * Parse the `GOSUB` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseGosub(context: ParserContext): ParseResult<GosubStatement>
     {
         const gosubTokenResult = context.consume(TokenType.Keyword, 'GOSUB');
@@ -606,6 +735,12 @@ export class ControlFlowParsers
         return success(new GosubStatement(labelName));
     }
 
+    /**
+     * Parse the `RETURN` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseReturn(context: ParserContext): ParseResult<ReturnStatement>
     {
         const returnTokenResult = context.consume(TokenType.Keyword, 'RETURN');
@@ -617,6 +752,12 @@ export class ControlFlowParsers
         return success(new ReturnStatement());
     }
 
+    /**
+     * Parse the `LABEL` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLabel(context: ParserContext): ParseResult<LabelStatement>
     {
         const labelTokenResult = context.consume(TokenType.Keyword, 'LABEL');
@@ -635,6 +776,12 @@ export class ControlFlowParsers
         return success(new LabelStatement(labelName));
     }
 
+    /**
+     * Parse the `END` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseEnd(context: ParserContext): ParseResult<EndStatement>
     {
         // Grammar:
@@ -675,6 +822,12 @@ export class ControlFlowParsers
         return success(new EndStatement(EndType.Program));
     }
 
+    /**
+     * Parse the `EXIT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseExit(context: ParserContext): ParseResult<ExitStatement>
     {
         // Grammar:
@@ -720,6 +873,12 @@ export class ControlFlowParsers
         return failure('EXIT must specify target: FOR, WHILE, DO, or SUB');
     }
 
+    /**
+     * Parse the `CONTINUE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseContinue(context: ParserContext): ParseResult<ContinueStatement>
     {
         // Grammar:
@@ -748,6 +907,12 @@ export class ControlFlowParsers
         return failure('CONTINUE must specify target: FOR, WHILE, or DO');
     }
 
+    /**
+     * Parse the `THROW` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseThrow(context: ParserContext): ParseResult<ThrowStatement>
     {
         // Grammar:

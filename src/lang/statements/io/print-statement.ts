@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { valueToString } from '../../edu-basic-value';
 
+/**
+ * Implements the `PRINT` statement.
+ */
 export class PrintStatement extends Statement
 {
-    public constructor(
-        public readonly expressions: Expression[],
-        public readonly newline: boolean = true
-    )
+    /**
+     * Expressions to print, in order.
+     */
+    public readonly expressions: Expression[];
+
+    /**
+     * Whether to print a newline after the expressions.
+     */
+    public readonly newline: boolean;
+
+    /**
+     * Create a new `PRINT` statement.
+     *
+     * @param expressions Expressions to print.
+     * @param newline Whether to print a newline after the expressions.
+     */
+    public constructor(expressions: Expression[], newline: boolean = true)
     {
         super();
+        this.expressions = expressions;
+        this.newline = newline;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

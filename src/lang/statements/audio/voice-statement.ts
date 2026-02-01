@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `VOICE` statement.
+ */
 export class VoiceStatement extends Statement
 {
-    public constructor(
-        public readonly voiceNumber: Expression,
-        public readonly instrument: Expression
-    )
+    /**
+     * Voice number expression.
+     */
+    public readonly voiceNumber: Expression;
+
+    /**
+     * Instrument expression (program number or name).
+     */
+    public readonly instrument: Expression;
+
+    /**
+     * Create a new `VOICE` statement.
+     *
+     * @param voiceNumber Voice number expression.
+     * @param instrument Instrument expression.
+     */
+    public constructor(voiceNumber: Expression, instrument: Expression)
     {
         super();
+        this.voiceNumber = voiceNumber;
+        this.instrument = instrument;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

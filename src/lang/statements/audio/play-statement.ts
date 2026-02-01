@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `PLAY` statement.
+ */
 export class PlayStatement extends Statement
 {
-    public constructor(
-        public readonly voiceNumber: Expression,
-        public readonly mml: Expression
-    )
+    /**
+     * Voice number expression.
+     */
+    public readonly voiceNumber: Expression;
+
+    /**
+     * Sequence text expression.
+     */
+    public readonly mml: Expression;
+
+    /**
+     * Create a new `PLAY` statement.
+     *
+     * @param voiceNumber Voice number expression.
+     * @param mml Sequence text expression.
+     */
+    public constructor(voiceNumber: Expression, mml: Expression)
     {
         super();
+        this.voiceNumber = voiceNumber;
+        this.mml = mml;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

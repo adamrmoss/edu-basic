@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `LOCATE` statement.
+ */
 export class LocateStatement extends Statement
 {
-    public constructor(
-        public readonly row: Expression,
-        public readonly column: Expression
-    )
+    /**
+     * Row expression.
+     */
+    public readonly row: Expression;
+
+    /**
+     * Column expression.
+     */
+    public readonly column: Expression;
+
+    /**
+     * Create a new `LOCATE` statement.
+     *
+     * @param row Row expression.
+     * @param column Column expression.
+     */
+    public constructor(row: Expression, column: Expression)
     {
         super();
+        this.row = row;
+        this.column = column;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

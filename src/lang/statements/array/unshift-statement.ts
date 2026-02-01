@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `UNSHIFT` statement.
+ */
 export class UnshiftStatement extends Statement
 {
-    public constructor(
-        public readonly arrayVariable: string,
-        public readonly value: Expression
-    )
+    /**
+     * Array variable name.
+     */
+    public readonly arrayVariable: string;
+
+    /**
+     * Expression producing the value inserted at the front.
+     */
+    public readonly value: Expression;
+
+    /**
+     * Create a new `UNSHIFT` statement.
+     *
+     * @param arrayVariable Array variable name.
+     * @param value Expression producing the inserted value.
+     */
+    public constructor(arrayVariable: string, value: Expression)
     {
         super();
+        this.arrayVariable = arrayVariable;
+        this.value = value;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

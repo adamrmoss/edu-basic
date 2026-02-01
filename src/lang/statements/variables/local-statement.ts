@@ -6,16 +6,39 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Implements the `LOCAL` statement.
+ */
 export class LocalStatement extends Statement
 {
-    public constructor(
-        public readonly variableName: string,
-        public readonly value: Expression
-    )
+    /**
+     * Local variable name.
+     */
+    public readonly variableName: string;
+
+    /**
+     * Expression producing the assigned value.
+     */
+    public readonly value: Expression;
+
+    /**
+     * Create a new `LOCAL` statement.
+     *
+     * @param variableName Local variable name.
+     * @param value Expression producing the assigned value.
+     */
+    public constructor(variableName: string, value: Expression)
     {
         super();
+        this.variableName = variableName;
+        this.value = value;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,
