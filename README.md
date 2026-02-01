@@ -1,234 +1,141 @@
 # EduBASIC
 
-Education-focused BASIC dialect that runs in web browser.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Dependencies](#dependencies)
-  - [Core Dependencies](#core-dependencies)
-  - [UI Library](#ui-library)
-  - [Typography](#typography)
-  - [Version Management](#version-management)
-- [Development](#development)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Development Server](#development-server)
-  - [Build](#build)
-  - [Watch Mode](#watch-mode)
-  - [Testing](#testing)
-- [Component Architecture](#component-architecture)
-- [Using ng-luna Components](#using-ng-luna-components)
-  - [Example Usage](#example-usage)
-- [License](#license)
-
----
+Education-focused BASIC dialect that runs in the web browser.
 
 ## Overview
 
-EduBASIC is an Angular-based web application that provides a BASIC programming environment designed for educational purposes. The application runs entirely in the browser, making it accessible and easy to use for learning programming fundamentals.
+EduBASIC is a web-based programming environment and an education-focused BASIC dialect. It runs entirely in the browser (no install), and includes an editor, interactive console, graphics/audio output, and a project “disk” system for saving and sharing work.
 
-## How parsing works (high level)
+### Philosophy
 
-EduBASIC has two related parsers:
+EduBASIC intentionally favors **explicit, keyword-driven syntax** over terse punctuation-heavy forms. The goal is to make programs:
 
-- **Statement parsing** (BASIC lines): tokenizes a line and dispatches to a statement-specific parser to produce a `Statement`.
-- **Expression parsing** (expressions inside statements and console input): parses operators with a fixed precedence ladder to produce an `Expression`.
+- **Readable aloud** (good for teaching and pair programming)
+- **Easy to scan** (keywords carry meaning, not symbol soup)
+- **Consistent to parse** (predictable grammar and error messages)
+- **Batteries included** for teaching: text I/O, graphics, audio, arrays, and file I/O are first-class parts of the language
 
-**Documentation:**
+### Intended Audience
 
-**User Documentation:**
-- [EduBASIC User Guide](docs/user-guide.md) - Complete guide to using the EduBASIC software interface and features
-- [EduBASIC Language Reference](docs/edu-basic-language.md) - Complete language specification and reference
+- **Learners**: first programming language, or a friendly on-ramp to core programming ideas (data, control flow, state, I/O).
+- **Teachers**: classroom demos where installation and environment setup are friction.
+- **Explorers**: quick experiments in the console, then grow into full programs in the editor.
 
-**System Architecture Documentation:**
-- [Architecture Overview](docs/architecture.md) - High-level system architecture and design principles
-- [Refactor Seams](docs/refactor-seams.md) - Notes for refactoring and cohesion improvements
-- [Source Code Documentation](src/README.md) - Complete index of all in-source documentation
-  - [Application Components](src/app/README.md) - All Angular UI components and their functionality
-  - [Interpreter Services](src/app/interpreter/README.md) - Interpreter services and the parsing integration point
-  - [Console Service](src/app/console/README.md) - Console command execution and history management
-  - [Language Core](src/lang/README.md) - Core language types, execution model, runtime execution, graphics, and audio
-  - [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
-  - [Statements System](src/lang/statements/README.md) - All statement types and their execution
-  - Audio: `Audio` class in [Language Core](src/lang/README.md) uses webaudio-tinysynth (General MIDI)
+### Language at a glance (capabilities)
 
-## Operator precedence (expressions)
+The authoritative reference is [EduBASIC Language Reference](docs/edu-basic-language.md). High level:
 
-The authoritative implementation is `src/lang/parsing/expression-parser.ts`.
-From **lowest → highest precedence**:
+- **Core data model**
+  - Scalar types: **Integer** (`%`), **Real** (`#`), **Complex** (`&`), **String** (`$`)
+  - **Structures**: untyped key/value dictionaries (no sigil)
+  - **Arrays**: typed element arrays (`varType[]`, e.g. `scores%[]`)
+  - Variables are **case-insensitive** and are generally **implicitly created** when assigned (`LET` / `LOCAL`).
+- **Control flow**
+  - Structured blocks (`IF`, loops, `SELECT CASE`, `SUB` procedures) plus labels for jump-style control flow.
+  - Step-by-step execution model via a program counter under the hood (see `src/lang/runtime-execution.ts`).
+- **Text I/O**
+  - `PRINT`, `INPUT`, and cursor/color control for the output surface.
+  - Interactive console supports expression auto-evaluation and `HELP <keyword>` for syntax lookup.
+- **Graphics**
+  - A built-in graphics surface designed for teaching visual programs (canvas is **640×480**, with an **80×30** text grid).
+  - Pixel drawing primitives and higher-level shapes (see the language reference for statement forms).
+- **Audio**
+  - General MIDI-style synthesis via `webaudio-tinysynth` through the language `Audio` runtime.
+  - Tempo/voice/volume control and `PLAY` using an MML-style sequence syntax.
+- **File I/O**
+  - A virtual file system inside the app (not your OS filesystem), with handle-based file operations plus convenience statements.
+  - Projects can be saved/loaded as a single `.disk` file (a zip archive containing the program and any data files).
+- **Errors**
+  - Parse errors are designed to be recoverable and UI-friendly (the editor can keep running while highlighting invalid lines).
+  - The language includes structured error handling forms (`TRY` / `CATCH` / `FINALLY`, `THROW`).
 
-- **IMP**
-- **XOR / XNOR**
-- **OR / NOR**
-- **AND / NAND**
-- **NOT** (prefix)
-- **Comparison**: `=`, `<>`, `<`, `<=`, `>`, `>=`
-- **String operators** (left-associative): `LEFT`, `RIGHT`, `MID ... TO ...`, `INSTR ... [FROM ...]`, `REPLACE ... WITH ...`, `JOIN`, `STARTSWITH`, `ENDSWITH`
-- **Array search operators** (left-associative): `FIND`, `INDEXOF`, `INCLUDES`
-- **Add/Sub**: `+`, `-`
-- **Mul/Div/Modulo**: `*`, `/`, `MOD`
-- **Unary + / -** (prefix)
-- **Exponentiation**: `^`, `**` (right-associative)
-- **Postfix / accessors**:
-  - `!` (factorial)
-  - `.member` (structure member access)
-  - `[index]` / `[i, j, ...]` / `[start TO end]` (array access, multi-index access, slice)
-  - `DEG` / `RAD` (angle conversion postfix operators)
-  - `| expr |` (absolute-value / length operator) is parsed as a primary form
+## Documentation
 
-Notes:
-- This list is intentionally “what the parser does”, not “what the language spec might want”.
-- `DEG` converts degrees → radians, and `RAD` converts radians → degrees.
-
-## Tech Stack
-
-- **Angular 19** - Modern Angular framework with standalone components
-- **TypeScript** - Type-safe JavaScript
-- **SCSS** - Enhanced CSS with variables and mixins
-- **ng-luna** - Windows XP-styled Angular component library
-- **Angular CDK** - Component Dev Kit for enhanced functionality
-- **IBM Plex Fonts** - Typography system using IBM Plex Sans, Serif, and Mono
-
-## Project Structure
-
-```
-edu-basic/
-├── src/
-│   ├── app/                    # Angular application
-│   │   ├── app.component.*     # Root component
-│   │   ├── app.config.ts       # Application configuration
-│   │   └── app.routes.ts       # Routing configuration
-│   ├── _breakpoints.scss       # Responsive breakpoint definitions
-│   ├── _fonts.scss             # Font family definitions
-│   ├── _palette.scss           # Color palette variables
-│   ├── _reset.scss             # CSS reset styles
-│   ├── _theme.scss             # Theme configuration (IBM Carbon Design colors)
-│   ├── _z-layers.scss          # Z-index layer definitions
-│   ├── index.html              # Main HTML entry point
-│   ├── index.scss              # Global styles
-│   └── main.ts                 # Application bootstrap
-├── public/                     # Static assets
-├── angular.json                # Angular CLI configuration
-├── package.json                # Dependencies and scripts
-└── tsconfig.json               # TypeScript configuration
-```
-
-## Dependencies
-
-### Core Dependencies
-
-- **@angular/core**: 19.x.x
-- **@angular/common**: 19.x.x
-- **@angular/forms**: 19.x.x
-- **@angular/router**: 19.x.x
-- **@angular/cdk**: 19.x.x - Required by ng-luna for enhanced component functionality
-
-### UI Library
-
-- **ng-luna**: 0.x.x - Windows XP-styled Angular component library providing:
-  - Button, Checkbox, Input, Select, Textarea components
-  - Progress, Slider, Radio components
-  - Tabs, Window, Fieldset components
-  - All components support reactive forms and are standalone
-
-### Typography
-
-- **@fontsource/ibm-plex-sans**: 5.x.x - Sans-serif font family
-- **@fontsource/ibm-plex-serif**: 5.x.x - Serif font family
-- **@fontsource/ibm-plex-mono**: 5.x.x - Monospace font family
-
-### Version Management
-
-All dependencies use the `x.x.x` version format instead of caret (`^`) or tilde (`~`) ranges. This provides more predictable dependency resolution while still allowing patch and minor updates.
+- **User docs**
+  - [EduBASIC User Guide](docs/user-guide.md)
+  - [EduBASIC Language Reference](docs/edu-basic-language.md)
+- **Architecture**
+  - [Architecture Overview](docs/architecture.md)
+  - [Refactor Seams](docs/refactor-seams.md)
+- **In-source docs (start here for code)**
+  - [Source Code Documentation](src/README.md)
+    - [Application Components](src/app/README.md)
+    - [Interpreter Services](src/app/interpreter/README.md)
+    - [Console Service](src/app/console/README.md)
+    - [Language Core](src/lang/README.md)
+    - [Parsing Engine](src/lang/parsing/README.md)
+    - [Expressions System](src/lang/expressions/README.md)
+    - [Statements System](src/lang/statements/README.md)
 
 ## Development
 
-### Prerequisites
+**Prerequisites**
 
-- Node.js (version compatible with Angular 19)
+- Node.js (compatible with Angular 19)
 - npm
 
-### Installation
+**Install**
 
 ```bash
 npm install
 ```
 
-### Development Server
+**Run**
 
 ```bash
 npm start
 ```
 
-The application will be available at `http://localhost:4200/`
+The app will be available at `http://localhost:4200/`.
 
-### Build
+**Build**
 
 ```bash
 npm run build
 ```
 
-### Watch Mode
+Production build:
+
+```bash
+npm run build:prod
+```
+
+**Watch build**
 
 ```bash
 npm run watch
 ```
 
-### Testing
+**Tests**
 
-Run all tests:
 ```bash
 npm test
 ```
 
-Run tests with verbose output:
-```bash
-npm run test:verbose
+Other useful scripts:
+
+- `npm run typecheck`
+- `npm run test:coverage`
+- `npm run test:watch`
+
+## Repository Map
+
+```
+edu-basic/
+├── docs/         # User + architecture documentation
+├── programs/     # Sample .bas programs
+├── public/       # Static assets
+├── specs/        # Jest specs
+└── src/
+    ├── app/      # Angular UI components + application services
+    └── lang/     # EduBASIC language runtime (values, parsing, statements, execution)
 ```
 
-Run tests in watch mode (auto-rerun on file changes):
-```bash
-npm run test:watch
-```
+## Tech Notes
 
-## Component Architecture
-
-- All Angular components are **standalone** (no NgModules)
-- Components use separate template (`.html`) and stylesheet (`.scss`) files
-- SCSS is used throughout for enhanced styling capabilities
-
-## Using ng-luna Components
-
-The project uses the `ng-luna` component library for Windows XP-styled UI components. All components are standalone and can be imported directly:
-
-```typescript
-import { ButtonComponent, InputComponent, WindowComponent } from 'ng-luna';
-
-@Component({
-  imports: [ButtonComponent, InputComponent, WindowComponent],
-  // ...
-})
-```
-
-### Example Usage
-
-```html
-<luna-window title="EduBASIC Editor">
-  <luna-input 
-    [(ngModel)]="code"
-    placeholder="Enter BASIC code">
-  </luna-input>
-  
-  <luna-button (click)="runCode()">
-    Run
-  </luna-button>
-</luna-window>
-```
-
-All form components (input, checkbox, radio, select, textarea, slider) support Angular's reactive forms API and can be used with `FormControl`, `FormGroup`, and `ngModel`.
+- **UI**: built with Angular 19 + standalone components, SCSS, and `ng-luna`.
+- **Language runtime**: lives under `src/lang/` and runs entirely in-browser.
+- **Version ranges**: package versions are generally expressed as `major.x.x` placeholders (for example `19.x.x`), but not all dependencies follow that strictly (see `package.json`).
 
 ## License
 
