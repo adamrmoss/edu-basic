@@ -1,12 +1,28 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+/**
+ * A single line parse/validation error for the text editor.
+ */
 export interface LineError
 {
+    /**
+     * 0-based line index.
+     */
     lineIndex: number;
+
+    /**
+     * Human-readable error message.
+     */
     message: string;
 }
 
+/**
+ * Text editor UI component used for program and file editing.
+ *
+ * Provides line numbering, error highlighting, line selection via gutter drag,
+ * and cursor position helpers used by parent components.
+ */
 @Component({
     selector: 'app-text-editor',
     standalone: true,
@@ -16,42 +32,90 @@ export interface LineError
 })
 export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
 {
+    /**
+     * Reference to the underlying textarea element.
+     */
     @ViewChild('codeTextarea', { static: false })
     public codeTextareaRef!: ElementRef<HTMLTextAreaElement>;
 
+    /**
+     * Reference to the line-numbers gutter element.
+     */
     @ViewChild('lineNumbersDiv', { static: false })
     public lineNumbersRef!: ElementRef<HTMLDivElement>;
 
+    /**
+     * Current editor contents, split into lines.
+     */
     @Input()
     public lines: string[] = [''];
 
+    /**
+     * 0-based line indices that are currently considered errors.
+     */
     @Input()
     public errorLines: Set<number> = new Set<number>();
 
+    /**
+     * Map of 0-based line indices to error messages.
+     */
     @Input()
     public errorMessages: Map<number, string> = new Map<number, string>();
 
+    /**
+     * Placeholder text shown when the editor is empty.
+     */
     @Input()
     public placeholder: string = '';
 
+    /**
+     * Whether the editor is read-only.
+     */
     @Input()
     public readonly: boolean = false;
 
+    /**
+     * Emits whenever the editor content lines change.
+     */
     @Output()
     public linesChange = new EventEmitter<string[]>();
 
+    /**
+     * Emits whenever the current selected line range changes.
+     */
     @Output()
     public lineSelectionChange = new EventEmitter<{ start: number; end: number }>();
 
+    /**
+     * Emits keydown events from the textarea.
+     */
     @Output()
     public keyDown = new EventEmitter<KeyboardEvent>();
 
+    /**
+     * Emits when the textarea loses focus.
+     */
     @Output()
     public blur = new EventEmitter<void>();
 
+    /**
+     * Rendered line numbers including wrapped visual lines (wrapped lines use -1).
+     */
     public lineNumbers: number[] = [1];
+
+    /**
+     * Start of the selected line range (0-based), if any.
+     */
     public selectedLineStart: number | null = null;
+
+    /**
+     * End of the selected line range (0-based), if any.
+     */
     public selectedLineEnd: number | null = null;
+
+    /**
+     * Whether the user is currently dragging to select lines in the gutter.
+     */
     public isDragging: boolean = false;
 
     private textareaElement: HTMLTextAreaElement | null = null;
@@ -61,10 +125,18 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
     private mouseUpHandler: ((event: MouseEvent) => void) | null = null;
     private mouseDownLineIndex: number | null = null;
 
+    /**
+     * Create a new text editor component.
+     *
+     * @param cdr Change detector used to refresh line number rendering after view init.
+     */
     constructor(private readonly cdr: ChangeDetectorRef)
     {
     }
 
+    /**
+     * Initialize DOM references and attach global event handlers.
+     */
     public ngAfterViewInit(): void
     {
         this.textareaElement = this.codeTextareaRef?.nativeElement || null;
@@ -92,6 +164,11 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         document.addEventListener('mouseup', this.mouseUpHandler);
     }
 
+    /**
+     * Respond to input changes by updating line number rendering.
+     *
+     * @param changes Angular change set.
+     */
     public ngOnChanges(changes: SimpleChanges): void
     {
         if (changes['lines'])
@@ -107,6 +184,9 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         }
     }
 
+    /**
+     * Detach global event handlers.
+     */
     public ngOnDestroy(): void
     {
         if (this.resizeHandler)
@@ -125,6 +205,11 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         }
     }
 
+    /**
+     * Handle textarea input by updating `lines` and emitting `linesChange`.
+     *
+     * @param event Input event from the textarea.
+     */
     public onTextAreaInput(event: Event): void
     {
         const textarea = event.target as HTMLTextAreaElement;
@@ -134,6 +219,11 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         this.updateLineNumbers();
     }
 
+    /**
+     * Keep the line-number gutter scrolled in sync with the textarea.
+     *
+     * @param event Scroll event from the textarea.
+     */
     public onTextAreaScroll(event: Event): void
     {
         const textarea = event.target as HTMLTextAreaElement;
@@ -144,16 +234,30 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         }
     }
 
+    /**
+     * Emit keydown events to parent components.
+     *
+     * @param event Keyboard event from the textarea.
+     */
     public onKeyDown(event: KeyboardEvent): void
     {
         this.keyDown.emit(event);
     }
 
+    /**
+     * Emit blur events to parent components.
+     */
     public onBlur(): void
     {
         this.blur.emit();
     }
 
+    /**
+     * Begin selecting lines by clicking the line-number gutter.
+     *
+     * @param event Mouse event.
+     * @param lineIndex 0-based line index.
+     */
     public onLineNumberMouseDown(event: MouseEvent, lineIndex: number): void
     {
         event.preventDefault();
@@ -170,6 +274,12 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         this.selectLines(lineIndex, lineIndex);
     }
 
+    /**
+     * Extend selection while dragging over the line-number gutter.
+     *
+     * @param event Mouse event.
+     * @param lineIndex 0-based line index under the cursor.
+     */
     public onLineNumberMouseEnter(event: MouseEvent, lineIndex: number): void
     {
         if (this.isDragging && this.mouseDownLineIndex !== null)
@@ -318,16 +428,31 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         return position;
     }
 
+    /**
+     * Determine whether a given line index is marked as an error.
+     *
+     * @param lineIndex 0-based line index.
+     */
     public isLineError(lineIndex: number): boolean
     {
         return this.errorLines.has(lineIndex);
     }
 
+    /**
+     * Get the error message for a line, if present.
+     *
+     * @param lineIndex 0-based line index.
+     */
     public getLineErrorMessage(lineIndex: number): string | undefined
     {
         return this.errorMessages.get(lineIndex);
     }
 
+    /**
+     * Determine whether a line index is within the current selection.
+     *
+     * @param lineIndex 0-based line index.
+     */
     public isLineSelected(lineIndex: number): boolean
     {
         if (this.selectedLineStart === null || this.selectedLineEnd === null)
@@ -338,11 +463,19 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         return lineIndex >= this.selectedLineStart && lineIndex <= this.selectedLineEnd;
     }
 
+    /**
+     * Get the current editor contents as a single string.
+     */
     public getCode(): string
     {
         return this.lines.join('\n');
     }
 
+    /**
+     * Replace editor contents with the provided code.
+     *
+     * @param code Full source text.
+     */
     public setCode(code: string): void
     {
         this.lines = code.split('\n');
@@ -350,6 +483,9 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         this.updateLineNumbers();
     }
 
+    /**
+     * Get the 0-based line index containing the cursor.
+     */
     public getCursorLineIndex(): number
     {
         if (!this.textareaElement)
@@ -361,6 +497,11 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         return this.getLineIndexFromPosition(cursorPosition);
     }
 
+    /**
+     * Set the cursor position in the textarea.
+     *
+     * @param position Character offset.
+     */
     public setCursorPosition(position: number): void
     {
         if (this.textareaElement)
@@ -369,6 +510,9 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         }
     }
 
+    /**
+     * Get the current cursor position in the textarea.
+     */
     public getCursorPosition(): number
     {
         if (!this.textareaElement)

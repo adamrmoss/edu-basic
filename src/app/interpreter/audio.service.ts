@@ -13,21 +13,35 @@ export class AudioService
 {
     private readonly audio: Audio;
 
+    /**
+     * Create a new audio service with a shared `Audio` runtime instance.
+     */
     public constructor()
     {
         this.audio = new Audio();
     }
 
+    /**
+     * Get the shared audio runtime instance.
+     */
     public getAudio(): Audio
     {
         return this.audio;
     }
 
+    /**
+     * Enable or disable audio output.
+     *
+     * @param muted Whether audio should be muted.
+     */
     public setMuted(muted: boolean): void
     {
         this.audio.setMuted(muted);
     }
 
+    /**
+     * Get the current mute state.
+     */
     public getMuted(): boolean
     {
         return this.audio.getMuted();

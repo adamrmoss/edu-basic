@@ -1,11 +1,29 @@
 import { Injectable } from '@angular/core';
 import { FileSystemNode, FileNode, DirectoryNode } from './filesystem-node';
 
+/**
+ * Open file handle metadata for the virtual filesystem.
+ */
 export interface FileHandle
 {
+    /**
+     * File path for this handle.
+     */
     path: string;
+
+    /**
+     * Open mode for the handle.
+     */
     mode: 'read' | 'write' | 'append';
+
+    /**
+     * Current cursor position in bytes.
+     */
     position: number;
+
+    /**
+     * In-memory buffer for this handle.
+     */
     buffer: Uint8Array;
 }
 
@@ -29,11 +47,17 @@ export class FileSystemService
     private openHandles: Map<number, FileHandle> = new Map();
     private nextHandleId: number = 1;
 
+    /**
+     * Create a new empty virtual filesystem.
+     */
     public constructor()
     {
         this.root = new DirectoryNode('', '');
     }
 
+    /**
+     * Remove all files/directories and reset open-handle state.
+     */
     public clear(): void
     {
         this.root = new DirectoryNode('', '');
@@ -41,6 +65,9 @@ export class FileSystemService
         this.nextHandleId = 1;
     }
 
+    /**
+     * Get the root directory node.
+     */
     public getRoot(): DirectoryNode
     {
         return this.root;
@@ -102,18 +129,34 @@ export class FileSystemService
         return null;
     }
 
+    /**
+     * Determine whether a file exists at the provided path.
+     *
+     * @param path File path.
+     */
     public fileExists(path: string): boolean
     {
         const node = this.findNode(path);
         return node !== null && node.type === 'file';
     }
 
+    /**
+     * Determine whether a directory exists at the provided path.
+     *
+     * @param path Directory path.
+     */
     public directoryExists(path: string): boolean
     {
         const node = this.findNode(path);
         return node !== null && node.type === 'directory';
     }
 
+    /**
+     * Read a file from the virtual filesystem.
+     *
+     * @param path File path.
+     * @returns File contents, or `null` if the file does not exist.
+     */
     public readFile(path: string): Uint8Array | null
     {
         const node = this.findNode(path);
@@ -126,6 +169,12 @@ export class FileSystemService
         return null;
     }
 
+    /**
+     * Write a file into the virtual filesystem, creating it if necessary.
+     *
+     * @param path File path.
+     * @param data File contents.
+     */
     public writeFile(path: string, data: Uint8Array): void
     {
         if (!path)
@@ -157,6 +206,12 @@ export class FileSystemService
         }
     }
 
+    /**
+     * Delete a file from the virtual filesystem.
+     *
+     * @param path File path.
+     * @returns `true` when deletion succeeds.
+     */
     public deleteFile(path: string): boolean
     {
         if (!path)
@@ -177,6 +232,11 @@ export class FileSystemService
         return false;
     }
 
+    /**
+     * Create a directory path (and any missing parent directories).
+     *
+     * @param path Directory path.
+     */
     public createDirectory(path: string): void
     {
         if (!path)
@@ -231,6 +291,12 @@ export class FileSystemService
         return current;
     }
 
+    /**
+     * Delete an empty directory.
+     *
+     * @param path Directory path.
+     * @returns `true` when deletion succeeds.
+     */
     public deleteDirectory(path: string): boolean
     {
         if (!path)
@@ -265,6 +331,13 @@ export class FileSystemService
         return false;
     }
 
+    /**
+     * Move/rename a directory.
+     *
+     * @param oldPath Existing directory path.
+     * @param newPath New directory path.
+     * @returns `true` when rename succeeds.
+     */
     public renameDirectory(oldPath: string, newPath: string): boolean
     {
         if (!oldPath || !newPath)
@@ -304,6 +377,9 @@ export class FileSystemService
         return path.substring(0, lastSlash);
     }
 
+    /**
+     * List all file paths in the virtual filesystem.
+     */
     public listFiles(): string[]
     {
         const files: string[] = [];
@@ -328,6 +404,9 @@ export class FileSystemService
         }
     }
 
+    /**
+     * Collect all file contents into a map keyed by path.
+     */
     public getAllFiles(): Map<string, Uint8Array>
     {
         const files = new Map<string, Uint8Array>();
@@ -352,6 +431,11 @@ export class FileSystemService
         }
     }
 
+    /**
+     * Replace filesystem contents with the provided file map.
+     *
+     * @param fileMap Map of file path to contents.
+     */
     public setAllFiles(fileMap: Map<string, Uint8Array>): void
     {
         this.root = new DirectoryNode('', '');
@@ -362,6 +446,13 @@ export class FileSystemService
         }
     }
 
+    /**
+     * Open a file handle in the requested mode.
+     *
+     * @param path File path.
+     * @param mode Open mode.
+     * @returns New handle id.
+     */
     public openFile(path: string, mode: 'read' | 'write' | 'append'): number
     {
         const handleId = this.nextHandleId++;
@@ -400,6 +491,13 @@ export class FileSystemService
         return handleId;
     }
 
+    /**
+     * Close an open file handle.
+     *
+     * If the handle was opened for write/append, the current buffer is persisted to the file path.
+     *
+     * @param handleId Handle id returned from `openFile(...)`.
+     */
     public closeFile(handleId: number): void
     {
         const handle = this.openHandles.get(handleId);
@@ -417,6 +515,13 @@ export class FileSystemService
         this.openHandles.delete(handleId);
     }
 
+    /**
+     * Read bytes from an open file handle.
+     *
+     * @param handleId Handle id.
+     * @param count Maximum number of bytes to read.
+     * @returns The bytes read (may be shorter than `count` at EOF).
+     */
     public readBytes(handleId: number, count: number): Uint8Array
     {
         const handle = this.openHandles.get(handleId);
@@ -438,6 +543,12 @@ export class FileSystemService
         return result;
     }
 
+    /**
+     * Write bytes to an open file handle.
+     *
+     * @param handleId Handle id.
+     * @param data Bytes to append at the current cursor position.
+     */
     public writeBytes(handleId: number, data: Uint8Array): void
     {
         const handle = this.openHandles.get(handleId);
@@ -459,6 +570,12 @@ export class FileSystemService
         handle.position += data.length;
     }
 
+    /**
+     * Seek the cursor within an open file handle.
+     *
+     * @param handleId Handle id.
+     * @param position Target cursor position.
+     */
     public seek(handleId: number, position: number): void
     {
         const handle = this.openHandles.get(handleId);
@@ -479,6 +596,11 @@ export class FileSystemService
         handle.position = pos;
     }
 
+    /**
+     * Get the current cursor position for an open file handle.
+     *
+     * @param handleId Handle id.
+     */
     public tell(handleId: number): number
     {
         const handle = this.openHandles.get(handleId);
@@ -491,6 +613,11 @@ export class FileSystemService
         return handle.position;
     }
 
+    /**
+     * Determine whether the cursor is at or past EOF for an open file handle.
+     *
+     * @param handleId Handle id.
+     */
     public eof(handleId: number): boolean
     {
         const handle = this.openHandles.get(handleId);
@@ -503,6 +630,11 @@ export class FileSystemService
         return handle.position >= handle.buffer.length;
     }
 
+    /**
+     * Get the current file size (in bytes) for an open file handle.
+     *
+     * @param handleId Handle id.
+     */
     public getFileSize(handleId: number): number
     {
         const handle = this.openHandles.get(handleId);

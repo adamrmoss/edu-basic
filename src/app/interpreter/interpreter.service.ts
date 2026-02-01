@@ -11,19 +11,55 @@ import { FileSystemService } from '../disk/filesystem.service';
 import { ConsoleService } from '../console/console.service';
 import { ParserService } from './parser.service';
 
+/**
+ * High-level interpreter lifecycle state exposed to the UI.
+ */
 export enum InterpreterState
 {
+    /**
+     * Not running (ready to parse or run).
+     */
     Idle = 'idle',
+
+    /**
+     * Currently parsing source text.
+     */
     Parsing = 'parsing',
+
+    /**
+     * Currently running a program.
+     */
     Running = 'running',
+
+    /**
+     * Program execution is paused.
+     */
     Paused = 'paused',
+
+    /**
+     * An error state was reached (typically due to parse errors).
+     */
     Error = 'error'
 }
 
+/**
+ * Result of parsing the current program source.
+ */
 export interface ParseResult
 {
+    /**
+     * Whether parsing succeeded without errors.
+     */
     success: boolean;
+
+    /**
+     * Error messages collected during parsing.
+     */
     errors: string[];
+
+    /**
+     * Warning messages collected during parsing.
+     */
     warnings: string[];
 }
 
@@ -83,11 +119,35 @@ export class InterpreterService
         this.executionContext.setKeyUp(key);
     };
 
+    /**
+     * Observable stream of the current `Program`.
+     */
     public readonly program$: Observable<Program | null> = this.programSubject.asObservable();
+
+    /**
+     * Observable stream of interpreter state changes.
+     */
     public readonly state$: Observable<InterpreterState> = this.stateSubject.asObservable();
+
+    /**
+     * Observable stream of parse results for the most recent parse operation.
+     */
     public readonly parseResult$: Observable<ParseResult | null> = this.parseResultSubject.asObservable();
+
+    /**
+     * Observable stream indicating whether the interpreter is currently running.
+     */
     public readonly isRunning$: Observable<boolean> = this.isRunningSubject.asObservable();
 
+    /**
+     * Create a new interpreter service and initialize shared runtime objects.
+     *
+     * @param graphicsService Graphics service used by runtime execution.
+     * @param audioService Audio service used by runtime execution.
+     * @param tabSwitchService UI tab switch request bus.
+     * @param fileSystemService Virtual filesystem service used by file I/O statements.
+     * @param injector Injector used for lazy dependency access.
+     */
     constructor(
         private readonly graphicsService: GraphicsService,
         private readonly audioService: AudioService,
@@ -101,26 +161,41 @@ export class InterpreterService
         this.initializeKeyboardListeners();
     }
 
+    /**
+     * Current program snapshot.
+     */
     public get program(): Program | null
     {
         return this.programSubject.value;
     }
 
+    /**
+     * Current interpreter state snapshot.
+     */
     public get state(): InterpreterState
     {
         return this.stateSubject.value;
     }
 
+    /**
+     * Current running state snapshot.
+     */
     public get isRunning(): boolean
     {
         return this.isRunningSubject.value;
     }
 
+    /**
+     * Current parse result snapshot.
+     */
     public get parseResult(): ParseResult | null
     {
         return this.parseResultSubject.value;
     }
 
+    /**
+     * Update the current program.
+     */
     public set program(program: Program | null)
     {
         this.programSubject.next(program);
@@ -132,11 +207,19 @@ export class InterpreterService
         }
     }
 
+    /**
+     * Create a new `Program` instance.
+     */
     public createProgram(): Program
     {
         return new Program();
     }
 
+    /**
+     * Parse source code into a new `Program` and update interpreter state.
+     *
+     * @param sourceCode Full program source text.
+     */
     public parse(sourceCode: string): ParseResult
     {
         this.stateSubject.next(InterpreterState.Parsing);
@@ -182,6 +265,9 @@ export class InterpreterService
         return result;
     }
 
+    /**
+     * Transition the interpreter to the Running state.
+     */
     public run(): void
     {
         if (this.state !== InterpreterState.Idle)
@@ -198,6 +284,9 @@ export class InterpreterService
         this.isRunningSubject.next(true);
     }
 
+    /**
+     * Pause execution if currently running.
+     */
     public pause(): void
     {
         if (this.state !== InterpreterState.Running)
@@ -209,6 +298,9 @@ export class InterpreterService
         this.isRunningSubject.next(false);
     }
 
+    /**
+     * Resume execution if currently paused.
+     */
     public resume(): void
     {
         if (this.state !== InterpreterState.Paused)
@@ -220,12 +312,18 @@ export class InterpreterService
         this.isRunningSubject.next(true);
     }
 
+    /**
+     * Stop execution and return to Idle.
+     */
     public stop(): void
     {
         this.stateSubject.next(InterpreterState.Idle);
         this.isRunningSubject.next(false);
     }
 
+    /**
+     * Reset interpreter state, program, and parse results.
+     */
     public reset(): void
     {
         this.programSubject.next(null);
@@ -234,16 +332,25 @@ export class InterpreterService
         this.isRunningSubject.next(false);
     }
 
+    /**
+     * Get the shared execution context.
+     */
     public getExecutionContext(): ExecutionContext
     {
         return this.executionContext;
     }
 
+    /**
+     * Get the shared program instance.
+     */
     public getSharedProgram(): Program
     {
         return this.sharedProgram;
     }
 
+    /**
+     * Get (or lazily create) the shared runtime execution engine.
+     */
     public getRuntimeExecution(): RuntimeExecution
     {
         if (!this.runtimeExecution)
