@@ -1003,7 +1003,7 @@ describe('Statement Implementations', () =>
         it('should create 2D array', () =>
         {
             const stmt = new DimStatement(
-                'matrix%[]',
+                'matrix%[,]',
                 [
                     { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) },
                     { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 4 }) }
@@ -1012,7 +1012,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            const arr = context.getVariable('matrix%[]');
+            const arr = context.getVariable('matrix%[,]');
             if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
             expect(arr.dimensions).toEqual([
                 { lower: 1, length: 3, stride: 4 },
@@ -1024,7 +1024,7 @@ describe('Statement Implementations', () =>
         it('should create 3D array', () =>
         {
             const stmt = new DimStatement(
-                'cube%[]',
+                'cube%[,,]',
                 [
                     { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
                     { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) },
@@ -1034,7 +1034,7 @@ describe('Statement Implementations', () =>
             
             stmt.execute(context, graphics, audio, program, runtime);
             
-            const arr = context.getVariable('cube%[]');
+            const arr = context.getVariable('cube%[,,]');
             if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
             expect(arr.dimensions).toEqual([
                 { lower: 1, length: 2, stride: 12 },
@@ -1080,12 +1080,12 @@ describe('Statement Implementations', () =>
 
         it('should format toString correctly', () =>
         {
-            const stmt = new DimStatement('arr%[]', [
+            const stmt = new DimStatement('arr%[,]', [
                 { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
                 { type: 'size', size: new LiteralExpression({ type: EduBasicType.Real, value: 3.5 }) }
             ]);
 
-            expect(stmt.toString()).toBe('DIM arr%[][2, 3.5]');
+            expect(stmt.toString()).toBe('DIM arr%[,][2, 3.5]');
         });
 
         it('should create a ranged array with explicit bounds', () =>
@@ -2009,7 +2009,7 @@ describe('Statement Implementations', () =>
         {
             const stmt = new LetBracketStatement(
                 'player',
-                [{ type: 'accessor', identifier: 'score%' }],
+                [{ type: 'member', memberName: 'score%' }],
                 new LiteralExpression({ type: EduBasicType.Real, value: 3.14 })
             );
 
@@ -2025,7 +2025,7 @@ describe('Statement Implementations', () =>
 
         it('should assign to a 2D DIM\'d array using comma-separated indices', () =>
         {
-            const dim = new DimStatement('m#[]', [
+            const dim = new DimStatement('m#[,]', [
                 { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
                 { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 3 }) }
             ]);
@@ -2042,7 +2042,7 @@ describe('Statement Implementations', () =>
 
             set.execute(context, graphics, audio, program, runtime);
 
-            const arr = context.getVariable('m#[]');
+            const arr = context.getVariable('m#[,]');
             expect(arr.type).toBe(EduBasicType.Array);
             if (arr.type !== EduBasicType.Array) { throw new Error('Expected array'); }
 
@@ -2066,7 +2066,7 @@ describe('Statement Implementations', () =>
 
         it('should throw on out-of-bounds assignment for DIM\'d arrays', () =>
         {
-            const dim = new DimStatement('m%[]', [
+            const dim = new DimStatement('m%[,]', [
                 { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) },
                 { type: 'size', size: new LiteralExpression({ type: EduBasicType.Integer, value: 2 }) }
             ]);

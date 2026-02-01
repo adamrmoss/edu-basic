@@ -1,6 +1,6 @@
 CONSOLE "MULTIDIM DISALLOWED OPS"
 
 DIM m#[2, 2]
-PUSH m#[], 1
+PUSH m#[,], 1
 
 END

@@ -1,7 +1,8 @@
 import { Expression } from '../expression';
-import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 import { VariableExpression } from './variable-expression';
+import { StructureMemberExpression } from './structure-member-expression';
 
 export class MultiIndexBracketAccessExpression extends Expression
 {
@@ -25,7 +26,37 @@ export class MultiIndexBracketAccessExpression extends Expression
 
             if (isTypedArrayBase)
             {
-                baseValue = context.getVariable(`${baseName}[]`);
+                const rankSuffix = `[${','.repeat(Math.max(0, this.indices.length - 1))}]`;
+                baseValue = context.getVariable(`${baseName}${rankSuffix}`);
+            }
+        }
+
+        if (baseValue.type !== EduBasicType.Array && this.baseExpr instanceof StructureMemberExpression)
+        {
+            const structureValue = this.baseExpr.structureExpr.evaluate(context);
+            if (structureValue.type === EduBasicType.Structure)
+            {
+                const memberName = this.baseExpr.memberName;
+                const memberSuffix = tryGetArrayRankSuffixFromName(memberName);
+                if (memberSuffix !== null)
+                {
+                    baseValue = this.baseExpr.evaluate(context);
+                }
+                else
+                {
+                    const rankSuffix = `[${','.repeat(Math.max(0, this.indices.length - 1))}]`;
+                    const inferredArrayName = `${memberName}${rankSuffix}`;
+
+                    const found = this.tryGetStructureMember(structureValue.value, inferredArrayName);
+                    if (found !== null)
+                    {
+                        baseValue = found;
+                    }
+                    else
+                    {
+                        baseValue = this.getDefaultValueForName(inferredArrayName);
+                    }
+                }
             }
         }
 
@@ -117,6 +148,50 @@ export class MultiIndexBracketAccessExpression extends Expression
             case EduBasicType.Structure:
                 return { type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() };
         }
+    }
+
+    private tryGetStructureMember(map: Map<string, EduBasicValue>, key: string): EduBasicValue | null
+    {
+        const direct = map.get(key);
+        if (direct)
+        {
+            return direct;
+        }
+
+        const upperKey = key.toUpperCase();
+        for (const [k, v] of map.entries())
+        {
+            if (k.toUpperCase() === upperKey)
+            {
+                return v;
+            }
+        }
+
+        return null;
+    }
+
+    private getDefaultValueForName(name: string): EduBasicValue
+    {
+        const suffix = tryGetArrayRankSuffixFromName(name);
+        if (suffix !== null)
+        {
+            const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
+            switch (sigil)
+            {
+                case '%':
+                    return { type: EduBasicType.Array, value: [], elementType: EduBasicType.Integer };
+                case '#':
+                    return { type: EduBasicType.Array, value: [], elementType: EduBasicType.Real };
+                case '$':
+                    return { type: EduBasicType.Array, value: [], elementType: EduBasicType.String };
+                case '&':
+                    return { type: EduBasicType.Array, value: [], elementType: EduBasicType.Complex };
+                default:
+                    return { type: EduBasicType.Array, value: [], elementType: EduBasicType.Structure };
+            }
+        }
+
+        return { type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() };
     }
 }
 

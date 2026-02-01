@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
 export class InputStatement extends Statement
 {
@@ -26,8 +26,14 @@ export class InputStatement extends Statement
     {
         const raw = this.readUserInput();
 
-        if (this.variableName.endsWith('[]'))
+        const arraySuffix = tryGetArrayRankSuffixFromName(this.variableName);
+        if (arraySuffix !== null)
         {
+            if (arraySuffix.rank !== 1)
+            {
+                throw new Error('INPUT is only supported for 1D arrays');
+            }
+
             const parsedElements = this.parseArrayInput(raw, this.variableName);
 
             const existing = context.getVariable(this.variableName);
@@ -101,7 +107,13 @@ export class InputStatement extends Statement
 
     private getArrayElementType(arrayName: string): EduBasicType
     {
-        const sigil = arrayName.charAt(arrayName.length - 3);
+        const suffix = tryGetArrayRankSuffixFromName(arrayName);
+        if (suffix === null)
+        {
+            return EduBasicType.Integer;
+        }
+
+        const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
         switch (sigil)
         {
             case '%':

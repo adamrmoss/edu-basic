@@ -100,7 +100,7 @@ describe('StructureMemberExpression', () =>
     {
         const base = new LiteralExpression({ type: EduBasicType.Structure, value: new Map<string, any>() });
         const expr = new StructureMemberExpression(base, 'x%');
-        expect(expr.toString()).toBe('{ }[x%]');
+        expect(expr.toString()).toBe('{ }.x%');
     });
 });
 

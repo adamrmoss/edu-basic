@@ -38,6 +38,7 @@ export enum TokenType
     Semicolon,
     Pipe,
     Exclamation,
+    Dot,
 
     Ellipsis,
 }
@@ -235,6 +236,10 @@ export class Tokenizer
             case '!':
                 this.advance();
                 return this.makeToken(TokenType.Exclamation, '!', startColumn);
+
+            case '.':
+                this.advance();
+                return this.makeToken(TokenType.Dot, '.', startColumn);
 
             default:
                 throw new Error(`Unexpected character '${char}' at line ${this.line}, column ${this.column}`);
@@ -466,13 +471,39 @@ export class Tokenizer
             {
                 value += sigil;
                 this.advance();
+            }
+        }
 
-                if (this.peek() === '[' && this.peekNext() === ']')
-                {
-                    value += '[]';
-                    this.advance();
-                    this.advance();
-                }
+        // Optional array rank suffix as part of the identifier:
+        // - 1D: []
+        // - 2D: [,]
+        // - 3D: [,,]
+        //
+        // This suffix is only consumed when it contains ONLY commas (or is empty) to avoid
+        // interfering with normal array indexing like a#[i, j].
+        if (!this.isAtEnd() && this.peek() === '[')
+        {
+            const savedPosition = this.position;
+            const savedColumn = this.column;
+
+            this.advance(); // '['
+
+            let commaCount = 0;
+            while (!this.isAtEnd() && this.peek() === ',')
+            {
+                commaCount++;
+                this.advance();
+            }
+
+            if (!this.isAtEnd() && this.peek() === ']')
+            {
+                this.advance(); // ']'
+                value += `[${','.repeat(commaCount)}]`;
+            }
+            else
+            {
+                this.position = savedPosition;
+                this.column = savedColumn;
             }
         }
 

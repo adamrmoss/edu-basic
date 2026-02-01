@@ -29,6 +29,44 @@ export type EduBasicValue =
     | { type: EduBasicType.Structure; value: Map<string, EduBasicValue> }
     | { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType; dimensions?: ArrayDimension[] };
 
+export function getArrayRankSuffix(rank: number): string
+{
+    if (rank < 1)
+    {
+        return '[]';
+    }
+
+    return `[${','.repeat(rank - 1)}]`;
+}
+
+export function tryGetArrayRankSuffixFromName(name: string): { baseName: string; rank: number; suffix: string } | null
+{
+    const left = name.lastIndexOf('[');
+    if (left < 0 || !name.endsWith(']'))
+    {
+        return null;
+    }
+
+    const suffix = name.slice(left);
+    if (suffix.length < 2 || suffix[0] !== '[' || suffix[suffix.length - 1] !== ']')
+    {
+        return null;
+    }
+
+    const inside = suffix.slice(1, -1);
+    for (let i = 0; i < inside.length; i++)
+    {
+        if (inside[i] !== ',')
+        {
+            return null;
+        }
+    }
+
+    const rank = inside.length + 1;
+    const baseName = name.slice(0, left);
+    return { baseName, rank, suffix };
+}
+
 /**
  * Finds the most specific common type from a list of types.
  * Follows the hierarchy: Integer → Real → Complex.

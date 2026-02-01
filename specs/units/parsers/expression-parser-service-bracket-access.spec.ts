@@ -36,14 +36,14 @@ describe('ExpressionParserService (bracket access)', () =>
         expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 20 });
     });
 
-    it('should parse and evaluate structure member access with identifier key', () =>
+    it('should parse and evaluate structure member access with dot operator', () =>
     {
         const members = new Map<string, EduBasicValue>();
         members.set('firstName$', { type: EduBasicType.String, value: 'John' });
 
         context.setVariable('person', { type: EduBasicType.Structure, value: members });
 
-        const exprResult = parser.parseExpression('person[firstName$]');
+        const exprResult = parser.parseExpression('person.firstName$');
         expect(exprResult.success).toBe(true);
         if (!exprResult.success)
         {
@@ -53,7 +53,7 @@ describe('ExpressionParserService (bracket access)', () =>
         expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'John' });
     });
 
-    it('should parse and evaluate structure member access with computed string key', () =>
+    it('should not allow bracket-based structure member access (computed keys)', () =>
     {
         const members = new Map<string, EduBasicValue>();
         members.set('firstName$', { type: EduBasicType.String, value: 'John' });
@@ -68,10 +68,11 @@ describe('ExpressionParserService (bracket access)', () =>
             return;
         }
 
-        expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'John' });
+        expect(() => exprResult.value.evaluate(context))
+            .toThrow("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
     });
 
-    it('should support chained bracket access for nested structures', () =>
+    it('should support chained dot access for nested structures', () =>
     {
         const name = new Map<string, EduBasicValue>();
         name.set('first$', { type: EduBasicType.String, value: 'Ada' });
@@ -81,7 +82,7 @@ describe('ExpressionParserService (bracket access)', () =>
 
         context.setVariable('person', { type: EduBasicType.Structure, value: person });
 
-        const exprResult = parser.parseExpression('person[name][first$]');
+        const exprResult = parser.parseExpression('person.name.first$');
         expect(exprResult.success).toBe(true);
         if (!exprResult.success)
         {

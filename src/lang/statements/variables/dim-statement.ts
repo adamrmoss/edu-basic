@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { ArrayDimension, EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { ArrayDimension, EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
 export type DimDimensionSpec =
     | { type: 'size'; size: Expression }
@@ -121,12 +121,13 @@ export class DimStatement extends Statement
 
     private getElementTypeFromName(arrayName: string): EduBasicType
     {
-        if (!arrayName.endsWith('[]'))
+        const suffix = tryGetArrayRankSuffixFromName(arrayName);
+        if (suffix === null)
         {
             return EduBasicType.Integer;
         }
 
-        const sigil = arrayName.charAt(arrayName.length - 3);
+        const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
         switch (sigil)
         {
             case '%':

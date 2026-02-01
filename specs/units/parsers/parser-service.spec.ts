@@ -107,7 +107,7 @@ describe('ParserService', () =>
             if (!twoD.success) { return; }
             expect(twoD.value.hasError).toBe(false);
 
-            const structMember = parser.parseLine(1, 'LET player[score%] = 100');
+            const structMember = parser.parseLine(1, 'LET player.score% = 100');
             expect(structMember.success).toBe(true);
             if (!structMember.success) { return; }
             expect(structMember.value.hasError).toBe(false);

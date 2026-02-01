@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
 export class ReadFileStatement extends Statement
 {
@@ -35,7 +35,7 @@ export class ReadFileStatement extends Statement
         const handleId = handleValue.value as number;
         const fileSystem = runtime.getFileSystem();
 
-        if (this.variableName.endsWith('[]'))
+        if (tryGetArrayRankSuffixFromName(this.variableName) !== null)
         {
             const arrayValue = context.getVariable(this.variableName);
             if (arrayValue.type !== EduBasicType.Array)
@@ -69,9 +69,10 @@ export class ReadFileStatement extends Statement
 
     private getTypeFromVariableName(variableName: string): EduBasicType
     {
-        if (variableName.endsWith('[]'))
+        const suffix = tryGetArrayRankSuffixFromName(variableName);
+        if (suffix !== null)
         {
-            const sigil = variableName.charAt(variableName.length - 3);
+            const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
             switch (sigil)
             {
                 case '%':

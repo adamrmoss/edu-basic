@@ -13,6 +13,33 @@ describe('ExpressionParser', () =>
         context = new ExecutionContext();
     });
 
+    describe('Postfix operators', () =>
+    {
+        it('should parse and evaluate factorial', () =>
+        {
+            const exprResult = parser.parseExpression('5!');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 120 });
+        });
+
+        it('should apply factorial before binary operators', () =>
+        {
+            const exprResult = parser.parseExpression('3! + 2');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 8 });
+        });
+    });
+
     describe('Literal Parsing', () =>
     {
         describe('Integer Literals', () =>
@@ -223,7 +250,7 @@ describe('ExpressionParser', () =>
     {
         it('should parse and evaluate comma-separated bracket indexing for multi-dimensional arrays', () =>
         {
-            context.setVariable('m#[]', {
+            context.setVariable('m#[,]', {
                 type: EduBasicType.Array,
                 elementType: EduBasicType.Real,
                 value: [
@@ -334,7 +361,7 @@ describe('ExpressionParser', () =>
 
         it('should allow bracket member access on structure literals', () =>
         {
-            const exprResult = parser.parseExpression('{ a%: 1 }[a%]');
+            const exprResult = parser.parseExpression('{ a%: 1 }.a%');
             expect(exprResult.success).toBe(true);
             if (!exprResult.success)
             {
@@ -425,7 +452,7 @@ describe('ExpressionParser', () =>
 
         it('should throw for list-like operations on multi-dimensional arrays', () =>
         {
-            context.setVariable('m#[]', {
+            context.setVariable('m#[,]', {
                 type: EduBasicType.Array,
                 elementType: EduBasicType.Real,
                 value: [
@@ -440,12 +467,12 @@ describe('ExpressionParser', () =>
                 ]
             }, false);
 
-            const concat = parser.parseExpression('m#[] + m#[]');
+            const concat = parser.parseExpression('m#[,] + m#[,]');
             expect(concat.success).toBe(true);
             if (!concat.success) { return; }
             expect(() => concat.value.evaluate(context)).toThrow('Array concatenation is only supported for 1D arrays');
 
-            const slice = parser.parseExpression('m#[1 TO 2]');
+            const slice = parser.parseExpression('m#[,][1 TO 2]');
             expect(slice.success).toBe(true);
             if (!slice.success) { return; }
             expect(() => slice.value.evaluate(context)).toThrow('Array slicing is only supported for 1D arrays');
@@ -1787,7 +1814,7 @@ describe('ExpressionParser', () =>
             expect(result.value).toBeCloseTo(8.0);
         });
 
-        it('should parse bracket access with computed string key (no mandatory parentheses)', () =>
+        it('should not allow bracket access with computed string key on structures', () =>
         {
             context.setVariable('key$', { type: EduBasicType.String, value: 'value' }, false);
             context.setVariable('s', { type: EduBasicType.Structure, value: new Map([['value', { type: EduBasicType.String, value: 'ok' }]]) }, false);
@@ -1799,17 +1826,16 @@ describe('ExpressionParser', () =>
                 return;
             }
 
-            const result = exprResult.value.evaluate(context);
-            expect(result.type).toBe(EduBasicType.String);
-            expect(result.value).toBe('ok');
+            expect(() => exprResult.value.evaluate(context))
+                .toThrow("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
         });
 
-        it('should allow forcing a literal structure key using a string literal', () =>
+        it('should access structure members using dot operator', () =>
         {
             context.setVariable('key$', { type: EduBasicType.String, value: 'value' }, false);
             context.setVariable('s', { type: EduBasicType.Structure, value: new Map([['key$', { type: EduBasicType.String, value: 'ok' }]]) }, false);
 
-            const exprResult = parser.parseExpression('s["key$"]');
+            const exprResult = parser.parseExpression('s.key$');
             expect(exprResult.success).toBe(true);
             if (!exprResult.success)
             {

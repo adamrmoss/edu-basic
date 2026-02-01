@@ -23,11 +23,11 @@ describe('Programs - Student grades (structs)', () =>
             'PASS COUNT (>=70) = 4',
             'HONOR COUNT (>=90) = 2',
             'TOP STUDENT = Bob',
-            'ADA NAME via key$ = Ada',
+            'ADA NAME = Ada',
             'ADA NAME via NAME$ = Ada',
             'ADA MISSING% DEFAULT = 0',
             'ADA STRUCT:',
-            '{ name$: "Ada", scores#: [100, 90, 80, 70], stats: { avg#: 85, min#: 70, max#: 100 } }',
+            '{ name$: "Ada", scores#[]: [100, 90, 80, 70], stats: { avg#: 85, min#: 70, max#: 100 } }',
             'DONE'
         ]);
     });

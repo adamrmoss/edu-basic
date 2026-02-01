@@ -60,33 +60,20 @@ describe('BracketAccessExpression', () =>
         expect(() => expr.evaluate(context)).toThrow('Array index is out of bounds');
     });
 
-    it('reads structure members case-insensitively and returns defaults when missing', () =>
+    it("throws when applying brackets to a structure (use '.' instead)", () =>
     {
         const context = new ExecutionContext();
         const map = new Map<string, EduBasicValue>();
         map.set('Foo$', { type: EduBasicType.String, value: 'bar' });
         context.setVariable('s', { type: EduBasicType.Structure, value: map }, false);
 
-        const existing = new BracketAccessExpression(
+        const expr = new BracketAccessExpression(
             new VariableExpression('s'),
             null,
             'foo$'
         );
-        expect(existing.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'bar' });
-
-        const missingTyped = new BracketAccessExpression(
-            new VariableExpression('s'),
-            null,
-            'missing%'
-        );
-        expect(missingTyped.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 0 });
-
-        const missingUntyped = new BracketAccessExpression(
-            new VariableExpression('s'),
-            null,
-            'missing'
-        );
-        expect(missingUntyped.evaluate(context).type).toBe(EduBasicType.Structure);
+        expect(() => expr.evaluate(context))
+            .toThrow("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
     });
 
     it('uses bracketIdentifier to read the index from a variable', () =>
@@ -165,7 +152,8 @@ describe('BracketAccessExpression', () =>
             null,
             null
         );
-        expect(structExpr.evaluate(context).type).toBe(EduBasicType.Structure);
+        expect(() => structExpr.evaluate(context))
+            .toThrow("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
     });
 
     it('handles non-numeric string and complex indices for arrays', () =>
@@ -194,7 +182,7 @@ describe('BracketAccessExpression', () =>
         expect(complexIndex.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 10 });
     });
 
-    it('returns direct structure members when key matches exactly', () =>
+    it('does not support structure member access via BracketAccessExpression', () =>
     {
         const context = new ExecutionContext();
         const map = new Map<string, EduBasicValue>();
@@ -206,28 +194,22 @@ describe('BracketAccessExpression', () =>
             null,
             'Foo$'
         );
-        expect(existing.evaluate(context)).toEqual({ type: EduBasicType.String, value: 'bar' });
+        expect(() => existing.evaluate(context))
+            .toThrow("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
     });
 
-    it('returns array defaults for missing structure members ending in []', () =>
+    it('does not support structure member access via bracketIdentifier', () =>
     {
         const context = new ExecutionContext();
-        const map = new Map<string, EduBasicValue>();
-        context.setVariable('s', { type: EduBasicType.Structure, value: map }, false);
+        context.setVariable('s', { type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() }, false);
 
         const missing = new BracketAccessExpression(
             new VariableExpression('s'),
             null,
             'missing%[]'
         );
-        const result = missing.evaluate(context);
-        expect(result.type).toBe(EduBasicType.Array);
-        if (result.type !== EduBasicType.Array)
-        {
-            return;
-        }
-        expect(result.elementType).toBe(EduBasicType.Integer);
-        expect(result.value).toEqual([]);
+        expect(() => missing.evaluate(context))
+            .toThrow("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
     });
 
     it('formats toString with empty inside', () =>
@@ -240,44 +222,18 @@ describe('BracketAccessExpression', () =>
         expect(expr.toString()).toBe('a%[][]');
     });
 
-    it('uses bracketExpr values to form structure keys (string/number/complex/type)', () =>
+    it('does not support structure member access via bracketExpr keys', () =>
     {
         const context = new ExecutionContext();
-
-        const map = new Map<string, EduBasicValue>();
-        map.set('2', { type: EduBasicType.Integer, value: 22 });
-        map.set('3.5', { type: EduBasicType.Integer, value: 35 });
-        map.set('1+2i', { type: EduBasicType.Integer, value: 12 });
-        map.set('STRUCTURE', { type: EduBasicType.Integer, value: 99 });
-        context.setVariable('s', { type: EduBasicType.Structure, value: map }, false);
+        context.setVariable('s', { type: EduBasicType.Structure, value: new Map([['2', { type: EduBasicType.Integer, value: 22 }]]) }, false);
 
         const intKey = new BracketAccessExpression(
             new VariableExpression('s'),
             new LiteralExpression({ type: EduBasicType.Integer, value: 2 }),
             null
         );
-        expect(intKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 22 });
-
-        const realKey = new BracketAccessExpression(
-            new VariableExpression('s'),
-            new LiteralExpression({ type: EduBasicType.Real, value: 3.5 }),
-            null
-        );
-        expect(realKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 35 });
-
-        const complexKey = new BracketAccessExpression(
-            new VariableExpression('s'),
-            new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } }),
-            null
-        );
-        expect(complexKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 12 });
-
-        const typeKey = new BracketAccessExpression(
-            new VariableExpression('s'),
-            new LiteralExpression({ type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() }),
-            null
-        );
-        expect(typeKey.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 99 });
+        expect(() => intKey.evaluate(context))
+            .toThrow("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
     });
 
     it('returns default values for array element types ARRAY and STRUCTURE', () =>

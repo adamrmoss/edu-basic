@@ -8,9 +8,11 @@ import {
     ArrayLiteralExpression,
     ArraySliceExpression,
     BracketAccessExpression,
+    FactorialExpression,
     MultiIndexBracketAccessExpression,
     ParenthesizedExpression,
     StructureLiteralExpression,
+    StructureMemberExpression,
     VariableExpression,
 } from '../../lang/expressions/special';
 import { NullaryExpression } from '../../lang/expressions/nullary-expression';
@@ -739,8 +741,31 @@ export class ExpressionParserService
     {
         let expr = baseExpr;
 
-        while (this.match(TokenType.LeftBracket))
+        while (true)
         {
+            if (this.match(TokenType.Exclamation))
+            {
+                expr = new FactorialExpression(expr);
+                continue;
+            }
+
+            if (this.match(TokenType.Dot))
+            {
+                const memberNameResult = this.consume(TokenType.Identifier, 'structure member name');
+                if (!memberNameResult.success)
+                {
+                    return memberNameResult;
+                }
+
+                expr = new StructureMemberExpression(expr, memberNameResult.value.value);
+                continue;
+            }
+
+            if (!this.match(TokenType.LeftBracket))
+            {
+                break;
+            }
+
             if (this.check(TokenType.Identifier))
             {
                 const identifier = this.peek().value;
@@ -756,7 +781,7 @@ export class ExpressionParserService
 
                     // Runtime-polymorphic bracket access:
                     // - Arrays: index via identifier variable value
-                    // - Structures: treat as literal key unless the identifier is a defined variable (computed key)
+                    // - Structures: (no longer supported for member access; use dot operator)
                     expr = new BracketAccessExpression(expr, new VariableExpression(identifier), null);
                     continue;
                 }

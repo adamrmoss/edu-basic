@@ -62,7 +62,7 @@ describe('Special Expressions', () => {
             'firstName$'
         );
 
-        expect(expr.toString()).toBe('person[firstName$]');
+        expect(expr.toString()).toBe('person.firstName$');
     });
 
     it('StructureMemberExpression.evaluate should return member value', () => {

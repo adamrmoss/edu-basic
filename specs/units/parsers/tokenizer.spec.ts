@@ -230,6 +230,28 @@ describe('Tokenizer', () =>
             expect(tokens[1].value).toBe('names$[]');
         });
 
+        it('should tokenize array identifiers with rank suffixes', () =>
+        {
+            const tokens = tokenizer.tokenize('matrix#[,] cube%[,,]');
+
+            expect(tokens[0].type).toBe(TokenType.Identifier);
+            expect(tokens[0].value).toBe('matrix#[,]');
+            expect(tokens[1].type).toBe(TokenType.Identifier);
+            expect(tokens[1].value).toBe('cube%[,,]');
+        });
+
+        it('should tokenize dot operator for structure member access', () =>
+        {
+            const tokens = tokenizer.tokenize('x.name$');
+
+            expect(tokens[0].type).toBe(TokenType.Identifier);
+            expect(tokens[0].value).toBe('x');
+            expect(tokens[1].type).toBe(TokenType.Dot);
+            expect(tokens[1].value).toBe('.');
+            expect(tokens[2].type).toBe(TokenType.Identifier);
+            expect(tokens[2].value).toBe('name$');
+        });
+
         it('should tokenize structure identifiers', () =>
         {
             const tokens = tokenizer.tokenize('player point config');

@@ -420,13 +420,14 @@ Structure literals are written using curly braces with comma-separated key-value
 
 **Rules:**
 - Structure literals use curly braces `{ }`
-- Members are specified as `key: value` pairs
+- Members are specified as `name: value` pairs
 - Pairs are separated by commas
-- Keys are member names (without type sigils in the literal)
+- Member names are identifiers (not strings)
+- Member names may include an optional type sigil (`%`, `#`, `$`, `&`)
+- Member names may include array brackets as part of the name (e.g. `scores%[]`, `matrix#[,]`)
 - Values can be any data type (Integer, Real, Complex, String, Array, Structure)
 - Empty structure literal `{ }` creates a structure with no members
 - Structure literals can contain nested structures and arrays
-- Member names in literals do not use type sigils (the type sigil is part of the member name when accessing)
 
 **Examples:**
 ```
@@ -603,24 +604,24 @@ Structures can be created in two ways:
 LET player = { name$: "Alice", score%: 100, level%: 5 }
 ```
 
-**2. By assigning values to members individually using associative array syntax:**
+**2. By assigning values to members individually using dot member access:**
 
 ```
-LET player[name$] = "Alice"
-LET player[score%] = 100
-LET player[level%] = 5
+LET player.name$ = "Alice"
+LET player.score% = 100
+LET player.level% = 5
 ```
 
 Both methods are equivalent. Structure literals are more concise for creating structures with multiple members, while individual assignment is useful for updating specific members or building structures incrementally.
 
 #### Member Access
 
-Structure members are accessed using associative array syntax:
+Structure members are accessed using the dot operator:
 
 ```
-PRINT player[name$]    ' Prints: Alice
-LET player[score%] += 10
-IF player[level%] > 10 THEN PRINT "Advanced player"
+PRINT player.name$    ' Prints: Alice
+LET player.score% += 10
+IF player.level% > 10 THEN PRINT "Advanced player"
 ```
 
 #### Structure Examples
@@ -633,8 +634,8 @@ LET point = { x%: 100, y%: 200 }
 LET person = { firstName$: "John", lastName$: "Doe", age%: 30, email$: "john@example.com" }
 
 ' Access structure members
-PRINT person[firstName$], " ", person[lastName$]
-LET person[age%] += 1
+PRINT person.firstName$, " ", person.lastName$
+LET person.age% += 1
 
 ' Structures can contain any data type
 LET config = { width%: 640, height%: 480, title$: "My Game", fullscreen%: FALSE% }
@@ -655,12 +656,12 @@ LET person = { name: { first$: "John", last$: "Doe" }, address: { street$: "123 
 LET game = { player: { name$: "Hero", stats: { hp%: 100, mp%: 50 }, items$[]: ["sword", "shield"] }, enemies%[]: [10, 15, 20] }
 
 ' Access nested structure members
-PRINT person[name][first$], " ", person[name][last$]
-PRINT person[address][street$]
+PRINT person.name.first$, " ", person.name.last$
+PRINT person.address.street$
 
 ' Access array members within structures
-PRINT player[scores%][1]    ' First score
-LET player[scores%][2] = 98  ' Update second score
+PRINT player.scores%[1]    ' First score
+LET player.scores%[2] = 98  ' Update second score
 ```
 
 #### Structure Comparison
@@ -694,6 +695,8 @@ IF point1 = point3 THEN PRINT "Equal"    ' FALSE% (y values differ)
 Arrays are **one-based by default** (index 1 is the first element). Arrays in EduBASIC are backed by JavaScript arrays, providing full expressiveness while maintaining BASIC syntax.
 
 **Important:** When referring to an entire array (not a single element), you must use the `[]` syntax. For example, `numbers%[]` refers to the entire array, while `numbers%` (without `[]`) would refer to a scalar variable. This distinction is required because `numbers%` could be either a scalar or an array name, so `[]` is necessary to unambiguously refer to the entire array.
+
+**Multi-dimensional arrays:** When referring to an entire multi-dimensional array (not a single element), use an array rank suffix that matches the number of dimensions: `matrix#[,]` for 2D, `cube%[,,]` for 3D, etc.
 
 #### Array Creation
 
@@ -6784,7 +6787,8 @@ All nullary operators use type sigils to indicate their return type.
 | Operator     | Description                        | Example                    | Returns |
 |--------------|------------------------------------|----------------------------|---------|
 | `( )`        | Grouping (override precedence)     | `(2 + 3) * 4`              | Varies  |
-| `[ ]`        | Array subscript / structure member | `arr%[5]` or `obj[member$]`| Varies  |
+| `.`          | Structure member access            | `obj.member$`              | Varies  |
+| `[ ]`        | Array subscript                    | `arr%[5]`                  | Varies  |
 | `[1 TO 5]`   | Array slicing                      | `arr%[1 TO 5]`             | Array   |
 | `[...]`      | Array slice to end                 | `arr%[5 TO ...]`           | Array   |
 | `[ ]`        | Empty array literal                | `[ ]`                      | Array   |

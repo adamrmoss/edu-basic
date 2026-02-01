@@ -5,11 +5,10 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType, EduBasicValue, coerceValue } from '../../edu-basic-value';
-import { VariableExpression } from '../../expressions/special';
+import { EduBasicType, EduBasicValue, coerceValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
 export type LetBracketSegment =
-    | { type: 'accessor'; identifier: string }
+    | { type: 'member'; memberName: string }
     | { type: 'indices'; indices: Expression[] };
 
 export class LetBracketStatement extends Statement
@@ -63,8 +62,8 @@ export class LetBracketStatement extends Statement
         {
             switch (s.type)
             {
-                case 'accessor':
-                    return `[${s.identifier}]`;
+                case 'member':
+                    return `.${s.memberName}`;
                 case 'indices':
                     return `[${s.indices.map(x => x.toString()).join(', ')}]`;
             }
@@ -77,7 +76,7 @@ export class LetBracketStatement extends Statement
     {
         const baseName = this.baseIdentifier;
 
-        if (baseName.endsWith('[]'))
+        if (tryGetArrayRankSuffixFromName(baseName) !== null)
         {
             const rootValue = context.getVariable(baseName);
             return { rootName: baseName, rootValue };
@@ -88,7 +87,18 @@ export class LetBracketStatement extends Statement
 
         if (isTypedArrayBase)
         {
-            const rootName = `${baseName}[]`;
+            let rootName = `${baseName}[]`;
+
+            if (this.segments.length > 0)
+            {
+                const first = this.segments[0];
+                if (first.type === 'indices')
+                {
+                    const rankSuffix = `[${','.repeat(Math.max(0, first.indices.length - 1))}]`;
+                    rootName = `${baseName}${rankSuffix}`;
+                }
+            }
+
             const rootValue = context.getVariable(rootName);
             return { rootName, rootValue };
         }
@@ -106,8 +116,8 @@ export class LetBracketStatement extends Statement
     {
         switch (segment.type)
         {
-            case 'accessor':
-                return this.resolveAccessorForTraversal(context, current, segment.identifier, next);
+            case 'member':
+                return this.resolveMemberForTraversal(context, current, segment.memberName, next);
             case 'indices':
                 return this.resolveIndicesForTraversal(context, current, segment.indices, next);
         }
@@ -117,8 +127,8 @@ export class LetBracketStatement extends Statement
     {
         switch (segment.type)
         {
-            case 'accessor':
-                this.assignAtAccessor(context, current, segment.identifier, value);
+            case 'member':
+                this.assignAtMember(context, current, segment.memberName, value);
                 return;
             case 'indices':
                 this.assignAtIndices(context, current, segment.indices, value);
@@ -126,67 +136,35 @@ export class LetBracketStatement extends Statement
         }
     }
 
-    private resolveAccessorForTraversal(
+    private resolveMemberForTraversal(
         context: ExecutionContext,
         current: EduBasicValue,
-        identifier: string,
+        memberName: string,
         next: LetBracketSegment
     ): EduBasicValue
     {
         if (current.type === EduBasicType.Structure)
         {
-            if (context.hasVariable(identifier))
-            {
-                const maybeKey = context.getVariable(identifier);
-                if (maybeKey.type === EduBasicType.String)
-                {
-                    const key = this.getStructureKeyForExpression(context, new VariableExpression(identifier));
-                    return this.getOrCreateStructureMemberByKey(context, current, key, next);
-                }
-            }
-
-            return this.getOrCreateStructureMember(context, current, identifier, next);
+            return this.getOrCreateStructureMember(context, current, memberName, next);
         }
-
-        if (current.type === EduBasicType.Array)
-        {
-            return this.getArrayElementValue(context, current, [new VariableExpression(identifier)]);
-        }
-
-        throw new Error('LET: bracket access requires a structure or array');
+        
+        throw new Error('LET: member access requires a structure');
     }
 
-    private assignAtAccessor(
+    private assignAtMember(
         context: ExecutionContext,
         current: EduBasicValue,
-        identifier: string,
+        memberName: string,
         value: EduBasicValue
     ): void
     {
         if (current.type === EduBasicType.Structure)
         {
-            if (context.hasVariable(identifier))
-            {
-                const maybeKey = context.getVariable(identifier);
-                if (maybeKey.type === EduBasicType.String)
-                {
-                    const key = this.getStructureKeyForExpression(context, new VariableExpression(identifier));
-                    this.setStructureMemberByKey(current, key, value);
-                    return;
-                }
-            }
-
-            this.setStructureMember(current, identifier, value);
+            this.setStructureMember(current, memberName, value);
             return;
         }
-
-        if (current.type === EduBasicType.Array)
-        {
-            this.setArrayElementValue(context, current, [new VariableExpression(identifier)], value);
-            return;
-        }
-
-        throw new Error('LET: bracket assignment requires a structure or array');
+        
+        throw new Error('LET: member assignment requires a structure');
     }
 
     private resolveIndicesForTraversal(
@@ -200,19 +178,8 @@ export class LetBracketStatement extends Statement
         {
             return this.getArrayElementValue(context, current, indices);
         }
-
-        if (current.type === EduBasicType.Structure)
-        {
-            if (indices.length !== 1)
-            {
-                throw new Error('LET: structure member access requires a single key expression');
-            }
-
-            const key = this.getStructureKeyForExpression(context, indices[0]);
-            return this.getOrCreateStructureMemberByKey(context, current, key, next);
-        }
-
-        throw new Error('LET: bracket access requires a structure or array');
+        
+        throw new Error("LET: bracket access requires an array (use '.' for structure members)");
     }
 
     private assignAtIndices(
@@ -227,104 +194,8 @@ export class LetBracketStatement extends Statement
             this.setArrayElementValue(context, current, indices, value);
             return;
         }
-
-        if (current.type === EduBasicType.Structure)
-        {
-            if (indices.length !== 1)
-            {
-                throw new Error('LET: structure member assignment requires a single key expression');
-            }
-
-            const key = this.getStructureKeyForExpression(context, indices[0]);
-            this.setStructureMemberByKey(current, key, value);
-            return;
-        }
-
-        throw new Error('LET: bracket assignment requires a structure or array');
-    }
-
-    private getStructureKeyForExpression(context: ExecutionContext, expr: Expression): string
-    {
-        if (expr instanceof VariableExpression)
-        {
-            const name = expr.name;
-
-            if (!context.hasVariable(name))
-            {
-                return name;
-            }
-
-            const maybeKey = context.getVariable(name);
-            if (maybeKey.type !== EduBasicType.String)
-            {
-                return name;
-            }
-        }
-
-        const value = expr.evaluate(context);
-
-        if (value.type === EduBasicType.String)
-        {
-            return value.value;
-        }
-
-        if (value.type === EduBasicType.Integer || value.type === EduBasicType.Real)
-        {
-            return String(value.value);
-        }
-
-        if (value.type === EduBasicType.Complex)
-        {
-            return `${value.value.real}+${value.value.imaginary}i`;
-        }
-
-        return value.type;
-    }
-
-    private getOrCreateStructureMemberByKey(
-        context: ExecutionContext,
-        current: EduBasicValue,
-        key: string,
-        next: LetBracketSegment
-    ): EduBasicValue
-    {
-        if (current.type !== EduBasicType.Structure)
-        {
-            throw new Error('LET: structure member access requires a structure');
-        }
-
-        const map = current.value;
-        const existing = map.get(key);
-        if (existing)
-        {
-            return existing;
-        }
-
-        let created: EduBasicValue;
-
-        if (next.type === 'indices')
-        {
-            const elementType = this.getTypedElementTypeFromName(key);
-            created = { type: EduBasicType.Array, value: [], elementType };
-        }
-        else
-        {
-            created = this.getDefaultValueForName(key);
-        }
-
-        map.set(key, created);
-        return created;
-    }
-
-    private setStructureMemberByKey(current: EduBasicValue, key: string, value: EduBasicValue): void
-    {
-        if (current.type !== EduBasicType.Structure)
-        {
-            throw new Error('LET: structure member assignment requires a structure');
-        }
-
-        const coerced = this.coerceToName(value, key);
-        current.value.set(key, coerced);
+        
+        throw new Error("LET: bracket assignment requires an array (use '.' for structure members)");
     }
 
     private getOrCreateStructureMember(
@@ -340,17 +211,36 @@ export class LetBracketStatement extends Statement
         }
 
         const map = current.value;
-        const existing = map.get(memberName);
-        if (existing)
+        const memberSuffix = tryGetArrayRankSuffixFromName(memberName);
+        const baseMemberName = memberSuffix ? memberSuffix.baseName : memberName;
+
+        let keyName = memberName;
+        if (next.type === 'indices' && memberSuffix === null)
         {
-            return existing;
+            const rankSuffix = `[${','.repeat(Math.max(0, next.indices.length - 1))}]`;
+            keyName = `${memberName}${rankSuffix}`;
+        }
+
+        const direct = map.get(keyName);
+        if (direct)
+        {
+            return direct;
+        }
+
+        const upperKeyName = keyName.toUpperCase();
+        for (const [k, v] of map.entries())
+        {
+            if (k.toUpperCase() === upperKeyName)
+            {
+                return v;
+            }
         }
 
         let created: EduBasicValue;
 
         if (next.type === 'indices')
         {
-            const elementType = this.getTypedElementTypeFromName(memberName);
+            const elementType = this.getTypedElementTypeFromName(baseMemberName);
             created = { type: EduBasicType.Array, value: [], elementType };
         }
         else
@@ -358,7 +248,7 @@ export class LetBracketStatement extends Statement
             created = this.getDefaultValueForName(memberName);
         }
 
-        map.set(memberName, created);
+        map.set(keyName, created);
         return created;
     }
 
@@ -603,9 +493,10 @@ export class LetBracketStatement extends Statement
 
     private getDefaultValueForName(name: string): EduBasicValue
     {
-        if (name.endsWith('[]'))
+        const suffix = tryGetArrayRankSuffixFromName(name);
+        if (suffix !== null)
         {
-            const sigil = name.charAt(name.length - 3);
+            const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
             switch (sigil)
             {
                 case '%':

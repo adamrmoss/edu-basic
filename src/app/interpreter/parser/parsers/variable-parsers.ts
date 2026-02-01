@@ -23,50 +23,47 @@ export class VariableParsers
 
         const segments: LetBracketSegment[] = [];
 
-        while (context.match(TokenType.LeftBracket))
+        while (!context.isAtEnd())
         {
-            if (!context.isAtEnd() &&
-                context.peek().type === TokenType.Identifier)
+            if (context.match(TokenType.Dot))
             {
-                const identifier = context.peek().value;
-                const nextIndex = context.current.value + 1;
-
-                if (nextIndex < context.tokens.length &&
-                    context.tokens[nextIndex].type === TokenType.RightBracket)
+                const memberNameTokenResult = context.consume(TokenType.Identifier, 'member name');
+                if (!memberNameTokenResult.success)
                 {
-                    context.advance();
-                    const rightBracketResult = context.consume(TokenType.RightBracket, ']');
-                    if (!rightBracketResult.success)
+                    return memberNameTokenResult;
+                }
+
+                segments.push({ type: 'member', memberName: memberNameTokenResult.value.value });
+                continue;
+            }
+
+            if (context.match(TokenType.LeftBracket))
+            {
+                const indices: Expression[] = [];
+
+                do
+                {
+                    const exprResult = context.parseExpression();
+                    if (!exprResult.success)
                     {
-                        return rightBracketResult;
+                        return exprResult;
                     }
 
-                    segments.push({ type: 'accessor', identifier });
-                    continue;
+                    indices.push(exprResult.value);
                 }
-            }
+                while (context.match(TokenType.Comma));
 
-            const indices: Expression[] = [];
-
-            do
-            {
-                const exprResult = context.parseExpression();
-                if (!exprResult.success)
+                const rightBracketResult = context.consume(TokenType.RightBracket, ']');
+                if (!rightBracketResult.success)
                 {
-                    return exprResult;
+                    return rightBracketResult;
                 }
 
-                indices.push(exprResult.value);
-            }
-            while (context.match(TokenType.Comma));
-
-            const rightBracketResult = context.consume(TokenType.RightBracket, ']');
-            if (!rightBracketResult.success)
-            {
-                return rightBracketResult;
+                segments.push({ type: 'indices', indices });
+                continue;
             }
 
-            segments.push({ type: 'indices', indices });
+            break;
         }
 
         const equalResult = context.consume(TokenType.Equal, '=');
@@ -169,7 +166,8 @@ export class VariableParsers
             return rightBracketResult;
         }
         
-        const arrayName = varNameTokenResult.value.value + '[]';
+        const rankSuffix = `[${','.repeat(Math.max(0, dimensions.length - 1))}]`;
+        const arrayName = varNameTokenResult.value.value + rankSuffix;
         
         return success(new DimStatement(arrayName, dimensions));
     }
