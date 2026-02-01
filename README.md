@@ -30,6 +30,13 @@ Education-focused BASIC dialect that runs in web browser.
 
 EduBASIC is an Angular-based web application that provides a BASIC programming environment designed for educational purposes. The application runs entirely in the browser, making it accessible and easy to use for learning programming fundamentals.
 
+## How parsing works (high level)
+
+EduBASIC has two related parsers:
+
+- **Statement parsing** (BASIC lines): tokenizes a line and dispatches to a statement-specific parser to produce a `Statement`.
+- **Expression parsing** (expressions inside statements and console input): parses operators with a fixed precedence ladder to produce an `Expression`.
+
 **Documentation:**
 
 **User Documentation:**
@@ -38,6 +45,7 @@ EduBASIC is an Angular-based web application that provides a BASIC programming e
 
 **System Architecture Documentation:**
 - [Architecture Overview](docs/architecture.md) - High-level system architecture and design principles
+- [Refactor Seams](docs/refactor-seams.md) - Notes for refactoring and cohesion improvements
 - [Source Code Documentation](src/README.md) - Complete index of all in-source documentation
   - [Application Components](src/app/README.md) - All Angular UI components and their functionality
   - [Interpreter Services](src/app/interpreter/README.md) - Interpreter, parser, tokenizer, and expression parser services
@@ -46,6 +54,34 @@ EduBASIC is an Angular-based web application that provides a BASIC programming e
   - [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
   - [Statements System](src/lang/statements/README.md) - All statement types and their execution
   - Audio: `Audio` class in [Language Core](src/lang/README.md) uses webaudio-tinysynth (General MIDI)
+
+## Operator precedence (expressions)
+
+The authoritative implementation is `src/app/interpreter/expression-parser.service.ts`.
+From **lowest → highest precedence**:
+
+- **IMP**
+- **XOR / XNOR**
+- **OR / NOR**
+- **AND / NAND**
+- **NOT** (prefix)
+- **Comparison**: `=`, `<>`, `<`, `<=`, `>`, `>=`
+- **String operators** (left-associative): `LEFT`, `RIGHT`, `MID ... TO ...`, `INSTR ... [FROM ...]`, `REPLACE ... WITH ...`, `JOIN`, `STARTSWITH`, `ENDSWITH`
+- **Array search operators** (left-associative): `FIND`, `INDEXOF`, `INCLUDES`
+- **Add/Sub**: `+`, `-`
+- **Mul/Div/Modulo**: `*`, `/`, `MOD`
+- **Unary + / -** (prefix)
+- **Exponentiation**: `^`, `**` (right-associative)
+- **Postfix / accessors**:
+  - `!` (factorial)
+  - `.member` (structure member access)
+  - `[index]` / `[i, j, ...]` / `[start TO end]` (array access, multi-index access, slice)
+  - `DEG` / `RAD` (angle conversion postfix operators)
+  - `| expr |` (absolute-value / length operator) is parsed as a primary form
+
+Notes:
+- This list is intentionally “what the parser does”, not “what the language spec might want”.
+- `DEG` converts degrees → radians, and `RAD` converts radians → degrees.
 
 ## Tech Stack
 

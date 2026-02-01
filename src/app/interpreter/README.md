@@ -77,9 +77,43 @@ ParserService.parseLine()
 Statement Object
 ```
 
+**How statement parsing actually works (step-by-step)**:
+
+- `ParserService.parseLine(lineNumber, sourceText)` trims the line and short-circuits for:
+  - empty lines
+  - comment lines starting with `'`
+  In those cases it returns an `UnparsableStatement` with `hasError: false` (used as a “non-executable line” placeholder).
+- Otherwise it tokenizes the trimmed line using `Tokenizer.tokenize(...)` and creates a `ParserContext` over:
+  - `tokens: Token[]`
+  - `current: { value: number }` (shared mutable cursor)
+  - `expressionParser: ExpressionParserService` (used for sub-expressions)
+- The first token must be a keyword. `ParserService` uses that keyword to look up a statement parse method via `getStatementParser(keyword)` (from `parser/statement-dispatch.ts`).
+- The chosen parser method consumes the rest of the tokens using `ParserContext` helpers:
+  - `consume(...)` / `consumeKeyword(...)` for mandatory tokens/keywords
+  - `match(...)` / `matchKeyword(...)` for optional tokens/keywords
+  - `parseExpression()` for “parse an expression here”
+- If the dispatch lookup fails, parsing fails with `Unknown keyword: ...`.
+
 **Parser structure**:
 - **keywords.ts** – Single source of truth for all language keywords. Keywords are grouped into small arrays (variable, controlFlow, io, graphics, fileIo, audio, array, etc.); `Keywords.all` is built from those via set union. Also provides `statementStart`, `expressionTerminator`, and helpers `isKeyword()`, `isStatementStartKeyword()`, `isExpressionTerminatorKeyword()`.
 - **parser/statement-dispatch.ts** – Map from statement-start keyword to parser parse method. Adding a new statement type requires adding the keyword to `Keywords` (if new) and one entry in the dispatch table.
+
+**Expression parsing inside statements (`ParserContext.parseExpression()`)**:
+
+Statement parsers do not directly call `ExpressionParserService` on the full remaining token stream. Instead:
+
+- `ParserContext.parseExpression()` delegates to `ExpressionHelpers.parseExpression(...)`.
+- `ExpressionHelpers.parseExpression(...)`:
+  - collects a *slice* of the token stream into `exprTokens` until it hits a stop condition, while tracking nesting depth for `()`, `[]`, and `{}`.
+  - stop conditions include:
+    - `,` / `;`
+    - closing delimiters `)` / `]` / `}`
+    - any keyword in `Keywords.expressionTerminator` (e.g. `THEN`, `TO`, `WITH`, etc.)
+  - converts `exprTokens` back into a string (`exprSource`)
+  - then calls `ExpressionParserService.parseExpression(exprSource)`
+
+This “token slice → string → re-tokenize → parse” approach is convenient and keeps statement parsers simple, but it’s a key source of complexity: the correctness of many statement grammars depends on choosing the right expression terminators.
+
 
 **Statement Types Parsed**:
 - Control flow: IF, FOR, WHILE, DO, GOTO, etc.
@@ -153,7 +187,7 @@ interface Token {
 
 **Notes**:
 - The expression parser supports postfix operators (e.g. factorial `!`, angle conversion `DEG`/`RAD`) via a dedicated postfix parse phase.
-- Expression operator exports are consumed via the top-level barrel `src/lang/expressions/operators.ts` (import path `@/lang/expressions/operators`).
+- Expression operator exports are consumed via the barrel `@/lang/expressions/operators`.
 
 **Parsing Methods**:
 - `expression()` - Entry point

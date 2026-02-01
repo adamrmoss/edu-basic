@@ -63,8 +63,8 @@ Handles all unary operators and single-argument operators.
 Handles non-arithmetic infix operators and multi-keyword operator forms that are defined by the language reference.
 
 **Exports**:
-- Importing `from '@/lang/expressions/operators'` resolves to the file `src/lang/expressions/operators.ts` (the top-level barrel).
-- The directory `src/lang/expressions/operators/` also has its own `index.ts`, but it is not what consumers get from the path `.../expressions/operators`.
+- Import operator expressions from `@/lang/expressions/operators`.
+- The `src/lang/expressions/operators/` directory contains the individual operator expression implementations, and its `index.ts` is the barrel.
 
 **Examples**:
 - **Array search operators**: `array[] FIND value`, `array[] INDEXOF value`, `array[] INCLUDES value`
