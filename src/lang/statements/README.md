@@ -7,7 +7,8 @@ This document describes all statement types and their execution.
 All statements extend the abstract `Statement` class:
 
 ```typescript
-abstract class Statement extends RuntimeNode {
+abstract class Statement extends RuntimeNode
+{
     indentLevel: number = 0;
     
     abstract execute(
@@ -18,7 +19,8 @@ abstract class Statement extends RuntimeNode {
         runtime: RuntimeExecution
     ): ExecutionStatus;
     
-    getIndentAdjustment(): number {
+    getIndentAdjustment(): number
+    {
         return 0;
     }
 }

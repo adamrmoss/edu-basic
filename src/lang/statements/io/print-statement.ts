@@ -51,7 +51,7 @@ export class PrintStatement extends Statement
 
         if (this.expressions.length > 0)
         {
-            result += ' ' + this.expressions.map(expr => expr.toString(true)).join(', ');
+            result += ' ' + this.expressions.map(expr => expr.toString()).join(', ');
         }
 
         if (!this.newline)

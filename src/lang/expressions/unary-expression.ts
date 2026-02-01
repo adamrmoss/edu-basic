@@ -201,7 +201,7 @@ export class UnaryExpression extends Expression
         throw new Error(`Cannot convert ${value.type} to number`);
     }
 
-    public toString(omitOuterParens: boolean = false): string
+    public toString(omitOuterParens: boolean = true): string
     {
         if (this.category === UnaryOperatorCategory.Prefix)
         {

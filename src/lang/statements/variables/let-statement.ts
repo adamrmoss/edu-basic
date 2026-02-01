@@ -117,6 +117,6 @@ export class LetStatement extends Statement
 
     public override toString(): string
     {
-        return `LET ${this.variableName} = ${this.value.toString(true)}`;
+        return `LET ${this.variableName} = ${this.value.toString()}`;
     }
 }

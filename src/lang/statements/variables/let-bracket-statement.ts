@@ -69,7 +69,7 @@ export class LetBracketStatement extends Statement
             }
         }).join('');
 
-        return `LET ${this.baseIdentifier}${segs} = ${this.value.toString(true)}`;
+        return `LET ${this.baseIdentifier}${segs} = ${this.value.toString()}`;
     }
 
     private getRootBinding(context: ExecutionContext): { rootName: string; rootValue: EduBasicValue }

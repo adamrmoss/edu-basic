@@ -3,6 +3,7 @@ import { VariableExpression } from '@/lang/expressions/special/variable-expressi
 import { ParenthesizedExpression } from '@/lang/expressions/special/parenthesized-expression';
 import { ExecutionContext } from '@/lang/execution-context';
 import { EduBasicType, coerceArrayElements } from '@/lang/edu-basic-value';
+import { ArrayLiteralExpression } from '@/lang/expressions/special';
 
 describe('Literal and Special Expressions', () =>
 {
@@ -269,6 +270,164 @@ describe('Literal and Special Expressions', () =>
                 expect(result.value[1].type).toBe(EduBasicType.String);
                 expect(result.value[1].value).toBe('world');
             }
+        });
+    });
+
+    describe('ArrayLiteralExpression', () =>
+    {
+        it('creates a 1D numeric array and coerces element type', () =>
+        {
+            const expr = new ArrayLiteralExpression([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                new LiteralExpression({ type: EduBasicType.Real, value: 2.5 })
+            ]);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Array);
+            if (result.type !== EduBasicType.Array)
+            {
+                throw new Error('Expected array');
+            }
+
+            expect(result.elementType).toBe(EduBasicType.Real);
+            expect(result.value).toHaveLength(2);
+            expect(result.value[0]).toEqual({ type: EduBasicType.Real, value: 1 });
+            expect(result.value[1]).toEqual({ type: EduBasicType.Real, value: 2.5 });
+        });
+
+        it('creates a 2D array from nested 1D arrays', () =>
+        {
+            const row1 = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Integer, value: 2 }
+            ]);
+            const row2 = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 3 },
+                { type: EduBasicType.Integer, value: 4 }
+            ]);
+
+            const expr = new ArrayLiteralExpression([
+                new LiteralExpression(row1),
+                new LiteralExpression(row2)
+            ]);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Array);
+            if (result.type !== EduBasicType.Array)
+            {
+                throw new Error('Expected array');
+            }
+
+            expect(result.elementType).toBe(EduBasicType.Integer);
+            expect(result.dimensions?.length).toBe(2);
+            expect(result.dimensions?.[0].lower).toBe(1);
+            expect(result.dimensions?.[0].length).toBe(2);
+            expect(result.dimensions?.[0].stride).toBe(2);
+            expect(result.dimensions?.[1].lower).toBe(1);
+            expect(result.dimensions?.[1].length).toBe(2);
+            expect(result.dimensions?.[1].stride).toBe(1);
+
+            expect(result.value).toHaveLength(4);
+            expect(result.value[0]).toEqual({ type: EduBasicType.Integer, value: 1 });
+            expect(result.value[1]).toEqual({ type: EduBasicType.Integer, value: 2 });
+            expect(result.value[2]).toEqual({ type: EduBasicType.Integer, value: 3 });
+            expect(result.value[3]).toEqual({ type: EduBasicType.Integer, value: 4 });
+        });
+
+        it('throws when mixing arrays and scalars', () =>
+        {
+            const row1 = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 }
+            ]);
+
+            const expr = new ArrayLiteralExpression([
+                new LiteralExpression(row1),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 2 })
+            ]);
+
+            expect(() => expr.evaluate(context)).toThrow('Jagged arrays are not supported');
+        });
+
+        it('throws when a 2D array mixes strings with other types', () =>
+        {
+            const row1 = coerceArrayElements([
+                { type: EduBasicType.String, value: 'a' },
+                { type: EduBasicType.String, value: 'b' }
+            ]);
+            const row2 = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Integer, value: 2 }
+            ]);
+
+            const expr = new ArrayLiteralExpression([
+                new LiteralExpression(row1),
+                new LiteralExpression(row2)
+            ]);
+
+            expect(() => expr.evaluate(context)).toThrow('Array literal cannot mix strings with other types');
+        });
+
+        it('creates a 2D structure array and preserves element type', () =>
+        {
+            const row1 = coerceArrayElements([
+                { type: EduBasicType.Structure, value: new Map([['x%', { type: EduBasicType.Integer, value: 1 }]]) },
+                { type: EduBasicType.Structure, value: new Map() }
+            ]);
+            const row2 = coerceArrayElements([
+                { type: EduBasicType.Structure, value: new Map([['x%', { type: EduBasicType.Integer, value: 2 }]]) },
+                { type: EduBasicType.Structure, value: new Map() }
+            ]);
+
+            const expr = new ArrayLiteralExpression([
+                new LiteralExpression(row1),
+                new LiteralExpression(row2)
+            ]);
+
+            const result = expr.evaluate(context);
+
+            expect(result.type).toBe(EduBasicType.Array);
+            if (result.type !== EduBasicType.Array)
+            {
+                throw new Error('Expected array');
+            }
+
+            expect(result.elementType).toBe(EduBasicType.Structure);
+            expect(result.dimensions?.length).toBe(2);
+            expect(result.value).toHaveLength(4);
+            expect(result.value[0].type).toBe(EduBasicType.Structure);
+        });
+
+        it('throws when a 2D array mixes structures with other types', () =>
+        {
+            const row1 = coerceArrayElements([
+                { type: EduBasicType.Structure, value: new Map() },
+                { type: EduBasicType.Structure, value: new Map() }
+            ]);
+            const row2 = coerceArrayElements([
+                { type: EduBasicType.Integer, value: 1 },
+                { type: EduBasicType.Integer, value: 2 }
+            ]);
+
+            const expr = new ArrayLiteralExpression([
+                new LiteralExpression(row1),
+                new LiteralExpression(row2)
+            ]);
+
+            expect(() => expr.evaluate(context)).toThrow('Array literal cannot mix structures with other types');
+        });
+
+        it('formats toString for empty and non-empty arrays', () =>
+        {
+            const empty = new ArrayLiteralExpression([]);
+            expect(empty.toString()).toBe('[ ]');
+
+            const nonEmpty = new ArrayLiteralExpression([
+                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
+                new LiteralExpression({ type: EduBasicType.Integer, value: 2 })
+            ]);
+            expect(nonEmpty.toString()).toBe('[1, 2]');
         });
     });
 

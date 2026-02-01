@@ -38,7 +38,7 @@ export class StructureLiteralExpression extends Expression
 
         for (const member of this.members)
         {
-            parts.push(`${member.name}: ${member.value.toString(true)}`);
+            parts.push(`${member.name}: ${member.value.toString()}`);
         }
 
         return `{ ${parts.join(', ')} }`;
