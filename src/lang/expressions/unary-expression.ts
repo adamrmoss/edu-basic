@@ -6,6 +6,9 @@ import { ComplexFunctionEvaluator } from './helpers/complex-function-evaluator';
 import { StringFunctionEvaluator } from './helpers/string-function-evaluator';
 import { TypeConversionEvaluator } from './helpers/type-conversion-evaluator';
 
+/**
+ * Unary operators supported by the expression runtime.
+ */
 export enum UnaryOperator
 {
     // Prefix operators
@@ -71,6 +74,9 @@ export enum UnaryOperator
     Notes = 'NOTES',
 }
 
+/**
+ * Category discriminator for unary operators.
+ */
 export enum UnaryOperatorCategory
 {
     Prefix,
@@ -81,6 +87,9 @@ export enum UnaryOperatorCategory
     Audio,
 }
 
+/**
+ * Expression node representing the application of a unary operator to an operand.
+ */
 export class UnaryExpression extends Expression
 {
     private readonly mathEvaluator = new MathematicalFunctionEvaluator();
@@ -88,15 +97,42 @@ export class UnaryExpression extends Expression
     private readonly stringEvaluator = new StringFunctionEvaluator();
     private readonly typeConversionEvaluator = new TypeConversionEvaluator();
 
-    public constructor(
-        public readonly operator: UnaryOperator,
-        public readonly operand: Expression,
-        public readonly category: UnaryOperatorCategory
-    )
+    /**
+     * Unary operator applied by this node.
+     */
+    public readonly operator: UnaryOperator;
+
+    /**
+     * Operand expression.
+     */
+    public readonly operand: Expression;
+
+    /**
+     * Operator category used to select the evaluation strategy.
+     */
+    public readonly category: UnaryOperatorCategory;
+
+    /**
+     * Create a new unary expression node.
+     *
+     * @param operator Operator to apply.
+     * @param operand Operand expression.
+     * @param category Operator category.
+     */
+    public constructor(operator: UnaryOperator, operand: Expression, category: UnaryOperatorCategory)
     {
         super();
+        this.operator = operator;
+        this.operand = operand;
+        this.category = category;
     }
 
+    /**
+     * Evaluate the operand and apply the operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const operandValue = this.operand.evaluate(context);

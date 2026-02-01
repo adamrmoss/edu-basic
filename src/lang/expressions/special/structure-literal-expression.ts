@@ -2,19 +2,49 @@ import { Expression } from '../expression';
 import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Member entry in a structure literal.
+ */
 export interface StructureLiteralMember
 {
+    /**
+     * Member name.
+     */
     name: string;
+
+    /**
+     * Expression that produces the member value.
+     */
     value: Expression;
 }
 
+/**
+ * Expression node representing a structure literal (`{ name: expr, ... }`).
+ */
 export class StructureLiteralExpression extends Expression
 {
-    public constructor(public readonly members: StructureLiteralMember[])
+    /**
+     * Member entries for the literal.
+     */
+    public readonly members: StructureLiteralMember[];
+
+    /**
+     * Create a new structure literal expression.
+     *
+     * @param members Member entries for the literal.
+     */
+    public constructor(members: StructureLiteralMember[])
     {
         super();
+        this.members = members;
     }
 
+    /**
+     * Evaluate each member expression and build a runtime structure value.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime structure value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const map = new Map<string, EduBasicValue>();

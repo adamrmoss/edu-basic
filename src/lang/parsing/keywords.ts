@@ -88,6 +88,11 @@ const EXPRESSION_TERMINATOR_KEYWORDS = [
     'OVERWRITE', 'PRESET', 'RADII', 'RADIUS', 'READ', 'STEP', 'THEN', 'TO', 'WITH'
 ] as const;
 
+/**
+ * Keyword taxonomy used by tokenization and parsing.
+ *
+ * Provides categorized keyword lists and case-insensitive membership tests.
+ */
 export class Keywords
 {
     /**

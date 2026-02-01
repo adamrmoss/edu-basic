@@ -2,15 +2,33 @@ import { Expression } from '../expression';
 import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Expression node for the factorial postfix operator (`x!`).
+ */
 export class FactorialExpression extends Expression
 {
-    public constructor(
-        public readonly operand: Expression
-    )
+    /**
+     * Operand expression.
+     */
+    public readonly operand: Expression;
+
+    /**
+     * Create a new factorial expression.
+     *
+     * @param operand Operand expression.
+     */
+    public constructor(operand: Expression)
     {
         super();
+        this.operand = operand;
     }
 
+    /**
+     * Evaluate the operand and compute factorial.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const value = this.operand.evaluate(context);

@@ -2,13 +2,33 @@ import { Expression } from '../expression';
 import { ArrayDimension, EduBasicType, EduBasicValue, coerceArrayElements, coerceValue, findMostSpecificCommonType } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Expression node representing an array literal (`[a, b, c]`).
+ */
 export class ArrayLiteralExpression extends Expression
 {
-    public constructor(public readonly elements: Expression[])
+    /**
+     * Element expressions in the literal.
+     */
+    public readonly elements: Expression[];
+
+    /**
+     * Create a new array literal expression.
+     *
+     * @param elements Element expressions.
+     */
+    public constructor(elements: Expression[])
     {
         super();
+        this.elements = elements;
     }
 
+    /**
+     * Evaluate the element expressions and build a runtime array value.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime array value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const evaluated = this.elements.map(e => e.evaluate(context));

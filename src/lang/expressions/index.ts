@@ -1,3 +1,7 @@
+/**
+ * Re-exports EduBASIC expression AST types.
+ */
+
 // Base expression class
 export * from './expression';
 

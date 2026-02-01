@@ -1,3 +1,7 @@
+/**
+ * Re-exports EduBASIC statement AST types.
+ */
+
 export * from './statement';
 export * from './unparsable-statement';
 

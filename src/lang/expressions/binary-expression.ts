@@ -2,6 +2,9 @@ import { Expression } from './expression';
 import { EduBasicValue, EduBasicType, ComplexValue, coerceValue, findMostSpecificCommonType } from '../edu-basic-value';
 import { ExecutionContext } from '../execution-context';
 
+/**
+ * Binary operators supported by the expression runtime.
+ */
 export enum BinaryOperator
 {
     // Arithmetic
@@ -31,6 +34,9 @@ export enum BinaryOperator
     Imp = 'IMP',
 }
 
+/**
+ * Category discriminator for binary operators.
+ */
 export enum BinaryOperatorCategory
 {
     Arithmetic,
@@ -38,18 +44,54 @@ export enum BinaryOperatorCategory
     Logical,
 }
 
+/**
+ * Expression node representing the application of a binary operator to two operands.
+ */
 export class BinaryExpression extends Expression
 {
-    public constructor(
-        public readonly left: Expression,
-        public readonly operator: BinaryOperator,
-        public readonly right: Expression,
-        public readonly category: BinaryOperatorCategory
-    )
+    /**
+     * Left operand expression.
+     */
+    public readonly left: Expression;
+
+    /**
+     * Binary operator applied by this node.
+     */
+    public readonly operator: BinaryOperator;
+
+    /**
+     * Right operand expression.
+     */
+    public readonly right: Expression;
+
+    /**
+     * Operator category used to select the evaluation strategy.
+     */
+    public readonly category: BinaryOperatorCategory;
+
+    /**
+     * Create a new binary expression node.
+     *
+     * @param left Left operand expression.
+     * @param operator Operator to apply.
+     * @param right Right operand expression.
+     * @param category Operator category.
+     */
+    public constructor(left: Expression, operator: BinaryOperator, right: Expression, category: BinaryOperatorCategory)
     {
         super();
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
+        this.category = category;
     }
 
+    /**
+     * Evaluate both operands and apply the operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const leftValue = this.left.evaluate(context);
