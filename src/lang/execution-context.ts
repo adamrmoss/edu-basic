@@ -1,14 +1,55 @@
 import { EduBasicValue, EduBasicType, tryGetArrayRankSuffixFromName } from './edu-basic-value';
 import type { Audio } from './audio';
 
+/**
+ * Per-session runtime state for executing EduBASIC statements and operators.
+ *
+ * Responsibilities:
+ * - Variable storage (global + local) with case-insensitive lookup.
+ * - Call stack management for `SUB` / `CALL`.
+ * - Program counter storage (the "current line index" during execution).
+ * - Keyboard state for `INKEY$` and related statements.
+ * - A reference to the `Audio` runtime (set by `RuntimeExecution`).
+ *
+ * Design notes:
+ * - Variable names are stored using an uppercase lookup key, while a canonical map
+ *   remembers the original casing for display purposes.
+ * - The context intentionally does not throw for missing variables; it returns
+ *   default values based on the name suffix (%/#/$/& and array ranks).
+ */
 interface StackFrame
 {
+    /**
+     * Local variables for this call frame.
+     *
+     * Keys are stored uppercase for case-insensitive lookup.
+     */
     localVariables: Map<string, EduBasicValue>;
+
+    /**
+     * Canonical display names for locals in this frame.
+     *
+     * Keys are stored uppercase; values preserve the original casing as last used.
+     */
     canonicalLocalNames: Map<string, string>;
+
+    /**
+     * Alias map used for by-reference parameters.
+     *
+     * Key: local parameter name (uppercase).
+     * Value: target variable name to resolve in an outer scope.
+     */
     byRefBindings: Map<string, string>;
+
+    /**
+     * The program counter to resume at when returning from the frame.
+     */
     returnAddress: number;
 }
 
+/**
+ * Execution state shared across the interpreter runtime.
+ */
 export class ExecutionContext
 {
     private globalVariables: Map<string, EduBasicValue>;
@@ -30,31 +71,57 @@ export class ExecutionContext
         this.audio = null;
     }
 
+    /**
+     * Get the currently attached audio runtime (if any).
+     *
+     * This is set by `RuntimeExecution` so statements can use it indirectly via the context.
+     */
     public getAudio(): Audio | null
     {
         return this.audio;
     }
 
+    /**
+     * Attach/detach the audio runtime for this context.
+     */
     public setAudio(audio: Audio | null): void
     {
         this.audio = audio;
     }
 
+    /**
+     * Get the current program counter (0-based statement index).
+     */
     public getProgramCounter(): number
     {
         return this.programCounter;
     }
 
+    /**
+     * Set the program counter (0-based statement index).
+     */
     public setProgramCounter(value: number): void
     {
         this.programCounter = value;
     }
 
+    /**
+     * Advance the program counter by one statement.
+     */
     public incrementProgramCounter(): void
     {
         this.programCounter++;
     }
 
+    /**
+     * Lookup a variable by name.
+     *
+     * Lookup order:
+     * - Current frame locals (unless a by-ref binding redirects the name).
+     * - Outer locals (only when resolving a by-ref binding).
+     * - Globals.
+     * - Default value based on the variable suffix if not found.
+     */
     public getVariable(name: string): EduBasicValue
     {
         const lookupKey = name.toUpperCase();
@@ -86,6 +153,14 @@ export class ExecutionContext
         return this.getDefaultValue(name);
     }
 
+    /**
+     * Assign a variable by name.
+     *
+     * - If the name is a by-ref binding in the current frame, assignment is redirected
+     *   to the bound target in an outer scope.
+     * - Otherwise, `isLocal` determines whether the value is stored in the current frame
+     *   (when present) or in globals.
+     */
     public setVariable(name: string, value: EduBasicValue, isLocal: boolean = false): void
     {
         const lookupKey = name.toUpperCase();
@@ -115,6 +190,11 @@ export class ExecutionContext
         }
     }
 
+    /**
+     * Check whether a variable exists in the visible scope.
+     *
+     * This differs from `getVariable()` which will produce a default value for missing names.
+     */
     public hasVariable(name: string): boolean
     {
         const lookupKey = name.toUpperCase();
@@ -138,6 +218,9 @@ export class ExecutionContext
         return this.globalVariables.has(lookupKey);
     }
 
+    /**
+     * Get the runtime type of an existing variable, or null if it does not exist.
+     */
     public getVariableType(name: string): EduBasicType | null
     {
         if (!this.hasVariable(name))
@@ -149,6 +232,12 @@ export class ExecutionContext
         return value.type;
     }
 
+    /**
+     * Get the canonical "display name" for a variable.
+     *
+     * This preserves the original casing as last used (helpful for listing/printing names),
+     * while still treating variables case-insensitively for lookup.
+     */
     public getCanonicalName(name: string): string
     {
         const lookupKey = name.toUpperCase();
@@ -173,6 +262,9 @@ export class ExecutionContext
         return this.canonicalGlobalNames.get(lookupKey) ?? name;
     }
 
+    /**
+     * Clear globals and call stack frames.
+     */
     public clearVariables(): void
     {
         this.globalVariables.clear();
@@ -180,6 +272,12 @@ export class ExecutionContext
         this.stackFrames = [];
     }
 
+    /**
+     * Push a new call frame.
+     *
+     * `byRefBindings` is used when the caller passes arguments by reference, allowing
+     * the callee's local parameter names to alias variables in an outer scope.
+     */
     public pushStackFrame(returnAddress: number, byRefBindings?: Map<string, string>): void
     {
         this.stackFrames.push({
@@ -190,12 +288,18 @@ export class ExecutionContext
         });
     }
 
+    /**
+     * Pop the current call frame and return its return address (if any).
+     */
     public popStackFrame(): number | undefined
     {
         const frame = this.stackFrames.pop();
         return frame?.returnAddress;
     }
 
+    /**
+     * Peek the current return address without mutating the call stack.
+     */
     public getCurrentReturnAddress(): number | undefined
     {
         if (this.stackFrames.length === 0)
@@ -206,21 +310,33 @@ export class ExecutionContext
         return this.stackFrames[this.stackFrames.length - 1].returnAddress;
     }
 
+    /**
+     * Whether the runtime is currently executing inside a call frame.
+     */
     public hasStackFrames(): boolean
     {
         return this.stackFrames.length > 0;
     }
 
+    /**
+     * Current number of active call frames.
+     */
     public getStackDepth(): number
     {
         return this.stackFrames.length;
     }
 
+    /**
+     * Clear call frames without affecting globals.
+     */
     public clearStackFrames(): void
     {
         this.stackFrames = [];
     }
 
+    /**
+     * Track a key-down event for `INKEY$` style input.
+     */
     public setKeyDown(key: string): void
     {
         if (!key)
@@ -232,6 +348,9 @@ export class ExecutionContext
         this.lastPressedKey = key;
     }
 
+    /**
+     * Track a key-up event for `INKEY$` style input.
+     */
     public setKeyUp(key: string): void
     {
         if (!key)
@@ -247,12 +366,20 @@ export class ExecutionContext
         }
     }
 
+    /**
+     * Clear all tracked key state.
+     */
     public clearKeys(): void
     {
         this.pressedKeys.clear();
         this.lastPressedKey = null;
     }
 
+    /**
+     * Return a single currently pressed key, or an empty string if none.
+     *
+     * If the last key pressed is still down, it is preferred.
+     */
     public getInkey(): string
     {
         if (this.lastPressedKey && this.pressedKeys.has(this.lastPressedKey))
@@ -269,6 +396,14 @@ export class ExecutionContext
         return '';
     }
 
+    /**
+     * Create a default value for a variable name based on its suffix.
+     *
+     * Examples:
+     * - `x%`  => Integer 0
+     * - `s$`  => String ""
+     * - `a%[]` => Array of Integer values
+     */
     private getDefaultValue(variableName: string): EduBasicValue
     {
         const arraySuffix = tryGetArrayRankSuffixFromName(variableName);
@@ -308,6 +443,12 @@ export class ExecutionContext
         }
     }
 
+    /**
+     * Determine whether a name exists outside the current frame.
+     *
+     * This is used to implement by-reference bindings without allowing access
+     * to the current frame's locals.
+     */
     private hasVariableInOuterScopes(name: string): boolean
     {
         const lookupKey = name.toUpperCase();
@@ -324,6 +465,12 @@ export class ExecutionContext
         return this.globalVariables.has(lookupKey);
     }
 
+    /**
+     * Resolve a name in outer scopes (excluding the current frame), falling back to globals,
+     * then defaulting if missing.
+     *
+     * Used for by-reference parameter bindings.
+     */
     private getVariableFromOuterScopes(name: string): EduBasicValue
     {
         const lookupKey = name.toUpperCase();
@@ -348,6 +495,11 @@ export class ExecutionContext
         return this.getDefaultValue(name);
     }
 
+    /**
+     * Assign a name in outer scopes (excluding the current frame), falling back to globals.
+     *
+     * Used for by-reference parameter bindings.
+     */
     private setVariableInOuterScopes(name: string, value: EduBasicValue): void
     {
         const lookupKey = name.toUpperCase();
@@ -367,6 +519,9 @@ export class ExecutionContext
         this.globalVariables.set(lookupKey, value);
     }
 
+    /**
+     * Resolve the canonical name from outer scopes for display, or null if unknown.
+     */
     private getCanonicalNameFromOuterScopes(name: string): string | null
     {
         const lookupKey = name.toUpperCase();

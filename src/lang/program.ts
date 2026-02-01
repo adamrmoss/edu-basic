@@ -3,6 +3,17 @@ import { LabelStatement } from './statements/control-flow';
 import { Graphics } from './graphics';
 import { Audio } from './audio';
 
+/**
+ * In-memory representation of a BASIC program as an ordered list of statements.
+ *
+ * Important terminology:
+ * - "Line index" here means a 0-based index into `statements`.
+ * - This is distinct from any source-code line numbers that might exist in editor UI.
+ *
+ * Labels:
+ * - `LabelStatement` lines are indexed in `labelMap` for fast GOTO/GOSUB resolution.
+ * - Label keys are stored uppercase for case-insensitive lookup.
+ */
 export class Program
 {
     private statements: Statement[];
@@ -14,6 +25,9 @@ export class Program
         this.labelMap = new Map<string, number>();
     }
 
+    /**
+     * Get the statement at the given 0-based line index.
+     */
     public getStatement(lineIndex: number): Statement | undefined
     {
         if (lineIndex < 0 || lineIndex >= this.statements.length)
@@ -24,16 +38,27 @@ export class Program
         return this.statements[lineIndex];
     }
 
+    /**
+     * Get the full statement list.
+     *
+     * The returned array should be treated as read-only by callers.
+     */
     public getStatements(): readonly Statement[]
     {
         return this.statements;
     }
 
+    /**
+     * Total number of statements in the program.
+     */
     public getLineCount(): number
     {
         return this.statements.length;
     }
 
+    /**
+     * Insert a statement at the given line index and update label indices.
+     */
     public insertLine(lineIndex: number, statement: Statement): void
     {
         if (lineIndex < 0 || lineIndex > this.statements.length)
@@ -51,6 +76,9 @@ export class Program
         }
     }
 
+    /**
+     * Delete a statement at the given line index and update label indices.
+     */
     public deleteLine(lineIndex: number): void
     {
         if (lineIndex < 0 || lineIndex >= this.statements.length)
@@ -70,6 +98,9 @@ export class Program
         this.updateLabelsAfterDeletion(lineIndex);
     }
 
+    /**
+     * Replace a statement at the given line index (labels are updated appropriately).
+     */
     public replaceLine(lineIndex: number, statement: Statement): void
     {
         if (lineIndex < 0 || lineIndex >= this.statements.length)
@@ -92,6 +123,9 @@ export class Program
         }
     }
 
+    /**
+     * Append a statement to the end of the program.
+     */
     public appendLine(statement: Statement): void
     {
         const lineIndex = this.statements.length;
@@ -103,22 +137,36 @@ export class Program
         }
     }
 
+    /**
+     * Resolve a label name to its 0-based line index, or undefined if missing.
+     */
     public getLabelIndex(labelName: string): number | undefined
     {
         return this.labelMap.get(labelName.toUpperCase());
     }
 
+    /**
+     * Whether a label exists in the program.
+     */
     public hasLabel(labelName: string): boolean
     {
         return this.labelMap.has(labelName.toUpperCase());
     }
 
+    /**
+     * Remove all statements and labels.
+     */
     public clear(): void
     {
         this.statements = [];
         this.labelMap.clear();
     }
 
+    /**
+     * Rebuild label indices from the current statement list.
+     *
+     * This is useful when statements are mutated outside the normal insert/delete path.
+     */
     public rebuildLabelMap(): void
     {
         this.labelMap.clear();
@@ -134,6 +182,9 @@ export class Program
         }
     }
 
+    /**
+     * After inserting a line, bump any label indices at or after the insertion point.
+     */
     private updateLabelsAfterInsertion(insertedIndex: number): void
     {
         for (const [labelName, labelIndex] of this.labelMap.entries())
@@ -145,6 +196,9 @@ export class Program
         }
     }
 
+    /**
+     * After deleting a line, decrement any label indices that were after the deleted line.
+     */
     private updateLabelsAfterDeletion(deletedIndex: number): void
     {
         for (const [labelName, labelIndex] of this.labelMap.entries())

@@ -1,5 +1,18 @@
 import WebAudioTinySynth from 'webaudio-tinysynth';
 
+/**
+ * EduBASIC audio runtime.
+ *
+ * This class is a thin wrapper around the Web Audio API + `webaudio-tinysynth` to provide:
+ * - An 8-voice General MIDI-style playback model (voice indices 0..7).
+ * - Basic note playback by name/frequency.
+ * - A small MML-like sequence syntax for timed playback.
+ *
+ * Hosting assumptions:
+ * - This code is browser-oriented (`window.AudioContext`).
+ * - When audio APIs are unavailable or initialization fails, the runtime becomes a no-op
+ *   (`ready = false`) without throwing or logging.
+ */
 interface VoiceConfig
 {
     program: number;
@@ -13,6 +26,14 @@ interface ScheduledNote
     velocity: number;
 }
 
+/**
+ * Stateful audio engine for the interpreter runtime.
+ *
+ * Notes:
+ * - Calls are ignored until initialization succeeds (`ready === true`).
+ * - Scheduling is tracked per-voice using `nextNoteTime` to avoid overlaps when a program
+ *   issues back-to-back play commands.
+ */
 export class Audio
 {
     private tempo: number = 120;
@@ -34,6 +55,11 @@ export class Audio
         this.initializeAudio();
     }
 
+    /**
+     * Create and initialize the underlying Web Audio objects.
+     *
+     * This is intentionally defensive: missing APIs or exceptions simply result in `ready = false`.
+     */
     private async initializeAudio(): Promise<void>
     {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -70,11 +96,19 @@ export class Audio
         }
     }
 
+    /**
+     * Set playback tempo used by `playSequence()` (beats per minute).
+     */
     public setTempo(bpm: number): void
     {
         this.tempo = Math.max(20, Math.min(300, bpm));
     }
 
+    /**
+     * Set master volume (0..100).
+     *
+     * This updates both the gain node and per-channel synth volume.
+     */
     public setVolume(volume: number): void
     {
         this.volume = Math.max(0, Math.min(100, volume));
@@ -94,6 +128,9 @@ export class Audio
         }
     }
 
+    /**
+     * Mute/unmute audio output without destroying the audio graph.
+     */
     public setMuted(muted: boolean): void
     {
         this.muted = muted;
@@ -117,16 +154,25 @@ export class Audio
         }
     }
 
+    /**
+     * Whether the output is currently muted.
+     */
     public getMuted(): boolean
     {
         return this.muted;
     }
 
+    /**
+     * Select the active voice (clamped to 0..7) used by convenience playback methods.
+     */
     public setVoice(voiceIndex: number): void
     {
         this.currentVoice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
     }
 
+    /**
+     * Set the General MIDI program number (instrument) for a voice.
+     */
     public setVoiceInstrument(voiceIndex: number, programNum: number): void
     {
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
@@ -139,6 +185,9 @@ export class Audio
         }
     }
 
+    /**
+     * Resolve an instrument name and set the voice's General MIDI program number.
+     */
     public setVoiceInstrumentByName(voiceIndex: number, name: string): void
     {
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
@@ -151,6 +200,14 @@ export class Audio
         }
     }
 
+    /**
+     * Resolve a synth timbre by name.
+     *
+     * Strategy:
+     * - First attempt an exact case-insensitive match.
+     * - Then attempt a substring match.
+     * - Fall back to 0 (usually piano).
+     */
     private resolveProgramByName(name: string): number
     {
         if (!this.synth || !name.trim())
@@ -181,16 +238,27 @@ export class Audio
         return 0;
     }
 
+    /**
+     * Convert a MIDI note number to frequency (Hz).
+     */
     private midiNoteToFrequency(note: number): number
     {
         return 440 * Math.pow(2, (note - 60) / 12);
     }
 
+    /**
+     * Convert frequency (Hz) to a nearest MIDI note number.
+     */
     private frequencyToMidiNote(frequency: number): number
     {
         return Math.round(69 + 12 * Math.log2(frequency / 440));
     }
 
+    /**
+     * Parse a note name into a MIDI note number.
+     *
+     * Example note names: "C", "C#", "Db".
+     */
     private parseNoteName(noteName: string, octave: number): number | null
     {
         const noteMap: Record<string, number> = {
@@ -213,6 +281,9 @@ export class Audio
         return null;
     }
 
+    /**
+     * Play a note name (default octave 4) on the current voice.
+     */
     public playNote(note: string, duration: number): void
     {
         if (!this.ready || !this.audioContext)
@@ -230,6 +301,9 @@ export class Audio
         this.playMidiNote(this.currentVoice, midiNote, duration, 100);
     }
 
+    /**
+     * Play a frequency (Hz) on the current voice.
+     */
     public playFrequency(frequency: number, duration: number): void
     {
         if (!this.ready || !this.synth || !this.audioContext)
@@ -257,6 +331,9 @@ export class Audio
         this.nextNoteTime.set(voice, startTime + duration);
     }
 
+    /**
+     * Play a MIDI note on a given voice with a given duration and velocity.
+     */
     private playMidiNote(voiceIndex: number, midiNote: number, duration: number, velocity: number): void
     {
         if (!this.ready || !this.synth || !this.audioContext)
@@ -284,6 +361,11 @@ export class Audio
         this.nextNoteTime.set(voice, startTime + duration);
     }
 
+    /**
+     * Play a short sequence using a simple MML-like string.
+     *
+     * If the audio context is suspended (common before user gesture), we resume it and then play.
+     */
     public playSequence(voiceIndex: number, mml: string): void
     {
         if (!this.ready || !this.audioContext)
@@ -305,6 +387,9 @@ export class Audio
         this.playSequenceInternal(voiceIndex, mml);
     }
 
+    /**
+     * Internal implementation for `playSequence()` once the audio context is running.
+     */
     private playSequenceInternal(voiceIndex: number, mml: string): void
     {
         if (!this.ready || !this.synth || !this.audioContext)
@@ -341,6 +426,9 @@ export class Audio
         this.nextNoteTime.set(voice, time);
     }
 
+    /**
+     * Return the number of scheduled notes that have not finished yet for a voice.
+     */
     public getNotesRemaining(voiceIndex: number): number
     {
         if (!this.ready || !this.audioContext)
@@ -352,13 +440,18 @@ export class Audio
         const notes = this.scheduledNotes.get(voice) ?? [];
         const now = this.audioContext.currentTime;
 
-        // Keep only notes that have not finished yet.
+        /*
+         * Keep only notes that have not finished yet.
+         */
         const remainingNotes = notes.filter((n) => (n.startTime + n.duration) > now);
         this.scheduledNotes.set(voice, remainingNotes);
 
         return remainingNotes.length;
     }
 
+    /**
+     * Record metadata about a scheduled note for status queries.
+     */
     private recordScheduledNote(voice: number, midiNote: number, startTime: number, duration: number, velocity: number): void
     {
         const current = this.scheduledNotes.get(voice) ?? [];
@@ -371,6 +464,9 @@ export class Audio
         this.scheduledNotes.set(voice, current);
     }
 
+    /**
+     * Parse a simple MML-like string into timed note/rest tokens.
+     */
     private parseMml(mml: string): Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }>
     {
         const result: Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }> = [];
@@ -555,6 +651,9 @@ export class Audio
         return result;
     }
 
+    /**
+     * Stop all voices and clear all scheduled-note tracking.
+     */
     public stop(): void
     {
         if (this.synth)

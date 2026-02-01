@@ -1,3 +1,18 @@
+/**
+ * EduBASIC graphics runtime.
+ *
+ * This class provides two closely related rendering modes:
+ * - Text-mode output (80 columns × 30 rows) using an internal cursor.
+ * - Pixel graphics (640 × 480) using a software `ImageData` buffer.
+ *
+ * Coordinate systems:
+ * - `drawPixel(x, y)` uses a bottom-left origin (0,0) to match EduBASIC expectations.
+ * - Text rendering uses a top-left origin for rows/columns (row 0 is the top line).
+ *
+ * Rendering model:
+ * - All drawing updates the in-memory `ImageData` buffer.
+ * - `flush()` blits the current buffer to the canvas and triggers the optional callback.
+ */
 export interface Color
 {
     r: number;
@@ -6,6 +21,14 @@ export interface Color
     a: number;
 }
 
+/**
+ * Stateful text + pixel graphics surface backed by an `ImageData` buffer.
+ *
+ * Notes:
+ * - Methods are generally no-ops until `setContext()` is called.
+ * - Most public methods are intentionally simple building blocks used by statements
+ *   (`PRINT`, `PSET`, `LINE`, `CIRCLE`, etc.).
+ */
 export class Graphics
 {
     public readonly width: number = 640;
@@ -25,6 +48,12 @@ export class Graphics
     private textWrap: boolean = true;
     private flushCallback: (() => void) | null = null;
 
+    /**
+     * Attach the canvas context and initialize a fresh back buffer.
+     *
+     * This is expected to be called once during app startup, and again if the
+     * canvas context is recreated.
+     */
     public setContext(context: CanvasRenderingContext2D): void
     {
         this.context = context;
@@ -32,42 +61,70 @@ export class Graphics
         this.clear();
     }
 
+    /**
+     * Provide a callback that runs after each `flush()`.
+     *
+     * The UI uses this to know when a frame has been rendered.
+     */
     public setFlushCallback(callback: (() => void) | null): void
     {
         this.flushCallback = callback;
     }
 
+    /**
+     * Expose the current back buffer for tests/diagnostics.
+     */
     public getBuffer(): ImageData | null
     {
         return this.buffer;
     }
 
+    /**
+     * Set the active color used when the caller omits `color`.
+     */
     public setForegroundColor(color: Color): void
     {
         this.foregroundColor = color;
     }
 
+    /**
+     * Set the color used by `clear()` and as the "paper" behind text glyphs.
+     */
     public setBackgroundColor(color: Color): void
     {
         this.backgroundColor = color;
     }
 
+    /**
+     * Enable/disable extra blank lines between text lines.
+     */
     public setLineSpacing(enabled: boolean): void
     {
         this.lineSpacing = enabled ? 2 : 1;
     }
 
+    /**
+     * Enable/disable wrapping when text reaches the right edge.
+     */
     public setTextWrap(enabled: boolean): void
     {
         this.textWrap = enabled;
     }
 
+    /**
+     * Position the text cursor in row/column coordinates.
+     *
+     * Values are clamped to the visible grid.
+     */
     public setCursorPosition(row: number, column: number): void
     {
         this.cursorRow = Math.max(0, Math.min(row, this.rows - 1));
         this.cursorColumn = Math.max(0, Math.min(column, this.columns - 1));
     }
 
+    /**
+     * Clear the entire surface and reset the text cursor.
+     */
     public clear(): void
     {
         if (!this.buffer)
@@ -89,6 +146,13 @@ export class Graphics
         this.flush();
     }
 
+    /**
+     * Print a single character at the current cursor position.
+     *
+     * Special cases:
+     * - `\n` triggers `newLine()`.
+     * - When the cursor reaches the right edge, wrapping behavior depends on `textWrap`.
+     */
     public printChar(char: string): void
     {
         if (char === '\n')
@@ -118,6 +182,9 @@ export class Graphics
         }
     }
 
+    /**
+     * Print a string starting at the current cursor position.
+     */
     public printText(text: string): void
     {
         for (const char of text)
@@ -126,6 +193,12 @@ export class Graphics
         }
     }
 
+    /**
+     * Move the cursor to the first column of the next line.
+     *
+     * When the cursor would move past the bottom of the text grid, the buffer is
+     * scrolled up by one text row and the cursor stays on the last row.
+     */
     public newLine(): void
     {
         for (let step = 0; step < this.lineSpacing; step++)
@@ -144,6 +217,11 @@ export class Graphics
         }
     }
 
+    /**
+     * Draw a single pixel using EduBASIC coordinates.
+     *
+     * The Y axis is flipped so that `y = 0` is the bottom row of the visible surface.
+     */
     public drawPixel(x: number, y: number, color?: Color): void
     {
         if (!this.buffer || x < 0 || x >= this.width || y < 0 || y >= this.height)
@@ -161,6 +239,9 @@ export class Graphics
         this.buffer.data[index + 3] = actualColor.a;
     }
 
+    /**
+     * Draw a line using an integer grid algorithm.
+     */
     public drawLine(x1: number, y1: number, x2: number, y2: number, color?: Color): void
     {
         const c = color ?? this.foregroundColor;
@@ -199,6 +280,9 @@ export class Graphics
         }
     }
 
+    /**
+     * Draw a rectangle with optional fill.
+     */
     public drawRectangle(x: number, y: number, width: number, height: number, filled: boolean, color?: Color): void
     {
         const c = color ?? this.foregroundColor;
@@ -229,6 +313,9 @@ export class Graphics
         }
     }
 
+    /**
+     * Draw an oval with optional fill.
+     */
     public drawOval(x: number, y: number, width: number, height: number, filled: boolean, color?: Color): void
     {
         const c = color ?? this.foregroundColor;
@@ -319,6 +406,9 @@ export class Graphics
         }
     }
 
+    /**
+     * Draw a circle with optional fill.
+     */
     public drawCircle(x: number, y: number, radius: number, filled: boolean, color?: Color): void
     {
         const c = color ?? this.foregroundColor;
@@ -368,6 +458,9 @@ export class Graphics
         }
     }
 
+    /**
+     * Draw a triangle with optional fill.
+     */
     public drawTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, filled: boolean, color?: Color): void
     {
         const c = color ?? this.foregroundColor;
@@ -427,6 +520,11 @@ export class Graphics
         }
     }
 
+    /**
+     * Draw an arc (inclusive of endpoints) by sampling points along the circle.
+     *
+     * `startAngle` and `endAngle` are expected to be in radians.
+     */
     public drawArc(x: number, y: number, radius: number, startAngle: number, endAngle: number, color?: Color): void
     {
         const c = color ?? this.foregroundColor;
@@ -443,6 +541,9 @@ export class Graphics
         }
     }
 
+    /**
+     * Blit the back buffer onto the canvas and invoke the optional callback.
+     */
     public flush(): void
     {
         if (this.context && this.buffer)
@@ -456,6 +557,14 @@ export class Graphics
         }
     }
 
+    /**
+     * Render a character glyph at the given text cell.
+     *
+     * Implementation notes:
+     * - We "stamp" the background rectangle first to avoid artifacts from previous glyphs.
+     * - Glyph rasterization is performed by drawing into a tiny temporary canvas, then
+     *   alpha-blending the result into the software buffer.
+     */
     private drawChar(char: string, row: number, column: number): void
     {
         const x = column * this.charWidth;
@@ -513,6 +622,12 @@ export class Graphics
         this.flush();
     }
 
+    /**
+     * Scroll the entire surface up by one text row.
+     *
+     * The top portion is replaced with the content one character-height below it,
+     * and the last text row is cleared to the background color.
+     */
     private scrollUp(): void
     {
         if (!this.buffer)

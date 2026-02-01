@@ -26,6 +26,20 @@ import {
 import { FileSystemService } from '../app/disk/filesystem.service';
 import { ConsoleService } from '../app/console/console.service';
 
+/**
+ * Step-by-step runtime executor for a compiled `Program`.
+ *
+ * This class is the "engine" behind program execution:
+ * - `executeStep()` runs exactly one statement (or returns `End`).
+ * - Control flow statements push/pop control frames so constructs like IF/ELSE/END IF
+ *   and DO/LOOP can match their corresponding endpoints at runtime.
+ * - Some statements need access to app concerns (console output, filesystem, tab switching).
+ *
+ * The runtime is intentionally stateful:
+ * - The program counter lives in `ExecutionContext`.
+ * - Control frames live in this instance (not in `ExecutionContext`), because they are
+ *   about structured control flow rather than variable scope.
+ */
 export class RuntimeExecution
 {
     private readonly controlFrames = new ControlFlowFrameStack();
@@ -44,21 +58,33 @@ export class RuntimeExecution
         this.context.setAudio(this.audio);
     }
 
+    /**
+     * Get the filesystem bridge used by file I/O statements.
+     */
     public getFileSystem(): FileSystemService
     {
         return this.fileSystem;
     }
 
+    /**
+     * Get the console service, if provided (it may be null in some hosting contexts).
+     */
     public getConsoleService(): ConsoleService | null
     {
         return this.consoleService;
     }
 
+    /**
+     * Register a callback that can switch the active UI tab (e.g., console ↔ graphics).
+     */
     public setTabSwitchCallback(callback: ((tabId: string) => void) | null): void
     {
         this.tabSwitchCallback = callback;
     }
 
+    /**
+     * Request a tab switch if a callback has been registered.
+     */
     public requestTabSwitch(tabId: string): void
     {
         if (this.tabSwitchCallback)
@@ -67,6 +93,15 @@ export class RuntimeExecution
         }
     }
 
+    /**
+     * Execute exactly one statement at the current program counter.
+     *
+     * High-level flow:
+     * - Respect any active sleep delay.
+     * - Fetch the current statement; if missing, end execution.
+     * - Execute the statement and apply control effects (GOTO/RETURN/END).
+     * - Default behavior is to advance the program counter by 1.
+     */
     public executeStep(): ExecutionResult
     {
         if (this.sleepUntilMs !== null)
@@ -118,6 +153,14 @@ export class RuntimeExecution
         return ExecutionResult.Continue;
     }
 
+    /**
+     * When a `GOTO` jumps into/out of structured blocks, we must ensure the control-frame
+     * stack matches the new location.
+     *
+     * Strategy:
+     * - Pop frames until the target program counter lies within the top frame's
+     *   [startLine, endLine] span, or until no frames remain.
+     */
     private unwindControlFramesForGoto(targetPc: number): void
     {
         while (true)
@@ -138,6 +181,11 @@ export class RuntimeExecution
         }
     }
 
+    /**
+     * Block execution for at least the given number of milliseconds.
+     *
+     * This does not use a real sleep; it sets a timestamp that `executeStep()` checks.
+     */
     public sleep(milliseconds: number): void
     {
         const ms = Math.max(0, Math.floor(milliseconds));
@@ -150,41 +198,67 @@ export class RuntimeExecution
         this.sleepUntilMs = Date.now() + ms;
     }
 
+    /**
+     * Push a new structured-control frame (IF/WHILE/FOR/etc.).
+     */
     public pushControlFrame(frame: ControlStructureFrame): void
     {
         this.controlFrames.push(frame);
     }
 
+    /**
+     * Pop the most recent structured-control frame (IF/WHILE/FOR/etc.).
+     */
     public popControlFrame(): ControlStructureFrame | undefined
     {
         return this.controlFrames.pop();
     }
 
+    /**
+     * Peek the most recent structured-control frame without mutating the stack.
+     */
     public getCurrentControlFrame(): ControlStructureFrame | undefined
     {
         return this.controlFrames.peek();
     }
 
+    /**
+     * Find the most recent frame with the given type.
+     */
     public findControlFrame(type: ControlStructureType): ControlStructureFrame | undefined
     {
         return this.controlFrames.find(type);
     }
 
+    /**
+     * Find the most recent frame matching an arbitrary predicate.
+     */
     public findControlFrameWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
     {
         return this.controlFrames.findWhere(predicate);
     }
 
+    /**
+     * Pop frames until (and including) the most recent frame of the requested type.
+     */
     public popControlFramesToAndIncluding(type: ControlStructureType): void
     {
         this.controlFrames.popToAndIncluding(type);
     }
 
+    /**
+     * Pop frames until (and including) the first that matches the predicate.
+     */
     public popControlFramesToAndIncludingWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
     {
         return this.controlFrames.popToAndIncludingWhere(predicate);
     }
 
+    /**
+     * Find the matching `END IF` for an `IF` at `ifLine`.
+     *
+     * This is used by IF-family statements to decide where to jump when a branch is not taken.
+     */
     public findMatchingEndIf(ifLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -214,6 +288,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Find the matching `END UNLESS` for an `UNLESS` at `unlessLine`.
+     */
     public findMatchingEndUnless(unlessLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -243,6 +320,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Find the matching `END SELECT` for a `SELECT CASE` at `selectLine`.
+     */
     public findMatchingEndSelect(selectLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -272,6 +352,10 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * From within a SELECT block, find the next `CASE` at the current nesting level,
+     * or return `endSelectLine` if there is no further `CASE`.
+     */
     public findNextCaseOrEndSelect(fromLine: number, endSelectLine: number): number
     {
         const statements = this.program.getStatements();
@@ -305,6 +389,10 @@ export class RuntimeExecution
         return endSelectLine;
     }
 
+    /**
+     * From within an IF block, find the next `ELSEIF`/`ELSE` at the current nesting level,
+     * or return `endIfLine` if no further clauses exist.
+     */
     public findNextIfClauseOrEnd(fromLine: number, endIfLine: number): number
     {
         const statements = this.program.getStatements();
@@ -341,6 +429,9 @@ export class RuntimeExecution
         return endIfLine;
     }
 
+    /**
+     * Find the matching `NEXT` for a `FOR` at `forLine`.
+     */
     public findMatchingNext(forLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -370,6 +461,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Find the matching `WEND` for a `WHILE` at `whileLine`.
+     */
     public findMatchingWend(whileLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -399,6 +493,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Find the matching `LOOP` for a `DO` at `doLine`.
+     */
     public findMatchingLoop(doLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -428,6 +525,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Find the matching `END SUB` for a `SUB` declaration at `subLine`.
+     */
     public findMatchingEndSub(subLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -457,6 +557,12 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Determine the end line of an IF block using indentation heuristics.
+     *
+     * This exists primarily to support editor features and block-aware statements that
+     * rely on indentation levels, with a fallback to scanning text for `END IF`.
+     */
     public getIfEndLine(ifLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -501,6 +607,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Determine the end line of a WHILE block using indentation heuristics.
+     */
     public getWhileEndLine(whileLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -538,6 +647,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Determine the end line of a DO/LOOP block using indentation heuristics.
+     */
     public getDoLoopEndLine(doLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -575,6 +687,9 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Determine the end line of a FOR/NEXT block using indentation heuristics.
+     */
     public getForEndLine(forLine: number): number | undefined
     {
         const statements = this.program.getStatements();
@@ -600,6 +715,12 @@ export class RuntimeExecution
         return undefined;
     }
 
+    /**
+     * Fallback "text scan" for IF termination.
+     *
+     * Some statement sequences are easier to recognize by their `toString()` output than
+     * by indentation alone.
+     */
     private findEndIfByText(startIndex: number): number | undefined
     {
         const statements = this.program.getStatements();
