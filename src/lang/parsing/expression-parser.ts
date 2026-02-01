@@ -42,7 +42,13 @@ export class ExpressionParser
 
     public parseExpression(source: string): ParseResult<Expression>
     {
-        this.tokens = this.tokenizer.tokenize(source);
+        const tokenizeResult = this.tokenizer.tokenize(source);
+        if (!tokenizeResult.success)
+        {
+            return failure(tokenizeResult.error);
+        }
+
+        this.tokens = tokenizeResult.value;
         this.current = 0;
         const exprResult = this.expression();
         

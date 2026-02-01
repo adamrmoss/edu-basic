@@ -72,9 +72,9 @@ The service maintains a single `ExecutionContext` instance that persists across 
 ```
 Source Text
     ↓
-Tokenizer.tokenize()
+Tokenizer.tokenize() → ParseResult<Token[]>
     ↓
-Token Stream
+Token Stream (Token[])
     ↓
 ParserService.parseLine()
     ↓
@@ -88,7 +88,7 @@ Statement Object
   - comment lines starting with `'`
   In those cases it returns an `UnparsableStatement` with `hasError: false` (used as a “non-executable line” placeholder).
 - Otherwise it tokenizes the trimmed line using `Tokenizer.tokenize(...)` and creates a `ParserContext` over:
-  - `tokens: Token[]`
+  - `tokens: Token[]` (from a successful tokenization result)
   - `current: { value: number }` (shared mutable cursor)
   - `expressionParser: ExpressionParser` (used for sub-expressions)
 - The first token must be a keyword. `ParserService` uses that keyword to look up a statement parse method via `getStatementParser(keyword)` (from `src/lang/parsing/statement-dispatch.ts`).
@@ -152,7 +152,7 @@ This “token slice → string → re-tokenize → parse” approach is convenie
 - Punctuation: `LeftParen`, `RightParen`, `Comma`, `Semicolon`, etc.
 
 **Key Methods**:
-- `tokenize(source: string): Token[]` - Convert source to tokens
+- `tokenize(source: string): ParseResult<Token[]>` - Convert source to tokens (recoverable failures)
 
 **Token Interface**:
 ```typescript
@@ -182,7 +182,7 @@ interface Token {
 3. OR, NOR
 4. AND, NAND
 5. NOT
-6. Comparison operators (==, !=, <, >, <=, >=)
+6. Comparison operators (=, <>, <, >, <=, >=)
 7. Arithmetic operators (+, -, *, /, ^, **)
 8. Unary operators (-, +)
 

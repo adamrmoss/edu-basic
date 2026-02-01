@@ -23,7 +23,14 @@ describe('Keywords', () =>
         const allKeywords = Array.from(Keywords.all).sort();
         const source = allKeywords.join(' ');
 
-        const tokens = tokenizer.tokenize(source).filter(t => t.type !== TokenType.EOF);
+        const tokenizeResult = tokenizer.tokenize(source);
+        if (!tokenizeResult.success)
+        {
+            fail(tokenizeResult.error);
+            return;
+        }
+
+        const tokens = tokenizeResult.value.filter((t) => t.type !== TokenType.EOF);
 
         expect(tokens.length).toBe(allKeywords.length);
 

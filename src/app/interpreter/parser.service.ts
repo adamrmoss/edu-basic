@@ -73,7 +73,25 @@ export class ParserService
             return success(parsed);
         }
 
-        this.tokens = this.tokenizer.tokenize(trimmedText);
+        const tokenizeResult = this.tokenizer.tokenize(trimmedText);
+        if (!tokenizeResult.success)
+        {
+            const statement = new UnparsableStatement(sourceText, tokenizeResult.error);
+            statement.indentLevel = this.currentIndentLevel;
+
+            const parsed: ParsedLine = {
+                lineNumber,
+                sourceText,
+                statement,
+                hasError: true,
+                errorMessage: tokenizeResult.error
+            };
+
+            this.updateParsedLine(lineNumber, parsed);
+            return success(parsed);
+        }
+
+        this.tokens = tokenizeResult.value;
         this.current.value = 0;
 
         const context = new ParserContext(this.tokens, this.current, this.expressionParser);

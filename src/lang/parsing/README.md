@@ -15,7 +15,7 @@ It is intentionally **Angular-free**. The Angular-facing wrapper is `src/app/int
   - Used by tokenization and several parsing decisions.
 - **`tokenizer.ts`**
   - `TokenType`, `Token`, `Tokenizer`
-  - Turns source text into `Token[]`, classifying keywords via `Keywords`.
+  - Turns source text into `ParseResult<Token[]>`, classifying keywords via `Keywords`.
 - **`parse-result.ts`**
   - `ParseResult<T>`, `success(...)`, `failure(...)`
   - The common “recoverable parse failure” channel used across statement and expression parsing.
@@ -49,7 +49,7 @@ sourceText (one BASIC line)
   ↓ trim / comment check (app wrapper)
 Tokenizer.tokenize(trimmedText)               // src/lang/parsing/tokenizer.ts
   ↓
-Token[] + current cursor { value: 0 }
+ParseResult<Token[]> → Token[] + current cursor { value: 0 }
   ↓
 ParserContext(tokens, current, ExpressionParser)  // src/lang/parsing/parsers/parser-context.ts
   ↓
@@ -124,6 +124,15 @@ This stop-set is one of the highest-leverage parts of the parsing engine:
   - numeric, string, identifier, keyword tokens
   - operator/punctuation tokens
 - Tracks `line` and `column` on each `Token`.
+- Returns `ParseResult<Token[]>` so tokenization failures are recoverable (e.g. unknown characters, malformed literals).
+
+### Why the tokenizer’s “operator list” looks small
+
+Not everything that “acts like an operator” is a `TokenType`:
+
+- **Keyword operators** are tokenized as `TokenType.Keyword` and handled by `ExpressionParser` (e.g. `AND`, `OR`, `NOT`, `MOD`, `LEFT`, `RIGHT`, `MID`, `FIND`, `INDEXOF`, `INCLUDES`, `DEG`, `RAD`).
+- **Type sigils** are part of identifiers, not separate tokens (e.g. `x%`, `name$`, `pi#`, `handle&`).
+- The **not-equal operator** is `<>` (not `!=`).
 
 ### `ParserContext`
 
@@ -153,7 +162,7 @@ This stop-set is one of the highest-leverage parts of the parsing engine:
 There are two “error channels” to be aware of:
 
 - **Recoverable parse failures**: returned as `ParseResult<T>` with `success: false` (e.g., “Expected X, got Y”).
-- **Exceptions**: some layers throw (e.g., tokenization of malformed literals, or runtime evaluation errors).
+- **Exceptions**: should be reserved for truly exceptional failures (runtime evaluation errors, unexpected internal invariants, etc.).
 
 The Angular wrapper `ParserService` treats statement parse failures as “successful parse with `UnparsableStatement` + `hasError: true`”.
 
