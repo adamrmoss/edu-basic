@@ -11,6 +11,7 @@ const VARIABLE_KEYWORDS = ['LET', 'DIM', 'LOCAL'] as const;
 const CONTROL_FLOW_KEYWORDS = [
     'IF', 'THEN', 'ELSE', 'ELSEIF', 'END', 'FOR', 'TO', 'STEP', 'NEXT',
     'WHILE', 'WEND', 'DO', 'LOOP', 'UNTIL', 'UEND', 'UNLESS', 'SELECT', 'CASE',
+    'IS',
     'GOSUB', 'RETURN', 'GOTO', 'LABEL', 'CALL',
     'EXIT', 'CONTINUE', 'SUB', 'TRY', 'CATCH', 'FINALLY', 'THROW'
 ] as const;

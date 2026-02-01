@@ -1,7 +1,8 @@
 import { Expression } from '../expression';
-import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 import { VariableExpression } from './variable-expression';
+import { StructureMemberExpression } from './structure-member-expression';
 
 export class BracketAccessExpression extends Expression
 {
@@ -20,37 +21,36 @@ export class BracketAccessExpression extends Expression
 
         if (baseValue.type === EduBasicType.Array)
         {
+            const dimensions = baseValue.dimensions;
+            if (dimensions && dimensions.length > 1)
+            {
+                throw new Error('BracketAccessExpression: multi-dimensional arrays require comma-separated indices (e.g., a#[i, j])');
+            }
+
             const indexValue = this.evaluateIndexValue(context);
             const index = this.toOneBasedIndex(indexValue);
             if (index === null)
             {
-                return BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
+                throw new Error('Array index is out of bounds');
             }
 
-            const jsIndex = index - 1;
-            if (jsIndex < 0 || jsIndex >= baseValue.value.length)
+            const lower = dimensions && dimensions.length === 1 ? dimensions[0].lower : 1;
+            const length = dimensions && dimensions.length === 1 ? dimensions[0].length : baseValue.value.length;
+            const stride = dimensions && dimensions.length === 1 ? dimensions[0].stride : 1;
+
+            const offset = index - lower;
+            const flatIndex = offset * stride;
+            if (offset < 0 || offset >= length || flatIndex < 0 || flatIndex >= baseValue.value.length)
             {
-                return BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
+                throw new Error('Array index is out of bounds');
             }
 
-            return baseValue.value[jsIndex] ?? BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
+            return baseValue.value[flatIndex] ?? BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
         }
 
         if (baseValue.type === EduBasicType.Structure)
         {
-            const key = this.getStructureKey(context);
-            if (!key)
-            {
-                return { type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() };
-            }
-
-            const found = BracketAccessExpression.tryGetStructureMember(baseValue.value, key);
-            if (found !== null)
-            {
-                return found;
-            }
-
-            return BracketAccessExpression.getDefaultValueForName(key);
+            throw new Error("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
         }
 
         throw new Error(`Cannot apply [ ] to ${baseValue.type}`);
@@ -68,7 +68,7 @@ export class BracketAccessExpression extends Expression
         {
             const baseName = this.baseExpr.name;
 
-            if (baseName.endsWith('[]'))
+            if (tryGetArrayRankSuffixFromName(baseName) !== null)
             {
                 return context.getVariable(baseName);
             }
@@ -87,6 +87,29 @@ export class BracketAccessExpression extends Expression
             if (context.hasVariable(arrayName))
             {
                 return context.getVariable(arrayName);
+            }
+        }
+
+        if (this.baseExpr instanceof StructureMemberExpression)
+        {
+            const structureValue = this.baseExpr.structureExpr.evaluate(context);
+            if (structureValue.type === EduBasicType.Structure)
+            {
+                const memberName = this.baseExpr.memberName;
+                const suffix = tryGetArrayRankSuffixFromName(memberName);
+                if (suffix !== null)
+                {
+                    return this.baseExpr.evaluate(context);
+                }
+
+                const inferredArrayName = `${memberName}[]`;
+                const found = BracketAccessExpression.tryGetStructureMember(structureValue.value, inferredArrayName);
+                if (found !== null)
+                {
+                    return found;
+                }
+
+                return BracketAccessExpression.getDefaultValueForName(inferredArrayName);
             }
         }
 
@@ -128,37 +151,6 @@ export class BracketAccessExpression extends Expression
         }
     }
 
-    private getStructureKey(context: ExecutionContext): string
-    {
-        if (this.bracketIdentifier)
-        {
-            return this.bracketIdentifier;
-        }
-
-        if (!this.bracketExpr)
-        {
-            return '';
-        }
-
-        const value = this.bracketExpr.evaluate(context);
-        if (value.type === EduBasicType.String)
-        {
-            return value.value;
-        }
-
-        if (value.type === EduBasicType.Integer || value.type === EduBasicType.Real)
-        {
-            return String(value.value);
-        }
-
-        if (value.type === EduBasicType.Complex)
-        {
-            return `${value.value.real}+${value.value.imaginary}i`;
-        }
-
-        return value.type;
-    }
-
     private static tryGetStructureMember(map: Map<string, EduBasicValue>, key: string): EduBasicValue | null
     {
         const direct = map.get(key);
@@ -181,9 +173,10 @@ export class BracketAccessExpression extends Expression
 
     private static getDefaultValueForName(name: string): EduBasicValue
     {
-        if (name.endsWith('[]'))
+        const suffix = tryGetArrayRankSuffixFromName(name);
+        if (suffix !== null)
         {
-            const sigil = name.charAt(name.length - 3);
+            const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
             switch (sigil)
             {
                 case '%':

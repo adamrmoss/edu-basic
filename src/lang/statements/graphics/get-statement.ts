@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
 export class GetStatement extends Statement
 {
@@ -28,7 +28,8 @@ export class GetStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        if (!this.arrayVariable.endsWith('[]'))
+        const suffix = tryGetArrayRankSuffixFromName(this.arrayVariable);
+        if (suffix === null || suffix.rank !== 1)
         {
             throw new Error('GET: destination must be an array');
         }

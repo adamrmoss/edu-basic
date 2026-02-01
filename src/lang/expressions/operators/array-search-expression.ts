@@ -28,6 +28,11 @@ export class ArraySearchExpression extends Expression
             throw new Error(`${this.operator} requires array as left operand, got ${arrayValue.type}`);
         }
 
+        if (arrayValue.dimensions && arrayValue.dimensions.length > 1)
+        {
+            throw new Error(`${this.operator} is only supported for 1D arrays`);
+        }
+
         const searchValue = this.valueExpr.evaluate(context);
 
         switch (this.operator)

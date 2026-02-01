@@ -5,13 +5,17 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType } from '../../edu-basic-value';
+import { ArrayDimension, EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
+
+export type DimDimensionSpec =
+    | { type: 'size'; size: Expression }
+    | { type: 'range'; start: Expression; end: Expression };
 
 export class DimStatement extends Statement
 {
     public constructor(
         public readonly arrayName: string,
-        public readonly dimensions: Expression[]
+        public readonly dimensions: DimDimensionSpec[]
     )
     {
         super();
@@ -25,53 +29,153 @@ export class DimStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const sizes: number[] = [];
-        
-        for (const dim of this.dimensions)
+        const elementType = this.getElementTypeFromName(this.arrayName);
+
+        const dimensions = this.evaluateDimensions(context, this.dimensions);
+        if (dimensions.length === 0)
         {
-            const sizeValue = dim.evaluate(context);
-            const size = Math.floor(sizeValue.type === EduBasicType.Integer || sizeValue.type === EduBasicType.Real ? sizeValue.value as number : 0);
-            
-            if (size < 0)
-            {
-                throw new Error(`DIM: Array dimension cannot be negative`);
-            }
-            
-            sizes.push(size);
+            context.setVariable(this.arrayName, { type: EduBasicType.Array, value: [], elementType, dimensions: [] });
+            return { result: ExecutionResult.Continue };
         }
-        
-        const array = this.createMultiDimensionalArray(sizes);
-        context.setVariable(this.arrayName, { type: EduBasicType.Array, value: array, elementType: EduBasicType.Integer });
+
+        const totalLength = dimensions.reduce((acc, d) => acc * d.length, 1);
+
+        const values: EduBasicValue[] = new Array(totalLength);
+        const defaultValue = this.getDefaultValueForType(elementType);
+
+        for (let i = 0; i < totalLength; i++)
+        {
+            values[i] = defaultValue;
+        }
+
+        context.setVariable(this.arrayName, { type: EduBasicType.Array, value: values, elementType, dimensions });
         
         return { result: ExecutionResult.Continue };
     }
-    
-    private createMultiDimensionalArray(sizes: number[]): any[]
+
+    private evaluateDimensions(context: ExecutionContext, specs: DimDimensionSpec[]): ArrayDimension[]
     {
-        if (sizes.length === 0)
+        if (specs.length === 0)
         {
             return [];
         }
-        
-        if (sizes.length === 1)
+
+        const dimsNoStride: ArrayDimension[] = [];
+
+        for (const spec of specs)
         {
-            return new Array(sizes[0]).fill({ type: EduBasicType.Integer, value: 0 });
+            switch (spec.type)
+            {
+                case 'size':
+                {
+                    const size = this.evaluateIndexBound(context, spec.size);
+                    if (size < 0)
+                    {
+                        throw new Error('DIM: Array dimension cannot be negative');
+                    }
+
+                    dimsNoStride.push({ lower: 1, length: size, stride: 0 });
+                    break;
+                }
+                case 'range':
+                {
+                    const start = this.evaluateIndexBound(context, spec.start);
+                    const end = this.evaluateIndexBound(context, spec.end);
+                    const length = end - start + 1;
+
+                    if (length < 0)
+                    {
+                        throw new Error('DIM: Array dimension cannot be negative');
+                    }
+
+                    dimsNoStride.push({ lower: start, length, stride: 0 });
+                    break;
+                }
+            }
         }
-        
-        const result: any[] = [];
-        const [firstSize, ...restSizes] = sizes;
-        
-        for (let i = 0; i < firstSize; i++)
+
+        let stride = 1;
+        for (let i = dimsNoStride.length - 1; i >= 0; i--)
         {
-            result.push(this.createMultiDimensionalArray(restSizes));
+            dimsNoStride[i].stride = stride;
+            stride *= dimsNoStride[i].length;
         }
-        
-        return result;
+
+        return dimsNoStride;
     }
 
     public override toString(): string
     {
-        const dims = this.dimensions.map(d => d.toString()).join(', ');
+        const dims = this.dimensions.map(d =>
+        {
+            switch (d.type)
+            {
+                case 'size':
+                    return d.size.toString();
+                case 'range':
+                    return `${d.start.toString()} TO ${d.end.toString()}`;
+            }
+        }).join(', ');
         return `DIM ${this.arrayName}[${dims}]`;
+    }
+
+    private getElementTypeFromName(arrayName: string): EduBasicType
+    {
+        const suffix = tryGetArrayRankSuffixFromName(arrayName);
+        if (suffix === null)
+        {
+            return EduBasicType.Integer;
+        }
+
+        const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
+        switch (sigil)
+        {
+            case '%':
+                return EduBasicType.Integer;
+            case '#':
+                return EduBasicType.Real;
+            case '$':
+                return EduBasicType.String;
+            case '&':
+                return EduBasicType.Complex;
+            default:
+                return EduBasicType.Structure;
+        }
+    }
+
+    private evaluateIndexBound(context: ExecutionContext, expr: Expression): number
+    {
+        const value = expr.evaluate(context);
+
+        switch (value.type)
+        {
+            case EduBasicType.Integer:
+                return Math.trunc(value.value);
+            case EduBasicType.Real:
+                return Math.trunc(value.value);
+            case EduBasicType.Complex:
+                return Math.trunc(value.value.real);
+            default:
+                return 0;
+        }
+    }
+
+    private getDefaultValueForType(type: EduBasicType): EduBasicValue
+    {
+        switch (type)
+        {
+            case EduBasicType.Integer:
+                return { type: EduBasicType.Integer, value: 0 };
+            case EduBasicType.Real:
+                return { type: EduBasicType.Real, value: 0.0 };
+            case EduBasicType.String:
+                return { type: EduBasicType.String, value: '' };
+            case EduBasicType.Complex:
+                return { type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } };
+            case EduBasicType.Structure:
+                return { type: EduBasicType.Structure, value: new Map<string, EduBasicValue>() };
+            case EduBasicType.Array:
+                return { type: EduBasicType.Array, value: [], elementType: EduBasicType.Integer, dimensions: [{ lower: 1, length: 0, stride: 1 }] };
+        }
     }
 }

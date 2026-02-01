@@ -1,4 +1,4 @@
-import { EduBasicValue, EduBasicType } from './edu-basic-value';
+import { EduBasicValue, EduBasicType, tryGetArrayRankSuffixFromName } from './edu-basic-value';
 
 interface StackFrame
 {
@@ -258,9 +258,10 @@ export class ExecutionContext
 
     private getDefaultValue(variableName: string): EduBasicValue
     {
-        if (variableName.endsWith('[]'))
+        const arraySuffix = tryGetArrayRankSuffixFromName(variableName);
+        if (arraySuffix !== null)
         {
-            const sigil = variableName.charAt(variableName.length - 3);
+            const sigil = arraySuffix.baseName.charAt(arraySuffix.baseName.length - 1);
             
             switch (sigil)
             {

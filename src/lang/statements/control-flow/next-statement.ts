@@ -28,7 +28,17 @@ export class NextStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const forFrame = runtime.findControlFrame('for');
+        const forFrame = this.variableName
+            ? runtime.findControlFrameWhere(frame =>
+            {
+                if (frame.type !== 'for' || !frame.loopVariable)
+                {
+                    return false;
+                }
+
+                return frame.loopVariable.toUpperCase() === this.variableName!.toUpperCase();
+            })
+            : runtime.findControlFrame('for');
 
         if (forFrame && forFrame.loopVariable)
         {
@@ -50,6 +60,26 @@ export class NextStatement extends Statement
                     return { result: ExecutionResult.Goto, gotoTarget: forFrame.startLine + 1 };
                 }
             }
+
+            runtime.popControlFramesToAndIncludingWhere(frame =>
+            {
+                if (frame.type !== 'for')
+                {
+                    return false;
+                }
+
+                if (!this.variableName)
+                {
+                    return true;
+                }
+
+                if (!frame.loopVariable)
+                {
+                    return false;
+                }
+
+                return frame.loopVariable.toUpperCase() === this.variableName.toUpperCase();
+            });
         }
 
         return { result: ExecutionResult.Continue };

@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicValue, EduBasicType, coerceValue } from '../../edu-basic-value';
+import { EduBasicValue, EduBasicType, coerceValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
 export class LetStatement extends Statement
 {
@@ -70,9 +70,10 @@ export class LetStatement extends Statement
             }
         }
         
-        if (evaluatedValue.type === EduBasicType.Array && this.variableName.endsWith('[]'))
+        const arraySuffix = tryGetArrayRankSuffixFromName(this.variableName);
+        if (evaluatedValue.type === EduBasicType.Array && arraySuffix !== null)
         {
-            const sigil = this.variableName.charAt(this.variableName.length - 3);
+            const sigil = arraySuffix.baseName.charAt(arraySuffix.baseName.length - 1);
             let targetElementType: EduBasicType | null = null;
             
             switch (sigil)
@@ -103,7 +104,8 @@ export class LetStatement extends Statement
                 evaluatedValue = {
                     type: EduBasicType.Array,
                     value: coercedElements,
-                    elementType: targetElementType
+                    elementType: targetElementType,
+                    dimensions: evaluatedValue.dimensions
                 };
             }
         }

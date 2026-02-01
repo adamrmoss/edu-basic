@@ -30,20 +30,31 @@ export class ArrayAccessExpression extends Expression
             throw new Error('ArrayAccessExpression: base expression is not an array');
         }
 
+        const dimensions = arrayValue.dimensions;
+        if (dimensions && dimensions.length > 1)
+        {
+            throw new Error('ArrayAccessExpression: multi-dimensional arrays require comma-separated indices (e.g., a#[i, j])');
+        }
+
         const indexValue = this.index.evaluate(context);
         const oneBased = ArrayAccessExpression.toOneBasedIndex(indexValue);
         if (oneBased === null)
         {
-            return ArrayAccessExpression.getDefaultValueForType(arrayValue.elementType);
+            throw new Error('Array index is out of bounds');
         }
 
-        const jsIndex = oneBased - 1;
-        if (jsIndex < 0 || jsIndex >= arrayValue.value.length)
+        const lower = dimensions && dimensions.length === 1 ? dimensions[0].lower : 1;
+        const length = dimensions && dimensions.length === 1 ? dimensions[0].length : arrayValue.value.length;
+        const stride = dimensions && dimensions.length === 1 ? dimensions[0].stride : 1;
+
+        const offset = oneBased - lower;
+        const flatIndex = offset * stride;
+        if (offset < 0 || offset >= length || flatIndex < 0 || flatIndex >= arrayValue.value.length)
         {
-            return ArrayAccessExpression.getDefaultValueForType(arrayValue.elementType);
+            throw new Error('Array index is out of bounds');
         }
 
-        return arrayValue.value[jsIndex] ?? ArrayAccessExpression.getDefaultValueForType(arrayValue.elementType);
+        return arrayValue.value[flatIndex] ?? ArrayAccessExpression.getDefaultValueForType(arrayValue.elementType);
     }
 
     public toString(omitOuterParens?: boolean): string

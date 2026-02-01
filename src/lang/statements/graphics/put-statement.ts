@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType } from '../../edu-basic-value';
+import { EduBasicType, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 import { intToRgba } from './color-utils';
 
 export class PutStatement extends Statement
@@ -27,7 +27,8 @@ export class PutStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        if (!this.arrayVariable.endsWith('[]'))
+        const suffix = tryGetArrayRankSuffixFromName(this.arrayVariable);
+        if (suffix === null || suffix.rank !== 1)
         {
             throw new Error('PUT: source must be an array');
         }

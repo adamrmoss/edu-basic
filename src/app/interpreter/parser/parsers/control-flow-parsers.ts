@@ -1,6 +1,7 @@
 import { Expression } from '../../../../lang/expressions/expression';
 import {
     CallStatement,
+    CaseSelector,
     CaseStatement,
     CatchStatement,
     ContinueStatement,
@@ -20,6 +21,7 @@ import {
     IfStatement,
     LabelStatement,
     LoopStatement,
+    LoopConditionVariant,
     NextStatement,
     ReturnStatement,
     SelectCaseStatement,
@@ -146,8 +148,79 @@ export class ControlFlowParsers
         {
             return caseTokenResult;
         }
-        
-        return success(new CaseStatement());
+
+        if (context.matchKeyword('ELSE'))
+        {
+            return success(new CaseStatement(true, []));
+        }
+
+        const selectors: CaseSelector[] = [];
+
+        while (!context.isAtEnd() && context.peek().type !== TokenType.EOF)
+        {
+            if (context.matchKeyword('IS'))
+            {
+                const opToken = context.peek();
+                const relationalOps = [
+                    TokenType.Equal,
+                    TokenType.NotEqual,
+                    TokenType.Less,
+                    TokenType.Greater,
+                    TokenType.LessEqual,
+                    TokenType.GreaterEqual
+                ];
+
+                if (!relationalOps.includes(opToken.type))
+                {
+                    return failure(`Expected relational operator after IS, got: ${opToken.value}`);
+                }
+
+                context.advance();
+
+                const relationalValueResult = context.parseExpression();
+                if (!relationalValueResult.success)
+                {
+                    return failure(relationalValueResult.error || 'Failed to parse CASE IS relational value');
+                }
+
+                selectors.push({ type: 'relational', op: opToken.value, value: relationalValueResult.value });
+            }
+            else
+            {
+                const startExprResult = context.parseExpression();
+                if (!startExprResult.success)
+                {
+                    return failure(startExprResult.error || 'Failed to parse CASE expression');
+                }
+
+                if (context.matchKeyword('TO'))
+                {
+                    const endExprResult = context.parseExpression();
+                    if (!endExprResult.success)
+                    {
+                        return failure(endExprResult.error || 'Failed to parse CASE range end expression');
+                    }
+
+                    selectors.push({ type: 'range', start: startExprResult.value, end: endExprResult.value });
+                }
+                else
+                {
+                    selectors.push({ type: 'value', value: startExprResult.value });
+                }
+            }
+
+            if (!context.match(TokenType.Comma))
+            {
+                break;
+            }
+        }
+
+        if (selectors.length === 0)
+        {
+            return failure('CASE must include a clause or ELSE');
+        }
+
+        return success(new CaseStatement(false, selectors));
     }
 
     public static parseFor(context: ParserContext): ParseResult<ForStatement>
@@ -318,7 +391,29 @@ export class ControlFlowParsers
         {
             return loopTokenResult;
         }
-        
+
+        if (context.matchKeyword('WHILE'))
+        {
+            const conditionResult = context.parseExpression();
+            if (!conditionResult.success)
+            {
+                return failure(conditionResult.error || 'Failed to parse LOOP WHILE condition expression');
+            }
+
+            return success(new LoopStatement(LoopConditionVariant.While, conditionResult.value));
+        }
+
+        if (context.matchKeyword('UNTIL'))
+        {
+            const conditionResult = context.parseExpression();
+            if (!conditionResult.success)
+            {
+                return failure(conditionResult.error || 'Failed to parse LOOP UNTIL condition expression');
+            }
+
+            return success(new LoopStatement(LoopConditionVariant.Until, conditionResult.value));
+        }
+
         return success(new LoopStatement());
     }
 
@@ -538,7 +633,19 @@ export class ControlFlowParsers
         
         if (context.matchKeyword('FOR'))
         {
-            return success(new ExitStatement(ExitTarget.For));
+            let varName: string | null = null;
+            if (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
+            {
+                const varNameResult = context.consume(TokenType.Identifier, 'variable name');
+                if (!varNameResult.success)
+                {
+                    return varNameResult;
+                }
+
+                varName = varNameResult.value.value;
+            }
+
+            return success(new ExitStatement(ExitTarget.For, varName));
         }
         else if (context.matchKeyword('WHILE'))
         {

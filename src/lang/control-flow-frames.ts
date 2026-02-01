@@ -1,4 +1,4 @@
-export type ControlStructureType = 'if' | 'unless' | 'while' | 'do' | 'for' | 'sub';
+export type ControlStructureType = 'if' | 'unless' | 'while' | 'do' | 'for' | 'sub' | 'select';
 
 export interface ControlStructureFrame
 {
@@ -11,5 +11,8 @@ export interface ControlStructureFrame
     loopVariable?: string;
     loopEndValue?: number;
     loopStepValue?: number;
+
+    selectTestValue?: any;
+    selectMatched?: boolean;
 }
 

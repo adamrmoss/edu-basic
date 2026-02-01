@@ -16,7 +16,8 @@ export enum ExitTarget
 export class ExitStatement extends Statement
 {
     public constructor(
-        public readonly target: ExitTarget
+        public readonly target: ExitTarget,
+        public readonly forVariableName: string | null = null
     )
     {
         super();
@@ -49,25 +50,40 @@ export class ExitStatement extends Statement
 
         if (frameType)
         {
-            const frame = runtime.findControlFrame(frameType);
-
-            if (frame)
+            const predicate = (frame: any): boolean =>
             {
-                let popped: any = null;
-
-                while (runtime.getCurrentControlFrame())
+                if (!frame || frame.type !== frameType)
                 {
-                    popped = runtime.popControlFrame();
-
-                    if (popped && popped.type === frameType)
-                    {
-                        break;
-                    }
+                    return false;
                 }
 
-                if (frame.endLine !== undefined)
+                if (frameType !== 'for')
                 {
-                    return { result: ExecutionResult.Goto, gotoTarget: frame.endLine + 1 };
+                    return true;
+                }
+
+                if (!this.forVariableName)
+                {
+                    return true;
+                }
+
+                if (!frame.loopVariable)
+                {
+                    return false;
+                }
+
+                return frame.loopVariable.toUpperCase() === this.forVariableName.toUpperCase();
+            };
+
+            const frame = runtime.findControlFrameWhere(predicate);
+            if (frame)
+            {
+                const popped = runtime.popControlFramesToAndIncludingWhere(predicate);
+                const endLine = popped?.endLine ?? frame.endLine;
+
+                if (endLine !== undefined)
+                {
+                    return { result: ExecutionResult.Goto, gotoTarget: endLine + 1 };
                 }
             }
         }
@@ -80,6 +96,10 @@ export class ExitStatement extends Statement
         switch (this.target)
         {
             case ExitTarget.For:
+                if (this.forVariableName)
+                {
+                    return `EXIT FOR ${this.forVariableName}`;
+                }
                 return 'EXIT FOR';
             case ExitTarget.While:
                 return 'EXIT WHILE';

@@ -163,3 +163,7 @@ When solving problems, follow this workflow:
 - In EduBASIC, "function" is ONLY used for set-theoretic mathematical functions
 - Use "operator", "statement", "command", or "keyword" for computational operations
 - Examples: "SIN operator", "PRINT statement", "IF statement" (NOT "SIN function", "PRINT function")
+
+## BASIC Program File Extensions
+- **Always use lowercase `.bas`** for EduBASIC/BASIC program files.
+- **Never create or reference** BASIC program files using `.BAS` (uppercase).

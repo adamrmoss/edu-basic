@@ -67,6 +67,17 @@ export class EndStatement extends Statement
 
             runtime.popControlFrame();
         }
+
+        if (this.endType === EndType.Select)
+        {
+            const top = runtime.getCurrentControlFrame();
+            if (!top || top.type !== 'select')
+            {
+                throw new Error('END SELECT without SELECT');
+            }
+
+            runtime.popControlFrame();
+        }
         
         return { result: ExecutionResult.Continue };
     }

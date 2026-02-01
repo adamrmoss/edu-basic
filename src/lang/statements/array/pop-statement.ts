@@ -30,6 +30,11 @@ export class PopStatement extends Statement
         {
             throw new Error(`POP: ${this.arrayVariable} is not an array`);
         }
+
+        if (array.dimensions && array.dimensions.length > 1)
+        {
+            throw new Error(`POP: ${this.arrayVariable} is multi-dimensional`);
+        }
         
         const arrayData = array.value as any[];
         
@@ -39,6 +44,11 @@ export class PopStatement extends Statement
         }
         
         const value = arrayData.pop();
+
+        if (array.dimensions && array.dimensions.length === 1)
+        {
+            array.dimensions[0].length = arrayData.length;
+        }
         
         if (this.targetVariable)
         {

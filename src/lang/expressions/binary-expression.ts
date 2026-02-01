@@ -1,5 +1,5 @@
 import { Expression } from './expression';
-import { EduBasicValue, EduBasicType, ComplexValue } from '../edu-basic-value';
+import { EduBasicValue, EduBasicType, ComplexValue, coerceValue, findMostSpecificCommonType } from '../edu-basic-value';
 import { ExecutionContext } from '../execution-context';
 
 export enum BinaryOperator
@@ -79,6 +79,22 @@ export class BinaryExpression extends Expression
         switch (this.operator)
         {
             case BinaryOperator.Add:
+                if (leftValue.type === EduBasicType.Array || rightValue.type === EduBasicType.Array)
+                {
+                    if (leftValue.type !== EduBasicType.Array || rightValue.type !== EduBasicType.Array)
+                    {
+                        throw new Error('Array concatenation requires two arrays');
+                    }
+
+                    if ((leftValue.dimensions && leftValue.dimensions.length > 1) ||
+                        (rightValue.dimensions && rightValue.dimensions.length > 1))
+                    {
+                        throw new Error('Array concatenation is only supported for 1D arrays');
+                    }
+
+                    return this.concatenateArrays(leftValue, rightValue);
+                }
+
                 if (leftValue.type === EduBasicType.String && rightValue.type === EduBasicType.String)
                 {
                     return { type: EduBasicType.String, value: leftValue.value + rightValue.value };
@@ -166,6 +182,57 @@ export class BinaryExpression extends Expression
             default:
                 throw new Error(`Unknown arithmetic operator: ${this.operator}`);
         }
+    }
+
+    private concatenateArrays(left: { value: EduBasicValue[]; elementType: EduBasicType }, right: { value: EduBasicValue[]; elementType: EduBasicType }): EduBasicValue
+    {
+        if (left.elementType === EduBasicType.Array || right.elementType === EduBasicType.Array)
+        {
+            throw new Error('Jagged arrays are not supported');
+        }
+
+        if (left.elementType === EduBasicType.Structure || right.elementType === EduBasicType.Structure)
+        {
+            if (left.elementType !== EduBasicType.Structure || right.elementType !== EduBasicType.Structure)
+            {
+                throw new Error('Array concatenation requires compatible element types');
+            }
+
+            return {
+                type: EduBasicType.Array,
+                value: [...left.value, ...right.value],
+                elementType: EduBasicType.Structure
+            };
+        }
+
+        if (left.elementType === EduBasicType.String || right.elementType === EduBasicType.String)
+        {
+            if (left.elementType !== EduBasicType.String || right.elementType !== EduBasicType.String)
+            {
+                throw new Error('Array concatenation requires compatible element types');
+            }
+
+            return {
+                type: EduBasicType.Array,
+                value: [...left.value, ...right.value],
+                elementType: EduBasicType.String
+            };
+        }
+
+        const common = findMostSpecificCommonType([left.elementType, right.elementType]);
+        if (common === null)
+        {
+            throw new Error('Array concatenation requires compatible element types');
+        }
+
+        const coercedLeft = left.value.map(v => coerceValue(v, common));
+        const coercedRight = right.value.map(v => coerceValue(v, common));
+
+        return {
+            type: EduBasicType.Array,
+            value: [...coercedLeft, ...coercedRight],
+            elementType: common
+        };
     }
 
     private evaluateComplexArithmetic(leftValue: EduBasicValue, rightValue: EduBasicValue): EduBasicValue
