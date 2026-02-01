@@ -8,22 +8,90 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { resolveColorValue, intToRgba } from './color-utils';
 
+/**
+ * Implements the `TRIANGLE` statement.
+ */
 export class TriangleStatement extends Statement
 {
+    /**
+     * Vertex 1 X expression.
+     */
+    public readonly x1: Expression;
+
+    /**
+     * Vertex 1 Y expression.
+     */
+    public readonly y1: Expression;
+
+    /**
+     * Vertex 2 X expression.
+     */
+    public readonly x2: Expression;
+
+    /**
+     * Vertex 2 Y expression.
+     */
+    public readonly y2: Expression;
+
+    /**
+     * Vertex 3 X expression.
+     */
+    public readonly x3: Expression;
+
+    /**
+     * Vertex 3 Y expression.
+     */
+    public readonly y3: Expression;
+
+    /**
+     * Optional color expression.
+     */
+    public readonly color: Expression | null;
+
+    /**
+     * Whether the triangle is filled.
+     */
+    public readonly filled: boolean;
+
+    /**
+     * Create a new `TRIANGLE` statement.
+     *
+     * @param x1 Vertex 1 X expression.
+     * @param y1 Vertex 1 Y expression.
+     * @param x2 Vertex 2 X expression.
+     * @param y2 Vertex 2 Y expression.
+     * @param x3 Vertex 3 X expression.
+     * @param y3 Vertex 3 Y expression.
+     * @param color Optional color expression.
+     * @param filled Whether the triangle is filled.
+     */
     public constructor(
-        public readonly x1: Expression,
-        public readonly y1: Expression,
-        public readonly x2: Expression,
-        public readonly y2: Expression,
-        public readonly x3: Expression,
-        public readonly y3: Expression,
-        public readonly color: Expression | null,
-        public readonly filled: boolean
+        x1: Expression,
+        y1: Expression,
+        x2: Expression,
+        y2: Expression,
+        x3: Expression,
+        y3: Expression,
+        color: Expression | null,
+        filled: boolean
     )
     {
         super();
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.x3 = x3;
+        this.y3 = y3;
+        this.color = color;
+        this.filled = filled;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

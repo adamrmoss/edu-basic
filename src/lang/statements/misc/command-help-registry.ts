@@ -1,3 +1,6 @@
+/**
+ * Help text registry for console commands.
+ */
 export class StatementHelpRegistry
 {
     private static readonly helpForms: Map<string, string[]> = new Map([

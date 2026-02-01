@@ -1,3 +1,6 @@
+/**
+ * Help text registry for the `HELP` statement.
+ */
 export class StatementHelpRegistry
 {
     private static readonly helpForms: Map<string, string[]> = new Map([

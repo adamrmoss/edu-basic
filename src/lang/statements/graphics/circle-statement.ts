@@ -8,19 +8,60 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { resolveColorValue, intToRgba } from './color-utils';
 
+/**
+ * Implements the `CIRCLE` statement.
+ */
 export class CircleStatement extends Statement
 {
-    public constructor(
-        public readonly centerX: Expression,
-        public readonly centerY: Expression,
-        public readonly radius: Expression,
-        public readonly color: Expression | null,
-        public readonly filled: boolean
-    )
+    /**
+     * Circle center X expression.
+     */
+    public readonly centerX: Expression;
+
+    /**
+     * Circle center Y expression.
+     */
+    public readonly centerY: Expression;
+
+    /**
+     * Radius expression.
+     */
+    public readonly radius: Expression;
+
+    /**
+     * Optional color expression.
+     */
+    public readonly color: Expression | null;
+
+    /**
+     * Whether the circle is filled.
+     */
+    public readonly filled: boolean;
+
+    /**
+     * Create a new `CIRCLE` statement.
+     *
+     * @param centerX Circle center X expression.
+     * @param centerY Circle center Y expression.
+     * @param radius Radius expression.
+     * @param color Optional color expression.
+     * @param filled Whether the circle is filled.
+     */
+    public constructor(centerX: Expression, centerY: Expression, radius: Expression, color: Expression | null, filled: boolean)
     {
         super();
+        this.centerX = centerX;
+        this.centerY = centerY;
+        this.radius = radius;
+        this.color = color;
+        this.filled = filled;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

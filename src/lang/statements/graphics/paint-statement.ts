@@ -8,17 +8,46 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { resolveColorValue, intToRgba } from './color-utils';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `PAINT` statement.
+ */
 export class PaintStatement extends Statement
 {
-    public constructor(
-        public readonly x: Expression,
-        public readonly y: Expression,
-        public readonly color: Expression
-    )
+    /**
+     * X coordinate expression.
+     */
+    public readonly x: Expression;
+
+    /**
+     * Y coordinate expression.
+     */
+    public readonly y: Expression;
+
+    /**
+     * Fill color expression.
+     */
+    public readonly color: Expression;
+
+    /**
+     * Create a new `PAINT` statement.
+     *
+     * @param x X coordinate expression.
+     * @param y Y coordinate expression.
+     * @param color Fill color expression.
+     */
+    public constructor(x: Expression, y: Expression, color: Expression)
     {
         super();
+        this.x = x;
+        this.y = y;
+        this.color = color;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

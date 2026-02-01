@@ -8,20 +8,74 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { resolveColorValue, intToRgba } from './color-utils';
 
+/**
+ * Implements the `OVAL` statement.
+ */
 export class OvalStatement extends Statement
 {
+    /**
+     * Oval center X expression.
+     */
+    public readonly centerX: Expression;
+
+    /**
+     * Oval center Y expression.
+     */
+    public readonly centerY: Expression;
+
+    /**
+     * X-radius expression.
+     */
+    public readonly radiusX: Expression;
+
+    /**
+     * Y-radius expression.
+     */
+    public readonly radiusY: Expression;
+
+    /**
+     * Optional color expression.
+     */
+    public readonly color: Expression | null;
+
+    /**
+     * Whether the oval is filled.
+     */
+    public readonly filled: boolean;
+
+    /**
+     * Create a new `OVAL` statement.
+     *
+     * @param centerX Oval center X expression.
+     * @param centerY Oval center Y expression.
+     * @param radiusX X-radius expression.
+     * @param radiusY Y-radius expression.
+     * @param color Optional color expression.
+     * @param filled Whether the oval is filled.
+     */
     public constructor(
-        public readonly centerX: Expression,
-        public readonly centerY: Expression,
-        public readonly radiusX: Expression,
-        public readonly radiusY: Expression,
-        public readonly color: Expression | null,
-        public readonly filled: boolean
+        centerX: Expression,
+        centerY: Expression,
+        radiusX: Expression,
+        radiusY: Expression,
+        color: Expression | null,
+        filled: boolean
     )
     {
         super();
+        this.centerX = centerX;
+        this.centerY = centerY;
+        this.radiusX = radiusX;
+        this.radiusY = radiusY;
+        this.color = color;
+        this.filled = filled;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

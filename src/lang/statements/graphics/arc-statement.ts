@@ -8,20 +8,74 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { resolveColorValue, intToRgba } from './color-utils';
 
+/**
+ * Implements the `ARC` statement.
+ */
 export class ArcStatement extends Statement
 {
+    /**
+     * Arc center X expression.
+     */
+    public readonly centerX: Expression;
+
+    /**
+     * Arc center Y expression.
+     */
+    public readonly centerY: Expression;
+
+    /**
+     * Radius expression.
+     */
+    public readonly radius: Expression;
+
+    /**
+     * Start angle expression.
+     */
+    public readonly startAngle: Expression;
+
+    /**
+     * End angle expression.
+     */
+    public readonly endAngle: Expression;
+
+    /**
+     * Optional color expression.
+     */
+    public readonly color: Expression | null;
+
+    /**
+     * Create a new `ARC` statement.
+     *
+     * @param centerX Arc center X expression.
+     * @param centerY Arc center Y expression.
+     * @param radius Radius expression.
+     * @param startAngle Start angle expression.
+     * @param endAngle End angle expression.
+     * @param color Optional color expression.
+     */
     public constructor(
-        public readonly centerX: Expression,
-        public readonly centerY: Expression,
-        public readonly radius: Expression,
-        public readonly startAngle: Expression,
-        public readonly endAngle: Expression,
-        public readonly color: Expression | null
+        centerX: Expression,
+        centerY: Expression,
+        radius: Expression,
+        startAngle: Expression,
+        endAngle: Expression,
+        color: Expression | null
     )
     {
         super();
+        this.centerX = centerX;
+        this.centerY = centerY;
+        this.radius = radius;
+        this.startAngle = startAngle;
+        this.endAngle = endAngle;
+        this.color = color;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

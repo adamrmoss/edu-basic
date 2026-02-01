@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `SLEEP` statement.
+ */
 export class SleepStatement extends Statement
 {
-    public constructor(
-        public readonly milliseconds: Expression
-    )
+    /**
+     * Milliseconds expression.
+     */
+    public readonly milliseconds: Expression;
+
+    /**
+     * Create a new `SLEEP` statement.
+     *
+     * @param milliseconds Milliseconds expression.
+     */
+    public constructor(milliseconds: Expression)
     {
         super();
+        this.milliseconds = milliseconds;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

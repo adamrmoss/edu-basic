@@ -8,20 +8,74 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { resolveColorValue, intToRgba } from './color-utils';
 
+/**
+ * Implements the `RECTANGLE` statement.
+ */
 export class RectangleStatement extends Statement
 {
+    /**
+     * First corner X expression.
+     */
+    public readonly x1: Expression;
+
+    /**
+     * First corner Y expression.
+     */
+    public readonly y1: Expression;
+
+    /**
+     * Second corner X expression.
+     */
+    public readonly x2: Expression;
+
+    /**
+     * Second corner Y expression.
+     */
+    public readonly y2: Expression;
+
+    /**
+     * Optional color expression.
+     */
+    public readonly color: Expression | null;
+
+    /**
+     * Whether the rectangle is filled.
+     */
+    public readonly filled: boolean;
+
+    /**
+     * Create a new `RECTANGLE` statement.
+     *
+     * @param x1 First corner X expression.
+     * @param y1 First corner Y expression.
+     * @param x2 Second corner X expression.
+     * @param y2 Second corner Y expression.
+     * @param color Optional color expression.
+     * @param filled Whether the rectangle is filled.
+     */
     public constructor(
-        public readonly x1: Expression,
-        public readonly y1: Expression,
-        public readonly x2: Expression,
-        public readonly y2: Expression,
-        public readonly color: Expression | null,
-        public readonly filled: boolean
+        x1: Expression,
+        y1: Expression,
+        x2: Expression,
+        y2: Expression,
+        color: Expression | null,
+        filled: boolean
     )
     {
         super();
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.color = color;
+        this.filled = filled;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

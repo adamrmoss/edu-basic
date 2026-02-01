@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { valueToString } from '../../edu-basic-value';
 
+/**
+ * Implements the `CONSOLE` statement.
+ */
 export class ConsoleStatement extends Statement
 {
-    public constructor(
-        public readonly expression: Expression
-    )
+    /**
+     * Expression producing the value to print.
+     */
+    public readonly expression: Expression;
+
+    /**
+     * Create a new `CONSOLE` statement.
+     *
+     * @param expression Expression producing the value to print.
+     */
+    public constructor(expression: Expression)
     {
         super();
+        this.expression = expression;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

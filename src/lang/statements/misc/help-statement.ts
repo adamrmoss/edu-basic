@@ -6,15 +6,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { StatementHelpRegistry } from './statement-help-registry';
 
+/**
+ * Implements the `HELP` statement.
+ */
 export class HelpStatement extends Statement
 {
-    public constructor(
-        public readonly keyword: string
-    )
+    /**
+     * Statement keyword to show help for.
+     */
+    public readonly keyword: string;
+
+    /**
+     * Create a new `HELP` statement.
+     *
+     * @param keyword Statement keyword to show help for.
+     */
+    public constructor(keyword: string)
     {
         super();
+        this.keyword = keyword;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,
