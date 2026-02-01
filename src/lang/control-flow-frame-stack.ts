@@ -23,6 +23,7 @@ export class ControlFlowFrameStack
      */
     public clear(): void
     {
+        // Clear in-place to preserve the `frames` array identity.
         this.frames.length = 0;
     }
 
@@ -60,6 +61,7 @@ export class ControlFlowFrameStack
      */
     public find(type: ControlStructureType): ControlStructureFrame | undefined
     {
+        // Search from top to bottom to find the nearest matching frame.
         for (let i = this.frames.length - 1; i >= 0; i--)
         {
             const frame = this.frames[i];
@@ -77,6 +79,7 @@ export class ControlFlowFrameStack
      */
     public findWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
     {
+        // Search from top to bottom to find the nearest matching frame.
         for (let i = this.frames.length - 1; i >= 0; i--)
         {
             const frame = this.frames[i];
@@ -94,6 +97,7 @@ export class ControlFlowFrameStack
      */
     public popToAndIncluding(type: ControlStructureType): void
     {
+        // Pop frames until the requested type has been removed (or the stack is empty).
         while (this.frames.length > 0)
         {
             const popped = this.pop();
@@ -109,6 +113,7 @@ export class ControlFlowFrameStack
      */
     public popToAndIncludingWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
     {
+        // Pop frames until the predicate matches (or the stack is empty).
         while (this.frames.length > 0)
         {
             const popped = this.pop();

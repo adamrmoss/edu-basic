@@ -62,8 +62,10 @@ export class Audio
      */
     private async initializeAudio(): Promise<void>
     {
+        // Detect the browser-specific AudioContext constructor.
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
 
+        // When audio is unavailable (e.g. tests / restricted environments), remain a no-op.
         if (!AudioContextClass)
         {
             this.ready = false;
@@ -72,6 +74,7 @@ export class Audio
 
         try
         {
+            // Create the core Web Audio objects.
             this.audioContext = new AudioContextClass();
             this.synth = new WebAudioTinySynth({ quality: 0, useReverb: 0, voices: 32 });
             this.gainNode = this.audioContext.createGain();
@@ -81,6 +84,7 @@ export class Audio
             this.synth.setTsMode(0);
             this.ready = true;
 
+            // Initialize per-voice defaults (program, scheduling, and volume).
             for (let i = 0; i < 8; i++)
             {
                 this.voiceConfigs.set(i, { program: 0 });
@@ -92,6 +96,7 @@ export class Audio
         }
         catch
         {
+            // Any unexpected audio initialization failure should leave the runtime in a no-op state.
             this.ready = false;
         }
     }
@@ -101,6 +106,7 @@ export class Audio
      */
     public setTempo(bpm: number): void
     {
+        // Clamp to a sane tempo range for predictable scheduling.
         this.tempo = Math.max(20, Math.min(300, bpm));
     }
 
@@ -111,13 +117,16 @@ export class Audio
      */
     public setVolume(volume: number): void
     {
+        // Clamp to percent range used by the UI and synth mapping.
         this.volume = Math.max(0, Math.min(100, volume));
 
+        // Apply volume to the gain node when available.
         if (this.gainNode)
         {
             this.gainNode.gain.value = this.volume / 100;
         }
 
+        // Mirror volume into each synth channel (0..127) for consistent loudness.
         if (this.synth)
         {
             const chVol = Math.round(127 * this.volume / 100);
@@ -133,12 +142,14 @@ export class Audio
      */
     public setMuted(muted: boolean): void
     {
+        // Store the flag for callers; then adjust the audio graph if possible.
         this.muted = muted;
 
         if (this.synth && this.audioContext)
         {
             if (muted)
             {
+                // Muting is implemented by disconnecting the gain node from the destination.
                 if (this.gainNode)
                 {
                     this.gainNode.disconnect();
@@ -146,6 +157,7 @@ export class Audio
             }
             else
             {
+                // Unmuting reconnects the gain node.
                 if (this.synth && this.gainNode && this.audioContext)
                 {
                     this.gainNode.connect(this.audioContext.destination);
@@ -167,6 +179,7 @@ export class Audio
      */
     public setVoice(voiceIndex: number): void
     {
+        // Clamp to the supported voice indices 0..7.
         this.currentVoice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
     }
 
@@ -175,10 +188,12 @@ export class Audio
      */
     public setVoiceInstrument(voiceIndex: number, programNum: number): void
     {
+        // Clamp voice and program into valid ranges.
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
         const program = Math.max(0, Math.min(127, Math.floor(programNum)));
         this.voiceConfigs.set(voice, { program });
 
+        // Apply immediately when the synth is ready.
         if (this.ready && this.synth)
         {
             this.synth.setProgram(voice, program);
@@ -190,6 +205,7 @@ export class Audio
      */
     public setVoiceInstrumentByName(voiceIndex: number, name: string): void
     {
+        // Resolve the name into a program number and apply it.
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
         const program = this.resolveProgramByName(name);
         this.voiceConfigs.set(voice, { program });
@@ -210,13 +226,16 @@ export class Audio
      */
     private resolveProgramByName(name: string): number
     {
+        // Default to program 0 when the synth is missing or the name is empty.
         if (!this.synth || !name.trim())
         {
             return 0;
         }
 
+        // Normalize for case-insensitive matching.
         const normalized = name.trim().toLowerCase();
 
+        // First pass: exact match.
         for (let i = 0; i < 128; i++)
         {
             const timbreName = this.synth.getTimbreName(0, i);
@@ -226,6 +245,7 @@ export class Audio
             }
         }
 
+        // Second pass: substring match.
         for (let i = 0; i < 128; i++)
         {
             const timbreName = this.synth.getTimbreName(0, i);
@@ -235,6 +255,7 @@ export class Audio
             }
         }
 
+        // Fallback: program 0 (usually piano).
         return 0;
     }
 
@@ -243,6 +264,7 @@ export class Audio
      */
     private midiNoteToFrequency(note: number): number
     {
+        // Use A4=440Hz with 12-TET.
         return 440 * Math.pow(2, (note - 60) / 12);
     }
 
@@ -251,6 +273,7 @@ export class Audio
      */
     private frequencyToMidiNote(frequency: number): number
     {
+        // Invert the MIDI->frequency mapping and round to nearest semitone.
         return Math.round(69 + 12 * Math.log2(frequency / 440));
     }
 
@@ -261,6 +284,7 @@ export class Audio
      */
     private parseNoteName(noteName: string, octave: number): number | null
     {
+        // Map note spellings to semitone offsets within an octave.
         const noteMap: Record<string, number> = {
             'C': 0, 'C#': 1, 'Db': 1,
             'D': 2, 'D#': 3, 'Eb': 3,
@@ -271,13 +295,16 @@ export class Audio
             'B': 11,
         };
 
+        // Normalize the token to match against the spelling map.
         const upper = noteName.toUpperCase();
 
         if (noteMap[upper] !== undefined)
         {
+            // Convert (octave, semitone) into a MIDI note number.
             return octave * 12 + noteMap[upper];
         }
 
+        // Unknown spelling.
         return null;
     }
 
@@ -286,11 +313,13 @@ export class Audio
      */
     public playNote(note: string, duration: number): void
     {
+        // Ignore playback requests until the runtime is ready.
         if (!this.ready || !this.audioContext)
         {
             return;
         }
 
+        // Parse the note name; invalid names are ignored.
         const midiNote = this.parseNoteName(note, 4);
 
         if (midiNote === null)
@@ -298,6 +327,7 @@ export class Audio
             return;
         }
 
+        // Delegate to MIDI playback using the current voice.
         this.playMidiNote(this.currentVoice, midiNote, duration, 100);
     }
 
@@ -306,11 +336,13 @@ export class Audio
      */
     public playFrequency(frequency: number, duration: number): void
     {
+        // Ignore playback requests until the runtime is ready.
         if (!this.ready || !this.synth || !this.audioContext)
         {
             return;
         }
 
+        // Read current voice configuration.
         const voice = this.currentVoice;
         const config = this.voiceConfigs.get(voice);
 
@@ -319,14 +351,17 @@ export class Audio
             return;
         }
 
+        // Convert the frequency to a MIDI note and choose the earliest allowed start time.
         const midiNote = this.frequencyToMidiNote(frequency);
         const currentTime = this.audioContext.currentTime;
         const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
 
+        // Schedule the note in the synth.
         this.synth.setProgram(voice, config.program);
         this.synth.noteOn(voice, midiNote, Math.round(127 * this.volume / 100), startTime);
         this.synth.noteOff(voice, midiNote, startTime + duration);
 
+        // Record scheduling metadata for status queries and sequencing.
         this.recordScheduledNote(voice, midiNote, startTime, duration, Math.round(127 * this.volume / 100));
         this.nextNoteTime.set(voice, startTime + duration);
     }
@@ -336,11 +371,13 @@ export class Audio
      */
     private playMidiNote(voiceIndex: number, midiNote: number, duration: number, velocity: number): void
     {
+        // Ignore playback requests until the runtime is ready.
         if (!this.ready || !this.synth || !this.audioContext)
         {
             return;
         }
 
+        // Clamp voice index and read configuration.
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
         const config = this.voiceConfigs.get(voice);
 
@@ -349,14 +386,17 @@ export class Audio
             return;
         }
 
+        // Choose the earliest allowed start time to avoid overlapping notes.
         const currentTime = this.audioContext.currentTime;
         const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
         const vel = Math.round(velocity * this.volume / 100);
 
+        // Schedule the note in the synth.
         this.synth.setProgram(voice, config.program);
         this.synth.noteOn(voice, midiNote, vel, startTime);
         this.synth.noteOff(voice, midiNote, startTime + duration);
 
+        // Record scheduling metadata for status queries and sequencing.
         this.recordScheduledNote(voice, midiNote, startTime, duration, vel);
         this.nextNoteTime.set(voice, startTime + duration);
     }
@@ -368,6 +408,7 @@ export class Audio
      */
     public playSequence(voiceIndex: number, mml: string): void
     {
+        // Ignore sequence requests until the runtime is ready.
         if (!this.ready || !this.audioContext)
         {
             return;
@@ -375,6 +416,7 @@ export class Audio
 
         if (this.audioContext.state === 'suspended')
         {
+            // Resume the context (requires user gesture in many browsers) and then play.
             this.audioContext.resume().then(() =>
             {
                 this.playSequenceInternal(voiceIndex, mml);
@@ -384,6 +426,7 @@ export class Audio
             return;
         }
 
+        // Context is already running; play immediately.
         this.playSequenceInternal(voiceIndex, mml);
     }
 
@@ -392,17 +435,20 @@ export class Audio
      */
     private playSequenceInternal(voiceIndex: number, mml: string): void
     {
+        // Ignore sequence requests until the runtime is ready.
         if (!this.ready || !this.synth || !this.audioContext)
         {
             return;
         }
 
+        // Parse the MML-like input and compute scheduling parameters.
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
         const notes = this.parseMml(mml);
         const currentTime = this.audioContext.currentTime;
         let time = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
         const beatDuration = 60 / this.tempo;
 
+        // Schedule notes/rests sequentially, advancing the running time.
         for (const note of notes)
         {
             if (note.type === 'rest')
@@ -411,6 +457,7 @@ export class Audio
             }
             else if (note.type === 'note' && note.midiNote !== undefined)
             {
+                // Compute the effective note duration and velocity, then schedule the note.
                 const duration = note.duration * beatDuration;
                 const vel = Math.round((note.velocity ?? 64) * this.volume / 100);
 
@@ -423,6 +470,7 @@ export class Audio
             }
         }
 
+        // Persist the next scheduling time so subsequent calls continue after this sequence.
         this.nextNoteTime.set(voice, time);
     }
 
@@ -431,11 +479,13 @@ export class Audio
      */
     public getNotesRemaining(voiceIndex: number): number
     {
+        // If audio is not ready, treat as no notes scheduled.
         if (!this.ready || !this.audioContext)
         {
             return 0;
         }
 
+        // Normalize voice index and collect tracked notes.
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
         const notes = this.scheduledNotes.get(voice) ?? [];
         const now = this.audioContext.currentTime;
@@ -444,6 +494,8 @@ export class Audio
          * Keep only notes that have not finished yet.
          */
         const remainingNotes = notes.filter((n) => (n.startTime + n.duration) > now);
+
+        // Persist the filtered list so future calls stay cheap.
         this.scheduledNotes.set(voice, remainingNotes);
 
         return remainingNotes.length;
@@ -454,6 +506,7 @@ export class Audio
      */
     private recordScheduledNote(voice: number, midiNote: number, startTime: number, duration: number, velocity: number): void
     {
+        // Append metadata for status queries (frequency is stored for display/debug use).
         const current = this.scheduledNotes.get(voice) ?? [];
         current.push({
             duration,
@@ -469,18 +522,21 @@ export class Audio
      */
     private parseMml(mml: string): Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }>
     {
+        // Initialize parser state (shared defaults).
         const result: Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }> = [];
         let i = 0;
         let octave = 4;
         let defaultLength = 4;
         let velocity = 64;
 
+        // Consume the string left-to-right, handling one token at a time.
         while (i < mml.length)
         {
             const char = mml[i].toUpperCase();
 
             if (char === 'O' && i + 1 < mml.length)
             {
+                // Octave change (O<digits>).
                 const octaveMatch = mml.substring(i + 1).match(/^\d+/);
 
                 if (octaveMatch)
@@ -493,6 +549,7 @@ export class Audio
 
             if (char === 'L' && i + 1 < mml.length)
             {
+                // Default note length change (L<digits>).
                 const lengthMatch = mml.substring(i + 1).match(/^\d+/);
 
                 if (lengthMatch)
@@ -505,6 +562,7 @@ export class Audio
 
             if (char === 'V' && i + 1 < mml.length)
             {
+                // Velocity change (V<digits>).
                 const velocityMatch = mml.substring(i + 1).match(/^\d+/);
 
                 if (velocityMatch)
@@ -517,6 +575,7 @@ export class Audio
 
             if (char === 'R')
             {
+                // Rest token (R[length][.]).
                 let length = defaultLength;
                 let hasDot = false;
 
@@ -531,11 +590,13 @@ export class Audio
                     }
                 }
 
+                // Encode duration as a fraction of a beat (optionally dotted).
                 result.push({
                     type: 'rest',
                     duration: hasDot ? 1.5 / length : 1 / length,
                 });
 
+                // Advance past the token (and optional dot).
                 i++;
 
                 if (i < mml.length && mml[i] === '.')
@@ -548,6 +609,7 @@ export class Audio
 
             if (char === 'N' && i + 1 < mml.length)
             {
+                // Numeric note token (N<digits>[length][.]).
                 const noteMatch = mml.substring(i + 1).match(/^(\d+)/);
 
                 if (noteMatch)
@@ -567,6 +629,7 @@ export class Audio
                         }
                     }
 
+                    // Emit a note token with duration as a fraction of a beat (optionally dotted).
                     result.push({
                         type: 'note',
                         midiNote,
@@ -574,6 +637,7 @@ export class Audio
                         velocity,
                     });
 
+                    // Advance past the token (and optional dot).
                     i += 1 + noteMatch[0].length;
 
                     if (i < mml.length && mml[i] === '.')
@@ -585,6 +649,7 @@ export class Audio
                 }
             }
 
+            // Letter note tokens (A..G with optional #/b and optional length).
             const baseNoteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
             const noteIndexMap: Record<string, number> = {
                 'C': 0, 'C#': 1, 'Db': 1,
@@ -598,6 +663,7 @@ export class Audio
 
             if (baseNoteNames.includes(char))
             {
+                // Parse accidental (#/b) if present.
                 let noteName = char;
                 let noteIndex: number;
 
@@ -615,6 +681,7 @@ export class Audio
                     }
                 }
 
+                // Determine semitone index and parse optional length/dot modifier.
                 noteIndex = noteIndexMap[noteName] ?? 0;
 
                 let length = defaultLength;
@@ -632,6 +699,7 @@ export class Audio
                     }
                 }
 
+                // Emit a note token with duration as a fraction of a beat (optionally dotted).
                 const midiNote = octave * 12 + noteIndex;
 
                 result.push({
@@ -641,13 +709,16 @@ export class Audio
                     velocity,
                 });
 
+                // Advance past the note token.
                 i++;
                 continue;
             }
 
+            // Unknown/unhandled characters are skipped.
             i++;
         }
 
+        // Return parsed tokens for scheduling.
         return result;
     }
 
@@ -656,6 +727,7 @@ export class Audio
      */
     public stop(): void
     {
+        // Request an immediate stop from the synth (best-effort).
         if (this.synth)
         {
             for (let i = 0; i < 8; i++)
@@ -664,6 +736,7 @@ export class Audio
             }
         }
 
+        // Clear all scheduling metadata so status queries reset immediately.
         for (let i = 0; i < 8; i++)
         {
             this.scheduledNotes.set(i, []);

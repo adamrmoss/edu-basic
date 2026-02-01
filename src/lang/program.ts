@@ -30,11 +30,13 @@ export class Program
      */
     public getStatement(lineIndex: number): Statement | undefined
     {
+        // Reject invalid indices so callers can treat `undefined` as "no statement".
         if (lineIndex < 0 || lineIndex >= this.statements.length)
         {
             return undefined;
         }
 
+        // Return the statement at the requested index.
         return this.statements[lineIndex];
     }
 
@@ -61,15 +63,19 @@ export class Program
      */
     public insertLine(lineIndex: number, statement: Statement): void
     {
+        // Validate the insertion index (insertion at end is allowed).
         if (lineIndex < 0 || lineIndex > this.statements.length)
         {
             throw new Error(`Invalid line index: ${lineIndex}`);
         }
 
+        // Insert the statement into the program.
         this.statements.splice(lineIndex, 0, statement);
 
+        // Shift label indices for any labels at/after the insertion point.
         this.updateLabelsAfterInsertion(lineIndex);
 
+        // Index the label for fast lookup if the inserted statement defines one.
         if (statement instanceof LabelStatement)
         {
             this.labelMap.set(statement.labelName.toUpperCase(), lineIndex);
@@ -81,11 +87,13 @@ export class Program
      */
     public deleteLine(lineIndex: number): void
     {
+        // Validate the deletion index.
         if (lineIndex < 0 || lineIndex >= this.statements.length)
         {
             throw new Error(`Invalid line index: ${lineIndex}`);
         }
 
+        // Capture the statement so we can remove any label entry it owns.
         const statement = this.statements[lineIndex];
 
         if (statement instanceof LabelStatement)
@@ -93,8 +101,10 @@ export class Program
             this.labelMap.delete(statement.labelName.toUpperCase());
         }
 
+        // Remove the statement from the program.
         this.statements.splice(lineIndex, 1);
 
+        // Shift label indices for any labels after the deleted line.
         this.updateLabelsAfterDeletion(lineIndex);
     }
 
@@ -103,11 +113,13 @@ export class Program
      */
     public replaceLine(lineIndex: number, statement: Statement): void
     {
+        // Validate the replacement index.
         if (lineIndex < 0 || lineIndex >= this.statements.length)
         {
             throw new Error(`Invalid line index: ${lineIndex}`);
         }
 
+        // Remove any label owned by the previous statement at this index.
         const oldStatement = this.statements[lineIndex];
 
         if (oldStatement instanceof LabelStatement)
@@ -115,8 +127,10 @@ export class Program
             this.labelMap.delete(oldStatement.labelName.toUpperCase());
         }
 
+        // Replace the statement in place.
         this.statements[lineIndex] = statement;
 
+        // Add a label entry if the new statement defines one.
         if (statement instanceof LabelStatement)
         {
             this.labelMap.set(statement.labelName.toUpperCase(), lineIndex);
@@ -128,9 +142,11 @@ export class Program
      */
     public appendLine(statement: Statement): void
     {
+        // Append is just an insertion at the end; record the index used.
         const lineIndex = this.statements.length;
         this.statements.push(statement);
 
+        // Index the label for fast lookup if the appended statement defines one.
         if (statement instanceof LabelStatement)
         {
             this.labelMap.set(statement.labelName.toUpperCase(), lineIndex);
@@ -169,8 +185,10 @@ export class Program
      */
     public rebuildLabelMap(): void
     {
+        // Clear any prior label indices.
         this.labelMap.clear();
 
+        // Scan the whole program and index any labels found.
         for (let i = 0; i < this.statements.length; i++)
         {
             const statement = this.statements[i];
@@ -187,6 +205,7 @@ export class Program
      */
     private updateLabelsAfterInsertion(insertedIndex: number): void
     {
+        // Bump all stored label indices that now occur after the insertion point.
         for (const [labelName, labelIndex] of this.labelMap.entries())
         {
             if (labelIndex >= insertedIndex)
@@ -201,6 +220,7 @@ export class Program
      */
     private updateLabelsAfterDeletion(deletedIndex: number): void
     {
+        // Decrement all stored label indices that were after the deleted line.
         for (const [labelName, labelIndex] of this.labelMap.entries())
         {
             if (labelIndex > deletedIndex)

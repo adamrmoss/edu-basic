@@ -104,6 +104,7 @@ export class RuntimeExecution
      */
     public executeStep(): ExecutionResult
     {
+        // If a sleep is active, keep yielding `Continue` until the timestamp elapses.
         if (this.sleepUntilMs !== null)
         {
             if (Date.now() < this.sleepUntilMs)
@@ -111,21 +112,26 @@ export class RuntimeExecution
                 return ExecutionResult.Continue;
             }
 
+            // Sleep window elapsed; resume normal execution.
             this.sleepUntilMs = null;
         }
 
+        // Fetch the current statement by program counter.
         const pc = this.context.getProgramCounter();
         const statement = this.program.getStatement(pc);
 
+        // Missing statements mean the program has run off the end.
         if (!statement)
         {
             return ExecutionResult.End;
         }
 
+        // Execute the statement to obtain the next control action.
         const status = statement.execute(this.context, this.graphics, this.audio, this.program, this);
 
         if (status.result === ExecutionResult.Goto && status.gotoTarget !== undefined)
         {
+            // Structured blocks must be unwound so the frame stack matches the new location.
             this.unwindControlFramesForGoto(status.gotoTarget);
             this.context.setProgramCounter(status.gotoTarget);
             return ExecutionResult.Continue;
@@ -133,15 +139,18 @@ export class RuntimeExecution
 
         if (status.result === ExecutionResult.End)
         {
+            // The statement requested termination (END/UEND/etc.).
             return ExecutionResult.End;
         }
 
         if (status.result === ExecutionResult.Return)
         {
+            // Return pops a call frame; if there is no frame, the program ends.
             const returnAddress = this.context.popStackFrame();
 
             if (returnAddress !== undefined)
             {
+                // Resume execution at the stored return address.
                 this.context.setProgramCounter(returnAddress);
                 return ExecutionResult.Continue;
             }
@@ -149,6 +158,7 @@ export class RuntimeExecution
             return ExecutionResult.End;
         }
 
+        // Default behavior: advance to the next statement.
         this.context.incrementProgramCounter();
         return ExecutionResult.Continue;
     }
@@ -163,6 +173,7 @@ export class RuntimeExecution
      */
     private unwindControlFramesForGoto(targetPc: number): void
     {
+        // Pop frames until the target lies within the active frame span.
         while (true)
         {
             const top = this.getCurrentControlFrame();
@@ -173,10 +184,12 @@ export class RuntimeExecution
 
             if (targetPc < top.startLine || targetPc > top.endLine)
             {
+                // The jump leaves the current structured block, so discard its frame.
                 this.popControlFrame();
                 continue;
             }
 
+            // The target is inside the current frame; stop unwinding.
             return;
         }
     }
@@ -188,13 +201,16 @@ export class RuntimeExecution
      */
     public sleep(milliseconds: number): void
     {
+        // Normalize to a non-negative integer to keep `executeStep()` logic simple.
         const ms = Math.max(0, Math.floor(milliseconds));
 
+        // Treat non-positive sleeps as no-ops.
         if (ms === 0)
         {
             return;
         }
 
+        // Store a wall-clock timestamp; `executeStep()` will poll it.
         this.sleepUntilMs = Date.now() + ms;
     }
 
@@ -264,6 +280,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, tracking nested IF blocks.
         for (let i = ifLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -276,6 +293,7 @@ export class RuntimeExecution
 
             if (stmt instanceof EndStatement && stmt.endType === EndType.If)
             {
+                // A matching END IF is only valid when all nested IFs have been closed.
                 if (depth === 0)
                 {
                     return i;
@@ -296,6 +314,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, tracking nested UNLESS blocks.
         for (let i = unlessLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -308,6 +327,7 @@ export class RuntimeExecution
 
             if (stmt instanceof EndStatement && stmt.endType === EndType.Unless)
             {
+                // A matching END UNLESS is only valid when all nested UNLESS have been closed.
                 if (depth === 0)
                 {
                     return i;
@@ -328,6 +348,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, tracking nested SELECT CASE blocks.
         for (let i = selectLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -340,6 +361,7 @@ export class RuntimeExecution
 
             if (stmt instanceof EndStatement && stmt.endType === EndType.Select)
             {
+                // A matching END SELECT is only valid when all nested SELECTs have been closed.
                 if (depth === 0)
                 {
                     return i;
@@ -361,6 +383,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let selectDepth = 0;
 
+        // Scan forward to the next CASE at the current SELECT nesting depth.
         for (let i = fromLine; i <= endSelectLine && i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -373,6 +396,7 @@ export class RuntimeExecution
 
             if (stmt instanceof EndStatement && stmt.endType === EndType.Select)
             {
+                // Consume nested END SELECTs until we return to the caller's depth.
                 if (selectDepth > 0)
                 {
                     selectDepth--;
@@ -382,10 +406,12 @@ export class RuntimeExecution
 
             if (selectDepth === 0 && stmt instanceof CaseStatement)
             {
+                // CASE at depth 0 is the next clause for the current SELECT block.
                 return i;
             }
         }
 
+        // No more CASE clauses exist; fall back to END SELECT.
         return endSelectLine;
     }
 
@@ -398,6 +424,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, ignoring nested IF blocks.
         for (let i = fromLine; i <= endIfLine && i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -410,6 +437,7 @@ export class RuntimeExecution
 
             if (stmt instanceof EndStatement && stmt.endType === EndType.If)
             {
+                // Consume nested END IFs until we return to the caller's depth.
                 if (depth > 0)
                 {
                     depth--;
@@ -419,6 +447,7 @@ export class RuntimeExecution
 
             if (depth === 0)
             {
+                // Only consider ELSEIF/ELSE at the current IF nesting level.
                 if (stmt instanceof ElseIfStatement || stmt instanceof ElseStatement)
                 {
                     return i;
@@ -437,6 +466,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, tracking nested FOR loops.
         for (let i = forLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -449,6 +479,7 @@ export class RuntimeExecution
 
             if (stmt instanceof NextStatement)
             {
+                // A matching NEXT is only valid when all nested FORs have been closed.
                 if (depth === 0)
                 {
                     return i;
@@ -469,6 +500,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, tracking nested WHILE blocks.
         for (let i = whileLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -481,6 +513,7 @@ export class RuntimeExecution
 
             if (stmt instanceof WendStatement)
             {
+                // A matching WEND is only valid when all nested WHILEs have been closed.
                 if (depth === 0)
                 {
                     return i;
@@ -501,6 +534,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, tracking nested DO blocks.
         for (let i = doLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -513,6 +547,7 @@ export class RuntimeExecution
 
             if (stmt instanceof LoopStatement)
             {
+                // A matching LOOP is only valid when all nested DOs have been closed.
                 if (depth === 0)
                 {
                     return i;
@@ -533,6 +568,7 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         let depth = 0;
 
+        // Scan forward, tracking nested SUB blocks.
         for (let i = subLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -545,6 +581,7 @@ export class RuntimeExecution
 
             if (stmt instanceof EndStatement && stmt.endType === EndType.Sub)
             {
+                // A matching END SUB is only valid when all nested SUBs have been closed.
                 if (depth === 0)
                 {
                     return i;
@@ -569,12 +606,14 @@ export class RuntimeExecution
         let indentLevel = 0;
         let foundIf = false;
 
+        // Walk forward, using indentation to detect when the IF block ends.
         for (let i = ifLine; i < statements.length; i++)
         {
             const stmt = statements[i];
 
             if (i === ifLine && stmt instanceof IfStatement)
             {
+                // Capture the indentation level of the IF body.
                 foundIf = true;
                 indentLevel = stmt.indentLevel + 1;
                 continue;
@@ -582,6 +621,7 @@ export class RuntimeExecution
 
             if (foundIf)
             {
+                // A same-level IF indicates a sibling block; find its END IF textually.
                 if (stmt instanceof IfStatement && stmt.indentLevel === indentLevel - 1)
                 {
                     const endIfIndex = this.findEndIfByText(i);
@@ -594,6 +634,7 @@ export class RuntimeExecution
 
                 if (stmt.indentLevel < indentLevel)
                 {
+                    // Indent decreased: treat as leaving the IF body and locate END IF.
                     const endIfIndex = this.findEndIfByText(i);
 
                     if (endIfIndex !== undefined)
@@ -616,12 +657,14 @@ export class RuntimeExecution
         let indentLevel = 0;
         let foundWhile = false;
 
+        // Walk forward, using indentation to detect when the WHILE block ends.
         for (let i = whileLine; i < statements.length; i++)
         {
             const stmt = statements[i];
 
             if (i === whileLine && stmt instanceof WhileStatement)
             {
+                // Capture the indentation level of the WHILE body.
                 foundWhile = true;
                 indentLevel = stmt.indentLevel + 1;
                 continue;
@@ -631,6 +674,7 @@ export class RuntimeExecution
             {
                 if (stmt.indentLevel < indentLevel)
                 {
+                    // Indent decreased: locate the next statement at the WHILE's indentation level.
                     for (let j = i; j < statements.length; j++)
                     {
                         const checkStmt = statements[j];
@@ -656,12 +700,14 @@ export class RuntimeExecution
         let indentLevel = 0;
         let foundDo = false;
 
+        // Walk forward, using indentation to detect when the DO/LOOP block ends.
         for (let i = doLine; i < statements.length; i++)
         {
             const stmt = statements[i];
 
             if (i === doLine && stmt instanceof DoLoopStatement)
             {
+                // Capture the indentation level of the DO body.
                 foundDo = true;
                 indentLevel = stmt.indentLevel + 1;
                 continue;
@@ -671,6 +717,7 @@ export class RuntimeExecution
             {
                 if (stmt.indentLevel < indentLevel)
                 {
+                    // Indent decreased: locate the next statement at the DO's indentation level.
                     for (let j = i; j < statements.length; j++)
                     {
                         const checkStmt = statements[j];
@@ -695,11 +742,13 @@ export class RuntimeExecution
         const statements = this.program.getStatements();
         const forStmt = statements[forLine] as ForStatement;
 
+        // Validate the statement at the requested line.
         if (!(forStmt instanceof ForStatement))
         {
             return undefined;
         }
 
+        // The FOR body ends when indentation falls below the FOR's body indentation.
         let indentLevel = forStmt.indentLevel + 1;
 
         for (let i = forLine + 1; i < statements.length; i++)
@@ -725,6 +774,7 @@ export class RuntimeExecution
     {
         const statements = this.program.getStatements();
 
+        // Scan forward for the first statement whose display text begins with 'END IF'.
         for (let i = startIndex; i < statements.length; i++)
         {
             const stmt = statements[i];

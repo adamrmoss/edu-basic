@@ -124,25 +124,30 @@ export class ExecutionContext
      */
     public getVariable(name: string): EduBasicValue
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // Prefer local scope if a call frame is active (respect by-ref aliasing).
         if (this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
 
             if (currentFrame.byRefBindings.has(lookupKey))
             {
+                // By-ref parameters alias a variable in an outer scope.
                 const targetName = currentFrame.byRefBindings.get(lookupKey)!;
                 return this.getVariableFromOuterScopes(targetName);
             }
 
             if (currentFrame.localVariables.has(lookupKey))
             {
+                // Remember the last-used casing for display, then return the stored value.
                 currentFrame.canonicalLocalNames.set(lookupKey, name);
                 return currentFrame.localVariables.get(lookupKey)!;
             }
         }
 
+        // Fall back to global storage (also tracking canonical casing).
         this.canonicalGlobalNames.set(lookupKey, name);
 
         if (this.globalVariables.has(lookupKey))
@@ -150,6 +155,7 @@ export class ExecutionContext
             return this.globalVariables.get(lookupKey)!;
         }
 
+        // Missing variables produce a type-appropriate default value.
         return this.getDefaultValue(name);
     }
 
@@ -163,8 +169,10 @@ export class ExecutionContext
      */
     public setVariable(name: string, value: EduBasicValue, isLocal: boolean = false): void
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // If this name is a by-ref alias in the current frame, redirect the assignment outward.
         if (this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
@@ -177,6 +185,7 @@ export class ExecutionContext
             }
         }
 
+        // Otherwise, assign into the requested scope (local when possible, else global).
         if (isLocal && this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
@@ -197,14 +206,17 @@ export class ExecutionContext
      */
     public hasVariable(name: string): boolean
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // Prefer checking current frame (respecting by-ref aliasing).
         if (this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
 
             if (currentFrame.byRefBindings.has(lookupKey))
             {
+                // By-ref aliases must check outer scopes, excluding the current frame.
                 const targetName = currentFrame.byRefBindings.get(lookupKey)!;
                 return this.hasVariableInOuterScopes(targetName);
             }
@@ -215,6 +227,7 @@ export class ExecutionContext
             }
         }
 
+        // Fall back to global storage.
         return this.globalVariables.has(lookupKey);
     }
 
@@ -240,14 +253,17 @@ export class ExecutionContext
      */
     public getCanonicalName(name: string): string
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // Prefer the most local visible canonical name (respecting by-ref aliasing).
         if (this.stackFrames.length > 0)
         {
             const currentFrame = this.stackFrames[this.stackFrames.length - 1];
 
             if (currentFrame.byRefBindings.has(lookupKey))
             {
+                // By-ref aliases use the canonical name of the outer target if known.
                 const targetName = currentFrame.byRefBindings.get(lookupKey)!;
                 return this.getCanonicalNameFromOuterScopes(targetName) ?? targetName;
             }
@@ -259,6 +275,7 @@ export class ExecutionContext
             }
         }
 
+        // Fall back to global canonical name if known.
         return this.canonicalGlobalNames.get(lookupKey) ?? name;
     }
 
@@ -267,6 +284,7 @@ export class ExecutionContext
      */
     public clearVariables(): void
     {
+        // Clear globals and reset the call stack.
         this.globalVariables.clear();
         this.canonicalGlobalNames.clear();
         this.stackFrames = [];
@@ -280,6 +298,7 @@ export class ExecutionContext
      */
     public pushStackFrame(returnAddress: number, byRefBindings?: Map<string, string>): void
     {
+        // Create a fresh local scope with optional by-ref aliases back to outer scopes.
         this.stackFrames.push({
             localVariables: new Map<string, EduBasicValue>(),
             canonicalLocalNames: new Map<string, string>(),
@@ -293,6 +312,7 @@ export class ExecutionContext
      */
     public popStackFrame(): number | undefined
     {
+        // Pop the call frame and return its return address (if any).
         const frame = this.stackFrames.pop();
         return frame?.returnAddress;
     }
@@ -302,11 +322,13 @@ export class ExecutionContext
      */
     public getCurrentReturnAddress(): number | undefined
     {
+        // If there is no active frame, there is no return address.
         if (this.stackFrames.length === 0)
         {
             return undefined;
         }
 
+        // Return the address stored by the most recent call frame.
         return this.stackFrames[this.stackFrames.length - 1].returnAddress;
     }
 
@@ -331,6 +353,7 @@ export class ExecutionContext
      */
     public clearStackFrames(): void
     {
+        // Clear the call stack without touching globals.
         this.stackFrames = [];
     }
 
@@ -339,11 +362,13 @@ export class ExecutionContext
      */
     public setKeyDown(key: string): void
     {
+        // Ignore empty keys to keep `getInkey()` semantics simple.
         if (!key)
         {
             return;
         }
 
+        // Track the key as pressed and remember it as the most recent.
         this.pressedKeys.add(key);
         this.lastPressedKey = key;
     }
@@ -353,13 +378,16 @@ export class ExecutionContext
      */
     public setKeyUp(key: string): void
     {
+        // Ignore empty keys to keep `getInkey()` semantics simple.
         if (!key)
         {
             return;
         }
 
+        // Remove the key from the pressed set.
         this.pressedKeys.delete(key);
 
+        // If the most-recent key was released, clear the preference.
         if (this.lastPressedKey === key)
         {
             this.lastPressedKey = null;
@@ -371,6 +399,7 @@ export class ExecutionContext
      */
     public clearKeys(): void
     {
+        // Clear both the set and the "most recent" preference.
         this.pressedKeys.clear();
         this.lastPressedKey = null;
     }
@@ -382,17 +411,20 @@ export class ExecutionContext
      */
     public getInkey(): string
     {
+        // Prefer the most-recent pressed key if it is still down.
         if (this.lastPressedKey && this.pressedKeys.has(this.lastPressedKey))
         {
             return this.lastPressedKey;
         }
 
+        // Otherwise, return any pressed key (iteration order is fine for this purpose).
         const first = this.pressedKeys.values().next();
         if (!first.done)
         {
             return first.value;
         }
 
+        // No keys are currently pressed.
         return '';
     }
 
@@ -406,11 +438,13 @@ export class ExecutionContext
      */
     private getDefaultValue(variableName: string): EduBasicValue
     {
+        // Array variables have a suffix encoding rank; the base name suffix encodes element type.
         const arraySuffix = tryGetArrayRankSuffixFromName(variableName);
         if (arraySuffix !== null)
         {
             const sigil = arraySuffix.baseName.charAt(arraySuffix.baseName.length - 1);
             
+            // Choose element type based on the sigil of the base name.
             switch (sigil)
             {
                 case '%':
@@ -426,6 +460,7 @@ export class ExecutionContext
             }
         }
 
+        // Scalar variables use the final character sigil to determine type.
         const sigil = variableName.charAt(variableName.length - 1);
 
         switch (sigil)
@@ -451,8 +486,10 @@ export class ExecutionContext
      */
     private hasVariableInOuterScopes(name: string): boolean
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // Search from the frame below the current one down to the oldest frame.
         for (let i = this.stackFrames.length - 2; i >= 0; i--)
         {
             const frame = this.stackFrames[i];
@@ -462,6 +499,7 @@ export class ExecutionContext
             }
         }
 
+        // Fall back to globals.
         return this.globalVariables.has(lookupKey);
     }
 
@@ -473,18 +511,22 @@ export class ExecutionContext
      */
     private getVariableFromOuterScopes(name: string): EduBasicValue
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // Search from the frame below the current one down to the oldest frame.
         for (let i = this.stackFrames.length - 2; i >= 0; i--)
         {
             const frame = this.stackFrames[i];
             if (frame.localVariables.has(lookupKey))
             {
+                // Remember the last-used casing for display, then return the stored value.
                 frame.canonicalLocalNames.set(lookupKey, name);
                 return frame.localVariables.get(lookupKey)!;
             }
         }
 
+        // Fall back to globals (also tracking canonical casing).
         this.canonicalGlobalNames.set(lookupKey, name);
 
         if (this.globalVariables.has(lookupKey))
@@ -492,6 +534,7 @@ export class ExecutionContext
             return this.globalVariables.get(lookupKey)!;
         }
 
+        // Missing variables produce a type-appropriate default value.
         return this.getDefaultValue(name);
     }
 
@@ -502,19 +545,23 @@ export class ExecutionContext
      */
     private setVariableInOuterScopes(name: string, value: EduBasicValue): void
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // Search from the frame below the current one down to the oldest frame.
         for (let i = this.stackFrames.length - 2; i >= 0; i--)
         {
             const frame = this.stackFrames[i];
             if (frame.localVariables.has(lookupKey))
             {
+                // Assign into the first matching outer local scope.
                 frame.canonicalLocalNames.set(lookupKey, name);
                 frame.localVariables.set(lookupKey, value);
                 return;
             }
         }
 
+        // Fall back to globals (also tracking canonical casing).
         this.canonicalGlobalNames.set(lookupKey, name);
         this.globalVariables.set(lookupKey, value);
     }
@@ -524,8 +571,10 @@ export class ExecutionContext
      */
     private getCanonicalNameFromOuterScopes(name: string): string | null
     {
+        // Normalize the name for case-insensitive lookup.
         const lookupKey = name.toUpperCase();
 
+        // Search from the frame below the current one down to the oldest frame.
         for (let i = this.stackFrames.length - 2; i >= 0; i--)
         {
             const frame = this.stackFrames[i];
@@ -536,6 +585,7 @@ export class ExecutionContext
             }
         }
 
+        // Fall back to global canonical name if known.
         return this.canonicalGlobalNames.get(lookupKey) ?? null;
     }
 }
