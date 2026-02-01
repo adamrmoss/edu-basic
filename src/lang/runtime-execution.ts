@@ -6,6 +6,7 @@ import { Audio } from './audio';
 import { ControlFlowFrameStack } from './control-flow-frame-stack';
 import { ControlStructureFrame, ControlStructureType } from './control-flow-frames';
 import {
+    CaseStatement,
     DoLoopStatement,
     ElseIfStatement,
     ElseStatement,
@@ -16,6 +17,7 @@ import {
     IfStatement,
     LoopStatement,
     NextStatement,
+    SelectCaseStatement,
     SubStatement,
     UnlessStatement,
     WendStatement,
@@ -88,6 +90,7 @@ export class RuntimeExecution
 
         if (status.result === ExecutionResult.Goto && status.gotoTarget !== undefined)
         {
+            this.unwindControlFramesForGoto(status.gotoTarget);
             this.context.setProgramCounter(status.gotoTarget);
             return ExecutionResult.Continue;
         }
@@ -112,6 +115,26 @@ export class RuntimeExecution
 
         this.context.incrementProgramCounter();
         return ExecutionResult.Continue;
+    }
+
+    private unwindControlFramesForGoto(targetPc: number): void
+    {
+        while (true)
+        {
+            const top = this.getCurrentControlFrame();
+            if (!top)
+            {
+                return;
+            }
+
+            if (targetPc < top.startLine || targetPc > top.endLine)
+            {
+                this.popControlFrame();
+                continue;
+            }
+
+            return;
+        }
     }
 
     public sleep(milliseconds: number): void
@@ -146,9 +169,19 @@ export class RuntimeExecution
         return this.controlFrames.find(type);
     }
 
+    public findControlFrameWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
+    {
+        return this.controlFrames.findWhere(predicate);
+    }
+
     public popControlFramesToAndIncluding(type: ControlStructureType): void
     {
         this.controlFrames.popToAndIncluding(type);
+    }
+
+    public popControlFramesToAndIncludingWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
+    {
+        return this.controlFrames.popToAndIncludingWhere(predicate);
     }
 
     public findMatchingEndIf(ifLine: number): number | undefined
@@ -207,6 +240,68 @@ export class RuntimeExecution
         }
 
         return undefined;
+    }
+
+    public findMatchingEndSelect(selectLine: number): number | undefined
+    {
+        const statements = this.program.getStatements();
+        let depth = 0;
+
+        for (let i = selectLine + 1; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof SelectCaseStatement)
+            {
+                depth++;
+                continue;
+            }
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.Select)
+            {
+                if (depth === 0)
+                {
+                    return i;
+                }
+
+                depth--;
+            }
+        }
+
+        return undefined;
+    }
+
+    public findNextCaseOrEndSelect(fromLine: number, endSelectLine: number): number
+    {
+        const statements = this.program.getStatements();
+        let selectDepth = 0;
+
+        for (let i = fromLine; i <= endSelectLine && i < statements.length; i++)
+        {
+            const stmt = statements[i];
+
+            if (stmt instanceof SelectCaseStatement)
+            {
+                selectDepth++;
+                continue;
+            }
+
+            if (stmt instanceof EndStatement && stmt.endType === EndType.Select)
+            {
+                if (selectDepth > 0)
+                {
+                    selectDepth--;
+                    continue;
+                }
+            }
+
+            if (selectDepth === 0 && stmt instanceof CaseStatement)
+            {
+                return i;
+            }
+        }
+
+        return endSelectLine;
     }
 
     public findNextIfClauseOrEnd(fromLine: number, endIfLine: number): number

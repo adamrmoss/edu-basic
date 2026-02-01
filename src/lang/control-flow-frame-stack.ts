@@ -48,6 +48,20 @@ export class ControlFlowFrameStack
         return undefined;
     }
 
+    public findWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
+    {
+        for (let i = this.frames.length - 1; i >= 0; i--)
+        {
+            const frame = this.frames[i];
+            if (predicate(frame))
+            {
+                return frame;
+            }
+        }
+
+        return undefined;
+    }
+
     public popToAndIncluding(type: ControlStructureType): void
     {
         while (this.frames.length > 0)
@@ -58,6 +72,20 @@ export class ControlFlowFrameStack
                 return;
             }
         }
+    }
+
+    public popToAndIncludingWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
+    {
+        while (this.frames.length > 0)
+        {
+            const popped = this.pop();
+            if (popped && predicate(popped))
+            {
+                return popped;
+            }
+        }
+
+        return undefined;
     }
 }
 

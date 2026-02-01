@@ -28,10 +28,14 @@ export class StatementHelpRegistry
         ]],
         ['LET', [
             'LET variable = expression',
-            'LET array[] = expression'
+            'LET array[] = expression',
+            'LET array[index] = expression',
+            'LET array[index1, index2, ...] = expression',
+            'LET structure[member] = expression'
         ]],
         ['DIM', [
-            'DIM array[] [dimension1, dimension2, ...]'
+            'DIM array[] [dimension1, dimension2, ...]',
+            'DIM array[] [start1 TO end1, start2 TO end2, ...]'
         ]],
         ['LOCAL', [
             'LOCAL variable = expression',

@@ -4,9 +4,17 @@ import { Expression } from '../../lang/expressions/expression';
 import { LiteralExpression } from '../../lang/expressions/literal-expression';
 import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../lang/expressions/binary-expression';
 import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../lang/expressions/unary-expression';
-import { VariableExpression } from '../../lang/expressions/special/variable-expression';
-import { ParenthesizedExpression } from '../../lang/expressions/special/parenthesized-expression';
-import { BracketAccessExpression } from '../../lang/expressions/special/bracket-access-expression';
+import {
+    ArrayLiteralExpression,
+    ArraySliceExpression,
+    BracketAccessExpression,
+    FactorialExpression,
+    MultiIndexBracketAccessExpression,
+    ParenthesizedExpression,
+    StructureLiteralExpression,
+    StructureMemberExpression,
+    VariableExpression,
+} from '../../lang/expressions/special';
 import { NullaryExpression } from '../../lang/expressions/nullary-expression';
 import {
     ArraySearchExpression,
@@ -558,6 +566,89 @@ export class ExpressionParserService
             const value = this.previous().value;
             expr = new LiteralExpression({ type: EduBasicType.String, value });
         }
+        else if (this.match(TokenType.LeftBracket))
+        {
+            const elements: Expression[] = [];
+
+            if (!this.check(TokenType.RightBracket))
+            {
+                while (!this.isAtEnd() && !this.check(TokenType.RightBracket))
+                {
+                    const elementResult = this.parseExpressionUntil([TokenType.Comma, TokenType.RightBracket]);
+                    if (!elementResult.success)
+                    {
+                        return elementResult;
+                    }
+
+                    elements.push(elementResult.value);
+
+                    if (this.match(TokenType.Comma))
+                    {
+                        continue;
+                    }
+
+                    break;
+                }
+            }
+
+            const rightBracketResult = this.consume(TokenType.RightBracket, "Expected ']' after array literal");
+            if (!rightBracketResult.success)
+            {
+                return rightBracketResult;
+            }
+
+            expr = new ArrayLiteralExpression(elements);
+        }
+        else if (this.match(TokenType.LeftBrace))
+        {
+            const members: { name: string; value: Expression }[] = [];
+
+            if (!this.check(TokenType.RightBrace))
+            {
+                while (!this.isAtEnd() && !this.check(TokenType.RightBrace))
+                {
+                    const memberNameResult = this.consume(TokenType.Identifier, 'structure member name');
+                    if (!memberNameResult.success)
+                    {
+                        return memberNameResult;
+                    }
+
+                    const colonResult = this.consume(TokenType.Colon, "Expected ':' after structure member name");
+                    if (!colonResult.success)
+                    {
+                        return colonResult;
+                    }
+
+                    const valueResult = this.parseExpressionUntil([TokenType.Comma, TokenType.RightBrace]);
+                    if (!valueResult.success)
+                    {
+                        return valueResult;
+                    }
+
+                    members.push({ name: memberNameResult.value.value, value: valueResult.value });
+
+                    if (this.match(TokenType.Comma))
+                    {
+                        if (this.check(TokenType.RightBrace))
+                        {
+                            break;
+                        }
+
+                        continue;
+                    }
+
+                    break;
+                }
+            }
+
+            const rightBraceResult = this.consume(TokenType.RightBrace, "Expected '}' after structure literal");
+            if (!rightBraceResult.success)
+            {
+                return rightBraceResult;
+            }
+
+            expr = new StructureLiteralExpression(members);
+        }
         else if (this.check(TokenType.Identifier))
         {
             const identifier = this.peek().value;
@@ -650,8 +741,31 @@ export class ExpressionParserService
     {
         let expr = baseExpr;
 
-        while (this.match(TokenType.LeftBracket))
+        while (true)
         {
+            if (this.match(TokenType.Exclamation))
+            {
+                expr = new FactorialExpression(expr);
+                continue;
+            }
+
+            if (this.match(TokenType.Dot))
+            {
+                const memberNameResult = this.consume(TokenType.Identifier, 'structure member name');
+                if (!memberNameResult.success)
+                {
+                    return memberNameResult;
+                }
+
+                expr = new StructureMemberExpression(expr, memberNameResult.value.value);
+                continue;
+            }
+
+            if (!this.match(TokenType.LeftBracket))
+            {
+                break;
+            }
+
             if (this.check(TokenType.Identifier))
             {
                 const identifier = this.peek().value;
@@ -665,15 +779,92 @@ export class ExpressionParserService
                         return rightBracketResult;
                     }
 
-                    expr = new BracketAccessExpression(expr, null, identifier);
+                    // Runtime-polymorphic bracket access:
+                    // - Arrays: index via identifier variable value
+                    // - Structures: (no longer supported for member access; use dot operator)
+                    expr = new BracketAccessExpression(expr, new VariableExpression(identifier), null);
                     continue;
                 }
             }
 
-            const insideResult = this.expression();
-            if (!insideResult.success)
+            let startExpr: Expression | null = null;
+
+            if (this.match(TokenType.Ellipsis))
             {
-                return insideResult;
+                startExpr = null;
+            }
+            else
+            {
+                const startResult = this.parseExpressionUntil([TokenType.Comma, TokenType.RightBracket], ['TO']);
+                if (!startResult.success)
+                {
+                    return startResult;
+                }
+                startExpr = startResult.value;
+            }
+
+            if (this.matchKeyword('TO'))
+            {
+                let endExpr: Expression | null = null;
+
+                if (this.match(TokenType.Ellipsis))
+                {
+                    endExpr = null;
+                }
+                else
+                {
+                    const endResult = this.parseExpressionUntil([TokenType.RightBracket]);
+                    if (!endResult.success)
+                    {
+                        return endResult;
+                    }
+                    endExpr = endResult.value;
+                }
+
+                const rightBracketResult = this.consume(TokenType.RightBracket, "Expected ']' after slice expression");
+                if (!rightBracketResult.success)
+                {
+                    return rightBracketResult;
+                }
+
+                expr = new ArraySliceExpression(expr, startExpr, endExpr);
+                continue;
+            }
+
+            if (startExpr === null)
+            {
+                return failure("Expected 'TO' after '...'");
+            }
+
+            if (this.match(TokenType.Comma))
+            {
+                const indices: Expression[] = [startExpr];
+
+                while (!this.check(TokenType.RightBracket) && !this.isAtEnd())
+                {
+                    const indexExprResult = this.parseExpressionUntil([TokenType.Comma, TokenType.RightBracket]);
+                    if (!indexExprResult.success)
+                    {
+                        return indexExprResult;
+                    }
+                    indices.push(indexExprResult.value);
+
+                    if (this.match(TokenType.Comma))
+                    {
+                        continue;
+                    }
+
+                    break;
+                }
+
+                const rightBracketResult = this.consume(TokenType.RightBracket, "Expected ']' after bracket expression");
+                if (!rightBracketResult.success)
+                {
+                    return rightBracketResult;
+                }
+
+                expr = new MultiIndexBracketAccessExpression(expr, indices);
+                continue;
             }
 
             const rightBracketResult = this.consume(TokenType.RightBracket, "Expected ']' after bracket expression");
@@ -682,10 +873,120 @@ export class ExpressionParserService
                 return rightBracketResult;
             }
 
-            expr = new BracketAccessExpression(expr, insideResult.value, null);
+            expr = new BracketAccessExpression(expr, startExpr, null);
         }
 
         return success(expr);
+    }
+
+    private parseExpressionUntil(stopTypes: TokenType[], stopKeywords: string[] = []): ParseResult<Expression>
+    {
+        const exprTokens: Token[] = [];
+        let parenDepth = 0;
+        let bracketDepth = 0;
+        let braceDepth = 0;
+
+        while (!this.isAtEnd())
+        {
+            const token = this.peek();
+
+            if (parenDepth === 0 && bracketDepth === 0 && braceDepth === 0)
+            {
+                if (stopTypes.includes(token.type))
+                {
+                    break;
+                }
+
+                if (token.type === TokenType.Keyword && stopKeywords.includes(token.value.toUpperCase()))
+                {
+                    break;
+                }
+            }
+
+            if (token.type === TokenType.LeftParen)
+            {
+                parenDepth++;
+            }
+            else if (token.type === TokenType.RightParen)
+            {
+                parenDepth--;
+            }
+            else if (token.type === TokenType.LeftBracket)
+            {
+                bracketDepth++;
+            }
+            else if (token.type === TokenType.RightBracket)
+            {
+                bracketDepth--;
+            }
+            else if (token.type === TokenType.LeftBrace)
+            {
+                braceDepth++;
+            }
+            else if (token.type === TokenType.RightBrace)
+            {
+                braceDepth--;
+            }
+
+            exprTokens.push(token);
+            this.advance();
+        }
+
+        if (exprTokens.length === 0)
+        {
+            return failure('Expected expression');
+        }
+
+        const source = this.tokensToSource(exprTokens);
+        const nested = new ExpressionParserService();
+        return nested.parseExpression(source);
+    }
+
+    private tokensToSource(tokens: Token[]): string
+    {
+        const parts: string[] = [];
+
+        for (let i = 0; i < tokens.length; i++)
+        {
+            const token = tokens[i];
+            const prev = i > 0 ? tokens[i - 1] : null;
+
+            if (prev && this.needsSpace(prev, token))
+            {
+                parts.push(' ');
+            }
+
+            if (token.type === TokenType.String)
+            {
+                parts.push(`"${token.value}"`);
+            }
+            else
+            {
+                parts.push(token.value);
+            }
+        }
+
+        return parts.join('');
+    }
+
+    private needsSpace(prev: Token, current: Token): boolean
+    {
+        if (prev.type === TokenType.LeftParen || prev.type === TokenType.LeftBracket || prev.type === TokenType.LeftBrace)
+        {
+            return false;
+        }
+
+        if (current.type === TokenType.RightParen || current.type === TokenType.RightBracket || current.type === TokenType.RightBrace)
+        {
+            return false;
+        }
+
+        if (prev.type === TokenType.Comma || prev.type === TokenType.Semicolon)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private parseConstant(name: string): Constant | null

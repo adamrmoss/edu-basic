@@ -1,5 +1,5 @@
 import { Expression } from '../expression';
-import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
 export class StructureMemberExpression extends Expression
@@ -41,14 +41,15 @@ export class StructureMemberExpression extends Expression
 
     public toString(omitOuterParens?: boolean): string
     {
-        return `${this.structureExpr.toString()}[${this.memberName}]`;
+        return `${this.structureExpr.toString()}.${this.memberName}`;
     }
 
     private static getDefaultValueForName(name: string): EduBasicValue
     {
-        if (name.endsWith('[]'))
+        const suffix = tryGetArrayRankSuffixFromName(name);
+        if (suffix !== null)
         {
-            const sigil = name.charAt(name.length - 3);
+            const sigil = suffix.baseName.charAt(suffix.baseName.length - 1);
 
             switch (sigil)
             {
