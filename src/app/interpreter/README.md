@@ -53,6 +53,8 @@ The service maintains a single `ExecutionContext` instance that persists across 
 
 **Core parsing implementation**: `src/lang/parsing/` (keywords, tokenizer, statement dispatch, statement parsers, expression parser).
 
+**Detailed documentation**: see `src/lang/parsing/README.md`.
+
 **Key Responsibilities**:
 - Tokenizes source code
 - Parses statements from tokens

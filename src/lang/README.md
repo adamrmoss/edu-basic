@@ -409,6 +409,7 @@ EduBASIC performs automatic type coercion:
 
 For detailed documentation on specific language subsystems:
 
+- **[Parsing Engine](parsing/README.md)** - Tokenizer, keywords, statement parsers, and the expression parser
 - **[Expressions System](expressions/README.md)** - Expression parsing, evaluation, and operator precedence
 - **[Statements System](statements/README.md)** - All statement types and their execution
 
