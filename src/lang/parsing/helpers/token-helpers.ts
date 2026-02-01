@@ -1,4 +1,4 @@
-import { Token, TokenType } from '../../tokenizer.service';
+import { Token, TokenType } from '../tokenizer';
 import { ParseResult, failure, success } from '../parse-result';
 
 export class TokenHelpers

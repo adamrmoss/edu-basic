@@ -1,4 +1,4 @@
-import { Expression } from '../../../../lang/expressions/expression';
+import { Expression } from '../../expressions/expression';
 import {
     CallStatement,
     CaseSelector,
@@ -34,8 +34,8 @@ import {
     UntilStatement,
     WendStatement,
     WhileStatement
-} from '../../../../lang/statements/control-flow';
-import { TokenType } from '../../tokenizer.service';
+} from '../../statements/control-flow';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 

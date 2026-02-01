@@ -1,14 +1,14 @@
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ExpressionParser } from '@/lang/parsing/expression-parser';
 import { ExecutionContext } from '@/lang/execution-context';
 
 describe('Angle conversion postfix operators', () =>
 {
-    let parser: ExpressionParserService;
+    let parser: ExpressionParser;
     let context: ExecutionContext;
 
     beforeEach(() =>
     {
-        parser = new ExpressionParserService();
+        parser = new ExpressionParser();
         context = new ExecutionContext();
     });
 

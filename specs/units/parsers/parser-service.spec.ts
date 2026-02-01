@@ -1,5 +1,4 @@
-import { ParserService } from '@/app/interpreter/parser';
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ParserService } from '@/app/interpreter/parser.service';
 import { DimStatement, LetStatement, LocalStatement } from '@/lang/statements/variables';
 import {
     EndStatement,
@@ -20,12 +19,10 @@ import { EduBasicType } from '@/lang/edu-basic-value';
 describe('ParserService', () =>
 {
     let parser: ParserService;
-    let expressionParser: ExpressionParserService;
 
     beforeEach(() =>
     {
-        expressionParser = new ExpressionParserService();
-        parser = new ParserService(expressionParser);
+        parser = new ParserService();
     });
 
     describe('Variable Statements', () =>

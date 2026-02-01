@@ -18,8 +18,7 @@ import { Program } from '@/lang/program';
 import { RuntimeExecution } from '@/lang/runtime-execution';
 import { ExecutionResult } from '@/lang/statements/statement';
 import { FileSystemService } from '@/app/disk/filesystem.service';
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
-import { ParserService } from '@/app/interpreter/parser';
+import { ParserService } from '@/app/interpreter/parser.service';
 
 import { TestAudio, TestConsoleService, TestGraphics } from './mocks';
 
@@ -61,8 +60,7 @@ export class BasProgramTestRunner
     {
         const maxSteps = options?.maxSteps ?? 10_000;
 
-        const expressionParser = new ExpressionParserService();
-        const parserService = new ParserService(expressionParser);
+        const parserService = new ParserService();
         parserService.clear();
 
         const program = new Program();

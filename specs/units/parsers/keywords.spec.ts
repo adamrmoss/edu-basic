@@ -1,6 +1,6 @@
-import { Keywords } from '@/app/interpreter/keywords';
-import { Tokenizer, TokenType } from '@/app/interpreter/tokenizer.service';
-import { statementDispatch } from '@/app/interpreter/parser/statement-dispatch';
+import { Keywords } from '@/lang/parsing/keywords';
+import { Tokenizer, TokenType } from '@/lang/parsing/tokenizer';
+import { statementDispatch } from '@/lang/parsing/statement-dispatch';
 
 describe('Keywords', () =>
 {

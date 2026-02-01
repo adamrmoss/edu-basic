@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-import { Statement } from '../../../lang/statements/statement';
-import { UnparsableStatement } from '../../../lang/statements/unparsable-statement';
-import { ExpressionParserService } from '../expression-parser.service';
-import { Token, Tokenizer, TokenType } from '../tokenizer.service';
-import { ParserContext } from './parsers/parser-context';
-import { getStatementParser } from './statement-dispatch';
-import { ParseResult, failure, success } from './parse-result';
+import { Statement } from '../../lang/statements/statement';
+import { UnparsableStatement } from '../../lang/statements/unparsable-statement';
+import { ExpressionParser } from '../../lang/parsing/expression-parser';
+import { ParseResult, failure, success } from '../../lang/parsing/parse-result';
+import { ParserContext } from '../../lang/parsing/parsers/parser-context';
+import { getStatementParser } from '../../lang/parsing/statement-dispatch';
+import { Token, Tokenizer, TokenType } from '../../lang/parsing/tokenizer';
 
 export interface ParsedLine
 {
@@ -32,8 +32,9 @@ export class ParserService
     private tokenizer: Tokenizer = new Tokenizer();
     private tokens: Token[] = [];
     private current: { value: number } = { value: 0 };
+    private readonly expressionParser: ExpressionParser = new ExpressionParser();
 
-    constructor(private expressionParser: ExpressionParserService)
+    public constructor()
     {
     }
 

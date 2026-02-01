@@ -1,15 +1,15 @@
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ExpressionParser } from '@/lang/parsing/expression-parser';
 import { ExecutionContext } from '@/lang/execution-context';
 import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('ExpressionParser', () =>
 {
-    let parser: ExpressionParserService;
+    let parser: ExpressionParser;
     let context: ExecutionContext;
 
     beforeEach(() =>
     {
-        parser = new ExpressionParserService();
+        parser = new ExpressionParser();
         context = new ExecutionContext();
     });
 

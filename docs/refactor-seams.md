@@ -5,29 +5,28 @@ This document captures architectural “seams” and complexity hotspots discove
 ## Refactoring Targets
 If you are auditing or refactoring the interpreter, start with:
 
-- `src/app/interpreter/keywords.ts` (keyword classification)
-- `src/app/interpreter/tokenizer.service.ts` (tokenization)
-- `src/app/interpreter/parser/statement-dispatch.ts` and `src/app/interpreter/parser/parser.service.ts` (statement parsing)
-- `src/app/interpreter/expression-parser.service.ts` (expression precedence and operators)
+- `src/lang/parsing/keywords.ts` (keyword classification)
+- `src/lang/parsing/tokenizer.ts` (tokenization)
+- `src/lang/parsing/statement-dispatch.ts` (statement parsing dispatch)
+- `src/app/interpreter/parser.service.ts` (Angular parsing wrapper)
+- `src/lang/parsing/expression-parser.ts` (expression precedence and operators)
 
 ## Parsing pipeline (mapped)
 
 The parsing code is decomposed, but the boundaries are easier to see if you follow the flow end-to-end:
 
-- **Keyword taxonomy**: `src/app/interpreter/keywords.ts`
+- **Keyword taxonomy**: `src/lang/parsing/keywords.ts`
   - The language vocabulary (statement starters, modifiers, expression terminators, operator keywords).
   - Drives token classification and several parsing decisions.
-- **Tokenizer**: `src/app/interpreter/tokenizer.service.ts`
+- **Tokenizer**: `src/lang/parsing/tokenizer.ts`
   - Converts source into `Token[]`.
-  - Note: this is a plain class (`Tokenizer`), not an Angular service.
-- **Statement parsing**: `src/app/interpreter/parser/parser.service.ts`
-  - Owns the token stream for a single line and produces a `Statement`.
-  - Delegates based on the first keyword via `src/app/interpreter/parser/statement-dispatch.ts`.
-  - Uses `ParserContext` (`src/app/interpreter/parser/parsers/parser-context.ts`) for shared token helpers and expression parsing.
-- **Per-domain statement parsers**: `src/app/interpreter/parser/parsers/*-parsers.ts`
+- **Statement parsing (core)**: `src/lang/parsing/statement-dispatch.ts`
+  - Delegates based on the first keyword via `getStatementParser(keyword)`.
+  - Uses `ParserContext` (`src/lang/parsing/parsers/parser-context.ts`) for shared token helpers and expression parsing.
+- **Per-domain statement parsers**: `src/lang/parsing/parsers/*-parsers.ts`
   - Organized by domain (control-flow, io, file-io, graphics, audio, variables, arrays, misc).
   - These are natural refactor boundaries: each file corresponds to a language “subsystem”.
-- **Expression parsing**: `src/app/interpreter/expression-parser.service.ts`
+- **Expression parsing**: `src/lang/parsing/expression-parser.ts`
   - A separate precedence ladder used by statement parsers (via `ParserContext.parseExpression()`).
 
 ## Complexity hotspots (high-value refactor targets)
@@ -40,7 +39,7 @@ Current behavior:
 - That delegates to `ExpressionHelpers.parseExpression(...)`, which:
   - slices a subset of statement tokens until a stop condition (punctuation or `Keywords.expressionTerminator`)
   - converts those tokens back into source text
-  - then calls `ExpressionParserService.parseExpression(...)`, which re-tokenizes the string and parses it
+  - then calls `ExpressionParser.parseExpression(...)`, which re-tokenizes the string and parses it
 
 Why this matters:
 
@@ -51,6 +50,35 @@ Potential improvements:
 
 - Replace “slice → string → re-tokenize” with a token-native expression parse entrypoint that can operate on the existing `Token[]` and cursor (no lossy reconstruction).
 - Make stop-sets explicit and named per statement form (instead of a single global “expression terminator keyword” set doing most of the work).
+
+### Consider moving parser core out of Angular (`app/`) into `lang/`
+
+Observation:
+
+- Only `parser.service.ts` is “Angular-shaped” (it imports `@angular/core` and RxJS and maintains UI-friendly state like `parsedLines$` and `currentIndentLevel$`).
+- Everything else under `src/lang/parsing/` is plain TypeScript and depends only on:
+  - token types (`Tokenizer` / `TokenType`)
+  - keyword sets (`Keywords`)
+  - the expression parser
+  - `src/lang/*` statements/expressions
+
+Potential improvement:
+
+- This has now been done: the pure parsing core lives under `src/lang/parsing/`, and a thin Angular wrapper remains in `src/app/interpreter/parser.service.ts`.
+
+Potential future improvement:
+
+- Keep a thin Angular wrapper service in `src/app/`:
+  - **Keep in `app/`**: Angular/RxJS-facing “service wrapper(s)” only.
+  - **Keep in `lang/`**: tokenizer, keywords, expression parser, statement-dispatch, parser context, per-domain statement parsers, parse-result helpers.
+
+Practical criterion:
+
+- A file is eligible to move into `lang/` if it does **not** import `@angular/*` and does not rely on DOM APIs.
+
+Workflow note:
+
+- If you do the file moves in the IDE, I can then update imports/barrels/tests by editing files (no CLI required).
 
 ### Keyword ambiguity / multi-role keywords
 
@@ -103,5 +131,6 @@ Refactor direction:
 
 If you refactor, these existing boundaries are already paying rent and should probably stay boundaries:
 
-- Per-domain statement parser files under `src/app/interpreter/parser/parsers/`
+- Per-domain statement parser files under `src/lang/parsing/parsers/`
 - Expression evaluation classes under `src/lang/expressions/` (AST nodes) and `src/lang/expressions/helpers/` (evaluation helpers)
+- Per-domain statement parser files under `src/lang/parsing/parsers/`

@@ -1,4 +1,4 @@
-import { Expression } from '../../../../lang/expressions/expression';
+import { Expression } from '../../expressions/expression';
 import {
     ArcStatement,
     CircleStatement,
@@ -11,10 +11,10 @@ import {
     RectangleStatement,
     TriangleStatement,
     TurtleStatement
-} from '../../../../lang/statements/graphics';
-import { LineInputStatement } from '../../../../lang/statements/file-io';
-import { Statement } from '../../../../lang/statements/statement';
-import { TokenType } from '../../tokenizer.service';
+} from '../../statements/graphics';
+import { LineInputStatement } from '../../statements/file-io';
+import { Statement } from '../../statements/statement';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 

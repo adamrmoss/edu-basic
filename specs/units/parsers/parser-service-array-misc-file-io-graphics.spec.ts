@@ -1,5 +1,4 @@
-import { ParserService } from '@/app/interpreter/parser';
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ParserService } from '@/app/interpreter/parser.service';
 
 import { ConsoleStatement, HelpStatement, RandomizeStatement, SetOption, SetStatement, SleepStatement } from '@/lang/statements/misc';
 import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '@/lang/statements/array';
@@ -40,8 +39,7 @@ describe('ParserService (additional statement parsers)', () =>
 
     beforeEach(() =>
     {
-        const expressionParser = new ExpressionParserService();
-        parser = new ParserService(expressionParser);
+        parser = new ParserService();
     });
 
     describe('Array Statements', () =>

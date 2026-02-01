@@ -1,7 +1,7 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { ExpressionParserService } from '../../expression-parser.service';
-import { Keywords } from '../../keywords';
-import { Token, TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { ExpressionParser } from '../expression-parser';
+import { Keywords } from '../keywords';
+import { Token, TokenType } from '../tokenizer';
 import { TokenHelpers } from './token-helpers';
 import { ParseResult, failure, success } from '../parse-result';
 
@@ -10,7 +10,7 @@ export class ExpressionHelpers
     public static parseExpression(
         tokens: Token[],
         current: { value: number },
-        expressionParser: ExpressionParserService
+        expressionParser: ExpressionParser
     ): ParseResult<Expression>
     {
         const exprTokens: Token[] = [];

@@ -138,13 +138,13 @@ Canvas rendering
 ### Adding New Statements
 1. Create statement class extending `Statement`
 2. Implement `execute()` method
-3. Add parsing logic to `ParserService.parseStatement()`
-4. Register in parser's statement dispatch
+3. Add parsing logic to the appropriate per-domain parser in `src/lang/parsing/parsers/*-parsers.ts`
+4. Register the statement keyword in `src/lang/parsing/statement-dispatch.ts`
 
 ### Adding New Expressions
 1. Create expression class extending `Expression`
 2. Implement `evaluate()` method
-3. Add parsing logic to `ExpressionParserService`
+3. Add parsing logic to `ExpressionParser` (`src/lang/parsing/expression-parser.ts`)
 4. Handle operator precedence if needed
 
 ### Adding New Graphics Operations

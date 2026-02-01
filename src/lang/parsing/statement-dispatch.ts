@@ -1,4 +1,4 @@
-import { Statement } from '../../../lang/statements/statement';
+import { Statement } from '../statements/statement';
 import { ParserContext } from './parsers/parser-context';
 import { ArrayParsers } from './parsers/array-parsers';
 import { AudioParsers } from './parsers/audio-parsers';

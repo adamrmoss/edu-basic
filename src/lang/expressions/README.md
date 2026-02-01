@@ -132,7 +132,7 @@ From lowest to highest:
 
 ### Parsing Methods
 
-**ExpressionParserService** uses recursive descent parsing:
+**ExpressionParser** uses recursive descent parsing:
 
 - `expression()` - Entry point
 - `imp()` - IMP operator

@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ConsoleComponent } from '@/app/console/console.component';
 import { ConsoleService, ConsoleEntry } from '@/app/console/console.service';
 import { BehaviorSubject } from 'rxjs';
-import { ParsedLine } from '@/app/interpreter/parser';
+import { ParsedLine } from '@/app/interpreter/parser.service';
 import { LetStatement } from '@/lang/statements/variables';
 import { PrintStatement } from '@/lang/statements/io';
 import { UnparsableStatement } from '@/lang/statements/unparsable-statement';

@@ -1,14 +1,14 @@
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
-import { ParserContext } from '@/app/interpreter/parser/parsers/parser-context';
-import { ArrayParsers } from '@/app/interpreter/parser/parsers/array-parsers';
-import { AudioParsers } from '@/app/interpreter/parser/parsers/audio-parsers';
-import { ControlFlowParsers } from '@/app/interpreter/parser/parsers/control-flow-parsers';
-import { FileIoParsers } from '@/app/interpreter/parser/parsers/file-io-parsers';
-import { GraphicsParsers } from '@/app/interpreter/parser/parsers/graphics-parsers';
-import { IoParsers } from '@/app/interpreter/parser/parsers/io-parsers';
-import { MiscParsers } from '@/app/interpreter/parser/parsers/misc-parsers';
-import { VariableParsers } from '@/app/interpreter/parser/parsers/variable-parsers';
-import { Token, TokenType } from '@/app/interpreter/tokenizer.service';
+import { ExpressionParser } from '@/lang/parsing/expression-parser';
+import { ArrayParsers } from '@/lang/parsing/parsers/array-parsers';
+import { AudioParsers } from '@/lang/parsing/parsers/audio-parsers';
+import { ControlFlowParsers } from '@/lang/parsing/parsers/control-flow-parsers';
+import { FileIoParsers } from '@/lang/parsing/parsers/file-io-parsers';
+import { GraphicsParsers } from '@/lang/parsing/parsers/graphics-parsers';
+import { IoParsers } from '@/lang/parsing/parsers/io-parsers';
+import { MiscParsers } from '@/lang/parsing/parsers/misc-parsers';
+import { ParserContext } from '@/lang/parsing/parsers/parser-context';
+import { VariableParsers } from '@/lang/parsing/parsers/variable-parsers';
+import { Token, TokenType } from '@/lang/parsing/tokenizer';
 import {
     CallStatement,
     CaseStatement,
@@ -75,7 +75,7 @@ import { DimStatement, LetStatement, LocalStatement } from '@/lang/statements/va
 
 describe('Parser parsers (direct parser class calls)', () =>
 {
-    const expressionParser = new ExpressionParserService();
+    const expressionParser = new ExpressionParser();
 
     function t(type: TokenType, value: string): Token
     {

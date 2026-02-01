@@ -48,7 +48,7 @@ EduBASIC has two related parsers:
 - [Refactor Seams](docs/refactor-seams.md) - Notes for refactoring and cohesion improvements
 - [Source Code Documentation](src/README.md) - Complete index of all in-source documentation
   - [Application Components](src/app/README.md) - All Angular UI components and their functionality
-  - [Interpreter Services](src/app/interpreter/README.md) - Interpreter, parser, tokenizer, and expression parser services
+  - [Interpreter Services](src/app/interpreter/README.md) - Interpreter services and the parsing integration point
   - [Console Service](src/app/console/README.md) - Console command execution and history management
   - [Language Core](src/lang/README.md) - Core language types, execution model, runtime execution, graphics, and audio
   - [Expressions System](src/lang/expressions/README.md) - Expression parsing, evaluation, and operator precedence
@@ -57,7 +57,7 @@ EduBASIC has two related parsers:
 
 ## Operator precedence (expressions)
 
-The authoritative implementation is `src/app/interpreter/expression-parser.service.ts`.
+The authoritative implementation is `src/lang/parsing/expression-parser.ts`.
 From **lowest → highest precedence**:
 
 - **IMP**

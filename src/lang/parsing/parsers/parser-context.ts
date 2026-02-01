@@ -1,5 +1,5 @@
-import { ExpressionParserService } from '../../expression-parser.service';
-import { Token, TokenType } from '../../tokenizer.service';
+import { ExpressionParser } from '../expression-parser';
+import { Token, TokenType } from '../tokenizer';
 import { ExpressionHelpers } from '../helpers/expression-helpers';
 import { TokenHelpers } from '../helpers/token-helpers';
 import { ParseResult, failure, success } from '../parse-result';
@@ -9,7 +9,7 @@ export class ParserContext
     public constructor(
         public readonly tokens: Token[],
         public readonly current: { value: number },
-        public readonly expressionParser: ExpressionParserService
+        public readonly expressionParser: ExpressionParser
     )
     {
     }

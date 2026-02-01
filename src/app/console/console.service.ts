@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ParserService, ParsedLine } from '../interpreter/parser';
+import { ParserService, ParsedLine } from '../interpreter/parser.service';
 import { InterpreterService } from '../interpreter/interpreter.service';
 import { GraphicsService } from '../interpreter/graphics.service';
 import { AudioService } from '../interpreter/audio.service';
-import { ExpressionParserService } from '../interpreter/expression-parser.service';
+import { ExpressionParser } from '../../lang/parsing/expression-parser';
 import { Expression } from '../../lang/expressions/expression';
 import { Statement } from '../../lang/statements/statement';
 import { ConsoleStatement } from '../../lang/statements/misc';
-import { ParseResult } from '../interpreter/parser/parse-result';
 
 export interface ConsoleEntry
 {
@@ -36,11 +35,12 @@ export class ConsoleService
         private readonly parserService: ParserService,
         private readonly interpreterService: InterpreterService,
         private readonly graphicsService: GraphicsService,
-        private readonly audioService: AudioService,
-        private readonly expressionParserService: ExpressionParserService
+        private readonly audioService: AudioService
     )
     {
     }
+
+    private readonly expressionParser: ExpressionParser = new ExpressionParser();
 
     public get displayHistory(): ConsoleEntry[]
     {
@@ -100,7 +100,7 @@ export class ConsoleService
         
         let parsedLine: ParsedLine | null = null;
         
-        const expressionResult = this.expressionParserService.parseExpression(trimmedCommand);
+        const expressionResult = this.expressionParser.parseExpression(trimmedCommand);
         
         if (expressionResult.success)
         {

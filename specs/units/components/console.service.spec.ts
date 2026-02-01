@@ -1,16 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { ConsoleService } from '@/app/console/console.service';
-import { ParserService, ParsedLine } from '@/app/interpreter/parser';
+import { ParserService, ParsedLine } from '@/app/interpreter/parser.service';
 import { InterpreterService } from '@/app/interpreter/interpreter.service';
 import { GraphicsService } from '@/app/interpreter/graphics.service';
 import { AudioService } from '@/app/interpreter/audio.service';
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ExpressionParser } from '@/lang/parsing/expression-parser';
 import { LetStatement } from '@/lang/statements/variables';
 import { PrintStatement } from '@/lang/statements/io';
 import { UnparsableStatement } from '@/lang/statements/unparsable-statement';
 import { LiteralExpression } from '@/lang/expressions/literal-expression';
 import { EduBasicType } from '@/lang/edu-basic-value';
-import { failure, success } from '@/app/interpreter/parser/parse-result';
+import { failure, success } from '@/lang/parsing/parse-result';
 import { ExecutionContext } from '@/lang/execution-context';
 import { Program } from '@/lang/program';
 import { Graphics } from '@/lang/graphics';
@@ -25,7 +25,6 @@ describe('ConsoleService', () => {
     let interpreterService: jest.Mocked<InterpreterService>;
     let graphicsService: jest.Mocked<GraphicsService>;
     let audioService: jest.Mocked<AudioService>;
-    let expressionParserService: jest.Mocked<ExpressionParserService>;
 
     beforeEach(() => {
         const parserServiceMock = {
@@ -46,10 +45,6 @@ describe('ConsoleService', () => {
             getAudio: jest.fn()
         } as any;
 
-        const expressionParserServiceMock = {
-            parseExpression: jest.fn()
-        } as any;
-
         TestBed.configureTestingModule({
             providers: [
                 ConsoleService,
@@ -57,7 +52,6 @@ describe('ConsoleService', () => {
                 { provide: InterpreterService, useValue: interpreterServiceMock },
                 { provide: GraphicsService, useValue: graphicsServiceMock },
                 { provide: AudioService, useValue: audioServiceMock },
-                { provide: ExpressionParserService, useValue: expressionParserServiceMock }
             ]
         });
 
@@ -66,7 +60,6 @@ describe('ConsoleService', () => {
         interpreterService = TestBed.inject(InterpreterService) as jest.Mocked<InterpreterService>;
         graphicsService = TestBed.inject(GraphicsService) as jest.Mocked<GraphicsService>;
         audioService = TestBed.inject(AudioService) as jest.Mocked<AudioService>;
-        expressionParserService = TestBed.inject(ExpressionParserService) as jest.Mocked<ExpressionParserService>;
     });
 
     afterEach(() => {
@@ -189,7 +182,7 @@ describe('ConsoleService', () => {
             graphicsService.getGraphics.mockReturnValue(graphics as any);
             audioService.getAudio.mockReturnValue(audio as any);
 
-            expressionParserService.parseExpression.mockReturnValue(success(
+            jest.spyOn(ExpressionParser.prototype, 'parseExpression').mockReturnValue(success(
                 new LiteralExpression({ type: EduBasicType.String, value: 'hello' })
             ));
 
@@ -216,7 +209,7 @@ describe('ConsoleService', () => {
             graphicsService.getGraphics.mockReturnValue(graphics as any);
             audioService.getAudio.mockReturnValue(audio as any);
 
-            expressionParserService.parseExpression.mockReturnValue(failure('not an expression'));
+            jest.spyOn(ExpressionParser.prototype, 'parseExpression').mockReturnValue(failure('not an expression'));
 
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
@@ -233,7 +226,7 @@ describe('ConsoleService', () => {
         });
 
         it('should print error when parsing fails', () => {
-            expressionParserService.parseExpression.mockReturnValue(failure('not an expression'));
+            jest.spyOn(ExpressionParser.prototype, 'parseExpression').mockReturnValue(failure('not an expression'));
             parserService.parseLine.mockReturnValue({ success: false, error: 'Parse error' } as any);
 
             service.executeCommand('BAD');
@@ -244,7 +237,7 @@ describe('ConsoleService', () => {
         });
 
         it('should print error when parsed line hasError is true', () => {
-            expressionParserService.parseExpression.mockReturnValue(failure('not an expression'));
+            jest.spyOn(ExpressionParser.prototype, 'parseExpression').mockReturnValue(failure('not an expression'));
 
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
@@ -274,7 +267,7 @@ describe('ConsoleService', () => {
             graphicsService.getGraphics.mockReturnValue(graphics as any);
             audioService.getAudio.mockReturnValue(audio as any);
 
-            expressionParserService.parseExpression.mockReturnValue(failure('not an expression'));
+            jest.spyOn(ExpressionParser.prototype, 'parseExpression').mockReturnValue(failure('not an expression'));
 
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
@@ -294,7 +287,7 @@ describe('ConsoleService', () => {
 
     describe('history and output helpers', () => {
         it('should navigate input history up and down', () => {
-            expressionParserService.parseExpression.mockReturnValue(failure('not an expression'));
+            jest.spyOn(ExpressionParser.prototype, 'parseExpression').mockReturnValue(failure('not an expression'));
             parserService.parseLine.mockReturnValue(success({
                 lineNumber: 0,
                 sourceText: 'X',
@@ -330,7 +323,7 @@ describe('ConsoleService', () => {
             expect(service.displayHistory.length).toBe(0);
 
             // Add some input history via private path (executeCommand).
-            expressionParserService.parseExpression.mockReturnValue(failure('not an expression'));
+            jest.spyOn(ExpressionParser.prototype, 'parseExpression').mockReturnValue(failure('not an expression'));
             parserService.parseLine.mockReturnValue({ success: false, error: 'Parse error' } as any);
             service.executeCommand('A');
             service.executeCommand('B');

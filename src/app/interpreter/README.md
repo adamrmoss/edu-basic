@@ -47,9 +47,11 @@ The service maintains a single `ExecutionContext` instance that persists across 
 
 ### ParserService
 
-**Location**: `src/app/interpreter/parser/parser.service.ts`
+**Location**: `src/app/interpreter/parser.service.ts`
 
 **Purpose**: Parses BASIC source code into statement objects.
+
+**Core parsing implementation**: `src/lang/parsing/` (keywords, tokenizer, statement dispatch, statement parsers, expression parser).
 
 **Key Responsibilities**:
 - Tokenizes source code
@@ -86,8 +88,8 @@ Statement Object
 - Otherwise it tokenizes the trimmed line using `Tokenizer.tokenize(...)` and creates a `ParserContext` over:
   - `tokens: Token[]`
   - `current: { value: number }` (shared mutable cursor)
-  - `expressionParser: ExpressionParserService` (used for sub-expressions)
-- The first token must be a keyword. `ParserService` uses that keyword to look up a statement parse method via `getStatementParser(keyword)` (from `parser/statement-dispatch.ts`).
+  - `expressionParser: ExpressionParser` (used for sub-expressions)
+- The first token must be a keyword. `ParserService` uses that keyword to look up a statement parse method via `getStatementParser(keyword)` (from `src/lang/parsing/statement-dispatch.ts`).
 - The chosen parser method consumes the rest of the tokens using `ParserContext` helpers:
   - `consume(...)` / `consumeKeyword(...)` for mandatory tokens/keywords
   - `match(...)` / `matchKeyword(...)` for optional tokens/keywords
@@ -100,7 +102,7 @@ Statement Object
 
 **Expression parsing inside statements (`ParserContext.parseExpression()`)**:
 
-Statement parsers do not directly call `ExpressionParserService` on the full remaining token stream. Instead:
+Statement parsers do not directly call `ExpressionParser` on the full remaining token stream. Instead:
 
 - `ParserContext.parseExpression()` delegates to `ExpressionHelpers.parseExpression(...)`.
 - `ExpressionHelpers.parseExpression(...)`:
@@ -110,7 +112,7 @@ Statement parsers do not directly call `ExpressionParserService` on the full rem
     - closing delimiters `)` / `]` / `}`
     - any keyword in `Keywords.expressionTerminator` (e.g. `THEN`, `TO`, `WITH`, etc.)
   - converts `exprTokens` back into a string (`exprSource`)
-  - then calls `ExpressionParserService.parseExpression(exprSource)`
+  - then calls `ExpressionParser.parseExpression(exprSource)`
 
 This “token slice → string → re-tokenize → parse” approach is convenient and keeps statement parsers simple, but it’s a key source of complexity: the correctness of many statement grammars depends on choosing the right expression terminators.
 
@@ -125,11 +127,11 @@ This “token slice → string → re-tokenize → parse” approach is convenie
 - File I/O: OPEN, READFILE, WRITEFILE, etc.
 
 **Dependencies**:
-- `ExpressionParserService` - For parsing expressions within statements
+- `ExpressionParser` (pure class in `src/lang/parsing/expression-parser.ts`) - For parsing expressions within statements
 
 ### Tokenizer
 
-**Location**: `src/app/interpreter/tokenizer.service.ts`
+**Location**: `src/lang/parsing/tokenizer.ts`
 
 **Purpose**: Converts source code into tokens.
 
@@ -160,9 +162,9 @@ interface Token {
 }
 ```
 
-### ExpressionParserService
+### ExpressionParser
 
-**Location**: `src/app/interpreter/expression-parser.service.ts`
+**Location**: `src/lang/parsing/expression-parser.ts`
 
 **Purpose**: Parses expressions with proper operator precedence.
 

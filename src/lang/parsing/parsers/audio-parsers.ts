@@ -1,6 +1,6 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../../../../lang/statements/audio';
-import { TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../../statements/audio';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success } from '../parse-result';
 

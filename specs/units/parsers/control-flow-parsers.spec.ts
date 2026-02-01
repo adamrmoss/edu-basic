@@ -1,5 +1,4 @@
-import { ParserService } from '@/app/interpreter/parser';
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ParserService } from '@/app/interpreter/parser.service';
 
 import { EduBasicType } from '@/lang/edu-basic-value';
 import {
@@ -22,7 +21,7 @@ describe('ControlFlowParsers (via ParserService)', () =>
 
     beforeEach(() =>
     {
-        parser = new ParserService(new ExpressionParserService());
+        parser = new ParserService();
     });
 
     it('should parse DO variants', () =>

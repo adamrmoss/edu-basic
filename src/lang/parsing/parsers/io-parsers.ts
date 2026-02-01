@@ -1,6 +1,6 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { ClsStatement, ColorStatement, InputStatement, LocateStatement, PrintStatement } from '../../../../lang/statements/io';
-import { TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { ClsStatement, ColorStatement, InputStatement, LocateStatement, PrintStatement } from '../../statements/io';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 

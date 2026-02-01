@@ -1,6 +1,6 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '../../../../lang/statements/array';
-import { TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '../../statements/array';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success } from '../parse-result';
 

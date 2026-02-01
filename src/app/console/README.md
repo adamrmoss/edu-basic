@@ -30,7 +30,7 @@ This document describes the ConsoleService that manages console input/output and
 ```
 executeCommand(command)
     ↓
-ExpressionParserService.parseExpression() OR ParserService.parseLine()
+ExpressionParser.parseExpression() OR ParserService.parseLine()
     ↓
 Get shared context from InterpreterService
     ↓

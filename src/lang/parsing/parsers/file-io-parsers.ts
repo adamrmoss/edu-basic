@@ -14,8 +14,8 @@ import {
     SeekStatement,
     WriteFileStatement,
     WritefileStatement
-} from '../../../../lang/statements/file-io';
-import { TokenType } from '../../tokenizer.service';
+} from '../../statements/file-io';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 

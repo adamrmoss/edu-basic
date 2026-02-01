@@ -9,7 +9,7 @@ import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
 import { FileSystemService } from '../disk/filesystem.service';
 import { ConsoleService } from '../console/console.service';
-import { ParserService } from './parser';
+import { ParserService } from './parser.service';
 
 export enum InterpreterState
 {

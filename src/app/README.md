@@ -75,7 +75,7 @@ User Input → ConsoleComponent.onKeyDown()
     ↓
 ConsoleService.executeCommand()
     ↓
-ExpressionParserService.parseExpression() OR ParserService.parseLine()
+ExpressionParser.parseExpression() OR ParserService.parseLine()
     ↓
 Statement.execute()
     ↓

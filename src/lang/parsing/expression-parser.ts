@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
-import { Token, TokenType, Tokenizer } from './tokenizer.service';
-import { Expression } from '../../lang/expressions/expression';
-import { LiteralExpression } from '../../lang/expressions/literal-expression';
-import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../../lang/expressions/binary-expression';
-import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../../lang/expressions/unary-expression';
+import { Token, TokenType, Tokenizer } from './tokenizer';
+import { Expression } from '../expressions/expression';
+import { LiteralExpression } from '../expressions/literal-expression';
+import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '../expressions/binary-expression';
+import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '../expressions/unary-expression';
 import {
     ArrayLiteralExpression,
     ArraySliceExpression,
@@ -14,8 +13,8 @@ import {
     StructureLiteralExpression,
     StructureMemberExpression,
     VariableExpression,
-} from '../../lang/expressions/special';
-import { NullaryExpression } from '../../lang/expressions/nullary-expression';
+} from '../expressions/special';
+import { NullaryExpression } from '../expressions/nullary-expression';
 import {
     ArraySearchExpression,
     ArraySearchOperator,
@@ -30,15 +29,12 @@ import {
     ReplaceOperatorExpression,
     RightOperatorExpression,
     StartsWithOperatorExpression,
-} from '../../lang/expressions/operators';
-import { EduBasicType } from '../../lang/edu-basic-value';
-import { Constant } from '../../lang/expressions/helpers/constant-evaluator';
-import { ParseResult, success, failure } from './parser/parse-result';
+} from '../expressions/operators';
+import { EduBasicType } from '../edu-basic-value';
+import { Constant } from '../expressions/helpers/constant-evaluator';
+import { ParseResult, success, failure } from './parse-result';
 
-@Injectable({
-    providedIn: 'root'
-})
-export class ExpressionParserService
+export class ExpressionParser
 {
     private tokens: Token[] = [];
     private current: number = 0;
@@ -952,7 +948,7 @@ export class ExpressionParserService
         }
 
         const source = this.tokensToSource(exprTokens);
-        const nested = new ExpressionParserService();
+        const nested = new ExpressionParser();
         return nested.parseExpression(source);
     }
 

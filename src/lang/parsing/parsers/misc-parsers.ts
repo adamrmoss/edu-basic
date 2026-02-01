@@ -1,8 +1,8 @@
-import { ConsoleStatement, HelpStatement, RandomizeStatement, SetOption, SetStatement, SleepStatement } from '../../../../lang/statements/misc';
-import { TokenType } from '../../tokenizer.service';
+import { ConsoleStatement, HelpStatement, RandomizeStatement, SetOption, SetStatement, SleepStatement } from '../../statements/misc';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
-import { Statement } from '../../../../lang/statements/statement';
+import { Statement } from '../../statements/statement';
 
 export class MiscParsers
 {

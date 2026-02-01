@@ -1,7 +1,7 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { DimDimensionSpec, DimStatement, LetBracketSegment, LetBracketStatement, LetStatement, LocalStatement } from '../../../../lang/statements/variables';
-import { Statement } from '../../../../lang/statements/statement';
-import { TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { DimDimensionSpec, DimStatement, LetBracketSegment, LetBracketStatement, LetStatement, LocalStatement } from '../../statements/variables';
+import { Statement } from '../../statements/statement';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, failure, success } from '../parse-result';
 
