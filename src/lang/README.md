@@ -252,12 +252,13 @@ Manages audio synthesis using Web Audio API and webaudio-tinysynth (General MIDI
 **Key Methods**:
 - `setTempo(bpm: number)` - Set tempo in BPM
 - `setVolume(volume: number)` - Set master volume (0-100)
-- `setVoice(voiceIndex: number, preset: string)` - Set voice preset
-- `playNote(frequency: number, duration: number, velocity: number, voice?: number)` - Play note
+- `setVoice(voiceIndex: number)` - Set active voice (0-7)
+- `setVoiceInstrument(voiceIndex: number, programNum: number)` - Set General MIDI program number for a voice
+- `setVoiceInstrumentByName(voiceIndex: number, name: string)` - Resolve and set instrument by name
+- `playSequence(voiceIndex: number, mml: string)` - Play a note/rest sequence for a voice
 
 **Integration**:
 - Uses webaudio-tinysynth for General MIDI instrument playback
-- AudioWorklet for real-time processing
 - Multiple voices for polyphony
 
 ## Execution Model
@@ -408,6 +409,7 @@ EduBASIC performs automatic type coercion:
 
 For detailed documentation on specific language subsystems:
 
+- **[Parsing Engine](parsing/README.md)** - Tokenizer, keywords, statement parsers, and the expression parser
 - **[Expressions System](expressions/README.md)** - Expression parsing, evaluation, and operator precedence
 - **[Statements System](statements/README.md)** - All statement types and their execution
 

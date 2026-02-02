@@ -1,3 +1,7 @@
+/**
+ * Re-exports control-flow statements.
+ */
+
 export * from './call-statement';
 export * from './case-statement';
 export * from './catch-statement';

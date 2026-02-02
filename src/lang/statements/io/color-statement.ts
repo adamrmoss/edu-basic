@@ -9,16 +9,39 @@ import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
 import { getColorValue, isColorName } from '../../colors';
 import { resolveColorValue, intToRgba } from '../graphics/color-utils';
 
+/**
+ * Implements the `COLOR` statement.
+ */
 export class ColorStatement extends Statement
 {
-    public constructor(
-        public readonly foregroundExpr: Expression,
-        public readonly backgroundExpr: Expression | null = null
-    )
+    /**
+     * Foreground color expression.
+     */
+    public readonly foregroundExpr: Expression;
+
+    /**
+     * Optional background color expression.
+     */
+    public readonly backgroundExpr: Expression | null;
+
+    /**
+     * Create a new `COLOR` statement.
+     *
+     * @param foregroundExpr Foreground color expression.
+     * @param backgroundExpr Optional background color expression.
+     */
+    public constructor(foregroundExpr: Expression, backgroundExpr: Expression | null = null)
     {
         super();
+        this.foregroundExpr = foregroundExpr;
+        this.backgroundExpr = backgroundExpr;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

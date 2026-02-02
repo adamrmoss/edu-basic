@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicValue, EduBasicType, coerceValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
+/**
+ * Implements the `LET` statement.
+ */
 export class LetStatement extends Statement
 {
-    public constructor(
-        public readonly variableName: string,
-        public readonly value: Expression
-    )
+    /**
+     * Target variable name.
+     */
+    public readonly variableName: string;
+
+    /**
+     * Expression producing the assigned value.
+     */
+    public readonly value: Expression;
+
+    /**
+     * Create a new `LET` statement.
+     *
+     * @param variableName Target variable name.
+     * @param value Expression producing the assigned value.
+     */
+    public constructor(variableName: string, value: Expression)
     {
         super();
+        this.variableName = variableName;
+        this.value = value;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,
@@ -117,6 +140,6 @@ export class LetStatement extends Statement
 
     public override toString(): string
     {
-        return `LET ${this.variableName} = ${this.value.toString(true)}`;
+        return `LET ${this.variableName} = ${this.value.toString()}`;
     }
 }

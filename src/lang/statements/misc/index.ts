@@ -1,3 +1,7 @@
+/**
+ * Re-exports miscellaneous statements.
+ */
+
 export * from './console-statement';
 export * from './help-statement';
 export * from './randomize-statement';

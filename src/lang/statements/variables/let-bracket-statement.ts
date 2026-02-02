@@ -7,21 +7,53 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, coerceValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
+/**
+ * Segment used by `LET` bracket/member assignment (e.g. `.x` or `[i]`).
+ */
 export type LetBracketSegment =
     | { type: 'member'; memberName: string }
     | { type: 'indices'; indices: Expression[] };
 
+/**
+ * Implements `LET` assignment to a chained path (structure members and/or array indices).
+ */
 export class LetBracketStatement extends Statement
 {
-    public constructor(
-        public readonly baseIdentifier: string,
-        public readonly segments: LetBracketSegment[],
-        public readonly value: Expression
-    )
+    /**
+     * Base identifier (variable name) for the assignment.
+     */
+    public readonly baseIdentifier: string;
+
+    /**
+     * Path segments after the base identifier.
+     */
+    public readonly segments: LetBracketSegment[];
+
+    /**
+     * Expression producing the assigned value.
+     */
+    public readonly value: Expression;
+
+    /**
+     * Create a new bracket/member assignment statement.
+     *
+     * @param baseIdentifier Base identifier (variable name).
+     * @param segments Path segments after the base identifier.
+     * @param value Expression producing the assigned value.
+     */
+    public constructor(baseIdentifier: string, segments: LetBracketSegment[], value: Expression)
     {
         super();
+        this.baseIdentifier = baseIdentifier;
+        this.segments = segments;
+        this.value = value;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,
@@ -69,7 +101,7 @@ export class LetBracketStatement extends Statement
             }
         }).join('');
 
-        return `LET ${this.baseIdentifier}${segs} = ${this.value.toString(true)}`;
+        return `LET ${this.baseIdentifier}${segs} = ${this.value.toString()}`;
     }
 
     private getRootBinding(context: ExecutionContext): { rootName: string; rootValue: EduBasicValue }

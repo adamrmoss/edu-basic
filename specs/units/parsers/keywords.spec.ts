@@ -1,6 +1,6 @@
-import { Keywords } from '@/app/interpreter/keywords';
-import { Tokenizer, TokenType } from '@/app/interpreter/tokenizer.service';
-import { statementDispatch } from '@/app/interpreter/parser/statement-dispatch';
+import { Keywords } from '@/lang/parsing/keywords';
+import { Tokenizer, TokenType } from '@/lang/parsing/tokenizer';
+import { statementDispatch } from '@/lang/parsing/statement-dispatch';
 
 describe('Keywords', () =>
 {
@@ -23,7 +23,14 @@ describe('Keywords', () =>
         const allKeywords = Array.from(Keywords.all).sort();
         const source = allKeywords.join(' ');
 
-        const tokens = tokenizer.tokenize(source).filter(t => t.type !== TokenType.EOF);
+        const tokenizeResult = tokenizer.tokenize(source);
+        if (!tokenizeResult.success)
+        {
+            fail(tokenizeResult.error);
+            return;
+        }
+
+        const tokens = tokenizeResult.value.filter((t) => t.type !== TokenType.EOF);
 
         expect(tokens.length).toBe(allKeywords.length);
 

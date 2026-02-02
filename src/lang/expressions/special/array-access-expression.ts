@@ -4,16 +4,40 @@ import { ExecutionContext } from '../../execution-context';
 import { EduBasicType } from '../../edu-basic-value';
 import { VariableExpression } from './variable-expression';
 
+/**
+ * Expression node that indexes into a 1D array using a single bracket index.
+ */
 export class ArrayAccessExpression extends Expression
 {
-    public constructor(
-        public readonly arrayExpr: Expression,
-        public readonly index: Expression
-    )
+    /**
+     * Base expression expected to evaluate to an array.
+     */
+    public readonly arrayExpr: Expression;
+
+    /**
+     * Index expression (1-based) used to select the element.
+     */
+    public readonly index: Expression;
+
+    /**
+     * Create a new array access expression.
+     *
+     * @param arrayExpr Base expression expected to evaluate to an array.
+     * @param index Index expression (1-based).
+     */
+    public constructor(arrayExpr: Expression, index: Expression)
     {
         super();
+        this.arrayExpr = arrayExpr;
+        this.index = index;
     }
 
+    /**
+     * Evaluate the array and index, then return the referenced element.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The referenced element value (or a type-appropriate default).
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         let arrayValue = this.arrayExpr.evaluate(context);

@@ -3,11 +3,17 @@ import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
-import { ParserService } from '../interpreter/parser';
+import { ParserService } from '../interpreter/parser.service';
 import { Program } from '../../lang/program';
 import { ExecutionResult } from '../../lang/statements/statement';
 import { TextEditorComponent } from '../text-editor/text-editor.component';
 
+/**
+ * Code editor UI component for authoring and running EduBASIC programs.
+ *
+ * Keeps the editor text in sync with `DiskService`, validates lines via `ParserService`,
+ * and can run the current program using `InterpreterService`.
+ */
 @Component({
     selector: 'app-code-editor',
     standalone: true,
@@ -17,15 +23,36 @@ import { TextEditorComponent } from '../text-editor/text-editor.component';
 })
 export class CodeEditorComponent implements OnInit, OnDestroy
 {
+    /**
+     * Reference to the embedded text editor component.
+     */
     @ViewChild('textEditor', { static: false })
     public textEditorRef!: TextEditorComponent;
 
+    /**
+     * Current editor contents, split into lines.
+     */
     public lines: string[] = [''];
+
+    /**
+     * 0-based line indices that currently have parse errors.
+     */
     public errorLines: Set<number> = new Set<number>();
+
+    /**
+     * Map of 0-based line indices to parse error messages.
+     */
     public errorMessages: Map<number, string> = new Map<number, string>();
 
     private readonly destroy$ = new Subject<void>();
 
+    /**
+     * Create a new code editor component.
+     *
+     * @param diskService Disk service used for persisting program code.
+     * @param interpreterService Interpreter service used to run programs.
+     * @param parserService Parser service used for line validation and canonicalization.
+     */
     constructor(
         private readonly diskService: DiskService,
         private readonly interpreterService: InterpreterService,
@@ -34,6 +61,9 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     {
     }
 
+    /**
+     * Subscribe to program code changes from `DiskService`.
+     */
     public ngOnInit(): void
     {
         this.diskService.programCode$
@@ -47,12 +77,22 @@ export class CodeEditorComponent implements OnInit, OnDestroy
             });
     }
 
+    /**
+     * Clean up subscriptions created by this component.
+     */
     public ngOnDestroy(): void
     {
         this.destroy$.next();
         this.destroy$.complete();
     }
 
+    /**
+     * Handle editor text changes from the text editor component.
+     *
+     * Updates the disk program contents and re-validates all lines.
+     *
+     * @param lines Updated editor content, split into lines.
+     */
     public onLinesChange(lines: string[]): void
     {
         this.lines = lines;
@@ -61,6 +101,14 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         this.validateAndUpdateLines();
     }
 
+    /**
+     * Handle keydown events from the text editor.
+     *
+     * When the user presses Enter, the current line is canonicalized (if possible)
+     * and the editor content is re-validated.
+     *
+     * @param event Keyboard event from the editor.
+     */
     public onKeyDown(event: KeyboardEvent): void
     {
         if (event.key === 'Enter')
@@ -74,6 +122,9 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Handle editor blur by canonicalizing the current line and re-validating.
+     */
     public onBlur(): void
     {
         const lineIndex = this.textEditorRef.getCursorLineIndex();
@@ -81,6 +132,12 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         this.validateAndUpdateLines();
     }
 
+    /**
+     * Parse and run the current program.
+     *
+     * Builds a `Program` from the current source text, resets the interpreter, and
+     * schedules repeated single-step execution until completion or error.
+     */
     public onRun(): void
     {
         const sourceCode = this.diskService.getProgramCodeFromFile();

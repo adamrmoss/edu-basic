@@ -7,15 +7,40 @@ import { DiskService } from './disk.service';
 import { TextEditorComponent } from '../text-editor/text-editor.component';
 import { DirectoryNode, FileSystemNode } from './filesystem-node';
 
+/**
+ * UI view-model node for the disk file tree.
+ */
 export interface FileNode
 {
+    /**
+     * Display name (path segment).
+     */
     name: string;
+
+    /**
+     * Full path to the node (relative to virtual disk root).
+     */
     path: string;
+
+    /**
+     * Discriminator for node kind.
+     */
     type: 'file' | 'directory';
+
+    /**
+     * Child nodes when `type` is `directory`.
+     */
     children?: FileNode[];
+
+    /**
+     * Whether the directory node is expanded in the UI.
+     */
     expanded?: boolean;
 }
 
+/**
+ * Disk UI component for browsing and editing the virtual disk contents.
+ */
 @Component({
     selector: 'app-disk',
     standalone: true,
@@ -25,35 +50,125 @@ export interface FileNode
 })
 export class DiskComponent implements OnInit, OnDestroy
 {
+    /**
+     * Folder icon used by the file tree.
+     */
     public readonly folderIcon = Folder;
+
+    /**
+     * File icon used by the file tree.
+     */
     public readonly fileIcon = File;
+
+    /**
+     * Icon used for creating new items.
+     */
     public readonly plusIcon = Plus;
+
+    /**
+     * Icon used for saving.
+     */
     public readonly saveIcon = Save;
+
+    /**
+     * Icon used for opening a folder.
+     */
     public readonly folderOpenIcon = FolderOpen;
+
+    /**
+     * Icon used for rename/edit actions.
+     */
     public readonly editIcon = Edit;
+
+    /**
+     * Icon used for delete actions.
+     */
     public readonly trashIcon = Trash;
 
+    /**
+     * Current disk name.
+     */
     public diskName: string = 'Untitled';
+
+    /**
+     * Root nodes for the file tree display.
+     */
     public fileTree: FileNode[] = [];
+
+    /**
+     * Currently selected file tree node.
+     */
     public selectedFile: FileNode | null = null;
+
+    /**
+     * Current editor contents for the selected file.
+     */
     public editorLines: string[] = [''];
+
+    /**
+     * Current file view mode.
+     */
     public viewMode: 'text' | 'hex' = 'text';
+
+    /**
+     * Directory path where the context menu is anchored (folder context).
+     */
     public contextMenuPath: string | null = null;
+
+    /**
+     * Path that was right-clicked to open the context menu.
+     */
     public contextMenuClickedPath: string | null = null;
+
+    /**
+     * Context menu screen X coordinate.
+     */
     public contextMenuX: number = 0;
+
+    /**
+     * Context menu screen Y coordinate.
+     */
     public contextMenuY: number = 0;
+
+    /**
+     * Whether the context menu is currently shown.
+     */
     public showContextMenu: boolean = false;
+
+    /**
+     * Empty error line set passed to `TextEditorComponent` (disk editor does not validate).
+     */
     public readonly emptyErrorLines: Set<number> = new Set();
+
+    /**
+     * Empty error message map passed to `TextEditorComponent` (disk editor does not validate).
+     */
     public readonly emptyErrorMessages: Map<number, string> = new Map();
+
+    /**
+     * Remembered expanded directory paths for the file tree.
+     */
     private expandedPaths: Set<string> = new Set();
+
+    /**
+     * Node currently being dragged in the file tree.
+     */
     public draggedNode: FileNode | null = null;
 
     private readonly destroy$ = new Subject<void>();
 
+    /**
+     * Create a new disk component.
+     *
+     * @param diskService Disk service backing this UI.
+     */
     constructor(private readonly diskService: DiskService)
     {
     }
 
+    /**
+     * Subscribe to disk state changes and initialize the file tree.
+     */
     public ngOnInit(): void
     {
         this.diskService.diskName$
@@ -71,17 +186,26 @@ export class DiskComponent implements OnInit, OnDestroy
         this.refreshFileTree();
     }
 
+    /**
+     * Clean up subscriptions created by this component.
+     */
     public ngOnDestroy(): void
     {
         this.destroy$.next();
         this.destroy$.complete();
     }
 
+    /**
+     * Persist the current disk name to `DiskService`.
+     */
     public onDiskNameChange(): void
     {
         this.diskService.diskName = this.diskName;
     }
 
+    /**
+     * Create a new disk after prompting for a name.
+     */
     public onNewDisk(): void
     {
         const name = prompt('Enter disk name:', 'Untitled');
@@ -94,6 +218,9 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Load a `.disk` file selected by the user.
+     */
     public async onLoadDisk(): Promise<void>
     {
         const input = document.createElement('input');
@@ -122,6 +249,9 @@ export class DiskComponent implements OnInit, OnDestroy
         input.click();
     }
 
+    /**
+     * Save the current disk as a `.disk` file.
+     */
     public async onSaveDisk(): Promise<void>
     {
         try
@@ -134,6 +264,11 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Create a new empty file at the given parent path.
+     *
+     * @param parentPath Directory path to create the file under.
+     */
     public onNewFile(parentPath: string = ''): void
     {
         const fileName = prompt('Enter file name:');
@@ -150,6 +285,11 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Create a new directory at the given parent path.
+     *
+     * @param parentPath Directory path to create the directory under.
+     */
     public onNewDirectory(parentPath: string = ''): void
     {
         const dirName = prompt('Enter directory name:');
@@ -166,18 +306,27 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Create a new file in the selected directory, or at the root if none selected.
+     */
     public onNewFileInSelectedOrRoot(): void
     {
         const parentPath = this.selectedFile && this.selectedFile.type === 'directory' ? this.selectedFile.path : '';
         this.onNewFile(parentPath);
     }
 
+    /**
+     * Create a new directory in the selected directory, or at the root if none selected.
+     */
     public onNewDirectoryInSelectedOrRoot(): void
     {
         const parentPath = this.selectedFile && this.selectedFile.type === 'directory' ? this.selectedFile.path : '';
         this.onNewDirectory(parentPath);
     }
 
+    /**
+     * Get the UI label for the "new file" action.
+     */
     public getNewFileTitle(): string
     {
         if (this.selectedFile && this.selectedFile.type === 'directory')
@@ -188,6 +337,9 @@ export class DiskComponent implements OnInit, OnDestroy
         return 'New File at Root';
     }
 
+    /**
+     * Get the UI label for the "new directory" action.
+     */
     public getNewDirectoryTitle(): string
     {
         if (this.selectedFile && this.selectedFile.type === 'directory')
@@ -198,6 +350,9 @@ export class DiskComponent implements OnInit, OnDestroy
         return 'New Directory at Root';
     }
 
+    /**
+     * Delete the currently selected file/directory (except `program.bas`).
+     */
     public onDeleteFile(): void
     {
         if (this.selectedFile && !this.isProgramBas(this.selectedFile))
@@ -221,6 +376,9 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Rename the currently selected file/directory (except `program.bas`).
+     */
     public onRenameFile(): void
     {
         if (this.selectedFile && !this.isProgramBas(this.selectedFile))
@@ -247,6 +405,11 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Select a file tree node and load its content for editing.
+     *
+     * @param file File node to select.
+     */
     public selectFile(file: FileNode): void
     {
         this.selectedFile = file;
@@ -273,6 +436,11 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Toggle directory expansion state in the file tree.
+     *
+     * @param file Directory node to toggle.
+     */
     public toggleDirectory(file: FileNode): void
     {
         if (file.type === 'directory')
@@ -309,6 +477,11 @@ export class DiskComponent implements OnInit, OnDestroy
         this.refreshFileTree();
     }
 
+    /**
+     * Persist editor text changes into the selected file.
+     *
+     * @param lines Updated file contents split into lines.
+     */
     public onLinesChange(lines: string[]): void
     {
         this.editorLines = lines;
@@ -322,11 +495,17 @@ export class DiskComponent implements OnInit, OnDestroy
         }
     }
 
+    /**
+     * Toggle between text and hex view.
+     */
     public toggleViewMode(): void
     {
         this.viewMode = this.viewMode === 'text' ? 'hex' : 'text';
     }
 
+    /**
+     * Render the selected file bytes as a hex + ASCII dump.
+     */
     public getHexContent(): string
     {
         if (!this.selectedFile || this.selectedFile.type !== 'file')
@@ -356,6 +535,12 @@ export class DiskComponent implements OnInit, OnDestroy
         return hex;
     }
 
+    /**
+     * Open the context menu for a file tree node.
+     *
+     * @param event Mouse event.
+     * @param path Node path that was right-clicked.
+     */
     public onContextMenu(event: MouseEvent, path: string): void
     {
         event.preventDefault();
@@ -386,6 +571,9 @@ export class DiskComponent implements OnInit, OnDestroy
         this.showContextMenu = true;
     }
 
+    /**
+     * Close the context menu.
+     */
     public closeContextMenu(): void
     {
         this.showContextMenu = false;
@@ -393,6 +581,9 @@ export class DiskComponent implements OnInit, OnDestroy
         this.contextMenuClickedPath = null;
     }
 
+    /**
+     * Create a new file using the current context menu path.
+     */
     public onContextMenuNewFile(): void
     {
         const parentPath = this.contextMenuPath !== null ? this.contextMenuPath : '';
@@ -400,6 +591,9 @@ export class DiskComponent implements OnInit, OnDestroy
         this.closeContextMenu();
     }
 
+    /**
+     * Create a new directory using the current context menu path.
+     */
     public onContextMenuNewDirectory(): void
     {
         const parentPath = this.contextMenuPath !== null ? this.contextMenuPath : '';
@@ -407,6 +601,9 @@ export class DiskComponent implements OnInit, OnDestroy
         this.closeContextMenu();
     }
 
+    /**
+     * Delete the node that was right-clicked (except `program.bas`).
+     */
     public onContextMenuDelete(): void
     {
         if (this.contextMenuClickedPath !== null)
@@ -423,6 +620,9 @@ export class DiskComponent implements OnInit, OnDestroy
         this.closeContextMenu();
     }
 
+    /**
+     * Rename the node that was right-clicked (except `program.bas`).
+     */
     public onContextMenuRename(): void
     {
         if (this.contextMenuClickedPath !== null)
@@ -513,11 +713,22 @@ export class DiskComponent implements OnInit, OnDestroy
         return null;
     }
 
+    /**
+     * Determine whether a node refers to the internal `program.bas` file.
+     *
+     * @param file File node to check.
+     */
     public isProgramBas(file: FileNode): boolean
     {
         return file.path === 'program.bas' || file.name === 'program.bas';
     }
 
+    /**
+     * Begin dragging a node in the file tree.
+     *
+     * @param event Drag event.
+     * @param node Node being dragged.
+     */
     public onDragStart(event: DragEvent, node: FileNode): void
     {
         if (this.isProgramBas(node))
@@ -531,6 +742,12 @@ export class DiskComponent implements OnInit, OnDestroy
         event.dataTransfer!.setData('text/plain', node.path);
     }
 
+    /**
+     * Handle drag-over events for the file tree.
+     *
+     * @param event Drag event.
+     * @param node Current hover target node.
+     */
     public onDragOver(event: DragEvent, node: FileNode): void
     {
         if (!this.draggedNode || this.draggedNode === node)
@@ -558,6 +775,12 @@ export class DiskComponent implements OnInit, OnDestroy
         event.dataTransfer!.dropEffect = 'move';
     }
 
+    /**
+     * Handle dropping a dragged node onto another node in the file tree.
+     *
+     * @param event Drag event.
+     * @param targetNode Node being dropped onto.
+     */
     public onDrop(event: DragEvent, targetNode: FileNode): void
     {
         event.preventDefault();
@@ -602,16 +825,29 @@ export class DiskComponent implements OnInit, OnDestroy
         this.draggedNode = null;
     }
 
+    /**
+     * End a drag operation.
+     */
     public onDragEnd(): void
     {
         this.draggedNode = null;
     }
 
+    /**
+     * Determine whether a given node is the current drag source.
+     *
+     * @param node Node to check.
+     */
     public isNodeBeingDragged(node: FileNode): boolean
     {
         return this.draggedNode === node;
     }
 
+    /**
+     * Determine whether a node is inside the subtree of the currently dragged directory.
+     *
+     * @param node Node to check.
+     */
     public isNodeInDraggedSubtree(node: FileNode): boolean
     {
         if (!this.draggedNode || this.draggedNode.type !== 'directory')

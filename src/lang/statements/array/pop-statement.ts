@@ -6,16 +6,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `POP` statement.
+ */
 export class PopStatement extends Statement
 {
-    public constructor(
-        public readonly arrayVariable: string,
-        public readonly targetVariable: string | null
-    )
+    /**
+     * Array variable name.
+     */
+    public readonly arrayVariable: string;
+
+    /**
+     * Optional target variable name (used with `INTO`).
+     */
+    public readonly targetVariable: string | null;
+
+    /**
+     * Create a new `POP` statement.
+     *
+     * @param arrayVariable Array variable name.
+     * @param targetVariable Optional target variable name.
+     */
+    public constructor(arrayVariable: string, targetVariable: string | null)
     {
         super();
+        this.arrayVariable = arrayVariable;
+        this.targetVariable = targetVariable;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,
@@ -62,7 +85,7 @@ export class PopStatement extends Statement
     {
         if (this.targetVariable)
         {
-            return `POP ${this.arrayVariable}, ${this.targetVariable}`;
+            return `POP ${this.arrayVariable} INTO ${this.targetVariable}`;
         }
 
         return `POP ${this.arrayVariable}`;

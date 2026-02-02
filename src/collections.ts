@@ -1,3 +1,9 @@
+/**
+ * Build a `Set<string>` from one or more string arrays.
+ *
+ * @param arrays Arrays whose values will be added to the set.
+ * @returns A set containing the union of all provided values.
+ */
 export function toSet(...arrays: readonly (readonly string[])[]): Set<string>
 {
     const set = new Set<string>();

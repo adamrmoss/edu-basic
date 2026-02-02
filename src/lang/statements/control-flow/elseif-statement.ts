@@ -7,13 +7,25 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `ELSEIF` statement.
+ */
 export class ElseIfStatement extends Statement
 {
-    public constructor(
-        public readonly condition: Expression
-    )
+    /**
+     * Branch condition expression.
+     */
+    public readonly condition: Expression;
+
+    /**
+     * Create a new `ELSEIF` statement.
+     *
+     * @param condition Branch condition expression.
+     */
+    public constructor(condition: Expression)
     {
         super();
+        this.condition = condition;
     }
 
     public override getIndentAdjustment(): number
@@ -21,6 +33,11 @@ export class ElseIfStatement extends Statement
         return 0;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

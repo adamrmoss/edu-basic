@@ -7,20 +7,46 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { ArrayDimension, EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
+/**
+ * Dimension spec used by the `DIM` statement.
+ */
 export type DimDimensionSpec =
     | { type: 'size'; size: Expression }
     | { type: 'range'; start: Expression; end: Expression };
 
+/**
+ * Implements the `DIM` statement.
+ */
 export class DimStatement extends Statement
 {
-    public constructor(
-        public readonly arrayName: string,
-        public readonly dimensions: DimDimensionSpec[]
-    )
+    /**
+     * Array variable name (including rank suffix).
+     */
+    public readonly arrayName: string;
+
+    /**
+     * Dimension specs used to compute bounds and strides.
+     */
+    public readonly dimensions: DimDimensionSpec[];
+
+    /**
+     * Create a new `DIM` statement.
+     *
+     * @param arrayName Array variable name (including rank suffix).
+     * @param dimensions Dimension specs.
+     */
+    public constructor(arrayName: string, dimensions: DimDimensionSpec[])
     {
         super();
+        this.arrayName = arrayName;
+        this.dimensions = dimensions;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

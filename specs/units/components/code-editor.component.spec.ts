@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CodeEditorComponent } from '@/app/code-editor/code-editor.component';
 import { DiskService } from '@/app/disk/disk.service';
 import { InterpreterService, InterpreterState } from '@/app/interpreter/interpreter.service';
-import { ParserService, ParsedLine } from '@/app/interpreter/parser';
+import { ParserService, ParsedLine } from '@/app/interpreter/parser.service';
 import { BehaviorSubject } from 'rxjs';
 import { LetStatement } from '@/lang/statements/variables';
 import { PrintStatement } from '@/lang/statements/io';
@@ -17,7 +17,7 @@ import { GraphicsService } from '@/app/interpreter/graphics.service';
 import { AudioService } from '@/app/interpreter/audio.service';
 import { TabSwitchService } from '@/app/tab-switch.service';
 import { FileSystemService } from '@/app/disk/filesystem.service';
-import { success, failure } from '@/app/interpreter/parser/parse-result';
+import { success, failure } from '@/lang/parsing/parse-result';
 
 describe('CodeEditorComponent', () => {
     let component: CodeEditorComponent;

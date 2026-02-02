@@ -1,3 +1,7 @@
+/**
+ * Re-exports console I/O statements.
+ */
+
 export * from './cls-statement';
 export * from './color-statement';
 export * from './input-statement';

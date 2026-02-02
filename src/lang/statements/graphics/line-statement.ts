@@ -8,19 +8,60 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { resolveColorValue, intToRgba } from './color-utils';
 
+/**
+ * Implements the `LINE` graphics statement.
+ */
 export class LineStatement extends Statement
 {
-    public constructor(
-        public readonly x1: Expression,
-        public readonly y1: Expression,
-        public readonly x2: Expression,
-        public readonly y2: Expression,
-        public readonly color: Expression | null
-    )
+    /**
+     * Start X expression.
+     */
+    public readonly x1: Expression;
+
+    /**
+     * Start Y expression.
+     */
+    public readonly y1: Expression;
+
+    /**
+     * End X expression.
+     */
+    public readonly x2: Expression;
+
+    /**
+     * End Y expression.
+     */
+    public readonly y2: Expression;
+
+    /**
+     * Optional color expression.
+     */
+    public readonly color: Expression | null;
+
+    /**
+     * Create a new `LINE` statement.
+     *
+     * @param x1 Start X expression.
+     * @param y1 Start Y expression.
+     * @param x2 End X expression.
+     * @param y2 End Y expression.
+     * @param color Optional color expression.
+     */
+    public constructor(x1: Expression, y1: Expression, x2: Expression, y2: Expression, color: Expression | null)
     {
         super();
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.color = color;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

@@ -1,4 +1,4 @@
-import { Expression } from '../../../../lang/expressions/expression';
+import { Expression } from '../../expressions/expression';
 import {
     ArcStatement,
     CircleStatement,
@@ -11,17 +11,39 @@ import {
     RectangleStatement,
     TriangleStatement,
     TurtleStatement
-} from '../../../../lang/statements/graphics';
-import { LineInputStatement } from '../../../../lang/statements/file-io';
-import { Statement } from '../../../../lang/statements/statement';
-import { TokenType } from '../../tokenizer.service';
+} from '../../statements/graphics';
+import { LineInputStatement } from '../../statements/file-io';
+import { Statement } from '../../statements/statement';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 
+/**
+ * Statement parsers for graphics statements.
+ */
 export class GraphicsParsers
 {
+    // Spec: docs/edu-basic-language.md
+    //
+    // Graphics commands use parentheses to denote planar points: (x, y).
+    // This is an explicit exception to EduBASIC's general rule that parentheses are only for
+    // grouping expressions.
+    //
+    // Parser shape:
+    // - Most graphics statements have an imperative keyword and then a fixed grammar of point tuples,
+    //   optional modifiers (FROM/TO/WITH/FILLED/etc.), and trailing expressions.
+    // - We keep these parsers "token-native" (consume punctuation directly) because the syntax is
+    //   very statement-specific.
+    /**
+     * Parse the `PSET` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePset(context: ParserContext): ParseResult<PsetStatement>
     {
+        // Grammar:
+        // PSET (xExpr, yExpr) [WITH colorExpr]
         const psetTokenResult = context.consume(TokenType.Keyword, 'PSET');
         if (!psetTokenResult.success)
         {
@@ -69,8 +91,16 @@ export class GraphicsParsers
         return success(new PsetStatement(xResult.value, yResult.value, color));
     }
 
+    /**
+     * Parse the `RECTANGLE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseRectangle(context: ParserContext): ParseResult<RectangleStatement>
     {
+        // Grammar:
+        // RECTANGLE FROM (x1Expr, y1Expr) TO (x2Expr, y2Expr) [WITH colorExpr] [FILLED]
         const rectTokenResult = context.consume(TokenType.Keyword, 'RECTANGLE');
         if (!rectTokenResult.success)
         {
@@ -158,6 +188,12 @@ export class GraphicsParsers
         return success(new RectangleStatement(x1Result.value, y1Result.value, x2Result.value, y2Result.value, color, filled));
     }
 
+    /**
+     * Parse the `OVAL` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseOval(context: ParserContext): ParseResult<OvalStatement>
     {
         const ovalTokenResult = context.consume(TokenType.Keyword, 'OVAL');
@@ -247,6 +283,12 @@ export class GraphicsParsers
         return success(new OvalStatement(centerXResult.value, centerYResult.value, radiusXResult.value, radiusYResult.value, color, filled));
     }
 
+    /**
+     * Parse the `CIRCLE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseCircle(context: ParserContext): ParseResult<CircleStatement>
     {
         const circleTokenResult = context.consume(TokenType.Keyword, 'CIRCLE');
@@ -315,6 +357,12 @@ export class GraphicsParsers
         return success(new CircleStatement(centerXResult.value, centerYResult.value, radiusResult.value, color, filled));
     }
 
+    /**
+     * Parse the `TRIANGLE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseTriangle(context: ParserContext): ParseResult<TriangleStatement>
     {
         const triangleTokenResult = context.consume(TokenType.Keyword, 'TRIANGLE');
@@ -420,6 +468,12 @@ export class GraphicsParsers
         return success(new TriangleStatement(x1Result.value, y1Result.value, x2Result.value, y2Result.value, x3Result.value, y3Result.value, color, filled));
     }
 
+    /**
+     * Parse the `ARC` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseArc(context: ParserContext): ParseResult<ArcStatement>
     {
         const arcTokenResult = context.consume(TokenType.Keyword, 'ARC');
@@ -510,6 +564,12 @@ export class GraphicsParsers
         return success(new ArcStatement(centerXResult.value, centerYResult.value, radiusResult.value, startAngleResult.value, endAngleResult.value, color));
     }
 
+    /**
+     * Parse the `PAINT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePaint(context: ParserContext): ParseResult<PaintStatement>
     {
         const paintTokenResult = context.consume(TokenType.Keyword, 'PAINT');
@@ -560,6 +620,12 @@ export class GraphicsParsers
         return success(new PaintStatement(xResult.value, yResult.value, colorResult.value));
     }
 
+    /**
+     * Parse the `GET` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseGet(context: ParserContext): ParseResult<GetStatement>
     {
         const getTokenResult = context.consume(TokenType.Keyword, 'GET');
@@ -643,6 +709,12 @@ export class GraphicsParsers
         return success(new GetStatement(arrayVarTokenResult.value.value, x1Result.value, y1Result.value, x2Result.value, y2Result.value));
     }
 
+    /**
+     * Parse the `PUT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePut(context: ParserContext): ParseResult<PutStatement>
     {
         const putTokenResult = context.consume(TokenType.Keyword, 'PUT');
@@ -693,6 +765,12 @@ export class GraphicsParsers
         return success(new PutStatement(arrayVarTokenResult.value.value, xResult.value, yResult.value));
     }
 
+    /**
+     * Parse the `TURTLE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseTurtle(context: ParserContext): ParseResult<TurtleStatement>
     {
         const turtleTokenResult = context.consume(TokenType.Keyword, 'TURTLE');
@@ -710,8 +788,23 @@ export class GraphicsParsers
         return success(new TurtleStatement(commandsResult.value));
     }
 
+    /**
+     * Parse the `LINE` statement (disambiguating file I/O vs graphics forms).
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLineInputOrGraphics(context: ParserContext): ParseResult<Statement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // LINE is overloaded in the language:
+        // - LINE INPUT ... is file I/O
+        // - LINE FROM (x1, y1) TO (x2, y2) ... is graphics
+        //
+        // This method resolves the shared-prefix by looking at the next keyword after LINE:
+        // - INPUT -> file I/O form
+        // - FROM  -> graphics form
         const lineTokenResult = context.consume(TokenType.Keyword, 'LINE');
         if (!lineTokenResult.success)
         {

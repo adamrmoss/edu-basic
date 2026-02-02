@@ -1,13 +1,32 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { ClsStatement, ColorStatement, InputStatement, LocateStatement, PrintStatement } from '../../../../lang/statements/io';
-import { TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { ClsStatement, ColorStatement, InputStatement, LocateStatement, PrintStatement } from '../../statements/io';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success, failure } from '../parse-result';
 
+/**
+ * Statement parsers for console I/O statements.
+ */
 export class IoParsers
 {
+    /**
+     * Parse the `PRINT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePrint(context: ParserContext): ParseResult<PrintStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // PRINT forms:
+        // - PRINT                    (blank line)
+        // - PRINT expr1, expr2, ...  (comma-separated values)
+        // - PRINT ...;               (semicolon suppresses trailing newline when last token)
+        //
+        // Implementation detail:
+        // ParserContext.parseExpression() stops on comma/semicolon at depth 0, so we can loop
+        // and parse multiple expressions without having to manually slice tokens.
         const printTokenResult = context.consume(TokenType.Keyword, 'PRINT');
         if (!printTokenResult.success)
         {
@@ -47,8 +66,17 @@ export class IoParsers
         return success(new PrintStatement(expressions, hasNewline));
     }
 
+    /**
+     * Parse the `INPUT` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseInput(context: ParserContext): ParseResult<InputStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // INPUT <variable>
         const inputTokenResult = context.consume(TokenType.Keyword, 'INPUT');
         if (!inputTokenResult.success)
         {
@@ -64,8 +92,17 @@ export class IoParsers
         return success(new InputStatement(varNameTokenResult.value.value));
     }
 
+    /**
+     * Parse the `COLOR` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseColor(context: ParserContext): ParseResult<ColorStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // COLOR foregroundExpr[, backgroundExpr]
         const colorTokenResult = context.consume(TokenType.Keyword, 'COLOR');
         if (!colorTokenResult.success)
         {
@@ -112,8 +149,17 @@ export class IoParsers
         return success(new ColorStatement(foreground, background));
     }
 
+    /**
+     * Parse the `LOCATE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLocate(context: ParserContext): ParseResult<LocateStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // LOCATE rowExpr, columnExpr
         const locateTokenResult = context.consume(TokenType.Keyword, 'LOCATE');
         if (!locateTokenResult.success)
         {
@@ -140,8 +186,17 @@ export class IoParsers
         return success(new LocateStatement(rowResult.value, columnResult.value));
     }
 
+    /**
+     * Parse the `CLS` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseCls(context: ParserContext): ParseResult<ClsStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // CLS
         const clsTokenResult = context.consume(TokenType.Keyword, 'CLS');
         if (!clsTokenResult.success)
         {

@@ -5,6 +5,9 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 
+/**
+ * Options supported by the `SET` statement.
+ */
 export enum SetOption
 {
     LineSpacingOn,
@@ -15,16 +18,39 @@ export enum SetOption
     AudioOff
 }
 
+/**
+ * Implements the `SET` statement.
+ */
 export class SetStatement extends Statement
 {
-    public constructor(
-        public readonly option: SetOption,
-        public readonly value: number | null = null
-    )
+    /**
+     * Option selected by the statement.
+     */
+    public readonly option: SetOption;
+
+    /**
+     * Optional numeric value for options that accept a value (currently unused).
+     */
+    public readonly value: number | null;
+
+    /**
+     * Create a new `SET` statement.
+     *
+     * @param option Option selected by the statement.
+     * @param value Optional numeric value.
+     */
+    public constructor(option: SetOption, value: number | null = null)
     {
         super();
+        this.option = option;
+        this.value = value;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

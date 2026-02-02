@@ -1,3 +1,7 @@
+/**
+ * Re-exports special-case expression AST types.
+ */
+
 export * from './parenthesized-expression';
 export * from './variable-expression';
 export * from './array-access-expression';

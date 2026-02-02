@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `RANDOMIZE` statement.
+ */
 export class RandomizeStatement extends Statement
 {
-    public constructor(
-        public readonly seed: Expression | null = null
-    )
+    /**
+     * Optional seed expression.
+     */
+    public readonly seed: Expression | null;
+
+    /**
+     * Create a new `RANDOMIZE` statement.
+     *
+     * @param seed Optional seed expression.
+     */
+    public constructor(seed: Expression | null = null)
     {
         super();
+        this.seed = seed;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

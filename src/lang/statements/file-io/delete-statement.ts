@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `DELETE` statement.
+ */
 export class DeleteStatement extends Statement
 {
-    public constructor(
-        public readonly filename: Expression
-    )
+    /**
+     * File path expression.
+     */
+    public readonly filename: Expression;
+
+    /**
+     * Create a new `DELETE` statement.
+     *
+     * @param filename File path expression.
+     */
+    public constructor(filename: Expression)
     {
         super();
+        this.filename = filename;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

@@ -41,7 +41,7 @@ Handles all binary (infix) operators.
 
 **Location**: `src/lang/expressions/unary-expression.ts`
 
-Handles all unary operators and single-argument functions.
+Handles all unary operators and single-argument operators.
 
 **Operators**:
 - **Prefix**: `+`, `-`, `NOT`
@@ -51,7 +51,7 @@ Handles all unary operators and single-argument functions.
 - **Type Conversion**: `INT`, `STR`, `VAL`, `HEX`, `BIN`
 
 **Type Handling**:
-- Mathematical functions automatically upcast to Complex when needed (e.g., `SQRT(-1)`, `LOG(-1)`)
+- Mathematical operators automatically upcast to Complex when needed (e.g., `SQRT(-1)`, `LOG(-1)`)
 - `REALPART` and `IMAGPART` work on any numeric type (extract real/imaginary parts)
 - `REAL` and `IMAG` require complex operands
 - Results preserve type when possible (e.g., `ABS` of integer may return integer)
@@ -62,11 +62,18 @@ Handles all unary operators and single-argument functions.
 
 Handles non-arithmetic infix operators and multi-keyword operator forms that are defined by the language reference.
 
+**Exports**:
+- Import operator expressions from `@/lang/expressions/operators`.
+- The `src/lang/expressions/operators/` directory contains the individual operator expression implementations, and its `index.ts` is the barrel.
+
 **Examples**:
 - **Array search operators**: `array[] FIND value`, `array[] INDEXOF value`, `array[] INCLUDES value`
 - **String/array operators**: `string$ LEFT n%`, `string$ RIGHT n%`, `string$ MID start% TO end%`, `string$ INSTR substring$ [FROM start%]`, `string$ REPLACE old$ WITH new$`, `array$[] JOIN separator$`
 - **String prefix/suffix operators**: `string$ STARTSWITH prefix$`, `string$ ENDSWITH suffix$`
 - **Absolute value / length / norm operator**: `| x |`
+- **Angle conversion postfix operators**:
+  - `expr DEG` (degrees → radians)
+  - `expr RAD` (radians → degrees)
 
 ## Nullary Expressions
 
@@ -101,10 +108,10 @@ Special-purpose expressions that don't fit the unified pattern:
 
 Helper classes encapsulate evaluation logic:
 
-- `MathematicalFunctionEvaluator` - Mathematical functions with automatic complex upcasting
+- `MathematicalFunctionEvaluator` - Mathematical operators with automatic complex upcasting
 - `ComplexFunctionEvaluator` - Complex number operations (`REAL`, `IMAG`, `REALPART`, `IMAGPART`, `CONJ`, `CABS`, `CARG`, `CSQRT`)
-- `StringFunctionEvaluator` - String manipulation functions
-- `TypeConversionEvaluator` - Type conversion functions
+- `StringFunctionEvaluator` - String manipulation operators
+- `TypeConversionEvaluator` - Type conversion operators
 - `ConstantEvaluator` - Built-in constants
 
 ## Expression Parsing
@@ -120,12 +127,12 @@ From lowest to highest:
 5. **NOT** (Unary)
 6. **Comparison** (`=`, `<>`, `<`, `>`, `<=`, `>=`)
 7. **Arithmetic** (`+`, `-`, `*`, `/`, `MOD`, `^`, `**`)
-8. **Unary** (`+`, `-`, `NOT`, function calls)
+8. **Unary** (`+`, `-`, `NOT`, unary operators)
 9. **Primary** (literals, variables, parentheses, array access, structure access)
 
 ### Parsing Methods
 
-**ExpressionParserService** uses recursive descent parsing:
+**ExpressionParser** uses recursive descent parsing:
 
 - `expression()` - Entry point
 - `imp()` - IMP operator
@@ -137,8 +144,9 @@ From lowest to highest:
 - `addSub()` - Addition, subtraction
 - `mulDiv()` - Multiplication, division, modulo
 - `exponentiation()` - Power operators
-- `unary()` - Unary operators and function calls
-- `primary()` - Literals, variables, parentheses, array access, structure access, function calls
+- `unaryPlusMinus()` - Unary prefix `+` / `-`
+- `primary()` - Literals, variables, parentheses, array/structure access, unary operator application
+- `parsePostfix()` - Postfix operators and accessors (`!`, `.member`, `[index]`, `DEG`, `RAD`, etc.)
 
 ## Type System
 
@@ -158,7 +166,7 @@ Structure
 - Real → Complex: Real part set, imaginary = 0
 - Integer → Complex: Real part set, imaginary = 0
 
-**Mathematical Functions**:
+**Mathematical Operators**:
 - Automatically upcast to Complex when operation requires it:
   - `SQRT` of negative → Complex
   - `LOG` of negative → Complex
@@ -209,6 +217,7 @@ NOT 0            → -1 (true)
 ### Mathematical
 ```
 SIN(PI# / 2)     → 1.0 (Real)
+SIN 45 DEG       → 0.707106... (Real)
 SQRT(16)         → 4.0 (Real)
 SQRT(-4)         → (0+2i) (Complex, automatic upcast)
 LOG(-1)          → (0+πi) (Complex, automatic upcast)
@@ -229,12 +238,12 @@ CABS((3+4i))     → 5.0 (Real)
 ```
 LEFT("Hello", 3)  → "Hel" (String)
 MID("Hello", 2, 3) → "ell" (String)
-LEN("Hello")      → 5 (Integer)
+| "Hello" |       → 5 (Integer)
 ```
 
-### Array Functions
+### Array Operators
 ```
-SIZE([1, 2, 3])  → 3 (Integer)
+| [1, 2, 3] |    → 3 (Integer)
 FIND([1, 2, 3], 2) → 1 (Integer, 0-based)
 JOIN([1, 2, 3], ",") → "1,2,3" (String)
 ```
@@ -264,12 +273,12 @@ HEX(255)         → "FF" (String)
 - Suggests using `REALPART` or `IMAGPART`
 
 **Domain Errors**:
-- Mathematical functions automatically upcast to Complex when needed
+- Mathematical operators automatically upcast to Complex when needed
 - Operations that would produce NaN instead produce Complex results
 
 ## Expression Testing
 
 Expressions are tested via:
-- Unit tests in `specs/expressions/`
+- Unit tests in `specs/units/expressions/`
 - Integration tests in statement tests
 - Manual testing in console

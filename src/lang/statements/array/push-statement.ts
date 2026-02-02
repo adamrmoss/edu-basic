@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `PUSH` statement.
+ */
 export class PushStatement extends Statement
 {
-    public constructor(
-        public readonly arrayVariable: string,
-        public readonly value: Expression
-    )
+    /**
+     * Array variable name.
+     */
+    public readonly arrayVariable: string;
+
+    /**
+     * Expression producing the pushed value.
+     */
+    public readonly value: Expression;
+
+    /**
+     * Create a new `PUSH` statement.
+     *
+     * @param arrayVariable Array variable name.
+     * @param value Expression producing the pushed value.
+     */
+    public constructor(arrayVariable: string, value: Expression)
     {
         super();
+        this.arrayVariable = arrayVariable;
+        this.value = value;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

@@ -7,6 +7,9 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * File open modes for the `OPEN` statement.
+ */
 export enum FileMode
 {
     Read,
@@ -14,17 +17,46 @@ export enum FileMode
     Overwrite
 }
 
+/**
+ * Implements the `OPEN` statement.
+ */
 export class OpenStatement extends Statement
 {
-    public constructor(
-        public readonly filename: Expression,
-        public readonly mode: FileMode,
-        public readonly handleVariable: string
-    )
+    /**
+     * Filename expression.
+     */
+    public readonly filename: Expression;
+
+    /**
+     * Open mode.
+     */
+    public readonly mode: FileMode;
+
+    /**
+     * Target handle variable name.
+     */
+    public readonly handleVariable: string;
+
+    /**
+     * Create a new `OPEN` statement.
+     *
+     * @param filename Filename expression.
+     * @param mode Open mode.
+     * @param handleVariable Target handle variable name.
+     */
+    public constructor(filename: Expression, mode: FileMode, handleVariable: string)
     {
         super();
+        this.filename = filename;
+        this.mode = mode;
+        this.handleVariable = handleVariable;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

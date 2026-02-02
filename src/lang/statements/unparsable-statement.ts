@@ -5,16 +5,42 @@ import { Audio } from '../audio';
 import { Program } from '../program';
 import { RuntimeExecution } from '../runtime-execution';
 
+/**
+ * Placeholder statement used when a source line fails to parse.
+ */
 export class UnparsableStatement extends Statement
 {
-    constructor(
-        private readonly sourceText: string,
-        public readonly errorMessage?: string
-    )
+    /**
+     * Original source text for the unparsable line.
+     */
+    private readonly sourceText: string;
+
+    /**
+     * Optional parse error message.
+     */
+    public readonly errorMessage?: string;
+
+    /**
+     * Create a new unparsable statement placeholder.
+     *
+     * @param sourceText Original source text.
+     * @param errorMessage Optional parse error message.
+     */
+    public constructor(sourceText: string, errorMessage?: string)
     {
         super();
+        this.sourceText = sourceText;
+        this.errorMessage = errorMessage;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * This is typically an error; however, a sentinel message is used to represent
+     * comment/empty lines, which are treated as no-ops.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

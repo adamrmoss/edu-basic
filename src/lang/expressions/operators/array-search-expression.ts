@@ -2,6 +2,9 @@ import { Expression } from '../expression';
 import { EduBasicValue, EduBasicType, ComplexValue } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Array search operators.
+ */
 export enum ArraySearchOperator
 {
     Find = 'FIND',
@@ -9,17 +12,47 @@ export enum ArraySearchOperator
     Includes = 'INCLUDES',
 }
 
+/**
+ * Expression node for array search operators (`FIND` / `INDEXOF` / `INCLUDES`).
+ */
 export class ArraySearchExpression extends Expression
 {
-    public constructor(
-        public readonly arrayExpr: Expression,
-        public readonly operator: ArraySearchOperator,
-        public readonly valueExpr: Expression
-    )
+    /**
+     * Array operand expression (left side).
+     */
+    public readonly arrayExpr: Expression;
+
+    /**
+     * Search operator to apply.
+     */
+    public readonly operator: ArraySearchOperator;
+
+    /**
+     * Search value expression (right side).
+     */
+    public readonly valueExpr: Expression;
+
+    /**
+     * Create a new array search expression.
+     *
+     * @param arrayExpr Array operand expression.
+     * @param operator Search operator to apply.
+     * @param valueExpr Search value expression.
+     */
+    public constructor(arrayExpr: Expression, operator: ArraySearchOperator, valueExpr: Expression)
     {
         super();
+        this.arrayExpr = arrayExpr;
+        this.operator = operator;
+        this.valueExpr = valueExpr;
     }
 
+    /**
+     * Evaluate the array and search value, then apply the selected operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const arrayValue = this.arrayExpr.evaluate(context);

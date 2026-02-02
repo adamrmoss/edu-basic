@@ -1,8 +1,18 @@
 import { EduBasicValue, EduBasicType, ComplexValue } from '../../edu-basic-value';
 import { UnaryOperator } from '../unary-expression';
 
+/**
+ * Evaluator for complex-number unary operators.
+ */
 export class ComplexFunctionEvaluator
 {
+    /**
+     * Evaluate a complex-number unary operator.
+     *
+     * @param operator Unary operator to evaluate.
+     * @param argValue Argument value.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
         switch (operator)

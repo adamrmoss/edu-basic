@@ -1,4 +1,4 @@
-import { Statement } from '../../../lang/statements/statement';
+import { Statement } from '../statements/statement';
 import { ParserContext } from './parsers/parser-context';
 import { ArrayParsers } from './parsers/array-parsers';
 import { AudioParsers } from './parsers/audio-parsers';
@@ -10,6 +10,9 @@ import { MiscParsers } from './parsers/misc-parsers';
 import { VariableParsers } from './parsers/variable-parsers';
 import { ParseResult } from './parse-result';
 
+/**
+ * Statement parse function signature.
+ */
 export type StatementParser = (context: ParserContext) => ParseResult<Statement>;
 
 const DISPATCH: Record<string, StatementParser> = {
@@ -87,8 +90,17 @@ const DISPATCH: Record<string, StatementParser> = {
     'WRITEFILE': FileIoParsers.parseWritefile
 };
 
+/**
+ * Statement keyword dispatch table.
+ */
 export const statementDispatch = new Map<string, StatementParser>(Object.entries(DISPATCH));
 
+/**
+ * Get the statement parser for a statement-start keyword (case-insensitive).
+ *
+ * @param keyword Keyword to look up.
+ * @returns The parser function, or `undefined` if the keyword is not a statement starter.
+ */
 export function getStatementParser(keyword: string): StatementParser | undefined
 {
     return statementDispatch.get(keyword.toUpperCase());

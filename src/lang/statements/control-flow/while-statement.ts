@@ -8,21 +8,49 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 import { WendStatement } from './wend-statement';
 
+/**
+ * Implements the `WHILE` statement.
+ */
 export class WhileStatement extends Statement
 {
-    public constructor(
-        public readonly condition: Expression,
-        public readonly body: Statement[]
-    )
+    /**
+     * Condition expression.
+     */
+    public readonly condition: Expression;
+
+    /**
+     * Loop body statements (block construction).
+     */
+    public readonly body: Statement[];
+
+    /**
+     * Create a new `WHILE` statement.
+     *
+     * @param condition Condition expression.
+     * @param body Loop body statements.
+     */
+    public constructor(condition: Expression, body: Statement[])
     {
         super();
+        this.condition = condition;
+        this.body = body;
     }
 
+    /**
+     * Get the editor indent adjustment.
+     *
+     * @returns Indent delta for this statement.
+     */
     public override getIndentAdjustment(): number
     {
         return 1;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

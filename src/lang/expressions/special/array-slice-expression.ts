@@ -3,17 +3,47 @@ import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 import { VariableExpression } from './variable-expression';
 
+/**
+ * Expression node that slices a 1D array using `[...] TO [...]` bounds.
+ */
 export class ArraySliceExpression extends Expression
 {
-    public constructor(
-        public readonly baseExpr: Expression,
-        public readonly start: Expression | null,
-        public readonly end: Expression | null
-    )
+    /**
+     * Base expression expected to evaluate to an array.
+     */
+    public readonly baseExpr: Expression;
+
+    /**
+     * Optional start index expression (1-based).
+     */
+    public readonly start: Expression | null;
+
+    /**
+     * Optional end index expression (1-based).
+     */
+    public readonly end: Expression | null;
+
+    /**
+     * Create a new array slice expression.
+     *
+     * @param baseExpr Base expression expected to evaluate to an array.
+     * @param start Optional start index expression (1-based).
+     * @param end Optional end index expression (1-based).
+     */
+    public constructor(baseExpr: Expression, start: Expression | null, end: Expression | null)
     {
         super();
+        this.baseExpr = baseExpr;
+        this.start = start;
+        this.end = end;
     }
 
+    /**
+     * Evaluate the base array and slice bounds, then return the sliced array.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns A new runtime array value containing the slice.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         let baseValue = this.baseExpr.evaluate(context);

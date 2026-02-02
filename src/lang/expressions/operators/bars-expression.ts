@@ -2,13 +2,37 @@ import { Expression } from '../expression';
 import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Expression node for the bars operator (`| x |`).
+ *
+ * Semantics:
+ * - Numbers: absolute value (Integer/Real) or magnitude (Complex).
+ * - Strings/arrays: length.
+ */
 export class BarsExpression extends Expression
 {
-    public constructor(public readonly operand: Expression)
+    /**
+     * Operand expression inside the bars.
+     */
+    public readonly operand: Expression;
+
+    /**
+     * Create a new bars expression.
+     *
+     * @param operand Operand expression.
+     */
+    public constructor(operand: Expression)
     {
         super();
+        this.operand = operand;
     }
 
+    /**
+     * Evaluate the operand and apply bars semantics.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const value = this.operand.evaluate(context);

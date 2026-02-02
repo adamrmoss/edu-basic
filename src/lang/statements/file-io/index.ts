@@ -1,3 +1,7 @@
+/**
+ * Re-exports file I/O statements.
+ */
+
 export * from './close-statement';
 export * from './copy-statement';
 export * from './delete-statement';

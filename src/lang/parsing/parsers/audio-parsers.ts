@@ -1,13 +1,25 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../../../../lang/statements/audio';
-import { TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { PlayStatement, TempoStatement, VoiceStatement, VolumeStatement } from '../../statements/audio';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, success } from '../parse-result';
 
+/**
+ * Statement parsers for audio statements.
+ */
 export class AudioParsers
 {
+    /**
+     * Parse the `TEMPO` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseTempo(context: ParserContext): ParseResult<TempoStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // TEMPO bpmExpr
         const tempoTokenResult = context.consume(TokenType.Keyword, 'TEMPO');
         if (!tempoTokenResult.success)
         {
@@ -23,8 +35,17 @@ export class AudioParsers
         return success(new TempoStatement(bpmResult.value));
     }
 
+    /**
+     * Parse the `VOLUME` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseVolume(context: ParserContext): ParseResult<VolumeStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // VOLUME levelExpr
         const volumeTokenResult = context.consume(TokenType.Keyword, 'VOLUME');
         if (!volumeTokenResult.success)
         {
@@ -40,8 +61,17 @@ export class AudioParsers
         return success(new VolumeStatement(levelResult.value));
     }
 
+    /**
+     * Parse the `VOICE` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseVoice(context: ParserContext): ParseResult<VoiceStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // VOICE voiceNumberExpr INSTRUMENT instrumentExpr
         const voiceTokenResult = context.consume(TokenType.Keyword, 'VOICE');
         if (!voiceTokenResult.success)
         {
@@ -69,8 +99,17 @@ export class AudioParsers
         return success(new VoiceStatement(voiceNumberResult.value, instrumentResult.value));
     }
 
+    /**
+     * Parse the `PLAY` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parsePlay(context: ParserContext): ParseResult<PlayStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // PLAY voiceNumberExpr, mmlStringExpr
         const playTokenResult = context.consume(TokenType.Keyword, 'PLAY');
         if (!playTokenResult.success)
         {

@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
+/**
+ * Implements the `READ` statement for reading values from an open file handle.
+ */
 export class ReadFileStatement extends Statement
 {
-    public constructor(
-        public readonly variableName: string,
-        public readonly fileHandle: Expression
-    )
+    /**
+     * Target variable name (scalar or array).
+     */
+    public readonly variableName: string;
+
+    /**
+     * File handle expression.
+     */
+    public readonly fileHandle: Expression;
+
+    /**
+     * Create a new `READ` statement.
+     *
+     * @param variableName Target variable name.
+     * @param fileHandle File handle expression.
+     */
+    public constructor(variableName: string, fileHandle: Expression)
     {
         super();
+        this.variableName = variableName;
+        this.fileHandle = fileHandle;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

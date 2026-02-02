@@ -1,14 +1,36 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { DimDimensionSpec, DimStatement, LetBracketSegment, LetBracketStatement, LetStatement, LocalStatement } from '../../../../lang/statements/variables';
-import { Statement } from '../../../../lang/statements/statement';
-import { TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { DimDimensionSpec, DimStatement, LetBracketSegment, LetBracketStatement, LetStatement, LocalStatement } from '../../statements/variables';
+import { Statement } from '../../statements/statement';
+import { TokenType } from '../tokenizer';
 import { ParserContext } from './parser-context';
 import { ParseResult, failure, success } from '../parse-result';
 
+/**
+ * Statement parsers for variable statements.
+ */
 export class VariableParsers
 {
+    /**
+     * Parse the `LET` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLet(context: ParserContext): ParseResult<Statement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // LET is required for assignment. Supported targets include:
+        // - scalar variables: LET x% = expr
+        // - array elements (1D / multi-index): LET a%[i%] = expr, LET m#[i%, j%] = expr
+        // - structure members: LET s.x% = expr
+        // - chained member/index paths: LET s.points%[i%].x% = expr
+        //
+        // This parser builds a list of "segments" after the base variable name:
+        // - member segments: .name
+        // - index segments: [expr, expr, ...]
+        //
+        // Note: Parentheses are grouping-only in EduBASIC; this parser never treats them as operator syntax.
         const letTokenResult = context.consume(TokenType.Keyword, 'LET');
         if (!letTokenResult.success)
         {
@@ -86,8 +108,18 @@ export class VariableParsers
         return success(new LetStatement(varNameTokenResult.value.value, exprResult.value));
     }
 
+    /**
+     * Parse the `LOCAL` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseLocal(context: ParserContext): ParseResult<LocalStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // LOCAL creates/assigns a variable in the current stack frame:
+        // LOCAL name% = expr
         const localTokenResult = context.consume(TokenType.Keyword, 'LOCAL');
         if (!localTokenResult.success)
         {
@@ -114,8 +146,26 @@ export class VariableParsers
         return success(new LocalStatement(varNameTokenResult.value.value, exprResult.value));
     }
 
+    /**
+     * Parse the `DIM` statement.
+     *
+     * @param context Parser context.
+     * @returns Parsed statement result.
+     */
     public static parseDim(context: ParserContext): ParseResult<DimStatement>
     {
+        // Spec: docs/edu-basic-language.md
+        //
+        // DIM declares/resizes arrays with either:
+        // - size form:     DIM a%[10]
+        // - range form:    DIM a%[0 TO 11]
+        // - multidim:      DIM m#[5, 10]
+        // - multidim range DIM g%[1 TO 10, 1 TO 20]
+        //
+        // Implementation detail:
+        // The runtime stores array names with a rank suffix ([], [,], [,,], ...)
+        // as part of the identifier. Tokenizer can also recognize rank suffixes on identifiers.
+        // DIM reconstructs the rank suffix based on the number of dimensions parsed.
         const dimTokenResult = context.consume(TokenType.Keyword, 'DIM');
         if (!dimTokenResult.success)
         {

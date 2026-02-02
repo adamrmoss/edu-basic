@@ -7,17 +7,34 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `TURTLE` statement.
+ */
 export class TurtleStatement extends Statement
 {
     private static turtles: Map<number, { x: number; y: number; angleDeg: number; penDown: boolean }> = new Map();
 
-    public constructor(
-        public readonly commands: Expression
-    )
+    /**
+     * Command string expression.
+     */
+    public readonly commands: Expression;
+
+    /**
+     * Create a new `TURTLE` statement.
+     *
+     * @param commands Command string expression.
+     */
+    public constructor(commands: Expression)
     {
         super();
+        this.commands = commands;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

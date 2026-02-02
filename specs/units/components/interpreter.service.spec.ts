@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { Injector } from '@angular/core';
 
-import { success, failure } from '@/app/interpreter/parser/parse-result';
-import { ParserService, ParsedLine } from '@/app/interpreter/parser';
+import { success, failure } from '@/lang/parsing/parse-result';
+import { ParserService, ParsedLine } from '@/app/interpreter/parser.service';
 
 import { InterpreterService, InterpreterState } from '@/app/interpreter/interpreter.service';
 import { GraphicsService } from '@/app/interpreter/graphics.service';

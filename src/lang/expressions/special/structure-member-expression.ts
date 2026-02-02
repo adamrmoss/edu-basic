@@ -2,16 +2,40 @@ import { Expression } from '../expression';
 import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 import { ExecutionContext } from '../../execution-context';
 
+/**
+ * Expression node that accesses a member on a structure using dot syntax (`a.b`).
+ */
 export class StructureMemberExpression extends Expression
 {
-    public constructor(
-        public readonly structureExpr: Expression,
-        public readonly memberName: string
-    )
+    /**
+     * Base expression expected to evaluate to a structure.
+     */
+    public readonly structureExpr: Expression;
+
+    /**
+     * Member name to retrieve (including any type sigil / rank suffix).
+     */
+    public readonly memberName: string;
+
+    /**
+     * Create a new structure member access expression.
+     *
+     * @param structureExpr Base expression expected to evaluate to a structure.
+     * @param memberName Member name to retrieve.
+     */
+    public constructor(structureExpr: Expression, memberName: string)
     {
         super();
+        this.structureExpr = structureExpr;
+        this.memberName = memberName;
     }
 
+    /**
+     * Evaluate the structure and return the requested member value.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The member value, or a type-appropriate default if missing.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const structureValue = this.structureExpr.evaluate(context);

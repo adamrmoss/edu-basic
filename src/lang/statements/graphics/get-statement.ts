@@ -7,19 +7,60 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
+/**
+ * Implements the `GET` statement.
+ */
 export class GetStatement extends Statement
 {
-    public constructor(
-        public readonly arrayVariable: string,
-        public readonly x1: Expression,
-        public readonly y1: Expression,
-        public readonly x2: Expression,
-        public readonly y2: Expression
-    )
+    /**
+     * Destination array variable name.
+     */
+    public readonly arrayVariable: string;
+
+    /**
+     * First corner X expression.
+     */
+    public readonly x1: Expression;
+
+    /**
+     * First corner Y expression.
+     */
+    public readonly y1: Expression;
+
+    /**
+     * Second corner X expression.
+     */
+    public readonly x2: Expression;
+
+    /**
+     * Second corner Y expression.
+     */
+    public readonly y2: Expression;
+
+    /**
+     * Create a new `GET` statement.
+     *
+     * @param arrayVariable Destination array variable name.
+     * @param x1 First corner X expression.
+     * @param y1 First corner Y expression.
+     * @param x2 Second corner X expression.
+     * @param y2 Second corner Y expression.
+     */
+    public constructor(arrayVariable: string, x1: Expression, y1: Expression, x2: Expression, y2: Expression)
     {
         super();
+        this.arrayVariable = arrayVariable;
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

@@ -1,15 +1,15 @@
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ExpressionParser } from '@/lang/parsing/expression-parser';
 import { ExecutionContext } from '@/lang/execution-context';
 import { EduBasicType } from '@/lang/edu-basic-value';
 
 describe('ExpressionParser', () =>
 {
-    let parser: ExpressionParserService;
+    let parser: ExpressionParser;
     let context: ExecutionContext;
 
     beforeEach(() =>
     {
-        parser = new ExpressionParserService();
+        parser = new ExpressionParser();
         context = new ExecutionContext();
     });
 
@@ -37,6 +37,57 @@ describe('ExpressionParser', () =>
             }
 
             expect(exprResult.value.evaluate(context)).toEqual({ type: EduBasicType.Integer, value: 8 });
+        });
+
+        it('should parse and evaluate DEG (degrees to radians)', () =>
+        {
+            const exprResult = parser.parseExpression('45 DEG');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Real);
+            if (result.type === EduBasicType.Real)
+            {
+                expect(result.value).toBeCloseTo(Math.PI / 4);
+            }
+        });
+
+        it('should parse and evaluate RAD (radians to degrees)', () =>
+        {
+            const exprResult = parser.parseExpression('PI# RAD');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Real);
+            if (result.type === EduBasicType.Real)
+            {
+                expect(result.value).toBeCloseTo(180);
+            }
+        });
+
+        it('should allow DEG in unary math expressions', () =>
+        {
+            const exprResult = parser.parseExpression('SIN 45 DEG');
+            expect(exprResult.success).toBe(true);
+            if (!exprResult.success)
+            {
+                return;
+            }
+
+            const result = exprResult.value.evaluate(context);
+            expect(result.type).toBe(EduBasicType.Real);
+            if (result.type === EduBasicType.Real)
+            {
+                expect(result.value).toBeCloseTo(Math.SQRT1_2);
+            }
         });
     });
 
@@ -2135,4 +2186,3 @@ describe('ExpressionParser', () =>
         });
     });
 });
-

@@ -1,3 +1,7 @@
+/**
+ * Re-exports graphics statements.
+ */
+
 export * from './arc-statement';
 export * from './circle-statement';
 export * from './get-statement';

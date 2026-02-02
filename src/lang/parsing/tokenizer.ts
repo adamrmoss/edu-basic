@@ -1,56 +1,203 @@
 import { Keywords } from './keywords';
+import { failure, ParseResult, success } from './parse-result';
 
+/**
+ * Token kinds emitted by `Tokenizer`.
+ */
 export enum TokenType
 {
+    /**
+     * End-of-file sentinel token.
+     */
     EOF,
     
+    /**
+     * Integer literal token.
+     */
     Integer,
+
+    /**
+     * Real literal token.
+     */
     Real,
+
+    /**
+     * Complex literal token.
+     */
     Complex,
+
+    /**
+     * String literal token.
+     */
     String,
     
+    /**
+     * Identifier token.
+     */
     Identifier,
+
+    /**
+     * Keyword token (recognized via `Keywords`).
+     */
     Keyword,
     
+    /**
+     * Plus operator (`+`).
+     */
     Plus,
+
+    /**
+     * Minus operator (`-`).
+     */
     Minus,
+
+    /**
+     * Multiplication operator (`*`).
+     */
     Star,
+
+    /**
+     * Division operator (`/`).
+     */
     Slash,
+
+    /**
+     * Power operator (`^`).
+     */
     Caret,
+
+    /**
+     * Power operator (`**`).
+     */
     StarStar,
     
+    /**
+     * Equality operator (`=`).
+     */
     Equal,
+
+    /**
+     * Inequality operator (`<>`).
+     */
     NotEqual,
+
+    /**
+     * Less-than operator (`<`).
+     */
     Less,
+
+    /**
+     * Greater-than operator (`>`).
+     */
     Greater,
+
+    /**
+     * Less-than-or-equal operator (`<=`).
+     */
     LessEqual,
+
+    /**
+     * Greater-than-or-equal operator (`>=`).
+     */
     GreaterEqual,
     
+    /**
+     * Left parenthesis (`(`).
+     */
     LeftParen,
+
+    /**
+     * Right parenthesis (`)`).
+     */
     RightParen,
+
+    /**
+     * Left bracket (`[`).
+     */
     LeftBracket,
+
+    /**
+     * Right bracket (`]`).
+     */
     RightBracket,
+
+    /**
+     * Left brace (`{`).
+     */
     LeftBrace,
+
+    /**
+     * Right brace (`}`).
+     */
     RightBrace,
     
+    /**
+     * Comma delimiter (`,`).
+     */
     Comma,
+
+    /**
+     * Colon delimiter (`:`).
+     */
     Colon,
+
+    /**
+     * Semicolon delimiter (`;`).
+     */
     Semicolon,
+
+    /**
+     * Pipe token (`|`).
+     */
     Pipe,
+
+    /**
+     * Exclamation token (`!`).
+     */
     Exclamation,
+
+    /**
+     * Dot token (`.`).
+     */
     Dot,
 
+    /**
+     * Ellipsis token (`...`).
+     */
     Ellipsis,
 }
 
+/**
+ * Token produced by `Tokenizer`.
+ */
 export interface Token
 {
+    /**
+     * Token kind.
+     */
     type: TokenType;
+
+    /**
+     * Source text for the token (normalized for keywords).
+     */
     value: string;
+
+    /**
+     * 1-based line number in the source string.
+     */
     line: number;
+
+    /**
+     * 1-based column number in the source string.
+     */
     column: number;
 }
 
+/**
+ * Tokenizer for EduBASIC source and expressions.
+ *
+ * Produces a flat token stream consumed by the parser and expression parser.
+ */
 export class Tokenizer
 {
     private source: string = '';
@@ -58,8 +205,17 @@ export class Tokenizer
     private line: number = 1;
     private column: number = 1;
 
-    public tokenize(source: string): Token[]
+    /**
+     * Tokenize a source string into an array of tokens.
+     *
+     * @param source Source string to tokenize.
+     * @returns Token list including a trailing EOF token.
+     */
+    public tokenize(source: string): ParseResult<Token[]>
     {
+        // Tokenization is a single left-to-right pass.
+        // We treat tokenization failures as recoverable (ParseResult) because the editor/IDE
+        // should be able to display errors without crashing the parse pipeline.
         this.source = source;
         this.position = 0;
         this.line = 1;
@@ -76,23 +232,27 @@ export class Tokenizer
                 break;
             }
 
-            const token = this.nextToken();
-            
-            if (token)
+            const tokenResult = this.nextToken();
+            if (!tokenResult.success)
             {
-                tokens.push(token);
+                return failure(tokenResult.error);
             }
+
+            tokens.push(tokenResult.value);
         }
 
         tokens.push(this.makeToken(TokenType.EOF, ''));
-        return tokens;
+        return success(tokens);
     }
 
-    private nextToken(): Token | null
+    private nextToken(): ParseResult<Token>
     {
         const startColumn = this.column;
         const char = this.peek();
 
+        // Ellipsis must be recognized before '.' is treated as:
+        // - a real literal prefix (e.g. ".5")
+        // - a standalone dot token (used for structure member access)
         if (char === '.' &&
             this.position + 2 < this.source.length &&
             this.source[this.position + 1] === '.' &&
@@ -101,7 +261,7 @@ export class Tokenizer
             this.advance();
             this.advance();
             this.advance();
-            return this.makeToken(TokenType.Ellipsis, '...', startColumn);
+            return success(this.makeToken(TokenType.Ellipsis, '...', startColumn));
         }
 
         if (char === '"')
@@ -111,6 +271,9 @@ export class Tokenizer
 
         if (this.isDigit(char) || (char === '.' && this.isDigit(this.peekNext())))
         {
+            // Numbers are parsed with some BASIC-specific extensions:
+            // - exponent notation (e.g. 1.2e-3)
+            // - complex literals using an 'i' suffix (e.g. 3i, 2+4i, 2-4i)
             return this.readNumber();
         }
 
@@ -137,19 +300,19 @@ export class Tokenizer
         {
             case '+':
                 this.advance();
-                return this.makeToken(TokenType.Plus, '+', startColumn);
+                return success(this.makeToken(TokenType.Plus, '+', startColumn));
 
             case '-':
                 this.advance();
-                return this.makeToken(TokenType.Minus, '-', startColumn);
+                return success(this.makeToken(TokenType.Minus, '-', startColumn));
 
             case '/':
                 this.advance();
-                return this.makeToken(TokenType.Slash, '/', startColumn);
+                return success(this.makeToken(TokenType.Slash, '/', startColumn));
 
             case '^':
                 this.advance();
-                return this.makeToken(TokenType.Caret, '^', startColumn);
+                return success(this.makeToken(TokenType.Caret, '^', startColumn));
 
             case '*':
                 this.advance();
@@ -157,14 +320,14 @@ export class Tokenizer
                 if (this.peek() === '*')
                 {
                     this.advance();
-                    return this.makeToken(TokenType.StarStar, '**', startColumn);
+                    return success(this.makeToken(TokenType.StarStar, '**', startColumn));
                 }
                 
-                return this.makeToken(TokenType.Star, '*', startColumn);
+                return success(this.makeToken(TokenType.Star, '*', startColumn));
 
             case '=':
                 this.advance();
-                return this.makeToken(TokenType.Equal, '=', startColumn);
+                return success(this.makeToken(TokenType.Equal, '=', startColumn));
 
             case '<':
                 this.advance();
@@ -172,15 +335,15 @@ export class Tokenizer
                 if (this.peek() === '>')
                 {
                     this.advance();
-                    return this.makeToken(TokenType.NotEqual, '<>', startColumn);
+                    return success(this.makeToken(TokenType.NotEqual, '<>', startColumn));
                 }
                 else if (this.peek() === '=')
                 {
                     this.advance();
-                    return this.makeToken(TokenType.LessEqual, '<=', startColumn);
+                    return success(this.makeToken(TokenType.LessEqual, '<=', startColumn));
                 }
                 
-                return this.makeToken(TokenType.Less, '<', startColumn);
+                return success(this.makeToken(TokenType.Less, '<', startColumn));
 
             case '>':
                 this.advance();
@@ -188,65 +351,65 @@ export class Tokenizer
                 if (this.peek() === '=')
                 {
                     this.advance();
-                    return this.makeToken(TokenType.GreaterEqual, '>=', startColumn);
+                    return success(this.makeToken(TokenType.GreaterEqual, '>=', startColumn));
                 }
                 
-                return this.makeToken(TokenType.Greater, '>', startColumn);
+                return success(this.makeToken(TokenType.Greater, '>', startColumn));
 
             case '(':
                 this.advance();
-                return this.makeToken(TokenType.LeftParen, '(', startColumn);
+                return success(this.makeToken(TokenType.LeftParen, '(', startColumn));
 
             case ')':
                 this.advance();
-                return this.makeToken(TokenType.RightParen, ')', startColumn);
+                return success(this.makeToken(TokenType.RightParen, ')', startColumn));
 
             case '[':
                 this.advance();
-                return this.makeToken(TokenType.LeftBracket, '[', startColumn);
+                return success(this.makeToken(TokenType.LeftBracket, '[', startColumn));
 
             case ']':
                 this.advance();
-                return this.makeToken(TokenType.RightBracket, ']', startColumn);
+                return success(this.makeToken(TokenType.RightBracket, ']', startColumn));
 
             case '{':
                 this.advance();
-                return this.makeToken(TokenType.LeftBrace, '{', startColumn);
+                return success(this.makeToken(TokenType.LeftBrace, '{', startColumn));
 
             case '}':
                 this.advance();
-                return this.makeToken(TokenType.RightBrace, '}', startColumn);
+                return success(this.makeToken(TokenType.RightBrace, '}', startColumn));
 
             case ',':
                 this.advance();
-                return this.makeToken(TokenType.Comma, ',', startColumn);
+                return success(this.makeToken(TokenType.Comma, ',', startColumn));
 
             case ':':
                 this.advance();
-                return this.makeToken(TokenType.Colon, ':', startColumn);
+                return success(this.makeToken(TokenType.Colon, ':', startColumn));
 
             case ';':
                 this.advance();
-                return this.makeToken(TokenType.Semicolon, ';', startColumn);
+                return success(this.makeToken(TokenType.Semicolon, ';', startColumn));
 
             case '|':
                 this.advance();
-                return this.makeToken(TokenType.Pipe, '|', startColumn);
+                return success(this.makeToken(TokenType.Pipe, '|', startColumn));
 
             case '!':
                 this.advance();
-                return this.makeToken(TokenType.Exclamation, '!', startColumn);
+                return success(this.makeToken(TokenType.Exclamation, '!', startColumn));
 
             case '.':
                 this.advance();
-                return this.makeToken(TokenType.Dot, '.', startColumn);
+                return success(this.makeToken(TokenType.Dot, '.', startColumn));
 
             default:
-                throw new Error(`Unexpected character '${char}' at line ${this.line}, column ${this.column}`);
+                return failure(`Unexpected character '${char}' at line ${this.line}, column ${this.column}`);
         }
     }
 
-    private readString(): Token
+    private readString(): ParseResult<Token>
     {
         const startColumn = this.column;
         this.advance();
@@ -255,6 +418,12 @@ export class Tokenizer
         
         while (!this.isAtEnd() && this.peek() !== '"')
         {
+            // Strings are single-line. Newlines terminate the literal.
+            if (this.peek() === '\n')
+            {
+                return failure(`Unterminated string at line ${this.line}, column ${startColumn}`);
+            }
+
             if (this.peek() === '\\')
             {
                 this.advance();
@@ -297,20 +466,22 @@ export class Tokenizer
 
         if (this.isAtEnd())
         {
-            throw new Error(`Unterminated string at line ${this.line}`);
+            return failure(`Unterminated string at line ${this.line}, column ${startColumn}`);
         }
 
         this.advance();
-        return this.makeToken(TokenType.String, value, startColumn);
+        return success(this.makeToken(TokenType.String, value, startColumn));
     }
 
-    private readNumber(): Token
+    private readNumber(): ParseResult<Token>
     {
         const startColumn = this.column;
         let value = '';
         let hasDecimal = false;
         let hasExponent = false;
 
+        // Numeric core: digits with an optional single decimal point.
+        // We stop when we hit a second '.' so the caller can treat it as a dot token (or error).
         while (!this.isAtEnd() && (this.isDigit(this.peek()) || this.peek() === '.'))
         {
             if (this.peek() === '.')
@@ -329,6 +500,7 @@ export class Tokenizer
 
         if (!this.isAtEnd() && (this.peek() === 'E' || this.peek() === 'e'))
         {
+            // Exponent suffix (e.g. 1e3, 1.2E-3).
             hasExponent = true;
             value += this.peek();
             this.advance();
@@ -348,11 +520,17 @@ export class Tokenizer
 
         if (!this.isAtEnd() && (this.peek() === 'i' || this.peek() === 'I'))
         {
+            // Imaginary-only complex literal (e.g. "3i" or "3.2E1i").
             value += this.peek();
             this.advance();
-            return this.makeToken(TokenType.Complex, value, startColumn);
+            return success(this.makeToken(TokenType.Complex, value, startColumn));
         }
 
+        // Full complex literal form: <realPart><+|-><imagPart>i
+        //
+        // This is implemented as a speculative parse:
+        // - if we don't end up with a trailing 'i', we roll back and leave the sign for the parser
+        //   (so "2-3" becomes Integer(2) Minus Integer(3), not a broken complex token).
         if (!this.isAtEnd() && (this.peek() === '+' || this.peek() === '-'))
         {
             const savedPosition = this.position;
@@ -392,7 +570,7 @@ export class Tokenizer
                 {
                     value += imagPart + this.peek();
                     this.advance();
-                    return this.makeToken(TokenType.Complex, value, startColumn);
+                    return success(this.makeToken(TokenType.Complex, value, startColumn));
                 }
             }
 
@@ -401,10 +579,10 @@ export class Tokenizer
         }
 
         const tokenType = (hasDecimal || hasExponent) ? TokenType.Real : TokenType.Integer;
-        return this.makeToken(tokenType, value, startColumn);
+        return success(this.makeToken(tokenType, value, startColumn));
     }
 
-    private readHexNumber(): Token
+    private readHexNumber(): ParseResult<Token>
     {
         const startColumn = this.column;
         this.advance();
@@ -420,13 +598,13 @@ export class Tokenizer
 
         if (value.length === 0)
         {
-            throw new Error(`Invalid hex number at line ${this.line}, column ${startColumn}`);
+            return failure(`Invalid hex number at line ${this.line}, column ${startColumn}`);
         }
 
-        return this.makeToken(TokenType.Integer, parseInt(value, 16).toString(), startColumn);
+        return success(this.makeToken(TokenType.Integer, parseInt(value, 16).toString(), startColumn));
     }
 
-    private readBinaryNumber(): Token
+    private readBinaryNumber(): ParseResult<Token>
     {
         const startColumn = this.column;
         this.advance();
@@ -446,17 +624,19 @@ export class Tokenizer
 
         if (value.length === 0)
         {
-            throw new Error(`Invalid binary number at line ${this.line}, column ${startColumn}`);
+            return failure(`Invalid binary number at line ${this.line}, column ${startColumn}`);
         }
 
-        return this.makeToken(TokenType.Integer, parseInt(value, 2).toString(), startColumn);
+        return success(this.makeToken(TokenType.Integer, parseInt(value, 2).toString(), startColumn));
     }
 
-    private readIdentifierOrKeyword(): Token
+    private readIdentifierOrKeyword(): ParseResult<Token>
     {
         const startColumn = this.column;
         let value = '';
 
+        // Identifiers are alphanumeric with underscores. Case is preserved for identifiers,
+        // but keywords are normalized to uppercase for simpler parser comparisons.
         while (!this.isAtEnd() && (this.isAlphaNumeric(this.peek()) || this.peek() === '_'))
         {
             value += this.peek();
@@ -467,6 +647,8 @@ export class Tokenizer
         {
             const sigil = this.peek();
             
+            // Type sigils are part of the identifier token, not standalone tokens.
+            // Examples: x%, name$, pi#, handle&
             if (sigil === '%' || sigil === '#' || sigil === '$' || sigil === '&')
             {
                 value += sigil;
@@ -486,7 +668,8 @@ export class Tokenizer
             const savedPosition = this.position;
             const savedColumn = this.column;
 
-            this.advance(); // '['
+            // Consume '[' tentatively; we may roll back if this isn't a rank suffix.
+            this.advance();
 
             let commaCount = 0;
             while (!this.isAtEnd() && this.peek() === ',')
@@ -497,11 +680,13 @@ export class Tokenizer
 
             if (!this.isAtEnd() && this.peek() === ']')
             {
-                this.advance(); // ']'
+                // It was a rank suffix, so we keep it as part of the identifier.
+                this.advance();
                 value += `[${','.repeat(commaCount)}]`;
             }
             else
             {
+                // Not a rank suffix (likely normal indexing like a#[i, j]), so roll back.
                 this.position = savedPosition;
                 this.column = savedColumn;
             }
@@ -511,14 +696,16 @@ export class Tokenizer
         
         if (Keywords.isKeyword(upper))
         {
-            return this.makeToken(TokenType.Keyword, upper, startColumn);
+            return success(this.makeToken(TokenType.Keyword, upper, startColumn));
         }
 
-        return this.makeToken(TokenType.Identifier, value, startColumn);
+        return success(this.makeToken(TokenType.Identifier, value, startColumn));
     }
 
     private skipWhitespace(): void
     {
+        // Whitespace and comments are skipped here so tokenization remains a clean stream.
+        // Note: newline is handled via advance() so that line/column tracking stays consistent.
         while (!this.isAtEnd())
         {
             const char = this.peek();
@@ -529,12 +716,11 @@ export class Tokenizer
             }
             else if (char === '\n')
             {
-                this.line++;
-                this.column = 1;
                 this.advance();
             }
             else if (char === "'")
             {
+                // BASIC comment: apostrophe to end-of-line.
                 while (!this.isAtEnd() && this.peek() !== '\n')
                 {
                     this.advance();
@@ -569,8 +755,20 @@ export class Tokenizer
 
     private advance(): void
     {
+        // We read the current char before incrementing position so we can correctly update
+        // line/column tracking when consuming '\n'.
+        const char = this.peek();
         this.position++;
-        this.column++;
+
+        if (char === '\n')
+        {
+            this.line++;
+            this.column = 1;
+        }
+        else
+        {
+            this.column++;
+        }
     }
 
     private isAtEnd(): boolean

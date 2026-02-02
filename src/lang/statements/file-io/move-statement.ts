@@ -7,16 +7,39 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `MOVE` statement.
+ */
 export class MoveStatement extends Statement
 {
-    public constructor(
-        public readonly source: Expression,
-        public readonly destination: Expression
-    )
+    /**
+     * Source path expression.
+     */
+    public readonly source: Expression;
+
+    /**
+     * Destination path expression.
+     */
+    public readonly destination: Expression;
+
+    /**
+     * Create a new `MOVE` statement.
+     *
+     * @param source Source path expression.
+     * @param destination Destination path expression.
+     */
+    public constructor(source: Expression, destination: Expression)
     {
         super();
+        this.source = source;
+        this.destination = destination;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

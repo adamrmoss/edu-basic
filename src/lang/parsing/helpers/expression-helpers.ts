@@ -1,16 +1,30 @@
-import { Expression } from '../../../../lang/expressions/expression';
-import { ExpressionParserService } from '../../expression-parser.service';
-import { Keywords } from '../../keywords';
-import { Token, TokenType } from '../../tokenizer.service';
+import { Expression } from '../../expressions/expression';
+import { ExpressionParser } from '../expression-parser';
+import { Keywords } from '../keywords';
+import { Token, TokenType } from '../tokenizer';
 import { TokenHelpers } from './token-helpers';
 import { ParseResult, failure, success } from '../parse-result';
 
+/**
+ * Helper utilities for parsing expressions out of a statement token stream.
+ */
 export class ExpressionHelpers
 {
+    /**
+     * Parse an expression starting at the current token cursor.
+     *
+     * This slices tokens until a terminator is reached, reconstructs source text, then
+     * re-parses using `ExpressionParser` so operator precedence rules remain centralized.
+     *
+     * @param tokens Token stream for the current statement.
+     * @param current Mutable cursor into `tokens`.
+     * @param expressionParser Expression parser to use for parsing the reconstructed source.
+     * @returns The parsed expression, or a failed parse result.
+     */
     public static parseExpression(
         tokens: Token[],
         current: { value: number },
-        expressionParser: ExpressionParserService
+        expressionParser: ExpressionParser
     ): ParseResult<Expression>
     {
         const exprTokens: Token[] = [];
@@ -111,6 +125,13 @@ export class ExpressionHelpers
         return success(exprResult.value);
     }
 
+    /**
+     * Whether a space should be inserted when reconstructing expression source.
+     *
+     * @param prevToken Previous token.
+     * @param currentToken Current token.
+     * @returns `true` if a space should be inserted.
+     */
     private static needsSpace(prevToken: Token, currentToken: Token): boolean
     {
         if (prevToken.type === TokenType.LeftParen || prevToken.type === TokenType.LeftBracket || prevToken.type === TokenType.LeftBrace)

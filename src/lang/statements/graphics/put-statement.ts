@@ -8,17 +8,46 @@ import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 import { intToRgba } from './color-utils';
 
+/**
+ * Implements the `PUT` statement.
+ */
 export class PutStatement extends Statement
 {
-    public constructor(
-        public readonly arrayVariable: string,
-        public readonly x: Expression,
-        public readonly y: Expression
-    )
+    /**
+     * Source sprite array variable name.
+     */
+    public readonly arrayVariable: string;
+
+    /**
+     * Destination X coordinate expression.
+     */
+    public readonly x: Expression;
+
+    /**
+     * Destination Y coordinate expression.
+     */
+    public readonly y: Expression;
+
+    /**
+     * Create a new `PUT` statement.
+     *
+     * @param arrayVariable Source sprite array variable name.
+     * @param x Destination X coordinate expression.
+     * @param y Destination Y coordinate expression.
+     */
+    public constructor(arrayVariable: string, x: Expression, y: Expression)
     {
         super();
+        this.arrayVariable = arrayVariable;
+        this.x = x;
+        this.y = y;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

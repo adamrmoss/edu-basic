@@ -4,16 +4,40 @@ import { ExecutionContext } from '../../execution-context';
 import { VariableExpression } from './variable-expression';
 import { StructureMemberExpression } from './structure-member-expression';
 
+/**
+ * Expression node for multi-index array access (`base[i, j, ...]`).
+ */
 export class MultiIndexBracketAccessExpression extends Expression
 {
-    public constructor(
-        public readonly baseExpr: Expression,
-        public readonly indices: Expression[]
-    )
+    /**
+     * Base expression expected to evaluate to a dimensioned array.
+     */
+    public readonly baseExpr: Expression;
+
+    /**
+     * Index expressions (1-based), one per array dimension.
+     */
+    public readonly indices: Expression[];
+
+    /**
+     * Create a new multi-index bracket access expression.
+     *
+     * @param baseExpr Base expression expected to evaluate to an array.
+     * @param indices Index expressions (1-based), one per dimension.
+     */
+    public constructor(baseExpr: Expression, indices: Expression[])
     {
         super();
+        this.baseExpr = baseExpr;
+        this.indices = indices;
     }
 
+    /**
+     * Evaluate the base array and indices, then return the referenced element.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The referenced element value (or a type-appropriate default).
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         let baseValue = this.baseExpr.evaluate(context);

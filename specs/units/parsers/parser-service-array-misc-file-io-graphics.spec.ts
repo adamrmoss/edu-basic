@@ -1,5 +1,4 @@
-import { ParserService } from '@/app/interpreter/parser';
-import { ExpressionParserService } from '@/app/interpreter/expression-parser.service';
+import { ParserService } from '@/app/interpreter/parser.service';
 
 import { ConsoleStatement, HelpStatement, RandomizeStatement, SetOption, SetStatement, SleepStatement } from '@/lang/statements/misc';
 import { PopStatement, PushStatement, ShiftStatement, UnshiftStatement } from '@/lang/statements/array';
@@ -40,8 +39,7 @@ describe('ParserService (additional statement parsers)', () =>
 
     beforeEach(() =>
     {
-        const expressionParser = new ExpressionParserService();
-        parser = new ParserService(expressionParser);
+        parser = new ParserService();
     });
 
     describe('Array Statements', () =>
@@ -68,13 +66,12 @@ describe('ParserService (additional statement parsers)', () =>
                 return;
             }
 
-            expect(result.value.hasError).toBe(false);
-            expect(result.value.statement).toBeInstanceOf(PopStatement);
+            expect(result.value.hasError).toBe(true);
         });
 
         it('should parse POP statement with target variable', () =>
         {
-            const result = parser.parseLine(1, 'POP arr%[], result%');
+            const result = parser.parseLine(1, 'POP arr%[] INTO result%');
             expect(result.success).toBe(true);
             if (!result.success)
             {
@@ -94,13 +91,12 @@ describe('ParserService (additional statement parsers)', () =>
                 return;
             }
 
-            expect(result.value.hasError).toBe(false);
-            expect(result.value.statement).toBeInstanceOf(ShiftStatement);
+            expect(result.value.hasError).toBe(true);
         });
 
         it('should parse SHIFT statement with target variable', () =>
         {
-            const result = parser.parseLine(1, 'SHIFT arr$[], result$');
+            const result = parser.parseLine(1, 'SHIFT arr$[] INTO result$');
             expect(result.success).toBe(true);
             if (!result.success)
             {

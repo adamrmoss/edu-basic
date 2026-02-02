@@ -6,6 +6,9 @@ import { ComplexFunctionEvaluator } from './helpers/complex-function-evaluator';
 import { StringFunctionEvaluator } from './helpers/string-function-evaluator';
 import { TypeConversionEvaluator } from './helpers/type-conversion-evaluator';
 
+/**
+ * Unary operators supported by the expression runtime.
+ */
 export enum UnaryOperator
 {
     // Prefix operators
@@ -66,8 +69,14 @@ export enum UnaryOperator
     Val = 'VAL',
     Hex = 'HEX',
     Bin = 'BIN',
+
+    // Audio operators
+    Notes = 'NOTES',
 }
 
+/**
+ * Category discriminator for unary operators.
+ */
 export enum UnaryOperatorCategory
 {
     Prefix,
@@ -75,8 +84,12 @@ export enum UnaryOperatorCategory
     Complex,
     StringManipulation,
     TypeConversion,
+    Audio,
 }
 
+/**
+ * Expression node representing the application of a unary operator to an operand.
+ */
 export class UnaryExpression extends Expression
 {
     private readonly mathEvaluator = new MathematicalFunctionEvaluator();
@@ -84,15 +97,42 @@ export class UnaryExpression extends Expression
     private readonly stringEvaluator = new StringFunctionEvaluator();
     private readonly typeConversionEvaluator = new TypeConversionEvaluator();
 
-    public constructor(
-        public readonly operator: UnaryOperator,
-        public readonly operand: Expression,
-        public readonly category: UnaryOperatorCategory
-    )
+    /**
+     * Unary operator applied by this node.
+     */
+    public readonly operator: UnaryOperator;
+
+    /**
+     * Operand expression.
+     */
+    public readonly operand: Expression;
+
+    /**
+     * Operator category used to select the evaluation strategy.
+     */
+    public readonly category: UnaryOperatorCategory;
+
+    /**
+     * Create a new unary expression node.
+     *
+     * @param operator Operator to apply.
+     * @param operand Operand expression.
+     * @param category Operator category.
+     */
+    public constructor(operator: UnaryOperator, operand: Expression, category: UnaryOperatorCategory)
     {
         super();
+        this.operator = operator;
+        this.operand = operand;
+        this.category = category;
     }
 
+    /**
+     * Evaluate the operand and apply the operator.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The evaluated runtime value.
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const operandValue = this.operand.evaluate(context);
@@ -109,6 +149,8 @@ export class UnaryExpression extends Expression
                 return this.stringEvaluator.evaluate(this.operator, operandValue);
             case UnaryOperatorCategory.TypeConversion:
                 return this.typeConversionEvaluator.evaluate(this.operator, operandValue);
+            case UnaryOperatorCategory.Audio:
+                return this.evaluateAudio(operandValue, context);
             default:
                 throw new Error(`Unknown unary operator category: ${this.category}`);
         }
@@ -156,6 +198,35 @@ export class UnaryExpression extends Expression
         }
     }
 
+    private evaluateAudio(operandValue: EduBasicValue, context: ExecutionContext): EduBasicValue
+    {
+        switch (this.operator)
+        {
+            case UnaryOperator.Notes:
+            {
+                // Spec: docs/edu-basic-language.md
+                // - Syntax: NOTES voiceNumber%
+                // - Description: number of notes remaining in the voice (0-7)
+                //
+                // NOTE: Expression evaluation only receives ExecutionContext, so this operator
+                // reads Audio via context.getAudio(). If audio is unavailable (e.g. tests / non-browser),
+                // it returns 0.
+                const audio = context.getAudio();
+                if (!audio)
+                {
+                    return { type: EduBasicType.Integer, value: 0 };
+                }
+
+                const voiceIndex = Math.floor(this.toNumber(operandValue));
+                const remaining = audio.getNotesRemaining(voiceIndex);
+                return { type: EduBasicType.Integer, value: remaining };
+            }
+
+            default:
+                throw new Error(`Unknown audio operator: ${this.operator}`);
+        }
+    }
+
     private toNumber(value: EduBasicValue): number
     {
         if (value.type === EduBasicType.Integer || value.type === EduBasicType.Real)
@@ -166,14 +237,16 @@ export class UnaryExpression extends Expression
         throw new Error(`Cannot convert ${value.type} to number`);
     }
 
-    public toString(omitOuterParens: boolean = false): string
+    public toString(omitOuterParens: boolean = true): string
     {
         if (this.category === UnaryOperatorCategory.Prefix)
         {
             return `${this.operator}${this.operand.toString()}`;
         }
         
-        // For function-like operators, parentheses are optional
+        // Unary keyword-operators are formatted as prefix operators.
+        // Parentheses are only grouping in EduBASIC and are emitted by the operand expression itself
+        // (e.g. SIN (x + y)).
         const argStr = this.operand.toString();
         return `${this.operator}${argStr}`;
     }

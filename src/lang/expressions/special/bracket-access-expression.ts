@@ -4,17 +4,47 @@ import { ExecutionContext } from '../../execution-context';
 import { VariableExpression } from './variable-expression';
 import { StructureMemberExpression } from './structure-member-expression';
 
+/**
+ * Expression node for bracket access (`base[expr]` or `base[name]`).
+ */
 export class BracketAccessExpression extends Expression
 {
-    public constructor(
-        public readonly baseExpr: Expression,
-        public readonly bracketExpr: Expression | null,
-        public readonly bracketIdentifier: string | null
-    )
+    /**
+     * Base expression being indexed.
+     */
+    public readonly baseExpr: Expression;
+
+    /**
+     * Optional index expression used inside the brackets.
+     */
+    public readonly bracketExpr: Expression | null;
+
+    /**
+     * Optional identifier name used inside the brackets (treated as a variable lookup).
+     */
+    public readonly bracketIdentifier: string | null;
+
+    /**
+     * Create a new bracket access expression.
+     *
+     * @param baseExpr Base expression being indexed.
+     * @param bracketExpr Optional index expression.
+     * @param bracketIdentifier Optional identifier used as the bracket value.
+     */
+    public constructor(baseExpr: Expression, bracketExpr: Expression | null, bracketIdentifier: string | null)
     {
         super();
+        this.baseExpr = baseExpr;
+        this.bracketExpr = bracketExpr;
+        this.bracketIdentifier = bracketIdentifier;
     }
 
+    /**
+     * Evaluate the base and bracket value, then return the referenced element.
+     *
+     * @param context Execution context to evaluate against.
+     * @returns The referenced element value (or a type-appropriate default).
+     */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
         const baseValue = this.evaluateBaseValue(context);

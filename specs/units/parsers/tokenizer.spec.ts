@@ -1,19 +1,32 @@
-import { Tokenizer, TokenType } from '@/app/interpreter/tokenizer.service';
+import { Token, Tokenizer, TokenType } from '@/lang/parsing/tokenizer';
 
 describe('Tokenizer', () =>
 {
     let tokenizer: Tokenizer;
+    let tokenizeOk: (source: string) => Token[];
 
     beforeEach(() =>
     {
         tokenizer = new Tokenizer();
+
+        tokenizeOk = (source: string) =>
+        {
+            const result = tokenizer.tokenize(source);
+            if (!result.success)
+            {
+                fail(result.error);
+                return [];
+            }
+
+            return result.value;
+        };
     });
 
     describe('Integer Literals', () =>
     {
         it('should tokenize decimal integers', () =>
         {
-            const tokens = tokenizer.tokenize('123 0 9001');
+            const tokens = tokenizeOk('123 0 9001');
             
             expect(tokens[0].type).toBe(TokenType.Integer);
             expect(tokens[0].value).toBe('123');
@@ -25,7 +38,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize hexadecimal literals', () =>
         {
-            const tokens = tokenizer.tokenize('&HFF &H7F2A');
+            const tokens = tokenizeOk('&HFF &H7F2A');
             
             expect(tokens[0].type).toBe(TokenType.Integer);
             expect(tokens[0].value).toBe('255');
@@ -35,7 +48,7 @@ describe('Tokenizer', () =>
 
         it('should handle case insensitive hex prefix', () =>
         {
-            const tokens = tokenizer.tokenize('&hff &HFF');
+            const tokens = tokenizeOk('&hff &HFF');
             
             expect(tokens[0].value).toBe('255');
             expect(tokens[1].value).toBe('255');
@@ -43,12 +56,17 @@ describe('Tokenizer', () =>
 
         it('should throw error on invalid hex number', () =>
         {
-            expect(() => tokenizer.tokenize('&H')).toThrow('Invalid hex number');
+            const result = tokenizer.tokenize('&H');
+            expect(result.success).toBe(false);
+            if (!result.success)
+            {
+                expect(result.error).toContain('Invalid hex number');
+            }
         });
 
         it('should tokenize binary literals', () =>
         {
-            const tokens = tokenizer.tokenize('&B101 &B1101_0011');
+            const tokens = tokenizeOk('&B101 &B1101_0011');
             
             expect(tokens[0].type).toBe(TokenType.Integer);
             expect(tokens[0].value).toBe('5');
@@ -58,7 +76,7 @@ describe('Tokenizer', () =>
 
         it('should handle case insensitive binary prefix', () =>
         {
-            const tokens = tokenizer.tokenize('&b101 &B101');
+            const tokens = tokenizeOk('&b101 &B101');
             
             expect(tokens[0].value).toBe('5');
             expect(tokens[1].value).toBe('5');
@@ -66,7 +84,12 @@ describe('Tokenizer', () =>
 
         it('should throw error on invalid binary number', () =>
         {
-            expect(() => tokenizer.tokenize('&B')).toThrow('Invalid binary number');
+            const result = tokenizer.tokenize('&B');
+            expect(result.success).toBe(false);
+            if (!result.success)
+            {
+                expect(result.error).toContain('Invalid binary number');
+            }
         });
     });
 
@@ -74,7 +97,7 @@ describe('Tokenizer', () =>
     {
         it('should tokenize basic real numbers', () =>
         {
-            const tokens = tokenizer.tokenize('3.14 10. .25');
+            const tokens = tokenizeOk('3.14 10. .25');
             
             expect(tokens[0].type).toBe(TokenType.Real);
             expect(tokens[0].value).toBe('3.14');
@@ -86,7 +109,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize scientific notation', () =>
         {
-            const tokens = tokenizer.tokenize('1E6 3.2E-4 1.5E+10');
+            const tokens = tokenizeOk('1E6 3.2E-4 1.5E+10');
             
             expect(tokens[0].type).toBe(TokenType.Real);
             expect(tokens[0].value).toBe('1E6');
@@ -98,7 +121,7 @@ describe('Tokenizer', () =>
 
         it('should handle case insensitive exponent', () =>
         {
-            const tokens = tokenizer.tokenize('1e6 1E6');
+            const tokens = tokenizeOk('1e6 1E6');
             
             expect(tokens[0].type).toBe(TokenType.Real);
             expect(tokens[0].value).toBe('1e6');
@@ -111,7 +134,7 @@ describe('Tokenizer', () =>
     {
         it('should tokenize basic complex numbers', () =>
         {
-            const tokens = tokenizer.tokenize('4i 3+4i 10.5-2.5i');
+            const tokens = tokenizeOk('4i 3+4i 10.5-2.5i');
             
             expect(tokens[0].type).toBe(TokenType.Complex);
             expect(tokens[0].value).toBe('4i');
@@ -123,7 +146,7 @@ describe('Tokenizer', () =>
 
         it('should handle case insensitive imaginary unit', () =>
         {
-            const tokens = tokenizer.tokenize('3i 3I');
+            const tokens = tokenizeOk('3i 3I');
             
             expect(tokens[0].type).toBe(TokenType.Complex);
             expect(tokens[1].type).toBe(TokenType.Complex);
@@ -131,7 +154,7 @@ describe('Tokenizer', () =>
 
         it('should handle complex with scientific notation', () =>
         {
-            const tokens = tokenizer.tokenize('1.5E+10+2.5E-5i');
+            const tokens = tokenizeOk('1.5E+10+2.5E-5i');
             
             expect(tokens[0].type).toBe(TokenType.Complex);
             expect(tokens[0].value).toBe('1.5E+10+2.5E-5i');
@@ -139,7 +162,7 @@ describe('Tokenizer', () =>
 
         it('should not create complex from separated addition', () =>
         {
-            const tokens = tokenizer.tokenize('3 + 4');
+            const tokens = tokenizeOk('3 + 4');
             
             expect(tokens[0].type).toBe(TokenType.Integer);
             expect(tokens[1].type).toBe(TokenType.Plus);
@@ -151,7 +174,7 @@ describe('Tokenizer', () =>
     {
         it('should tokenize basic strings', () =>
         {
-            const tokens = tokenizer.tokenize('"Hello" "World"');
+            const tokens = tokenizeOk('"Hello" "World"');
             
             expect(tokens[0].type).toBe(TokenType.String);
             expect(tokens[0].value).toBe('Hello');
@@ -161,7 +184,7 @@ describe('Tokenizer', () =>
 
         it('should handle empty string', () =>
         {
-            const tokens = tokenizer.tokenize('""');
+            const tokens = tokenizeOk('""');
             
             expect(tokens[0].type).toBe(TokenType.String);
             expect(tokens[0].value).toBe('');
@@ -169,7 +192,7 @@ describe('Tokenizer', () =>
 
         it('should handle escape sequences', () =>
         {
-            const tokens = tokenizer.tokenize('"Line1\\nLine2"');
+            const tokens = tokenizeOk('"Line1\\nLine2"');
             
             expect(tokens[0].type).toBe(TokenType.String);
             expect(tokens[0].value).toBe('Line1\nLine2');
@@ -186,21 +209,26 @@ describe('Tokenizer', () =>
 
             for (const [input, expected] of tests)
             {
-                const tokens = tokenizer.tokenize(input);
+                const tokens = tokenizeOk(input);
                 expect(tokens[0].value).toBe(expected);
             }
         });
 
         it('should treat unknown escape as literal', () =>
         {
-            const tokens = tokenizer.tokenize('"Unknown\\xescape"');
+            const tokens = tokenizeOk('"Unknown\\xescape"');
             
             expect(tokens[0].value).toBe('Unknownxescape');
         });
 
         it('should throw error on unterminated string', () =>
         {
-            expect(() => tokenizer.tokenize('"unterminated')).toThrow('Unterminated string');
+            const result = tokenizer.tokenize('"unterminated');
+            expect(result.success).toBe(false);
+            if (!result.success)
+            {
+                expect(result.error).toContain('Unterminated string');
+            }
         });
     });
 
@@ -208,7 +236,7 @@ describe('Tokenizer', () =>
     {
         it('should tokenize identifiers with type sigils', () =>
         {
-            const tokens = tokenizer.tokenize('count% value# name$ z&');
+            const tokens = tokenizeOk('count% value# name$ z&');
             
             expect(tokens[0].type).toBe(TokenType.Identifier);
             expect(tokens[0].value).toBe('count%');
@@ -222,7 +250,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize array identifiers', () =>
         {
-            const tokens = tokenizer.tokenize('numbers%[] names$[]');
+            const tokens = tokenizeOk('numbers%[] names$[]');
             
             expect(tokens[0].type).toBe(TokenType.Identifier);
             expect(tokens[0].value).toBe('numbers%[]');
@@ -232,7 +260,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize array identifiers with rank suffixes', () =>
         {
-            const tokens = tokenizer.tokenize('matrix#[,] cube%[,,]');
+            const tokens = tokenizeOk('matrix#[,] cube%[,,]');
 
             expect(tokens[0].type).toBe(TokenType.Identifier);
             expect(tokens[0].value).toBe('matrix#[,]');
@@ -242,7 +270,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize dot operator for structure member access', () =>
         {
-            const tokens = tokenizer.tokenize('x.name$');
+            const tokens = tokenizeOk('x.name$');
 
             expect(tokens[0].type).toBe(TokenType.Identifier);
             expect(tokens[0].value).toBe('x');
@@ -254,7 +282,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize structure identifiers', () =>
         {
-            const tokens = tokenizer.tokenize('player point config');
+            const tokens = tokenizeOk('player point config');
             
             expect(tokens[0].type).toBe(TokenType.Identifier);
             expect(tokens[0].value).toBe('player');
@@ -266,7 +294,7 @@ describe('Tokenizer', () =>
 
         it('should handle underscores in identifiers', () =>
         {
-            const tokens = tokenizer.tokenize('my_var% another_one#');
+            const tokens = tokenizeOk('my_var% another_one#');
             
             expect(tokens[0].value).toBe('my_var%');
             expect(tokens[1].value).toBe('another_one#');
@@ -278,7 +306,7 @@ describe('Tokenizer', () =>
         it('should recognize control flow keywords', () =>
         {
             const keywords = 'IF THEN ELSE ELSEIF END FOR TO STEP NEXT WHILE WEND DO LOOP UNTIL UNLESS IS'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -290,7 +318,7 @@ describe('Tokenizer', () =>
         it('should recognize statement keywords', () =>
         {
             const keywords = 'LET DIM LOCAL PRINT INPUT READ WRITE SELECT CASE GOSUB RETURN EXIT CONTINUE'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -302,7 +330,7 @@ describe('Tokenizer', () =>
         it('should recognize function/procedure keywords', () =>
         {
             const keywords = 'SUB TRY CATCH FINALLY THROW'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -314,7 +342,7 @@ describe('Tokenizer', () =>
         it('should recognize I/O keywords', () =>
         {
             const keywords = 'OPEN CLOSE SEEK EOF LOC EXISTS'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -326,7 +354,7 @@ describe('Tokenizer', () =>
         it('should recognize graphics keywords', () =>
         {
             const keywords = 'CLS COLOR LOCATE PSET LINE CIRCLE RECTANGLE OVAL TRIANGLE PAINT GET PUT'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -338,7 +366,7 @@ describe('Tokenizer', () =>
         it('should recognize mathematical operator keywords', () =>
         {
             const keywords = 'SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -350,7 +378,7 @@ describe('Tokenizer', () =>
         it('should recognize more math keywords', () =>
         {
             const keywords = 'EXP LOG LOG10 LOG2 SQRT CBRT FLOOR CEIL ROUND TRUNC ABS SGN EXPAND'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -362,7 +390,7 @@ describe('Tokenizer', () =>
         it('should recognize logical operator keywords', () =>
         {
             const keywords = 'AND OR NOT XOR NAND NOR XNOR IMP MOD'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -374,7 +402,7 @@ describe('Tokenizer', () =>
         it('should recognize complex number keywords', () =>
         {
             const keywords = 'REAL IMAG CONJ CABS CARG CSQRT'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -386,7 +414,7 @@ describe('Tokenizer', () =>
         it('should recognize type conversion keywords', () =>
         {
             const keywords = 'INT STR VAL HEX BIN'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -398,7 +426,7 @@ describe('Tokenizer', () =>
         it('should recognize string manipulation keywords', () =>
         {
             const keywords = 'ASC CHR UCASE LCASE LTRIM RTRIM TRIM REVERSE LEFT RIGHT MID INSTR'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -410,7 +438,7 @@ describe('Tokenizer', () =>
         it('should recognize array/string operation keywords', () =>
         {
             const keywords = 'JOIN REPLACE FIND INDEXOF INCLUDES STARTSWITH ENDSWITH'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -422,7 +450,7 @@ describe('Tokenizer', () =>
         it('should recognize constant keywords', () =>
         {
             const keywords = 'RND PI E TRUE FALSE INKEY DATE TIME NOW'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -434,7 +462,7 @@ describe('Tokenizer', () =>
         it('should recognize unit conversion keywords', () =>
         {
             const keywords = 'DEG RAD'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -446,7 +474,7 @@ describe('Tokenizer', () =>
         it('should recognize utility keywords', () =>
         {
             const keywords = 'SLEEP RANDOMIZE NOTES TURTLE ARC'.split(' ');
-            const tokens = tokenizer.tokenize(keywords.join(' '));
+            const tokens = tokenizeOk(keywords.join(' '));
             
             keywords.forEach((keyword, i) =>
             {
@@ -457,7 +485,7 @@ describe('Tokenizer', () =>
 
         it('should be case-insensitive', () =>
         {
-            const tokens = tokenizer.tokenize('let Let LET');
+            const tokens = tokenizeOk('let Let LET');
             
             expect(tokens[0].type).toBe(TokenType.Keyword);
             expect(tokens[0].value).toBe('LET');
@@ -472,7 +500,7 @@ describe('Tokenizer', () =>
     {
         it('should tokenize arithmetic operators', () =>
         {
-            const tokens = tokenizer.tokenize('+ - * / ^ **');
+            const tokens = tokenizeOk('+ - * / ^ **');
             
             expect(tokens[0].type).toBe(TokenType.Plus);
             expect(tokens[1].type).toBe(TokenType.Minus);
@@ -484,7 +512,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize comparison operators', () =>
         {
-            const tokens = tokenizer.tokenize('= <> < > <= >=');
+            const tokens = tokenizeOk('= <> < > <= >=');
             
             expect(tokens[0].type).toBe(TokenType.Equal);
             expect(tokens[1].type).toBe(TokenType.NotEqual);
@@ -496,7 +524,7 @@ describe('Tokenizer', () =>
 
         it('should handle adjacent operators', () =>
         {
-            const tokens = tokenizer.tokenize('x%+-y%');
+            const tokens = tokenizeOk('x%+-y%');
             
             expect(tokens[0].value).toBe('x%');
             expect(tokens[1].type).toBe(TokenType.Plus);
@@ -509,7 +537,7 @@ describe('Tokenizer', () =>
     {
         it('should tokenize all bracket types', () =>
         {
-            const tokens = tokenizer.tokenize('( ) [ ] { }');
+            const tokens = tokenizeOk('( ) [ ] { }');
             
             expect(tokens[0].type).toBe(TokenType.LeftParen);
             expect(tokens[1].type).toBe(TokenType.RightParen);
@@ -521,7 +549,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize delimiters', () =>
         {
-            const tokens = tokenizer.tokenize(', : ;');
+            const tokens = tokenizeOk(', : ;');
             
             expect(tokens[0].type).toBe(TokenType.Comma);
             expect(tokens[1].type).toBe(TokenType.Colon);
@@ -530,7 +558,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize special operators', () =>
         {
-            const tokens = tokenizer.tokenize('| !');
+            const tokens = tokenizeOk('| !');
             
             expect(tokens[0].type).toBe(TokenType.Pipe);
             expect(tokens[1].type).toBe(TokenType.Exclamation);
@@ -538,7 +566,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize ellipsis', () =>
         {
-            const tokens = tokenizer.tokenize('... ...');
+            const tokens = tokenizeOk('... ...');
 
             expect(tokens[0].type).toBe(TokenType.Ellipsis);
             expect(tokens[0].value).toBe('...');
@@ -551,7 +579,7 @@ describe('Tokenizer', () =>
     {
         it('should handle multiple spaces', () =>
         {
-            const tokens = tokenizer.tokenize('x%     +     y%');
+            const tokens = tokenizeOk('x%     +     y%');
             
             expect(tokens.length).toBe(4);
             expect(tokens[0].value).toBe('x%');
@@ -561,7 +589,7 @@ describe('Tokenizer', () =>
 
         it('should handle tabs', () =>
         {
-            const tokens = tokenizer.tokenize('x%\t+\ty%');
+            const tokens = tokenizeOk('x%\t+\ty%');
             
             expect(tokens.length).toBe(4);
             expect(tokens[0].value).toBe('x%');
@@ -569,14 +597,14 @@ describe('Tokenizer', () =>
 
         it('should handle mixed whitespace', () =>
         {
-            const tokens = tokenizer.tokenize('  \t  x%  \t  +  \t  y%  \t  ');
+            const tokens = tokenizeOk('  \t  x%  \t  +  \t  y%  \t  ');
             
             expect(tokens.length).toBe(4);
         });
 
         it('should skip single-line comments', () =>
         {
-            const tokens = tokenizer.tokenize("LET x% = 5 ' this is a comment");
+            const tokens = tokenizeOk("LET x% = 5 ' this is a comment");
             
             expect(tokens.length).toBe(5);
             expect(tokens[0].value).toBe('LET');
@@ -587,7 +615,7 @@ describe('Tokenizer', () =>
 
         it('should skip comments at start of line', () =>
         {
-            const tokens = tokenizer.tokenize("' comment line\nLET x% = 5");
+            const tokens = tokenizeOk("' comment line\nLET x% = 5");
             
             expect(tokens[0].value).toBe('LET');
             expect(tokens[0].line).toBe(2);
@@ -595,7 +623,7 @@ describe('Tokenizer', () =>
 
         it('should skip multiple comment lines', () =>
         {
-            const tokens = tokenizer.tokenize("' comment 1\n' comment 2\nLET x% = 5");
+            const tokens = tokenizeOk("' comment 1\n' comment 2\nLET x% = 5");
             
             expect(tokens[0].value).toBe('LET');
             expect(tokens[0].line).toBe(3);
@@ -603,7 +631,7 @@ describe('Tokenizer', () =>
 
         it('should handle comment at end of file', () =>
         {
-            const tokens = tokenizer.tokenize("LET x% = 5 ' final comment");
+            const tokens = tokenizeOk("LET x% = 5 ' final comment");
             
             expect(tokens.length).toBe(5);
             expect(tokens[4].type).toBe(TokenType.EOF);
@@ -611,7 +639,7 @@ describe('Tokenizer', () =>
 
         it('should handle newlines and track line numbers', () =>
         {
-            const tokens = tokenizer.tokenize('x%\n+\ny%');
+            const tokens = tokenizeOk('x%\n+\ny%');
             
             expect(tokens[0].line).toBe(1);
             expect(tokens[1].line).toBe(2);
@@ -620,7 +648,7 @@ describe('Tokenizer', () =>
 
         it('should track column numbers', () =>
         {
-            const tokens = tokenizer.tokenize('a b c');
+            const tokens = tokenizeOk('a b c');
             
             expect(tokens[0].column).toBe(1);
             expect(tokens[1].column).toBe(3);
@@ -632,7 +660,7 @@ describe('Tokenizer', () =>
     {
         it('should tokenize arithmetic expression', () =>
         {
-            const tokens = tokenizer.tokenize('x% + y% * 2');
+            const tokens = tokenizeOk('x% + y% * 2');
             
             expect(tokens[0].value).toBe('x%');
             expect(tokens[1].type).toBe(TokenType.Plus);
@@ -643,7 +671,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize parenthesized expression', () =>
         {
-            const tokens = tokenizer.tokenize('(x% + y%) * 2');
+            const tokens = tokenizeOk('(x% + y%) * 2');
             
             expect(tokens[0].type).toBe(TokenType.LeftParen);
             expect(tokens[1].value).toBe('x%');
@@ -656,7 +684,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize array literal', () =>
         {
-            const tokens = tokenizer.tokenize('[1, 2, 3]');
+            const tokens = tokenizeOk('[1, 2, 3]');
             
             expect(tokens[0].type).toBe(TokenType.LeftBracket);
             expect(tokens[1].value).toBe('1');
@@ -669,7 +697,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize structure literal', () =>
         {
-            const tokens = tokenizer.tokenize('{ x%: 10, y%: 20 }');
+            const tokens = tokenizeOk('{ x%: 10, y%: 20 }');
             
             expect(tokens[0].type).toBe(TokenType.LeftBrace);
             expect(tokens[1].value).toBe('x%');
@@ -680,7 +708,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize operator call', () =>
         {
-            const tokens = tokenizer.tokenize('SIN(PI# / 4)');
+            const tokens = tokenizeOk('SIN(PI# / 4)');
             
             expect(tokens[0].value).toBe('SIN');
             expect(tokens[1].type).toBe(TokenType.LeftParen);
@@ -692,7 +720,7 @@ describe('Tokenizer', () =>
 
         it('should tokenize complete statement', () =>
         {
-            const tokens = tokenizer.tokenize('LET result# = SQRT(x# * x# + y# * y#)');
+            const tokens = tokenizeOk('LET result# = SQRT(x# * x# + y# * y#)');
             
             expect(tokens[0].value).toBe('LET');
             expect(tokens[1].value).toBe('result#');
@@ -705,7 +733,7 @@ describe('Tokenizer', () =>
     {
         it('should handle empty string', () =>
         {
-            const tokens = tokenizer.tokenize('');
+            const tokens = tokenizeOk('');
             
             expect(tokens.length).toBe(1);
             expect(tokens[0].type).toBe(TokenType.EOF);
@@ -713,7 +741,7 @@ describe('Tokenizer', () =>
 
         it('should handle only whitespace', () =>
         {
-            const tokens = tokenizer.tokenize('   \t\n\r\n   ');
+            const tokens = tokenizeOk('   \t\n\r\n   ');
             
             expect(tokens.length).toBe(1);
             expect(tokens[0].type).toBe(TokenType.EOF);
@@ -721,7 +749,7 @@ describe('Tokenizer', () =>
 
         it('should handle only comments', () =>
         {
-            const tokens = tokenizer.tokenize("' just a comment");
+            const tokens = tokenizeOk("' just a comment");
             
             expect(tokens.length).toBe(1);
             expect(tokens[0].type).toBe(TokenType.EOF);
@@ -729,7 +757,12 @@ describe('Tokenizer', () =>
 
         it('should throw error on unexpected character', () =>
         {
-            expect(() => tokenizer.tokenize('@')).toThrow('Unexpected character');
+            const result = tokenizer.tokenize('@');
+            expect(result.success).toBe(false);
+            if (!result.success)
+            {
+                expect(result.error).toContain('Unexpected character');
+            }
         });
     });
 });

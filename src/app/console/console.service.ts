@@ -1,22 +1,43 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ParserService, ParsedLine } from '../interpreter/parser';
+import { ParserService, ParsedLine } from '../interpreter/parser.service';
 import { InterpreterService } from '../interpreter/interpreter.service';
 import { GraphicsService } from '../interpreter/graphics.service';
 import { AudioService } from '../interpreter/audio.service';
-import { ExpressionParserService } from '../interpreter/expression-parser.service';
+import { ExpressionParser } from '../../lang/parsing/expression-parser';
 import { Expression } from '../../lang/expressions/expression';
 import { Statement } from '../../lang/statements/statement';
 import { ConsoleStatement } from '../../lang/statements/misc';
-import { ParseResult } from '../interpreter/parser/parse-result';
 
+/**
+ * An entry in the console display history.
+ */
 export interface ConsoleEntry
 {
+    /**
+     * Category of the entry (user input, program output, or error output).
+     */
     type: 'input' | 'output' | 'error';
+
+    /**
+     * Text to display.
+     */
     text: string;
+
+    /**
+     * Timestamp when the entry was recorded.
+     */
     timestamp: Date;
 }
 
+/**
+ * Implements the interactive console (REPL-like) experience.
+ *
+ * Responsibilities:
+ * - Maintains console display history (input/output/error) and input recall history.
+ * - Parses user input as either an expression or a statement.
+ * - Executes the resulting statement against the shared runtime objects from `InterpreterService`.
+ */
 @Injectable({
     providedIn: 'root'
 })
@@ -27,46 +48,91 @@ export class ConsoleService
     private readonly historyIndexSubject = new BehaviorSubject<number>(-1);
     private readonly currentInputSubject = new BehaviorSubject<string>('');
 
+    /**
+     * Observable stream of console display entries.
+     */
     public readonly displayHistory$: Observable<ConsoleEntry[]> = this.displayHistorySubject.asObservable();
+
+    /**
+     * Observable stream of input history entries (commands previously executed).
+     */
     public readonly inputHistory$: Observable<string[]> = this.inputHistorySubject.asObservable();
+
+    /**
+     * Observable stream of the current history cursor index for navigation.
+     */
     public readonly historyIndex$: Observable<number> = this.historyIndexSubject.asObservable();
+
+    /**
+     * Observable stream of the current input string.
+     */
     public readonly currentInput$: Observable<string> = this.currentInputSubject.asObservable();
 
+    /**
+     * Create a new console service.
+     *
+     * @param parserService Statement parser service used for command parsing.
+     * @param interpreterService Interpreter service providing shared runtime objects.
+     * @param graphicsService Graphics service used by runtime execution.
+     * @param audioService Audio service used by runtime execution.
+     */
     constructor(
         private readonly parserService: ParserService,
         private readonly interpreterService: InterpreterService,
         private readonly graphicsService: GraphicsService,
-        private readonly audioService: AudioService,
-        private readonly expressionParserService: ExpressionParserService
+        private readonly audioService: AudioService
     )
     {
     }
 
+    private readonly expressionParser: ExpressionParser = new ExpressionParser();
+
+    /**
+     * Current display history snapshot.
+     */
     public get displayHistory(): ConsoleEntry[]
     {
         return this.displayHistorySubject.value;
     }
 
+    /**
+     * Current input history snapshot.
+     */
     public get inputHistory(): string[]
     {
         return this.inputHistorySubject.value;
     }
 
+    /**
+     * Current history navigation index.
+     */
     public get historyIndex(): number
     {
         return this.historyIndexSubject.value;
     }
 
+    /**
+     * Current input string snapshot.
+     */
     public get currentInput(): string
     {
         return this.currentInputSubject.value;
     }
 
+    /**
+     * Update the current input string.
+     */
     public set currentInput(input: string)
     {
         this.currentInputSubject.next(input);
     }
 
+    /**
+     * Parse a single console input line into a statement wrapper.
+     *
+     * @param command User-entered command line.
+     * @returns The parsed line, or `null` if parsing fails.
+     */
     public parseLine(command: string): ParsedLine | null
     {
         const parseResult = this.parserService.parseLine(0, command);
@@ -79,6 +145,14 @@ export class ConsoleService
         return parseResult.value;
     }
 
+    /**
+     * Execute a console command.
+     *
+     * The command is parsed as either an expression (displayed via `ConsoleStatement`)
+     * or a statement, then executed against the shared runtime objects.
+     *
+     * @param command Raw user input command.
+     */
     public executeCommand(command: string): void
     {
         if (!command.trim())
@@ -100,7 +174,7 @@ export class ConsoleService
         
         let parsedLine: ParsedLine | null = null;
         
-        const expressionResult = this.expressionParserService.parseExpression(trimmedCommand);
+        const expressionResult = this.expressionParser.parseExpression(trimmedCommand);
         
         if (expressionResult.success)
         {
@@ -155,7 +229,11 @@ export class ConsoleService
         }
     }
 
-
+    /**
+     * Add an output entry to the display history.
+     *
+     * @param message Message text to display.
+     */
     public printOutput(message: string): void
     {
         this.addToDisplay({
@@ -165,6 +243,11 @@ export class ConsoleService
         });
     }
 
+    /**
+     * Add an error entry to the display history.
+     *
+     * @param message Error message text to display.
+     */
     public printError(message: string): void
     {
         this.addToDisplay({
@@ -174,6 +257,11 @@ export class ConsoleService
         });
     }
 
+    /**
+     * Navigate up through the input history.
+     *
+     * @returns The previous command, or `null` when no history exists.
+     */
     public navigateHistoryUp(): string | null
     {
         const history = this.inputHistory;
@@ -198,6 +286,11 @@ export class ConsoleService
         return history[newIndex];
     }
 
+    /**
+     * Navigate down through the input history.
+     *
+     * @returns The next command, an empty string when reaching the end, or `null` when no history exists.
+     */
     public navigateHistoryDown(): string | null
     {
         const history = this.inputHistory;
@@ -220,11 +313,17 @@ export class ConsoleService
         return history[newIndex];
     }
 
+    /**
+     * Clear the console display history.
+     */
     public clear(): void
     {
         this.displayHistorySubject.next([]);
     }
 
+    /**
+     * Clear the input history and reset navigation state.
+     */
     public clearInputHistory(): void
     {
         this.inputHistorySubject.next([]);

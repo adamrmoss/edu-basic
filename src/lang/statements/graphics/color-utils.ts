@@ -2,11 +2,13 @@ import { EduBasicValue, EduBasicType } from '../../edu-basic-value';
 import { getColorValue, isColorName } from '../../colors';
 
 /**
- * Resolves a color expression value to an RGBA integer
- * Supports both integer RGBA values and color name strings
- * @param value The evaluated expression value
- * @returns RGBA value as 32-bit integer
- * @throws Error if the value cannot be resolved to a color
+ * Resolve a color expression value to a packed RGBA integer.
+ *
+ * Supports both integer RGBA values and color name strings.
+ *
+ * @param value The evaluated expression value.
+ * @returns The RGBA value as a 32-bit integer in the format \(0xRRGGBBAA\).
+ * @throws If the value cannot be resolved to a color.
  */
 export function resolveColorValue(value: EduBasicValue): number
 {
@@ -36,9 +38,10 @@ export function resolveColorValue(value: EduBasicValue): number
 }
 
 /**
- * Converts a 32-bit RGBA integer to RGBA components
- * @param color 32-bit RGBA integer (format: 0xRRGGBBAA)
- * @returns RGBA components
+ * Convert a packed RGBA integer into RGBA components.
+ *
+ * @param color The 32-bit RGBA integer in the format \(0xRRGGBBAA\).
+ * @returns The RGBA components.
  */
 export function intToRgba(color: number): { r: number; g: number; b: number; a: number }
 {

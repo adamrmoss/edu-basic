@@ -7,15 +7,32 @@ import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
 
+/**
+ * Implements the `TEMPO` statement.
+ */
 export class TempoStatement extends Statement
 {
-    public constructor(
-        public readonly bpm: Expression
-    )
+    /**
+     * Tempo expression (beats per minute).
+     */
+    public readonly bpm: Expression;
+
+    /**
+     * Create a new `TEMPO` statement.
+     *
+     * @param bpm Tempo expression.
+     */
+    public constructor(bpm: Expression)
     {
         super();
+        this.bpm = bpm;
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @returns Execution status.
+     */
     public override execute(
         context: ExecutionContext,
         graphics: Graphics,

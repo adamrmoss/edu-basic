@@ -937,7 +937,7 @@ describe('Statement Implementations', () =>
             it('should format toString correctly', () =>
             {
                 const withTarget = new ShiftStatement('arr%[]', 'result%');
-                expect(withTarget.toString()).toBe('SHIFT arr%[], result%');
+                expect(withTarget.toString()).toBe('SHIFT arr%[] INTO result%');
 
                 const withoutTarget = new ShiftStatement('arr%[]', null);
                 expect(withoutTarget.toString()).toBe('SHIFT arr%[]');
@@ -976,6 +976,68 @@ describe('Statement Implementations', () =>
                 );
                 
                 expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('UNSHIFT: x% is not an array');
+            });
+
+            it('should update DIM metadata for 1D arrays', () =>
+            {
+                context.setVariable('arr%[]', {
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Integer, value: 2 },
+                        { type: EduBasicType.Integer, value: 3 }
+                    ],
+                    elementType: EduBasicType.Integer,
+                    dimensions: [{ lower: 1, length: 2, stride: 1 }]
+                });
+                
+                const stmt = new UnshiftStatement(
+                    'arr%[]',
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+                );
+                
+                stmt.execute(context, graphics, audio, program, runtime);
+                
+                const arr = context.getVariable('arr%[]');
+                expect(arr.type).toBe(EduBasicType.Array);
+                if (arr.type !== EduBasicType.Array)
+                {
+                    throw new Error('Expected array');
+                }
+                expect(arr.dimensions?.length).toBe(1);
+                expect(arr.dimensions?.[0].length).toBe(3);
+            });
+
+            it('should throw for multi-dimensional arrays', () =>
+            {
+                context.setVariable('arr%[,]', {
+                    type: EduBasicType.Array,
+                    value: [
+                        { type: EduBasicType.Integer, value: 1 },
+                        { type: EduBasicType.Integer, value: 2 }
+                    ],
+                    elementType: EduBasicType.Integer,
+                    dimensions: [
+                        { lower: 1, length: 1, stride: 2 },
+                        { lower: 1, length: 2, stride: 1 }
+                    ]
+                });
+                
+                const stmt = new UnshiftStatement(
+                    'arr%[,]',
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 0 })
+                );
+                
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('multi-dimensional');
+            });
+
+            it('should format toString correctly', () =>
+            {
+                const stmt = new UnshiftStatement(
+                    'arr%[]',
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+                );
+                
+                expect(stmt.toString()).toBe('UNSHIFT arr%[], 1');
             });
         });
     });
@@ -2082,6 +2144,85 @@ describe('Statement Implementations', () =>
             );
 
             expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow('out of bounds');
+        });
+
+        it('should auto-grow a complex typed array and fill with complex defaults', () =>
+        {
+            const stmt = new LetBracketStatement(
+                'c&',
+                [{ type: 'indices', indices: [new LiteralExpression({ type: EduBasicType.Integer, value: 3 })] }],
+                new LiteralExpression({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } })
+            );
+
+            stmt.execute(context, graphics, audio, program, runtime);
+
+            const arr = context.getVariable('c&[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type !== EduBasicType.Array)
+            {
+                throw new Error('Expected array');
+            }
+
+            expect(arr.elementType).toBe(EduBasicType.Complex);
+            expect(arr.value).toHaveLength(3);
+            expect(arr.value[0]).toEqual({ type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } });
+            expect(arr.value[1]).toEqual({ type: EduBasicType.Complex, value: { real: 0, imaginary: 0 } });
+            expect(arr.value[2]).toEqual({ type: EduBasicType.Complex, value: { real: 1, imaginary: 2 } });
+        });
+
+        it('should auto-grow arrays whose element type is Array', () =>
+        {
+            context.setVariable('aa[]', { type: EduBasicType.Array, value: [], elementType: EduBasicType.Array });
+
+            const stmt = new LetBracketStatement(
+                'aa[]',
+                [{ type: 'indices', indices: [new LiteralExpression({ type: EduBasicType.Integer, value: 2 })] }],
+                new LiteralExpression({ type: EduBasicType.Array, value: [], elementType: EduBasicType.Integer })
+            );
+
+            stmt.execute(context, graphics, audio, program, runtime);
+
+            const arr = context.getVariable('aa[]');
+            expect(arr.type).toBe(EduBasicType.Array);
+            if (arr.type !== EduBasicType.Array)
+            {
+                throw new Error('Expected array');
+            }
+
+            expect(arr.elementType).toBe(EduBasicType.Array);
+            expect(arr.value).toHaveLength(2);
+            expect(arr.value[0].type).toBe(EduBasicType.Array);
+        });
+
+        it('covers default creation of structure members (typed scalars and typed arrays)', () =>
+        {
+            const cases = [
+                'score%',
+                'health#',
+                'name$',
+                'z&',
+                'items%[]',
+                'items#[]',
+                'items$[]',
+                'items&[]',
+                'items[]'
+            ];
+
+            for (let i = 0; i < cases.length; i++)
+            {
+                const memberName = cases[i];
+
+                const stmt = new LetBracketStatement(
+                    `s${i}`,
+                    [
+                        { type: 'member', memberName },
+                        { type: 'member', memberName: 'x%' }
+                    ],
+                    new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
+                );
+
+                expect(() => stmt.execute(context, graphics, audio, program, runtime)).toThrow(/LET: member (access|assignment) requires a structure/);
+            }
         });
     });
 });

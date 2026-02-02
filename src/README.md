@@ -29,6 +29,7 @@ The application layer contains all Angular components, services, and UI-related 
 The language core implements the EduBASIC language runtime, including value types, execution model, and statement/expression systems.
 
 - **[Language Core](lang/README.md)** - Core language types, execution model, runtime execution, graphics, and audio
+  - **[Parsing Engine](lang/parsing/README.md)** - Tokenizer, keywords, statement parsing, expression parsing, and parser helpers
   - **[Expressions System](lang/expressions/README.md)** - Expression parsing, evaluation, and operator precedence
   - **[Statements System](lang/statements/README.md)** - All statement types and their execution
 

@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { GraphicsService } from '../interpreter/graphics.service';
 
+/**
+ * Output UI component hosting the graphics canvas.
+ *
+ * Attaches a 2D canvas context to `GraphicsService` and renders flushed `ImageData` buffers.
+ */
 @Component({
     selector: 'app-output',
     standalone: true,
@@ -12,17 +17,31 @@ import { GraphicsService } from '../interpreter/graphics.service';
 })
 export class OutputComponent implements AfterViewInit, OnDestroy
 {
+    /**
+     * Reference to the canvas element used for graphics output.
+     */
     @ViewChild('canvas', { static: false }) 
     public canvasRef!: ElementRef<HTMLCanvasElement>;
     
+    /**
+     * UI flag indicating whether output is currently active.
+     */
     public isRunning: boolean = false;
     
     private bufferSubscription: Subscription | null = null;
 
+    /**
+     * Create a new output component.
+     *
+     * @param graphicsService Graphics service providing buffer updates.
+     */
     public constructor(private readonly graphicsService: GraphicsService)
     {
     }
 
+    /**
+     * Initialize the canvas context and subscribe to buffer flushes.
+     */
     public ngAfterViewInit(): void
     {
         const canvas = this.canvasRef.nativeElement;
@@ -42,6 +61,9 @@ export class OutputComponent implements AfterViewInit, OnDestroy
         }
     }
     
+    /**
+     * Unsubscribe from buffer updates.
+     */
     public ngOnDestroy(): void
     {
         if (this.bufferSubscription)

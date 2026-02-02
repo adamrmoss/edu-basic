@@ -14,7 +14,7 @@ The disk system allows students to:
 
 ### DiskService
 
-**Location**: `src/app/disk.service.ts`
+**Location**: `src/app/disk/disk.service.ts`
 
 **Purpose**: Manages the current disk state including disk name, program code, and the virtual file system.
 
@@ -34,7 +34,7 @@ The disk system allows students to:
 
 ### FileSystemService
 
-**Location**: `src/app/filesystem.service.ts`
+**Location**: `src/app/disk/filesystem.service.ts`
 
 **Purpose**: Provides an in-memory virtual file system for BASIC file I/O operations.
 
