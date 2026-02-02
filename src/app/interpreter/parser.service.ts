@@ -192,6 +192,44 @@ export class ParserService
         return success(parsed);
     }
 
+    /**
+     * Parse a single source line without mutating parser state.
+     *
+     * This is primarily used for per-line operations like canonicalization where we do not want to
+     * affect `currentIndentLevel` or the `parsedLines` map.
+     *
+     * @param sourceText Raw source text.
+     */
+    public parseLineStateless(sourceText: string): ParseResult<Statement>
+    {
+        const trimmedText = sourceText.trim();
+
+        if (!trimmedText || trimmedText.startsWith("'"))
+        {
+            return failure('Comment or empty line');
+        }
+
+        const tokenizeResult = new Tokenizer().tokenize(trimmedText);
+        if (!tokenizeResult.success)
+        {
+            return failure(tokenizeResult.error || 'Tokenization error');
+        }
+
+        const tokens = tokenizeResult.value;
+        const current: { value: number } = { value: 0 };
+        const context = new ParserContext(tokens, current, new ExpressionParser());
+        const statementResult = this.parseStatement(context);
+
+        if (!statementResult.success)
+        {
+            return failure(statementResult.error || 'Parse error');
+        }
+
+        const statement = statementResult.value;
+        statement.indentLevel = 0;
+        return success(statement);
+    }
+
     private parseStatement(context: ParserContext): ParseResult<Statement>
     {
         const token = context.peek();

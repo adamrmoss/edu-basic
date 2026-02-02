@@ -105,6 +105,8 @@ describe('CALL/SUB statements (program execution)', () =>
         program.appendLine(new EndStatement(EndType.Sub));
 
         const call = new CallStatement('S', []);
+        call.lineNumber = 0;
+        call.subLine = 0;
         expect(() =>
         {
             call.execute(context, graphics, audio, program, runtime);
@@ -120,6 +122,8 @@ describe('CALL/SUB statements (program execution)', () =>
         const call = new CallStatement('S', [
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 })
         ]);
+        call.lineNumber = 0;
+        call.subLine = 0;
 
         expect(() =>
         {
@@ -130,6 +134,7 @@ describe('CALL/SUB statements (program execution)', () =>
     it('should throw when SUB is not found', () =>
     {
         const call = new CallStatement('Missing', []);
+        call.lineNumber = 0;
         expect(() =>
         {
             call.execute(context, graphics, audio, program, runtime);
@@ -139,6 +144,7 @@ describe('CALL/SUB statements (program execution)', () =>
     it('END SUB should behave like a return from subroutine', () =>
     {
         const endSub = new EndStatement(EndType.Sub);
+        endSub.lineNumber = 0;
         const status = endSub.execute(context, graphics, audio, program, runtime);
         expect(status.result).toBe(ExecutionResult.Return);
     });

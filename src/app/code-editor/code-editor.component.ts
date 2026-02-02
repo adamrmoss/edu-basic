@@ -5,7 +5,9 @@ import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
 import { ParserService } from '../interpreter/parser.service';
 import { Program } from '../../lang/program';
+import { ProgramSyntaxAnalyzer } from '../../lang/program-syntax-analysis';
 import { ExecutionResult } from '../../lang/statements/statement';
+import { UnparsableStatement } from '../../lang/statements/unparsable-statement';
 import { TextEditorComponent } from '../text-editor/text-editor.component';
 
 /**
@@ -44,7 +46,15 @@ export class CodeEditorComponent implements OnInit, OnDestroy
      */
     public errorMessages: Map<number, string> = new Map<number, string>();
 
+    /**
+     * Whether the current editor content is executable (no static errors).
+     */
+    public isExecutable: boolean = false;
+
+    private readonly syntaxAnalyzer = new ProgramSyntaxAnalyzer();
     private readonly destroy$ = new Subject<void>();
+    private lastBuiltProgram: Program | null = null;
+    private hasRunnableStatements: boolean = false;
 
     /**
      * Create a new code editor component.
@@ -74,6 +84,8 @@ export class CodeEditorComponent implements OnInit, OnDestroy
                 {
                     this.lines = [''];
                 }
+
+                this.validateAndUpdateLines();
             });
     }
 
@@ -147,55 +159,23 @@ export class CodeEditorComponent implements OnInit, OnDestroy
             return;
         }
 
-        const lines = sourceCode.split('\n');
-
         try
         {
             this.interpreterService.reset();
-            
-            const program = this.interpreterService.getSharedProgram();
-            program.clear();
-            
-            let lineIndex = 0;
-            let hasStatements = false;
 
-            for (let i = 0; i < lines.length; i++)
-            {
-                const line = lines[i].trim();
-                
-                if (line.length === 0 || line.startsWith("'"))
-                {
-                    continue;
-                }
+            const build = this.buildProgramFromSource(sourceCode);
+            this.errorLines = build.errorLines;
+            this.errorMessages = build.errorMessages;
+            this.hasRunnableStatements = build.hasRunnableStatements;
+            this.isExecutable = build.errorLines.size === 0 && build.hasRunnableStatements;
 
-                const parseResult = this.parserService.parseLine(lineIndex, line);
-                
-                if (!parseResult.success)
-                {
-                    console.error(`Parse error on line ${i + 1}:`, parseResult.error || 'Unable to parse line');
-                    return;
-                }
-                
-                const parsed = parseResult.value;
-                
-                if (parsed.hasError)
-                {
-                    console.error(`Parse error on line ${i + 1}:`, parsed.errorMessage || 'Unknown parse error');
-                    return;
-                }
-
-                program.appendLine(parsed.statement);
-                lineIndex++;
-                hasStatements = true;
-            }
-
-            if (!hasStatements)
+            if (!this.isExecutable)
             {
                 return;
             }
 
-            program.rebuildLabelMap();
-            this.interpreterService.program = program;
+            this.lastBuiltProgram = build.program;
+            this.interpreterService.program = build.program;
             
             const context = this.interpreterService.getExecutionContext();
             context.setProgramCounter(0);
@@ -233,44 +213,24 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
         catch (error)
         {
-            console.error('Error running program:', error);
             this.interpreterService.stop();
         }
     }
 
     private validateAndUpdateLines(): void
     {
-        const newErrorLines = new Set<number>();
-        const newErrorMessages = new Map<number, string>();
-        let lineIndex = 0;
-        
-        for (let i = 0; i < this.lines.length; i++)
-        {
-            const line = this.lines[i].trim();
-            
-            if (line.length === 0 || line.startsWith("'"))
-            {
-                continue;
-            }
-            
-            const parseResult = this.parserService.parseLine(lineIndex, line);
-            
-            if (!parseResult.success)
-            {
-                newErrorLines.add(i);
-                newErrorMessages.set(i, parseResult.error || 'Parse error');
-            }
-            else if (parseResult.value.hasError)
-            {
-                newErrorLines.add(i);
-                newErrorMessages.set(i, parseResult.value.errorMessage || 'Parse error');
-            }
-            
-            lineIndex++;
-        }
-        
-        this.errorLines = newErrorLines;
-        this.errorMessages = newErrorMessages;
+        const build = this.buildProgramFromLines(this.lines);
+
+        this.errorLines = build.errorLines;
+        this.errorMessages = build.errorMessages;
+        this.lastBuiltProgram = build.program;
+        this.hasRunnableStatements = build.hasRunnableStatements;
+        this.isExecutable = build.errorLines.size === 0 && build.hasRunnableStatements;
+    }
+
+    public get canRun(): boolean
+    {
+        return this.isExecutable;
     }
 
     private updateLineWithCanonical(lineIndex: number): void
@@ -309,14 +269,13 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
     private getCanonicalRepresentation(line: string): string | null
     {
-        const parseResult = this.parserService.parseLine(0, line);
-        
-        if (parseResult.success && !parseResult.value.hasError)
+        const parseResult = this.parserService.parseLineStateless(line);
+        if (!parseResult.success)
         {
-            return parseResult.value.statement.toString();
+            return null;
         }
-        
-        return null;
+
+        return parseResult.value.toString();
     }
 
     private getPositionFromLineIndex(lineIndex: number): number
@@ -329,5 +288,75 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
         
         return position;
+    }
+
+    private buildProgramFromSource(sourceCode: string): {
+        program: Program;
+        errorLines: Set<number>;
+        errorMessages: Map<number, string>;
+        hasRunnableStatements: boolean;
+    }
+    {
+        const lines = sourceCode.split(/\r?\n/);
+        return this.buildProgramFromLines(lines);
+    }
+
+    private buildProgramFromLines(lines: string[]): {
+        program: Program;
+        errorLines: Set<number>;
+        errorMessages: Map<number, string>;
+        hasRunnableStatements: boolean;
+    }
+    {
+        this.parserService.clear();
+
+        const program = new Program();
+        const errorLines = new Set<number>();
+        const errorMessages = new Map<number, string>();
+        let hasRunnableStatements = false;
+
+        for (let i = 0; i < lines.length; i++)
+        {
+            const lineText = lines[i];
+            const parseResult = this.parserService.parseLine(i + 1, lineText);
+
+            if (!parseResult.success)
+            {
+                errorLines.add(i);
+                errorMessages.set(i, parseResult.error || 'Parse error');
+                program.appendLine(new UnparsableStatement(lineText, parseResult.error || 'Parse error'));
+                continue;
+            }
+
+            const parsed = parseResult.value;
+            program.appendLine(parsed.statement);
+
+            if (parsed.hasError)
+            {
+                errorLines.add(i);
+                errorMessages.set(i, parsed.errorMessage || 'Parse error');
+            }
+            else
+            {
+                const stmt = parsed.statement;
+                if (!(stmt instanceof UnparsableStatement && stmt.errorMessage === 'Comment or empty line'))
+                {
+                    hasRunnableStatements = true;
+                }
+            }
+        }
+
+        const analysis = this.syntaxAnalyzer.analyzeAndLink(program);
+        for (const error of analysis.errors)
+        {
+            errorLines.add(error.lineNumber);
+            if (!errorMessages.has(error.lineNumber))
+            {
+                errorMessages.set(error.lineNumber, error.message);
+            }
+        }
+
+        program.rebuildLabelMap();
+        return { program, errorLines, errorMessages, hasRunnableStatements };
     }
 }

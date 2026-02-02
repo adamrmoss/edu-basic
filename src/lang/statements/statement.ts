@@ -38,6 +38,21 @@ export interface ExecutionStatus
 export abstract class Statement extends RuntimeNode
 {
     /**
+     * 0-based program line index.
+     *
+     * This is populated by static syntax analysis after a `Program` is built.
+     */
+    public lineNumber?: number;
+
+    /**
+     * Whether this statement has been linked into a `Program` via static syntax analysis.
+     */
+    public get isLinkedToProgram(): boolean
+    {
+        return this.lineNumber !== undefined;
+    }
+
+    /**
      * Indentation level (used by the editor/runtime for block structure).
      */
     public indentLevel: number = 0;

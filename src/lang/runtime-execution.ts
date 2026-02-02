@@ -1,28 +1,12 @@
 import { Program } from './program';
-import { Statement, ExecutionResult } from './statements/statement';
+import { ExecutionResult } from './statements/statement';
 import { ExecutionContext } from './execution-context';
 import { Graphics } from './graphics';
 import { Audio } from './audio';
 import { ControlFlowFrameStack } from './control-flow-frame-stack';
 import { ControlStructureFrame, ControlStructureType } from './control-flow-frames';
-import {
-    CaseStatement,
-    DoLoopStatement,
-    ElseIfStatement,
-    ElseStatement,
-    EndStatement,
-    EndType,
-    ForStatement,
-    GotoStatement,
-    IfStatement,
-    LoopStatement,
-    NextStatement,
-    SelectCaseStatement,
-    SubStatement,
-    UnlessStatement,
-    WendStatement,
-    WhileStatement
-} from './statements/control-flow';
+import { ProgramSyntaxAnalyzer } from './program-syntax-analysis';
+import { UnparsableStatement } from './statements/unparsable-statement';
 import { FileSystemService } from '../app/disk/filesystem.service';
 import { ConsoleService } from '../app/console/console.service';
 
@@ -45,6 +29,8 @@ export class RuntimeExecution
     private readonly controlFrames = new ControlFlowFrameStack();
     private tabSwitchCallback: ((tabId: string) => void) | null = null;
     private sleepUntilMs: number | null = null;
+    private readonly syntaxAnalyzer = new ProgramSyntaxAnalyzer();
+    private isProgramLinked: boolean = false;
 
     /**
      * Create a new runtime execution engine.
@@ -114,6 +100,8 @@ export class RuntimeExecution
      */
     public executeStep(): ExecutionResult
     {
+        this.ensureProgramLinked();
+
         // If a sleep is active, keep yielding `Continue` until the timestamp elapses.
         if (this.sleepUntilMs !== null)
         {
@@ -171,6 +159,34 @@ export class RuntimeExecution
         // Default behavior: advance to the next statement.
         this.context.incrementProgramCounter();
         return ExecutionResult.Continue;
+    }
+
+    private ensureProgramLinked(): void
+    {
+        if (this.isProgramLinked)
+        {
+            return;
+        }
+
+        const statements = this.program.getStatements();
+        for (let i = 0; i < statements.length; i++)
+        {
+            const stmt = statements[i];
+            if (stmt instanceof UnparsableStatement && stmt.errorMessage && stmt.errorMessage !== 'Comment or empty line')
+            {
+                throw new Error(stmt.errorMessage);
+            }
+        }
+
+        const analysis = this.syntaxAnalyzer.analyzeAndLink(this.program);
+        this.program.rebuildLabelMap();
+
+        if (analysis.errors.length > 0)
+        {
+            throw new Error(analysis.errors[0].message);
+        }
+
+        this.isProgramLinked = true;
     }
 
     /**
@@ -278,523 +294,5 @@ export class RuntimeExecution
     public popControlFramesToAndIncludingWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
     {
         return this.controlFrames.popToAndIncludingWhere(predicate);
-    }
-
-    /**
-     * Find the matching `END IF` for an `IF` at `ifLine`.
-     *
-     * This is used by IF-family statements to decide where to jump when a branch is not taken.
-     */
-    public findMatchingEndIf(ifLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, tracking nested IF blocks.
-        for (let i = ifLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof IfStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
-            {
-                // A matching END IF is only valid when all nested IFs have been closed.
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Find the matching `END UNLESS` for an `UNLESS` at `unlessLine`.
-     */
-    public findMatchingEndUnless(unlessLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, tracking nested UNLESS blocks.
-        for (let i = unlessLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof UnlessStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.Unless)
-            {
-                // A matching END UNLESS is only valid when all nested UNLESS have been closed.
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Find the matching `END SELECT` for a `SELECT CASE` at `selectLine`.
-     */
-    public findMatchingEndSelect(selectLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, tracking nested SELECT CASE blocks.
-        for (let i = selectLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof SelectCaseStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.Select)
-            {
-                // A matching END SELECT is only valid when all nested SELECTs have been closed.
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * From within a SELECT block, find the next `CASE` at the current nesting level,
-     * or return `endSelectLine` if there is no further `CASE`.
-     */
-    public findNextCaseOrEndSelect(fromLine: number, endSelectLine: number): number
-    {
-        const statements = this.program.getStatements();
-        let selectDepth = 0;
-
-        // Scan forward to the next CASE at the current SELECT nesting depth.
-        for (let i = fromLine; i <= endSelectLine && i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof SelectCaseStatement)
-            {
-                selectDepth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.Select)
-            {
-                // Consume nested END SELECTs until we return to the caller's depth.
-                if (selectDepth > 0)
-                {
-                    selectDepth--;
-                    continue;
-                }
-            }
-
-            if (selectDepth === 0 && stmt instanceof CaseStatement)
-            {
-                // CASE at depth 0 is the next clause for the current SELECT block.
-                return i;
-            }
-        }
-
-        // No more CASE clauses exist; fall back to END SELECT.
-        return endSelectLine;
-    }
-
-    /**
-     * From within an IF block, find the next `ELSEIF`/`ELSE` at the current nesting level,
-     * or return `endIfLine` if no further clauses exist.
-     */
-    public findNextIfClauseOrEnd(fromLine: number, endIfLine: number): number
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, ignoring nested IF blocks.
-        for (let i = fromLine; i <= endIfLine && i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof IfStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
-            {
-                // Consume nested END IFs until we return to the caller's depth.
-                if (depth > 0)
-                {
-                    depth--;
-                    continue;
-                }
-            }
-
-            if (depth === 0)
-            {
-                // Only consider ELSEIF/ELSE at the current IF nesting level.
-                if (stmt instanceof ElseIfStatement || stmt instanceof ElseStatement)
-                {
-                    return i;
-                }
-            }
-        }
-
-        return endIfLine;
-    }
-
-    /**
-     * Find the matching `NEXT` for a `FOR` at `forLine`.
-     */
-    public findMatchingNext(forLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, tracking nested FOR loops.
-        for (let i = forLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof ForStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof NextStatement)
-            {
-                // A matching NEXT is only valid when all nested FORs have been closed.
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Find the matching `WEND` for a `WHILE` at `whileLine`.
-     */
-    public findMatchingWend(whileLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, tracking nested WHILE blocks.
-        for (let i = whileLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof WhileStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof WendStatement)
-            {
-                // A matching WEND is only valid when all nested WHILEs have been closed.
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Find the matching `LOOP` for a `DO` at `doLine`.
-     */
-    public findMatchingLoop(doLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, tracking nested DO blocks.
-        for (let i = doLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof DoLoopStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof LoopStatement)
-            {
-                // A matching LOOP is only valid when all nested DOs have been closed.
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Find the matching `END SUB` for a `SUB` declaration at `subLine`.
-     */
-    public findMatchingEndSub(subLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let depth = 0;
-
-        // Scan forward, tracking nested SUB blocks.
-        for (let i = subLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof SubStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.Sub)
-            {
-                // A matching END SUB is only valid when all nested SUBs have been closed.
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Determine the end line of an IF block using indentation heuristics.
-     *
-     * This exists primarily to support editor features and block-aware statements that
-     * rely on indentation levels, with a fallback to scanning text for `END IF`.
-     */
-    public getIfEndLine(ifLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let indentLevel = 0;
-        let foundIf = false;
-
-        // Walk forward, using indentation to detect when the IF block ends.
-        for (let i = ifLine; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (i === ifLine && stmt instanceof IfStatement)
-            {
-                // Capture the indentation level of the IF body.
-                foundIf = true;
-                indentLevel = stmt.indentLevel + 1;
-                continue;
-            }
-
-            if (foundIf)
-            {
-                // A same-level IF indicates a sibling block; find its END IF textually.
-                if (stmt instanceof IfStatement && stmt.indentLevel === indentLevel - 1)
-                {
-                    const endIfIndex = this.findEndIfByText(i);
-
-                    if (endIfIndex !== undefined)
-                    {
-                        return endIfIndex;
-                    }
-                }
-
-                if (stmt.indentLevel < indentLevel)
-                {
-                    // Indent decreased: treat as leaving the IF body and locate END IF.
-                    const endIfIndex = this.findEndIfByText(i);
-
-                    if (endIfIndex !== undefined)
-                    {
-                        return endIfIndex;
-                    }
-                }
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Determine the end line of a WHILE block using indentation heuristics.
-     */
-    public getWhileEndLine(whileLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let indentLevel = 0;
-        let foundWhile = false;
-
-        // Walk forward, using indentation to detect when the WHILE block ends.
-        for (let i = whileLine; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (i === whileLine && stmt instanceof WhileStatement)
-            {
-                // Capture the indentation level of the WHILE body.
-                foundWhile = true;
-                indentLevel = stmt.indentLevel + 1;
-                continue;
-            }
-
-            if (foundWhile)
-            {
-                if (stmt.indentLevel < indentLevel)
-                {
-                    // Indent decreased: locate the next statement at the WHILE's indentation level.
-                    for (let j = i; j < statements.length; j++)
-                    {
-                        const checkStmt = statements[j];
-
-                        if (checkStmt.indentLevel === indentLevel - 1)
-                        {
-                            return j;
-                        }
-                    }
-                }
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Determine the end line of a DO/LOOP block using indentation heuristics.
-     */
-    public getDoLoopEndLine(doLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        let indentLevel = 0;
-        let foundDo = false;
-
-        // Walk forward, using indentation to detect when the DO/LOOP block ends.
-        for (let i = doLine; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (i === doLine && stmt instanceof DoLoopStatement)
-            {
-                // Capture the indentation level of the DO body.
-                foundDo = true;
-                indentLevel = stmt.indentLevel + 1;
-                continue;
-            }
-
-            if (foundDo)
-            {
-                if (stmt.indentLevel < indentLevel)
-                {
-                    // Indent decreased: locate the next statement at the DO's indentation level.
-                    for (let j = i; j < statements.length; j++)
-                    {
-                        const checkStmt = statements[j];
-
-                        if (checkStmt.indentLevel === indentLevel - 1)
-                        {
-                            return j;
-                        }
-                    }
-                }
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Determine the end line of a FOR/NEXT block using indentation heuristics.
-     */
-    public getForEndLine(forLine: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-        const forStmt = statements[forLine] as ForStatement;
-
-        // Validate the statement at the requested line.
-        if (!(forStmt instanceof ForStatement))
-        {
-            return undefined;
-        }
-
-        // The FOR body ends when indentation falls below the FOR's body indentation.
-        let indentLevel = forStmt.indentLevel + 1;
-
-        for (let i = forLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt.indentLevel < indentLevel)
-            {
-                return i;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Fallback "text scan" for IF termination.
-     *
-     * Some statement sequences are easier to recognize by their `toString()` output than
-     * by indentation alone.
-     */
-    private findEndIfByText(startIndex: number): number | undefined
-    {
-        const statements = this.program.getStatements();
-
-        // Scan forward for the first statement whose display text begins with 'END IF'.
-        for (let i = startIndex; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt.toString().startsWith('END IF'))
-            {
-                return i;
-            }
-        }
-
-        return undefined;
     }
 }

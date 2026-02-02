@@ -11,6 +11,13 @@ import { RuntimeExecution } from '../../runtime-execution';
 export class GosubStatement extends Statement
 {
     /**
+     * Linked target line index (0-based), if available.
+     *
+     * Populated by static syntax analysis.
+     */
+    public targetLine?: number;
+
+    /**
      * Label identifier.
      */
     public readonly labelName: string;
@@ -40,8 +47,13 @@ export class GosubStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         const currentPc = context.getProgramCounter();
-        const labelIndex = program.getLabelIndex(this.labelName);
+        const labelIndex = this.targetLine ?? program.getLabelIndex(this.labelName);
 
         if (labelIndex === undefined)
         {

@@ -12,6 +12,20 @@ import { RuntimeExecution } from '../../runtime-execution';
 export class SelectCaseStatement extends Statement
 {
     /**
+     * Linked `END SELECT` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endSelectLine?: number;
+
+    /**
+     * First `CASE` clause line index (0-based), or `endSelectLine` if none exist.
+     *
+     * Populated by static syntax analysis.
+     */
+    public firstCaseLine?: number;
+
+    /**
      * Test expression used for subsequent `CASE` matching.
      */
     public readonly testExpression: Expression;
@@ -55,21 +69,20 @@ export class SelectCaseStatement extends Statement
         const currentPc = context.getProgramCounter();
         const testValue = this.testExpression.evaluate(context);
 
-        const endSelectLine = runtime.findMatchingEndSelect(currentPc);
-        if (endSelectLine === undefined)
+        if (this.endSelectLine === undefined)
         {
-            throw new Error('SELECT CASE: missing END SELECT');
+            return { result: ExecutionResult.Continue };
         }
 
         runtime.pushControlFrame({
             type: 'select',
             startLine: currentPc,
-            endLine: endSelectLine,
+            endLine: this.endSelectLine,
             selectTestValue: testValue,
             selectMatched: false
         });
 
-        const firstCaseOrEnd = runtime.findNextCaseOrEndSelect(currentPc + 1, endSelectLine);
+        const firstCaseOrEnd = this.firstCaseLine ?? this.endSelectLine;
         return { result: ExecutionResult.Goto, gotoTarget: firstCaseOrEnd };
     }
 

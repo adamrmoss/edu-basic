@@ -21,6 +21,20 @@ export type CaseSelector =
 export class CaseStatement extends Statement
 {
     /**
+     * Linked `END SELECT` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endSelectLine?: number;
+
+    /**
+     * Next `CASE` clause line index (0-based), or `endSelectLine` if none remain.
+     *
+     * Populated by static syntax analysis.
+     */
+    public nextCaseLine?: number;
+
+    /**
      * Whether this is the `CASE ELSE` clause.
      */
     public readonly isElse: boolean;
@@ -61,6 +75,11 @@ export class CaseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         const frame = runtime.findControlFrame('select');
         if (!frame)
         {
@@ -69,7 +88,8 @@ export class CaseStatement extends Statement
 
         if (frame.selectMatched)
         {
-            return { result: ExecutionResult.Goto, gotoTarget: frame.endLine };
+            const endLine = this.endSelectLine ?? frame.endLine;
+            return { result: ExecutionResult.Goto, gotoTarget: endLine };
         }
 
         if (this.isElse)
@@ -92,8 +112,12 @@ export class CaseStatement extends Statement
             }
         }
 
-        const currentPc = context.getProgramCounter();
-        const nextCaseOrEnd = runtime.findNextCaseOrEndSelect(currentPc + 1, frame.endLine);
+        if (this.endSelectLine === undefined)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
+        const nextCaseOrEnd = this.nextCaseLine ?? this.endSelectLine;
         return { result: ExecutionResult.Goto, gotoTarget: nextCaseOrEnd };
     }
 

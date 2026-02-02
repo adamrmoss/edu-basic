@@ -62,6 +62,11 @@ export class EndStatement extends Statement
             return { result: ExecutionResult.End };
         }
 
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         if (this.endType === EndType.Sub)
         {
             runtime.popControlFramesToAndIncluding('sub');

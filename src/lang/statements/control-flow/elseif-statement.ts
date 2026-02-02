@@ -13,6 +13,20 @@ import { EduBasicType } from '../../edu-basic-value';
 export class ElseIfStatement extends Statement
 {
     /**
+     * Linked `END IF` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endIfLine?: number;
+
+    /**
+     * Line index to jump to when this `ELSEIF` condition is false and no prior branch was taken.
+     *
+     * Populated by static syntax analysis.
+     */
+    public nextClauseLine?: number;
+
+    /**
      * Branch condition expression.
      */
     public readonly condition: Expression;
@@ -46,6 +60,11 @@ export class ElseIfStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (this.endIfLine === undefined)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         const frame = runtime.findControlFrame('if');
         if (!frame)
         {
@@ -69,8 +88,7 @@ export class ElseIfStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        const currentPc = context.getProgramCounter();
-        const nextClause = runtime.findNextIfClauseOrEnd(currentPc + 1, frame.endLine);
+        const nextClause = this.nextClauseLine ?? this.endIfLine;
         return { result: ExecutionResult.Goto, gotoTarget: nextClause };
     }
 

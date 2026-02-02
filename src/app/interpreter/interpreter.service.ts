@@ -4,12 +4,14 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Program } from '../../lang/program';
 import { ExecutionContext } from '../../lang/execution-context';
 import { RuntimeExecution } from '../../lang/runtime-execution';
+import { ProgramSyntaxAnalyzer } from '../../lang/program-syntax-analysis';
 import { GraphicsService } from './graphics.service';
 import { AudioService } from './audio.service';
 import { TabSwitchService } from '../tab-switch.service';
 import { FileSystemService } from '../disk/filesystem.service';
 import { ConsoleService } from '../console/console.service';
 import { ParserService } from './parser.service';
+import { UnparsableStatement } from '../../lang/statements/unparsable-statement';
 
 /**
  * High-level interpreter lifecycle state exposed to the UI.
@@ -200,6 +202,7 @@ export class InterpreterService
     {
         this.programSubject.next(program);
         this.parseResultSubject.next(null);
+        this.runtimeExecution = null;
         if (program)
         {
             // Update shared program reference (some call sites reuse the same instance).
@@ -229,6 +232,7 @@ export class InterpreterService
 
         const program = this.createProgram();
         const errors: string[] = [];
+        const syntaxAnalyzer = new ProgramSyntaxAnalyzer();
 
         const lines = sourceCode.split(/\r?\n/);
         for (let i = 0; i < lines.length; i++)
@@ -239,6 +243,7 @@ export class InterpreterService
             if (!parseLineResult.success)
             {
                 errors.push(parseLineResult.error || `Line ${i + 1}: Parse error`);
+                program.appendLine(new UnparsableStatement(lineText, parseLineResult.error || 'Parse error'));
                 continue;
             }
 
@@ -251,6 +256,13 @@ export class InterpreterService
             }
         }
 
+        const analysis = syntaxAnalyzer.analyzeAndLink(program);
+        for (const error of analysis.errors)
+        {
+            errors.push(`Line ${error.lineNumber + 1}: ${error.message}`);
+        }
+
+        program.rebuildLabelMap();
         this.program = program;
 
         const result: ParseResult = {
@@ -330,6 +342,7 @@ export class InterpreterService
         this.stateSubject.next(InterpreterState.Idle);
         this.parseResultSubject.next(null);
         this.isRunningSubject.next(false);
+        this.runtimeExecution = null;
     }
 
     /**

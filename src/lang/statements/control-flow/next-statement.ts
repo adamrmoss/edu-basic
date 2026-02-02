@@ -45,6 +45,11 @@ export class NextStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         const forFrame = this.variableName
             ? runtime.findControlFrameWhere(frame =>
             {

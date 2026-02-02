@@ -64,6 +64,11 @@ export class LoopStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         const top = runtime.getCurrentControlFrame();
 
         if (top && top.type === 'do')

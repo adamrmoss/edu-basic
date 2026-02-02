@@ -15,16 +15,19 @@
             <span *ngIf="lineNum <= 0">&nbsp;</span>
         </div>
     </div>
-    <textarea 
-        #codeTextarea
-        class="code-textarea"
-        spellcheck="false"
-        [value]="getCode()"
-        [placeholder]="placeholder"
-        [readonly]="readonly"
-        (input)="onTextAreaInput($event)"
-        (scroll)="onTextAreaScroll($event)"
-        (keydown)="onKeyDown($event)"
-        (blur)="onBlur()"
-    ></textarea>
+    <div class="code-area">
+        <pre #codeOverlay class="code-overlay" [innerHTML]="overlayHtml"></pre>
+        <textarea 
+            #codeTextarea
+            class="code-textarea"
+            spellcheck="false"
+            [value]="getCode()"
+            [placeholder]="placeholder"
+            [readonly]="readonly"
+            (input)="onTextAreaInput($event)"
+            (scroll)="onTextAreaScroll($event)"
+            (keydown)="onKeyDown($event)"
+            (blur)="onBlur()"
+        ></textarea>
+    </div>
 </div>

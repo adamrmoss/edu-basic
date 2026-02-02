@@ -57,6 +57,11 @@ export class ExitStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         let frameType: 'if' | 'while' | 'do' | 'for' | undefined;
 
         switch (this.target)

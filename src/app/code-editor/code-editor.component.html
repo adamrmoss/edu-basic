@@ -1,6 +1,6 @@
 <div class="code-editor-container">
     <div class="editor-toolbar">
-        <button class="run-button" (click)="onRun()">Run</button>
+        <button class="run-button" (click)="onRun()" [disabled]="!canRun">Run</button>
     </div>
     <app-text-editor
         #textEditor

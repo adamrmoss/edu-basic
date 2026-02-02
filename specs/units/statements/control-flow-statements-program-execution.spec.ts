@@ -609,6 +609,7 @@ describe('Control-flow statements (program execution)', () =>
             const { context, program, runtime, graphics, audio } = createRuntimeFixture();
 
             const caseStmt = new CaseStatement(false, [{ type: 'relational', op: '??', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }]);
+            caseStmt.lineNumber = 0;
             expect(() => caseStmt.execute(context, graphics, audio, program, {
                 findControlFrame: () => ({
                     type: 'select',

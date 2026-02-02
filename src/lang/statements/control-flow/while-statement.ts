@@ -6,13 +6,19 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
-import { WendStatement } from './wend-statement';
 
 /**
  * Implements the `WHILE` statement.
  */
 export class WhileStatement extends Statement
 {
+    /**
+     * Linked `WEND` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public wendLine?: number;
+
     /**
      * Condition expression.
      */
@@ -67,24 +73,21 @@ export class WhileStatement extends Statement
             throw new Error('WHILE condition must evaluate to an integer');
         }
 
-        const wendLine = runtime.findMatchingWend(currentPc);
-        if (wendLine === undefined)
+        if (this.wendLine === undefined)
         {
-            throw new Error('WHILE: missing WEND');
+            return { result: ExecutionResult.Continue };
         }
 
         if (conditionValue.value === 0)
         {
-            return { result: ExecutionResult.Goto, gotoTarget: wendLine + 1 };
+            return { result: ExecutionResult.Goto, gotoTarget: this.wendLine + 1 };
         }
 
         runtime.pushControlFrame({
             type: 'while',
             startLine: currentPc,
-            endLine: wendLine
+            endLine: this.wendLine
         });
-
-        return { result: ExecutionResult.Continue };
 
         return { result: ExecutionResult.Continue };
     }

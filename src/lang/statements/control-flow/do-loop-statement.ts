@@ -6,7 +6,6 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
-import { LoopStatement } from './loop-statement';
 
 /**
  * `DO` statement variants.
@@ -25,6 +24,13 @@ export enum DoLoopVariant
  */
 export class DoLoopStatement extends Statement
 {
+    /**
+     * Linked `LOOP` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public loopLine?: number;
+
     /**
      * Variant discriminator for this `DO` statement.
      */
@@ -74,29 +80,27 @@ export class DoLoopStatement extends Statement
     ): ExecutionStatus
     {
         const currentPc = context.getProgramCounter();
-        const loopLine = runtime.findMatchingLoop(currentPc);
-        if (loopLine === undefined)
+        if (this.loopLine === undefined)
         {
-            throw new Error('DO: missing LOOP');
+            return { result: ExecutionResult.Continue };
         }
 
         switch (this.variant)
         {
             case DoLoopVariant.DoWhile:
-                return this.executeDoWhile(context, graphics, audio, program, runtime, currentPc, loopLine);
+                return this.executeDoWhile(context, graphics, audio, program, runtime, currentPc, this.loopLine);
             case DoLoopVariant.DoUntil:
-                return this.executeDoUntil(context, graphics, audio, program, runtime, currentPc, loopLine);
+                return this.executeDoUntil(context, graphics, audio, program, runtime, currentPc, this.loopLine);
             case DoLoopVariant.DoLoopWhile:
             case DoLoopVariant.DoLoopUntil:
             case DoLoopVariant.DoLoop:
                 runtime.pushControlFrame({
                     type: 'do',
                     startLine: currentPc,
-                    endLine: loopLine
+                    endLine: this.loopLine
                 });
 
                 return { result: ExecutionResult.Continue };
-                break;
         }
 
         return { result: ExecutionResult.Continue };
@@ -131,8 +135,6 @@ export class DoLoopStatement extends Statement
         });
 
         return { result: ExecutionResult.Continue };
-
-        return { result: ExecutionResult.Continue };
     }
 
     private executeDoUntil(
@@ -162,8 +164,6 @@ export class DoLoopStatement extends Statement
             startLine: currentPc,
             endLine: loopLine
         });
-
-        return { result: ExecutionResult.Continue };
 
         return { result: ExecutionResult.Continue };
     }

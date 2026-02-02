@@ -49,8 +49,11 @@ export class ControlFlowParsers
     // These parsers operate on a single tokenized source line.
     // For block statements (IF/ELSE/END IF, FOR/NEXT, TRY/CATCH/FINALLY/END TRY, etc.)
     // the per-line parse methods generally produce "skeleton" statements with empty bodies.
-    // The block structure is assembled later by the program builder / runtime using indent
-    // levels and control-flow frame tracking.
+    // The block structure is assembled later by static program syntax analysis, which links
+    // statements together by line index (e.g., IF -> END IF, FOR -> NEXT).
+    //
+    // Indentation is tracked by `ParserService` for editor formatting only; it does not define
+    // execution semantics.
     /**
      * Parse the `IF` statement.
      *

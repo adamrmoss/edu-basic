@@ -57,20 +57,65 @@
     margin-left: 4px;
 }
 
+.code-area
+{
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.code-overlay
+{
+    background: transparent;
+    bottom: 0;
+    color: $white;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    left: 0;
+    line-height: 20px;
+    margin: 0;
+    overflow-wrap: break-word;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 8px;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    white-space: pre-wrap;
+}
+
+.code-line-error
+{
+    font-style: italic;
+}
+
 .code-textarea
 {
     background: transparent;
     border: none;
-    color: $white;
-    flex: 1;
+    bottom: 0;
+    caret-color: $white;
+    color: transparent;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
+    height: 100%;
+    left: 0;
     line-height: 20px;
     outline: none;
     overflow-wrap: break-word;
     overflow-x: hidden;
     overflow-y: auto;
     padding: 8px;
+    position: absolute;
     resize: none;
+    right: 0;
+    top: 0;
     white-space: pre-wrap;
+    width: 100%;
+}
+
+.code-textarea::placeholder
+{
+    color: rgba($white, 0.4);
 }
