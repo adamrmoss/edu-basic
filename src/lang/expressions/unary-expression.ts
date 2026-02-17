@@ -248,6 +248,10 @@ export class UnaryExpression extends Expression
         // Parentheses are only grouping in EduBASIC and are emitted by the operand expression itself
         // (e.g. SIN (x + y)).
         const argStr = this.operand.toString();
+        if (this.category === UnaryOperatorCategory.Audio)
+        {
+            return `${this.operator} ${argStr}`;
+        }
         return `${this.operator}${argStr}`;
     }
 }

@@ -83,6 +83,11 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         this.diskService.programCode$
             .pipe(takeUntil(this.destroy$))
             .subscribe((code: string) => {
+                if (this.interpreterService.isRunning)
+                {
+                    this.interpreterService.stop();
+                }
+
                 this.lines = code.split('\n');
                 if (this.lines.length === 0)
                 {
@@ -106,11 +111,17 @@ export class CodeEditorComponent implements OnInit, OnDestroy
      * Handle editor text changes from the text editor component.
      *
      * Updates the disk program contents and re-validates all lines.
+     * Stops the running program if one is executing.
      *
      * @param lines Updated editor content, split into lines.
      */
     public onLinesChange(lines: string[]): void
     {
+        if (this.interpreterService.isRunning)
+        {
+            this.interpreterService.stop();
+        }
+
         this.lines = lines;
         const code = lines.join('\n');
         this.diskService.programCode = code;
@@ -273,6 +284,36 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     public get canRun(): boolean
     {
         return this.isExecutable;
+    }
+
+    /**
+     * Whether a program is currently running.
+     */
+    public get isRunning(): boolean
+    {
+        return this.interpreterService.isRunning;
+    }
+
+    /**
+     * Label for the run/stop toolbar button.
+     */
+    public get runButtonLabel(): string
+    {
+        return this.isRunning ? 'Stop' : 'Run';
+    }
+
+    /**
+     * Run the current program, or stop it if already running.
+     */
+    public onRunOrStop(): void
+    {
+        if (this.isRunning)
+        {
+            this.interpreterService.stop();
+            return;
+        }
+
+        this.onRun();
     }
 
     /** Replace the line at lineIndex with its canonical form (block indent + keyword casing/spacing); skip empty and comment lines. */

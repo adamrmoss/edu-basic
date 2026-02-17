@@ -43,6 +43,19 @@ describe('ParserService', () =>
             expect(stmt.variableName).toBe('x%');
         });
 
+        it('should canonicalize LET with NOTES operator with space (NOTES 0 not NOTES0)', () =>
+        {
+            const result = parser.parseLine(1, 'LET x% = NOTES 0');
+            expect(result.success).toBe(true);
+            if (!result.success)
+            {
+                return;
+            }
+            expect(result.value.hasError).toBe(false);
+            const stmt = result.value.statement as LetStatement;
+            expect(stmt.toString()).toBe('LET x% = NOTES 0');
+        });
+
         it('should parse LOCAL statement', () =>
         {
             const result = parser.parseLine(1, 'LOCAL temp# = 3.14');

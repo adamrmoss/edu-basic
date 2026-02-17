@@ -471,5 +471,16 @@ describe('Expression Edge Cases', () =>
             expect(result.type).toBe(EduBasicType.Integer);
             expect(result.value).toBe(42);
         });
+
+        it('should format NOTES expression toString with space before operand (canonical form)', () =>
+        {
+            const arg0 = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const expr0 = new UnaryExpression(UnaryOperator.Notes, arg0, UnaryOperatorCategory.Audio);
+            expect(expr0.toString()).toBe('NOTES 0');
+
+            const arg1 = new LiteralExpression({ type: EduBasicType.Integer, value: 1 });
+            const expr1 = new UnaryExpression(UnaryOperator.Notes, arg1, UnaryOperatorCategory.Audio);
+            expect(expr1.toString()).toBe('NOTES 1');
+        });
     });
 });
