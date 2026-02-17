@@ -154,6 +154,16 @@ Represents a BASIC program as a collection of statements.
 - Line numbers in source code are separate from indices
 - Indices are used for program counter
 
+### Canonical line representation
+
+**Location**: `src/lang/canonical-line.ts`
+
+Single place for the canonical representation of a program line including indent level.
+
+- `getCanonicalLine(indentLevel, statement | null)` returns the full line string: indent prefix + body.
+- Applies to parsed statements, empty/comment lines (`statement` null), and unparsable lines (`UnparsableStatement`).
+- `INDENT_SPACES_PER_LEVEL` defines spaces per indent level. Used by the code editor and console.
+
 ## Runtime Node
 
 ### RuntimeNode

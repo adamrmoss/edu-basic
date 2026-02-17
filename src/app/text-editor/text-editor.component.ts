@@ -106,6 +106,12 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
     public blur = new EventEmitter<void>();
 
     /**
+     * Emits the new 0-based cursor line index when the cursor moves to a different line (e.g. after click in textarea).
+     */
+    @Output()
+    public cursorLineChange = new EventEmitter<number>();
+
+    /**
      * Rendered line numbers including wrapped visual lines (wrapped lines use -1).
      */
     public lineNumbers: number[] = [1];
@@ -276,6 +282,14 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
     public onBlur(): void
     {
         this.blur.emit();
+    }
+
+    /**
+     * Emit cursor line change when the user clicks in the textarea (cursor may have moved to a different line).
+     */
+    public onTextAreaMouseUp(): void
+    {
+        this.cursorLineChange.emit(this.getCursorLineIndex());
     }
 
     /**

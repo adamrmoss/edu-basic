@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
+import { getCanonicalLine } from '../../lang/canonical-line';
 import { ConsoleService, ConsoleEntry } from './console.service';
 
 /**
@@ -123,12 +124,12 @@ export class ConsoleComponent implements OnInit, OnDestroy
     private getCanonicalRepresentation(input: string): string | null
     {
         const parsedLine = this.consoleService.parseLine(input);
-        
+
         if (parsedLine !== null && !parsedLine.hasError)
         {
-            return parsedLine.statement.toString();
+            return getCanonicalLine(0, parsedLine.statement);
         }
-        
+
         return null;
     }
 }

@@ -173,9 +173,17 @@ export class ParserService
         }
         
         const statement = statementResult.value;
-        statement.indentLevel = this.currentIndentLevel;
-        
         const indentAdjustment = statement.getIndentAdjustment();
+
+        if (indentAdjustment < 0)
+        {
+            statement.indentLevel = this.currentIndentLevel + indentAdjustment;
+        }
+        else
+        {
+            statement.indentLevel = this.currentIndentLevel;
+        }
+
         if (indentAdjustment !== 0)
         {
             this.currentIndentLevel = this.currentIndentLevel + indentAdjustment;

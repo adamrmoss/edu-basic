@@ -40,6 +40,7 @@ describe('CodeEditorComponent', () => {
 
         const parserServiceMock = {
             clear: jest.fn(),
+            currentIndentLevel: 0,
             parseLine: jest.fn().mockImplementation((lineNumber: number, sourceText: string) =>
             {
                 return success({
@@ -182,7 +183,7 @@ describe('CodeEditorComponent', () => {
             }
         });
 
-        it('should preserve indentation when replacing with canonical representation', (done) => {
+        it('should use canonical indent level when replacing (block-structure indent)', (done) => {
             const statement = new PrintStatement([new LiteralExpression({ type: EduBasicType.String, value: 'Hello' })]);
             parserService.parseLineStateless.mockReturnValue(success(statement));
 
@@ -198,8 +199,8 @@ describe('CodeEditorComponent', () => {
                 component.onBlur();
 
                 setTimeout(() => {
-                    expect(component.lines).toEqual(['    PRINT "Hello"']);
-                    expect(diskService.programCode).toBe('    PRINT "Hello"');
+                    expect(component.lines).toEqual(['PRINT "Hello"']);
+                    expect(diskService.programCode).toBe('PRINT "Hello"');
                     done();
                 }, 10);
             }

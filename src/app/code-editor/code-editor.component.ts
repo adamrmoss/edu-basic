@@ -4,6 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
 import { ParserService } from '../interpreter/parser.service';
+import { getCanonicalLine } from '../../lang/canonical-line';
 import { Program } from '../../lang/program';
 import { ProgramSyntaxAnalyzer } from '../../lang/program-syntax-analysis';
 import { ExecutionResult } from '../../lang/statements/statement';
@@ -55,6 +56,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     private readonly destroy$ = new Subject<void>();
     private lastBuiltProgram: Program | null = null;
     private hasRunnableStatements: boolean = false;
+    private lastCursorLineIndex: number | undefined = undefined;
 
     /**
      * Create a new code editor component.
@@ -123,14 +125,24 @@ export class CodeEditorComponent implements OnInit, OnDestroy
      */
     public onKeyDown(event: KeyboardEvent): void
     {
+        if (this.lastCursorLineIndex === undefined && this.textEditorRef)
+        {
+            this.lastCursorLineIndex = this.textEditorRef.getCursorLineIndex();
+        }
+
         if (event.key === 'Enter')
         {
             const lineIndex = this.textEditorRef.getCursorLineIndex();
-            
+
             setTimeout(() => {
                 this.updateLineWithCanonical(lineIndex);
                 this.validateAndUpdateLines();
+                this.lastCursorLineIndex = this.textEditorRef.getCursorLineIndex();
             }, 0);
+        }
+        else
+        {
+            setTimeout(() => this.handleCursorLineChange(), 0);
         }
     }
 
@@ -142,6 +154,34 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         const lineIndex = this.textEditorRef.getCursorLineIndex();
         this.updateLineWithCanonical(lineIndex);
         this.validateAndUpdateLines();
+    }
+
+    /**
+     * Handle cursor moving to a different line (keyboard or click): canonicalize the line that lost focus.
+     *
+     * @param newLineIndex New 0-based line index (from click); if omitted, read from editor (after key applied).
+     */
+    public onCursorLineChange(newLineIndex?: number): void
+    {
+        this.handleCursorLineChange(newLineIndex);
+    }
+
+    private handleCursorLineChange(newLineIndex?: number): void
+    {
+        if (!this.textEditorRef)
+        {
+            return;
+        }
+
+        const current = newLineIndex ?? this.textEditorRef.getCursorLineIndex();
+
+        if (this.lastCursorLineIndex !== undefined && this.lastCursorLineIndex !== current)
+        {
+            this.updateLineWithCanonical(this.lastCursorLineIndex);
+            this.validateAndUpdateLines();
+        }
+
+        this.lastCursorLineIndex = current;
     }
 
     /**
@@ -239,24 +279,23 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         {
             return;
         }
-        
+
         const originalLine = this.lines[lineIndex];
         const trimmedLine = originalLine.trim();
-        
+
         if (trimmedLine.length === 0 || trimmedLine.startsWith("'"))
         {
             return;
         }
-        
-        const canonical = this.getCanonicalRepresentation(trimmedLine);
-        
-        if (canonical !== null && canonical !== trimmedLine)
+
+        const canonical = this.getCanonicalRepresentation(lineIndex);
+
+        if (canonical !== null && canonical !== originalLine)
         {
-            const leadingWhitespace = originalLine.match(/^\s*/)?.[0] || '';
-            this.lines[lineIndex] = leadingWhitespace + canonical;
+            this.lines[lineIndex] = canonical;
             const newCode = this.lines.join('\n');
             this.diskService.programCode = newCode;
-            
+
             if (this.textEditorRef)
             {
                 setTimeout(() => {
@@ -267,15 +306,29 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
     }
 
-    private getCanonicalRepresentation(line: string): string | null
+    private getCanonicalRepresentation(lineIndex: number): string | null
     {
-        const parseResult = this.parserService.parseLineStateless(line);
+        this.parserService.clear();
+
+        for (let i = 0; i < lineIndex; i++)
+        {
+            this.parserService.parseLine(i + 1, this.lines[i]);
+        }
+
+        const indentLevel = this.parserService.currentIndentLevel;
+        const trimmedLine = this.lines[lineIndex].trim();
+        const parseResult = this.parserService.parseLineStateless(trimmedLine);
+
         if (!parseResult.success)
         {
             return null;
         }
 
-        return parseResult.value.toString();
+        const statement = parseResult.value;
+        const adjustment = statement.getIndentAdjustment();
+        const effectiveLevel = adjustment < 0 ? indentLevel + adjustment : indentLevel;
+
+        return getCanonicalLine(effectiveLevel, statement);
     }
 
     private getPositionFromLineIndex(lineIndex: number): number
