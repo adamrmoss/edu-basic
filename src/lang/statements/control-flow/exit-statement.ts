@@ -4,7 +4,6 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { ControlStructureFrame } from '../../control-flow-frames';
 
 /**
  * `EXIT` statement targets.
@@ -22,6 +21,13 @@ export enum ExitTarget
  */
 export class ExitStatement extends Statement
 {
+    /**
+     * Linked line index (0-based) to jump to (line after the block end).
+     *
+     * Populated by static syntax analysis.
+     */
+    public exitTargetLine?: number;
+
     /**
      * Target control-flow construct to exit.
      */
@@ -63,61 +69,14 @@ export class ExitStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        let frameType: 'if' | 'while' | 'do' | 'for' | undefined;
-
-        switch (this.target)
+        if (this.target === ExitTarget.Sub)
         {
-            case ExitTarget.For:
-                frameType = 'for';
-                break;
-            case ExitTarget.While:
-                frameType = 'while';
-                break;
-            case ExitTarget.Do:
-                frameType = 'do';
-                break;
-            case ExitTarget.Sub:
-                return { result: ExecutionResult.Return };
+            return { result: ExecutionResult.Return };
         }
 
-        if (frameType)
+        if (this.exitTargetLine !== undefined)
         {
-            const predicate = (frame: ControlStructureFrame): boolean =>
-            {
-                if (!frame || frame.type !== frameType)
-                {
-                    return false;
-                }
-
-                if (frameType !== 'for')
-                {
-                    return true;
-                }
-
-                if (!this.forVariableName)
-                {
-                    return true;
-                }
-
-                if (!frame.loopVariable)
-                {
-                    return false;
-                }
-
-                return frame.loopVariable.toUpperCase() === this.forVariableName.toUpperCase();
-            };
-
-            const frame = runtime.findControlFrameWhere(predicate);
-            if (frame)
-            {
-                const popped = runtime.popControlFramesToAndIncludingWhere(predicate);
-                const endLine = popped?.endLine ?? frame.endLine;
-
-                if (endLine !== undefined)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: endLine + 1 };
-                }
-            }
+            return { result: ExecutionResult.Goto, gotoTarget: this.exitTargetLine };
         }
 
         return { result: ExecutionResult.Continue };

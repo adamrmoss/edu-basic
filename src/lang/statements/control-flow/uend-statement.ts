@@ -12,6 +12,13 @@ import { EduBasicType } from '../../edu-basic-value';
  */
 export class UendStatement extends Statement
 {
+    /**
+     * Linked UNTIL line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public untilLine?: number;
+
     public constructor()
     {
         super();
@@ -40,33 +47,27 @@ export class UendStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        const top = runtime.getCurrentControlFrame();
-
-        if (top && top.type === 'while')
-        {
-            const untilStmt = program.getStatement(top.startLine);
-
-            if (untilStmt instanceof UntilStatement)
-            {
-                const conditionValue = untilStmt.condition.evaluate(context);
-
-                if (conditionValue.type !== EduBasicType.Integer)
-                {
-                    throw new Error('UNTIL condition must evaluate to an integer');
-                }
-
-                if (conditionValue.value === 0)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
-                }
-
-                runtime.popControlFrame();
-                return { result: ExecutionResult.Continue };
-            }
-        }
-        else
+        if (this.untilLine === undefined)
         {
             throw new Error('UEND without UNTIL');
+        }
+
+        const untilStmt = program.getStatement(this.untilLine);
+        if (!(untilStmt instanceof UntilStatement))
+        {
+            throw new Error('UEND without UNTIL');
+        }
+
+        const conditionValue = untilStmt.condition.evaluate(context);
+
+        if (conditionValue.type !== EduBasicType.Integer)
+        {
+            throw new Error('UNTIL condition must evaluate to an integer');
+        }
+
+        if (conditionValue.value === 0)
+        {
+            return { result: ExecutionResult.Goto, gotoTarget: this.untilLine + 1 };
         }
 
         return { result: ExecutionResult.Continue };

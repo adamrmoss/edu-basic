@@ -78,7 +78,7 @@ export class ElseIfStatement extends Statement
 
         if (frame.branchTaken)
         {
-            return { result: ExecutionResult.Goto, gotoTarget: frame.endLine };
+            return { result: ExecutionResult.Goto, gotoTarget: this.endIfLine };
         }
 
         const conditionValue = this.condition.evaluate(context);

@@ -94,12 +94,6 @@ export class DoLoopStatement extends Statement
             case DoLoopVariant.DoLoopWhile:
             case DoLoopVariant.DoLoopUntil:
             case DoLoopVariant.DoLoop:
-                runtime.pushControlFrame({
-                    type: 'do',
-                    startLine: currentPc,
-                    endLine: this.loopLine
-                });
-
                 return { result: ExecutionResult.Continue };
         }
 
@@ -128,12 +122,6 @@ export class DoLoopStatement extends Statement
             return { result: ExecutionResult.Goto, gotoTarget: loopLine + 1 };
         }
 
-        runtime.pushControlFrame({
-            type: 'do',
-            startLine: currentPc,
-            endLine: loopLine
-        });
-
         return { result: ExecutionResult.Continue };
     }
 
@@ -158,12 +146,6 @@ export class DoLoopStatement extends Statement
         {
             return { result: ExecutionResult.Goto, gotoTarget: loopLine + 1 };
         }
-
-        runtime.pushControlFrame({
-            type: 'do',
-            startLine: currentPc,
-            endLine: loopLine
-        });
 
         return { result: ExecutionResult.Continue };
     }

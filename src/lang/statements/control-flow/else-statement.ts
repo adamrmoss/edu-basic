@@ -11,6 +11,20 @@ import { RuntimeExecution } from '../../runtime-execution';
 export class ElseStatement extends Statement
 {
     /**
+     * Linked IF line index (0-based), when this ELSE belongs to an IF block.
+     *
+     * Populated by static syntax analysis.
+     */
+    public ifLine?: number;
+
+    /**
+     * Linked UNLESS line index (0-based), when this ELSE belongs to an UNLESS block.
+     *
+     * Populated by static syntax analysis.
+     */
+    public unlessLine?: number;
+
+    /**
      * Linked `END IF` line index (0-based).
      *
      * Populated by static syntax analysis.

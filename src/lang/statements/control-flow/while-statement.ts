@@ -65,7 +65,6 @@ export class WhileStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
 
         if (conditionValue.type !== EduBasicType.Integer)
@@ -82,12 +81,6 @@ export class WhileStatement extends Statement
         {
             return { result: ExecutionResult.Goto, gotoTarget: this.wendLine + 1 };
         }
-
-        runtime.pushControlFrame({
-            type: 'while',
-            startLine: currentPc,
-            endLine: this.wendLine
-        });
 
         return { result: ExecutionResult.Continue };
     }

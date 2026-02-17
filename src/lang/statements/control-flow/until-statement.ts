@@ -65,7 +65,6 @@ export class UntilStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
 
         if (conditionValue.type !== EduBasicType.Integer)
@@ -82,12 +81,6 @@ export class UntilStatement extends Statement
         {
             return { result: ExecutionResult.Goto, gotoTarget: this.uendLine + 1 };
         }
-
-        runtime.pushControlFrame({
-            type: 'while',
-            startLine: currentPc,
-            endLine: this.uendLine
-        });
 
         return { result: ExecutionResult.Continue };
     }

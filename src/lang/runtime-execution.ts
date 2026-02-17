@@ -3,12 +3,13 @@ import { ExecutionResult } from './statements/statement';
 import { ExecutionContext } from './execution-context';
 import { Graphics } from './graphics';
 import { Audio } from './audio';
-import { ControlFlowFrameStack } from './control-flow-frame-stack';
 import { ControlStructureFrame, ControlStructureType } from './control-flow-frames';
 import { ProgramSyntaxAnalyzer } from './program-syntax-analysis';
 import { UnparsableStatement } from './statements/unparsable-statement';
 import { FileSystemService } from '../app/disk/filesystem.service';
 import { ConsoleService } from '../app/console/console.service';
+
+type UnwindEntry = { type: 'for' | 'select' | 'sub' | 'if' | 'unless'; startLine: number; endLine: number };
 
 /**
  * Step-by-step runtime executor for a compiled `Program`.
@@ -23,10 +24,18 @@ import { ConsoleService } from '../app/console/console.service';
  * - The program counter lives in `ExecutionContext`.
  * - Control frames live in this instance (not in `ExecutionContext`), because they are
  *   about structured control flow rather than variable scope.
+ *
+ * Dedicated stacks per control type (for, select, sub, if, unless) avoid searching a shared stack;
+ * unwind order is tracked for GOTO so frames are popped in LIFO order.
  */
 export class RuntimeExecution
 {
-    private readonly controlFrames = new ControlFlowFrameStack();
+    private readonly forFrames: ControlStructureFrame[] = [];
+    private readonly ifFrames: ControlStructureFrame[] = [];
+    private readonly selectFrames: ControlStructureFrame[] = [];
+    private readonly subFrames: ControlStructureFrame[] = [];
+    private readonly unlessFrames: ControlStructureFrame[] = [];
+    private readonly unwindOrder: UnwindEntry[] = [];
     private tabSwitchCallback: ((tabId: string) => void) | null = null;
     private sleepUntilMs: number | null = null;
     private readonly syntaxAnalyzer = new ProgramSyntaxAnalyzer();
@@ -127,38 +136,33 @@ export class RuntimeExecution
         // Execute the statement to obtain the next control action.
         const status = statement.execute(this.context, this.graphics, this.audio, this.program, this);
 
-        if (status.result === ExecutionResult.Goto && status.gotoTarget !== undefined)
+        switch (status.result)
         {
-            // Structured blocks must be unwound so the frame stack matches the new location.
-            this.unwindControlFramesForGoto(status.gotoTarget);
-            this.context.setProgramCounter(status.gotoTarget);
-            return ExecutionResult.Continue;
-        }
-
-        if (status.result === ExecutionResult.End)
-        {
-            // The statement requested termination (END/UEND/etc.).
-            return ExecutionResult.End;
-        }
-
-        if (status.result === ExecutionResult.Return)
-        {
-            // Return pops a call frame; if there is no frame, the program ends.
-            const returnAddress = this.context.popStackFrame();
-
-            if (returnAddress !== undefined)
-            {
-                // Resume execution at the stored return address.
-                this.context.setProgramCounter(returnAddress);
+            case ExecutionResult.Goto:
+                if (status.gotoTarget !== undefined)
+                {
+                    this.unwindControlFramesForGoto(status.gotoTarget);
+                    this.context.setProgramCounter(status.gotoTarget);
+                }
                 return ExecutionResult.Continue;
+            case ExecutionResult.End:
+                return ExecutionResult.End;
+            case ExecutionResult.Return:
+            {
+                const returnAddress = this.context.popStackFrame();
+
+                if (returnAddress !== undefined)
+                {
+                    this.context.setProgramCounter(returnAddress);
+                    return ExecutionResult.Continue;
+                }
+
+                return ExecutionResult.End;
             }
-
-            return ExecutionResult.End;
+            default:
+                this.context.incrementProgramCounter();
+                return ExecutionResult.Continue;
         }
-
-        // Default behavior: advance to the next statement.
-        this.context.incrementProgramCounter();
-        return ExecutionResult.Continue;
     }
 
     private ensureProgramLinked(): void
@@ -199,24 +203,21 @@ export class RuntimeExecution
      */
     private unwindControlFramesForGoto(targetPc: number): void
     {
-        // Pop frames until the target lies within the active frame span.
-        while (true)
+        while (this.unwindOrder.length > 0)
         {
-            const top = this.getCurrentControlFrame();
-            if (!top)
+            const entry = this.unwindOrder[this.unwindOrder.length - 1];
+
+            if (targetPc >= entry.startLine && targetPc <= entry.endLine)
             {
                 return;
             }
 
-            if (targetPc < top.startLine || targetPc > top.endLine)
+            if (entry.type === 'sub')
             {
-                // The jump leaves the current structured block, so discard its frame.
-                this.popControlFrame();
-                continue;
+                this.context.popStackFrame();
             }
 
-            // The target is inside the current frame; stop unwinding.
-            return;
+            this.popControlFrame();
         }
     }
 
@@ -241,19 +242,80 @@ export class RuntimeExecution
     }
 
     /**
-     * Push a new structured-control frame (IF/WHILE/FOR/etc.).
+     * Push a new structured-control frame (FOR/SELECT/SUB/IF/UNLESS).
      */
     public pushControlFrame(frame: ControlStructureFrame): void
     {
-        this.controlFrames.push(frame);
+        const type = frame.type;
+
+        switch (type)
+        {
+            case 'for':
+                this.forFrames.push(frame);
+                break;
+            case 'if':
+                this.ifFrames.push(frame);
+                break;
+            case 'select':
+                this.selectFrames.push(frame);
+                break;
+            case 'sub':
+                this.subFrames.push(frame);
+                break;
+            case 'unless':
+                this.unlessFrames.push(frame);
+                break;
+            default:
+                return;
+        }
+
+        this.unwindOrder.push({
+            type: type as UnwindEntry['type'],
+            startLine: frame.startLine,
+            endLine: frame.endLine
+        });
     }
 
     /**
-     * Pop the most recent structured-control frame (IF/WHILE/FOR/etc.).
+     * Pop the most recent structured-control frame.
      */
     public popControlFrame(): ControlStructureFrame | undefined
     {
-        return this.controlFrames.pop();
+        if (this.unwindOrder.length === 0)
+        {
+            return undefined;
+        }
+
+        const entry = this.unwindOrder.pop()!;
+        let frame: ControlStructureFrame | undefined;
+
+        switch (entry.type)
+        {
+            case 'for':
+                frame = this.forFrames.pop();
+                break;
+            case 'if':
+                frame = this.ifFrames.pop();
+                break;
+            case 'select':
+                frame = this.selectFrames.pop();
+                break;
+            case 'sub':
+                frame = this.subFrames.pop();
+                break;
+            case 'unless':
+                frame = this.unlessFrames.pop();
+                break;
+            default:
+                return undefined;
+        }
+
+        return frame;
+    }
+
+    private peekFrameStack(stack: ControlStructureFrame[]): ControlStructureFrame | undefined
+    {
+        return stack.length > 0 ? stack[stack.length - 1] : undefined;
     }
 
     /**
@@ -261,23 +323,106 @@ export class RuntimeExecution
      */
     public getCurrentControlFrame(): ControlStructureFrame | undefined
     {
-        return this.controlFrames.peek();
+        if (this.unwindOrder.length === 0)
+        {
+            return undefined;
+        }
+
+        const entryType = this.unwindOrder[this.unwindOrder.length - 1].type;
+
+        switch (entryType)
+        {
+            case 'for':
+                return this.peekFrameStack(this.forFrames);
+            case 'if':
+                return this.peekFrameStack(this.ifFrames);
+            case 'select':
+                return this.peekFrameStack(this.selectFrames);
+            case 'sub':
+                return this.peekFrameStack(this.subFrames);
+            case 'unless':
+                return this.peekFrameStack(this.unlessFrames);
+            default:
+                return undefined;
+        }
     }
 
     /**
-     * Find the most recent frame with the given type.
+     * Find the most recent frame with the given type (O(1) via dedicated stack).
      */
     public findControlFrame(type: ControlStructureType): ControlStructureFrame | undefined
     {
-        return this.controlFrames.find(type);
+        switch (type)
+        {
+            case 'for':
+                return this.peekFrameStack(this.forFrames);
+            case 'if':
+                return this.peekFrameStack(this.ifFrames);
+            case 'select':
+                return this.peekFrameStack(this.selectFrames);
+            case 'sub':
+                return this.peekFrameStack(this.subFrames);
+            case 'unless':
+                return this.peekFrameStack(this.unlessFrames);
+            default:
+                return undefined;
+        }
     }
 
     /**
-     * Find the most recent frame matching an arbitrary predicate.
+     * Find the most recent frame matching an arbitrary predicate (search from top of unwind order).
      */
     public findControlFrameWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
     {
-        return this.controlFrames.findWhere(predicate);
+        for (let i = this.unwindOrder.length - 1; i >= 0; i--)
+        {
+            const frame = this.getFrameAtUnwindIndex(i);
+            if (frame && predicate(frame))
+            {
+                return frame;
+            }
+        }
+
+        return undefined;
+    }
+
+    private getFrameAtUnwindIndex(i: number): ControlStructureFrame | undefined
+    {
+        const type = this.unwindOrder[i].type;
+        let count = 0;
+
+        for (let j = 0; j <= i; j++)
+        {
+            if (this.unwindOrder[j].type === type)
+            {
+                count++;
+            }
+        }
+
+        let stack: ControlStructureFrame[];
+
+        switch (type)
+        {
+            case 'for':
+                stack = this.forFrames;
+                break;
+            case 'if':
+                stack = this.ifFrames;
+                break;
+            case 'select':
+                stack = this.selectFrames;
+                break;
+            case 'sub':
+                stack = this.subFrames;
+                break;
+            case 'unless':
+                stack = this.unlessFrames;
+                break;
+            default:
+                return undefined;
+        }
+
+        return count > 0 && count <= stack.length ? stack[count - 1] : undefined;
     }
 
     /**
@@ -285,7 +430,14 @@ export class RuntimeExecution
      */
     public popControlFramesToAndIncluding(type: ControlStructureType): void
     {
-        this.controlFrames.popToAndIncluding(type);
+        while (this.unwindOrder.length > 0)
+        {
+            const popped = this.popControlFrame();
+            if (popped && popped.type === type)
+            {
+                return;
+            }
+        }
     }
 
     /**
@@ -293,6 +445,17 @@ export class RuntimeExecution
      */
     public popControlFramesToAndIncludingWhere(predicate: (frame: ControlStructureFrame) => boolean): ControlStructureFrame | undefined
     {
-        return this.controlFrames.popToAndIncludingWhere(predicate);
+        while (this.unwindOrder.length > 0)
+        {
+            const top = this.getCurrentControlFrame();
+            if (top && predicate(top))
+            {
+                return this.popControlFrame();
+            }
+
+            this.popControlFrame();
+        }
+
+        return undefined;
     }
 }

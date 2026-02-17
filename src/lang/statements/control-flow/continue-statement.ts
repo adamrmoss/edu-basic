@@ -32,6 +32,13 @@ export enum ContinueTarget
 export class ContinueStatement extends Statement
 {
     /**
+     * Linked line index (0-based) to jump to for the next iteration.
+     *
+     * Populated by static syntax analysis for CONTINUE DO and CONTINUE WHILE.
+     */
+    public continueTargetLine?: number;
+
+    /**
      * Continue target discriminator.
      */
     public readonly target: ContinueTarget;
@@ -60,24 +67,14 @@ export class ContinueStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        let frameType: 'while' | 'do' | 'for' | undefined;
-
-        switch (this.target)
+        if (this.continueTargetLine !== undefined)
         {
-            case ContinueTarget.For:
-                frameType = 'for';
-                break;
-            case ContinueTarget.While:
-                frameType = 'while';
-                break;
-            case ContinueTarget.Do:
-                frameType = 'do';
-                break;
+            return { result: ExecutionResult.Goto, gotoTarget: this.continueTargetLine };
         }
 
-        if (frameType)
+        if (this.target === ContinueTarget.For)
         {
-            const frame = runtime.findControlFrame(frameType);
+            const frame = runtime.findControlFrame('for');
 
             if (frame)
             {

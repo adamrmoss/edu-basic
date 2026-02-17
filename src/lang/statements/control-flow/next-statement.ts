@@ -12,6 +12,13 @@ import { EduBasicType } from '../../edu-basic-value';
 export class NextStatement extends Statement
 {
     /**
+     * Linked FOR line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public forLine?: number;
+
+    /**
      * Optional loop variable name for `NEXT var%`.
      */
     public readonly variableName: string | null;
@@ -45,22 +52,30 @@ export class NextStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        if (!this.isLinkedToProgram)
+        if (!this.isLinkedToProgram || this.forLine === undefined)
         {
             return { result: ExecutionResult.Continue };
         }
 
-        const forFrame = this.variableName
-            ? runtime.findControlFrameWhere(frame =>
+        const forFrame = runtime.findControlFrameWhere(frame =>
+        {
+            if (frame.type !== 'for')
             {
-                if (frame.type !== 'for' || !frame.loopVariable)
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                return frame.loopVariable.toUpperCase() === this.variableName!.toUpperCase();
-            })
-            : runtime.findControlFrame('for');
+            if (frame.startLine !== this.forLine)
+            {
+                return false;
+            }
+
+            if (this.variableName && frame.loopVariable)
+            {
+                return frame.loopVariable.toUpperCase() === this.variableName.toUpperCase();
+            }
+
+            return true;
+        });
 
         if (forFrame && forFrame.loopVariable)
         {
@@ -85,7 +100,7 @@ export class NextStatement extends Statement
 
             runtime.popControlFramesToAndIncludingWhere(frame =>
             {
-                if (frame.type !== 'for')
+                if (frame.type !== 'for' || frame.startLine !== this.forLine)
                 {
                     return false;
                 }
@@ -95,12 +110,7 @@ export class NextStatement extends Statement
                     return true;
                 }
 
-                if (!frame.loopVariable)
-                {
-                    return false;
-                }
-
-                return frame.loopVariable.toUpperCase() === this.variableName.toUpperCase();
+                return frame.loopVariable?.toUpperCase() === this.variableName.toUpperCase();
             });
         }
 

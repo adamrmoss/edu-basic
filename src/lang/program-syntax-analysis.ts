@@ -3,11 +3,15 @@ import { Statement } from './statements/statement';
 import {
     CallStatement,
     CaseStatement,
+    ContinueStatement,
+    ContinueTarget,
     DoLoopStatement,
     ElseIfStatement,
     ElseStatement,
     EndStatement,
     EndType,
+    ExitStatement,
+    ExitTarget,
     ForStatement,
     GosubStatement,
     GotoStatement,
@@ -72,6 +76,7 @@ interface BlockFrame
 {
     type: BlockType;
     startLine: number;
+    endLine?: number;
     clauseLines?: number[];
     elseLine?: number;
     caseLines?: number[];
@@ -81,21 +86,28 @@ interface BlockFrame
 type StatementWithOptionalLinks = Statement &
 {
     lineNumber?: number;
+    continueTargetLine?: number;
+    doLine?: number;
     endIfLine?: number;
-    endUnlessLine?: number;
-    elseOrEndLine?: number;
     endSelectLine?: number;
-    firstCaseLine?: number;
-    nextCaseLine?: number;
     endSubLine?: number;
     endTryLine?: number;
+    endUnlessLine?: number;
+    elseOrEndLine?: number;
+    exitTargetLine?: number;
+    firstCaseLine?: number;
+    forLine?: number;
+    ifLine?: number;
+    loopLine?: number;
+    nextCaseLine?: number;
     nextClauseLine?: number;
     nextLine?: number;
-    wendLine?: number;
-    loopLine?: number;
-    uendLine?: number;
-    targetLine?: number;
     subLine?: number;
+    targetLine?: number;
+    unlessLine?: number;
+    untilLine?: number;
+    wendLine?: number;
+    whileLine?: number;
 };
 
 /**
@@ -117,25 +129,32 @@ export class ProgramSyntaxAnalyzer
         // Pass 1: assign line numbers and clear stale link metadata.
         for (let i = 0; i < statements.length; i++)
         {
-            const stmt = statements[i] as StatementWithOptionalLinks;
-            stmt.lineNumber = i;
+            const stmt = statements[i];
+            const links = stmt as StatementWithOptionalLinks;
+            links.lineNumber = i;
 
             // Clear common link properties (they are re-populated below when applicable).
-            stmt.endIfLine = undefined;
-            stmt.endUnlessLine = undefined;
-            stmt.endSelectLine = undefined;
-            stmt.endSubLine = undefined;
-            stmt.endTryLine = undefined;
-            stmt.nextClauseLine = undefined;
-            stmt.elseOrEndLine = undefined;
-            stmt.firstCaseLine = undefined;
-            stmt.nextCaseLine = undefined;
-            stmt.nextLine = undefined;
-            stmt.wendLine = undefined;
-            stmt.loopLine = undefined;
-            stmt.uendLine = undefined;
-            stmt.targetLine = undefined;
-            stmt.subLine = undefined;
+            links.continueTargetLine = undefined;
+            links.doLine = undefined;
+            links.endIfLine = undefined;
+            links.endSelectLine = undefined;
+            links.endSubLine = undefined;
+            links.endTryLine = undefined;
+            links.elseOrEndLine = undefined;
+            links.exitTargetLine = undefined;
+            links.firstCaseLine = undefined;
+            links.forLine = undefined;
+            links.ifLine = undefined;
+            links.loopLine = undefined;
+            links.nextCaseLine = undefined;
+            links.nextClauseLine = undefined;
+            links.nextLine = undefined;
+            links.subLine = undefined;
+            links.targetLine = undefined;
+            links.unlessLine = undefined;
+            links.untilLine = undefined;
+            links.wendLine = undefined;
+            links.whileLine = undefined;
         }
 
         // Pass 2: build label and subroutine maps + basic reference linking (GOTO/GOSUB/CALL).
@@ -330,6 +349,11 @@ export class ProgramSyntaxAnalyzer
                     top.clauseLines.push(i);
                 }
 
+                if (top.type === 'unless')
+                {
+                    (stmt as ElseStatement).unlessLine = top.startLine;
+                }
+
                 continue;
             }
 
@@ -381,16 +405,26 @@ export class ProgramSyntaxAnalyzer
 
             if (stmt instanceof NextStatement)
             {
-                const frame = popExpected('for', i, 'NEXT without FOR');
-                if (!frame)
+                const frame = stack.length > 0 ? stack[stack.length - 1] : null;
+                if (frame && frame.type === 'for')
+                {
+                    frame.endLine = i;
+                    const forStmtAtFrame = statements[frame.startLine];
+                    const forVar = forStmtAtFrame instanceof ForStatement ? forStmtAtFrame.variableName : undefined;
+                    this.backPatchExits(statements, frame.startLine + 1, i - 1, ExitTarget.For, i + 1, forVar);
+                }
+
+                const popped = popExpected('for', i, 'NEXT without FOR');
+                if (!popped)
                 {
                     continue;
                 }
 
-                const forStmt = statements[frame.startLine];
+                const forStmt = statements[popped.startLine];
                 if (forStmt instanceof ForStatement)
                 {
                     forStmt.nextLine = i;
+                    (stmt as NextStatement).forLine = popped.startLine;
 
                     if (stmt.variableName && forStmt.variableName.toUpperCase() !== stmt.variableName.toUpperCase())
                     {
@@ -412,18 +446,26 @@ export class ProgramSyntaxAnalyzer
 
             if (stmt instanceof WendStatement)
             {
-                const frame = popExpected('while', i, 'WEND without WHILE');
-                if (!frame)
+                const frame = stack.length > 0 ? stack[stack.length - 1] : null;
+                if (frame && frame.type === 'while')
+                {
+                    frame.endLine = i;
+                    this.backPatchExits(statements, frame.startLine + 1, i - 1, ExitTarget.While, i + 1);
+                }
+
+                const popped = popExpected('while', i, 'WEND without WHILE');
+                if (!popped)
                 {
                     continue;
                 }
 
-                const whileStmt = statements[frame.startLine];
+                const whileStmt = statements[popped.startLine];
                 if (whileStmt instanceof WhileStatement)
                 {
                     whileStmt.wendLine = i;
                 }
 
+                (stmt as WendStatement).whileLine = popped.startLine;
                 continue;
             }
 
@@ -435,16 +477,52 @@ export class ProgramSyntaxAnalyzer
 
             if (stmt instanceof LoopStatement)
             {
-                const frame = popExpected('do', i, 'LOOP without DO');
-                if (!frame)
+                const frame = stack.length > 0 ? stack[stack.length - 1] : null;
+                if (frame && frame.type === 'do')
+                {
+                    frame.endLine = i;
+                    this.backPatchExits(statements, frame.startLine + 1, i - 1, ExitTarget.Do, i + 1);
+                }
+
+                const popped = popExpected('do', i, 'LOOP without DO');
+                if (!popped)
                 {
                     continue;
                 }
 
-                const doStmt = statements[frame.startLine];
+                const doStmt = statements[popped.startLine];
                 if (doStmt instanceof DoLoopStatement)
                 {
                     doStmt.loopLine = i;
+                }
+
+                (stmt as LoopStatement).doLine = popped.startLine;
+                continue;
+            }
+
+            if (stmt instanceof ContinueStatement)
+            {
+                if (stmt.target === ContinueTarget.Do)
+                {
+                    for (let k = stack.length - 1; k >= 0; k--)
+                    {
+                        if (stack[k].type === 'do')
+                        {
+                            (stmt as ContinueStatement).continueTargetLine = stack[k].startLine + 1;
+                            break;
+                        }
+                    }
+                }
+                else if (stmt.target === ContinueTarget.While)
+                {
+                    for (let k = stack.length - 1; k >= 0; k--)
+                    {
+                        if (stack[k].type === 'while')
+                        {
+                            (stmt as ContinueStatement).continueTargetLine = stack[k].startLine + 1;
+                            break;
+                        }
+                    }
                 }
 
                 continue;
@@ -458,18 +536,19 @@ export class ProgramSyntaxAnalyzer
 
             if (stmt instanceof UendStatement)
             {
-                const frame = popExpected('until', i, 'UEND without UNTIL');
-                if (!frame)
+                const popped = popExpected('until', i, 'UEND without UNTIL');
+                if (!popped)
                 {
                     continue;
                 }
 
-                const untilStmt = statements[frame.startLine];
+                const untilStmt = statements[popped.startLine];
                 if (untilStmt instanceof UntilStatement)
                 {
                     untilStmt.uendLine = i;
                 }
 
+                (stmt as UendStatement).untilLine = popped.startLine;
                 continue;
             }
 
@@ -515,6 +594,7 @@ export class ProgramSyntaxAnalyzer
                             unlessStmt.elseOrEndLine = frame.elseLine ?? i;
                         }
 
+                        (stmt as EndStatement).unlessLine = frame.startLine;
                         break;
                     }
                     case EndType.Select:
@@ -603,12 +683,19 @@ export class ProgramSyntaxAnalyzer
             }
 
             clauseStmt.endIfLine = endIfLine;
+            (clauseStmt as StatementWithOptionalLinks).ifLine = frame.startLine;
 
             const nextClauseLine = i + 1 < clauseLines.length ? clauseLines[i + 1] : endIfLine;
             if (clauseStmt instanceof IfStatement || clauseStmt instanceof ElseIfStatement)
             {
                 clauseStmt.nextClauseLine = nextClauseLine;
             }
+        }
+
+        const endIfStmt = statements[endIfLine];
+        if (endIfStmt instanceof EndStatement && endIfStmt.endType === EndType.If)
+        {
+            (endIfStmt as StatementWithOptionalLinks).ifLine = frame.startLine;
         }
     }
 
@@ -635,6 +722,35 @@ export class ProgramSyntaxAnalyzer
             {
                 caseStmt.endSelectLine = endSelectLine;
                 caseStmt.nextCaseLine = nextCaseLine;
+            }
+        }
+    }
+
+    private backPatchExits(
+        statements: readonly Statement[],
+        startLine: number,
+        endLine: number,
+        exitTarget: ExitTarget,
+        targetLine: number,
+        forVariableName?: string
+    ): void
+    {
+        for (let j = startLine; j <= endLine; j++)
+        {
+            const s = statements[j];
+            if (!(s instanceof ExitStatement) || s.target !== exitTarget)
+            {
+                continue;
+            }
+
+            const shouldSet =
+                exitTarget === ExitTarget.For && forVariableName !== undefined && s.forVariableName != null
+                    ? s.forVariableName.toUpperCase() === forVariableName.toUpperCase()
+                    : s.exitTargetLine === undefined;
+
+            if (shouldSet)
+            {
+                s.exitTargetLine = targetLine;
             }
         }
     }

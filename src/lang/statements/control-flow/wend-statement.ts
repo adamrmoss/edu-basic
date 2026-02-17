@@ -12,6 +12,13 @@ import { EduBasicType } from '../../edu-basic-value';
  */
 export class WendStatement extends Statement
 {
+    /**
+     * Linked WHILE line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public whileLine?: number;
+
     public constructor()
     {
         super();
@@ -45,34 +52,27 @@ export class WendStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        const top = runtime.getCurrentControlFrame();
-
-        if (top && top.type === 'while')
-        {
-            const whileStmt = program.getStatement(top.startLine);
-
-            if (whileStmt instanceof WhileStatement)
-            {
-                const conditionValue = whileStmt.condition.evaluate(context);
-
-                if (conditionValue.type !== EduBasicType.Integer)
-                {
-                    throw new Error('WHILE condition must evaluate to an integer');
-                }
-
-                if (conditionValue.value !== 0)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
-                }
-                else
-                {
-                    runtime.popControlFrame();
-                }
-            }
-        }
-        else
+        if (this.whileLine === undefined)
         {
             throw new Error('WEND without WHILE');
+        }
+
+        const whileStmt = program.getStatement(this.whileLine);
+        if (!(whileStmt instanceof WhileStatement))
+        {
+            throw new Error('WEND without WHILE');
+        }
+
+        const conditionValue = whileStmt.condition.evaluate(context);
+
+        if (conditionValue.type !== EduBasicType.Integer)
+        {
+            throw new Error('WHILE condition must evaluate to an integer');
+        }
+
+        if (conditionValue.value !== 0)
+        {
+            return { result: ExecutionResult.Goto, gotoTarget: this.whileLine + 1 };
         }
 
         return { result: ExecutionResult.Continue };

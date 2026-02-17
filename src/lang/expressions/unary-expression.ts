@@ -165,26 +165,23 @@ export class UnaryExpression extends Expression
 
             case UnaryOperator.Minus:
             {
-                if (operandValue.type === EduBasicType.Integer)
+                switch (operandValue.type)
                 {
-                    return { type: EduBasicType.Integer, value: -operandValue.value };
+                    case EduBasicType.Integer:
+                        return { type: EduBasicType.Integer, value: -operandValue.value };
+                    case EduBasicType.Real:
+                        return { type: EduBasicType.Real, value: -operandValue.value };
+                    case EduBasicType.Complex:
+                        return {
+                            type: EduBasicType.Complex,
+                            value: {
+                                real: -operandValue.value.real,
+                                imaginary: -operandValue.value.imaginary
+                            }
+                        };
+                    default:
+                        throw new Error(`Cannot negate ${operandValue.type}`);
                 }
-                else if (operandValue.type === EduBasicType.Real)
-                {
-                    return { type: EduBasicType.Real, value: -operandValue.value };
-                }
-                else if (operandValue.type === EduBasicType.Complex)
-                {
-                    return {
-                        type: EduBasicType.Complex,
-                        value: {
-                            real: -operandValue.value.real,
-                            imaginary: -operandValue.value.imaginary
-                        }
-                    };
-                }
-                
-                throw new Error(`Cannot negate ${operandValue.type}`);
             }
 
             case UnaryOperator.Not:
