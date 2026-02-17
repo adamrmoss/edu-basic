@@ -60,7 +60,8 @@ export class PushStatement extends Statement
         {
             throw new Error(`PUSH: ${this.arrayVariable} is multi-dimensional`);
         }
-        
+
+        // Append value and keep single-dimension length in sync.
         array.value.push(valueResult);
 
         if (array.dimensions && array.dimensions.length === 1)

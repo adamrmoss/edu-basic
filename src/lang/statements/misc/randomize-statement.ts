@@ -65,6 +65,7 @@ export class RandomizeStatement extends Statement
         
         return () =>
         {
+            // Linear congruential PRNG state update (glibc-style constants).
             state = (state * 1103515245 + 12345) & 0x7fffffff;
             return state / 0x7fffffff;
         };

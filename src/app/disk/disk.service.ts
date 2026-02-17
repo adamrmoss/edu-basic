@@ -150,6 +150,7 @@ export class DiskService
         const programCandidates = fileEntries.filter(([p]) => p.toLowerCase() === DiskService.INTERNAL_PROGRAM_PATH);
         const otherEntries = fileEntries.filter(([p]) => p.toLowerCase() !== DiskService.INTERNAL_PROGRAM_PATH);
 
+        // Write non-program files first; then resolve program file (prefer Program.bas, else first candidate).
         for (const [relativePath, zipEntry] of otherEntries)
         {
             const data = await zipEntry.async('uint8array');

@@ -108,6 +108,7 @@ export class CaseStatement extends Statement
             throw new Error('CASE: missing SELECT test value');
         }
 
+        // First selector that matches (value, range, or IS op) runs this clause; else skip to next CASE.
         for (const selector of this.selectors)
         {
             if (this.matchesSelector(frame.selectTestValue, selector, context))

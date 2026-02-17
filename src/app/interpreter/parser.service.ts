@@ -114,7 +114,7 @@ export class ParserService
     public parseLine(lineNumber: number, sourceText: string): ParseResult<ParsedLine>
     {
         const trimmedText = sourceText.trim();
-        
+
         if (!trimmedText || trimmedText.startsWith("'"))
         {
             const statement = new UnparsableStatement(sourceText, 'Comment or empty line');
@@ -131,6 +131,7 @@ export class ParserService
             return success(parsed);
         }
 
+        // Tokenize then dispatch by first keyword; failures still return success with UnparsableStatement so UI can show errors.
         const tokenizeResult = this.tokenizer.tokenize(trimmedText);
         if (!tokenizeResult.success)
         {
@@ -240,6 +241,7 @@ export class ParserService
 
     private parseStatement(context: ParserContext): ParseResult<Statement>
     {
+        // Dispatch by first keyword; non-keyword tokens fall through to label or error.
         const token = context.peek();
 
         if (token.type === TokenType.Keyword)

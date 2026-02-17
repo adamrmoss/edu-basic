@@ -74,12 +74,13 @@ export class LineStatement extends Statement
         const y1Val = this.y1.evaluate(context);
         const x2Val = this.x2.evaluate(context);
         const y2Val = this.y2.evaluate(context);
-        
+
+        // Coerce coordinates to integer for the graphics grid.
         const x1 = Math.floor(x1Val.type === EduBasicType.Integer || x1Val.type === EduBasicType.Real ? x1Val.value as number : 0);
         const y1 = Math.floor(y1Val.type === EduBasicType.Integer || y1Val.type === EduBasicType.Real ? y1Val.value as number : 0);
         const x2 = Math.floor(x2Val.type === EduBasicType.Integer || x2Val.type === EduBasicType.Real ? x2Val.value as number : 0);
         const y2 = Math.floor(y2Val.type === EduBasicType.Integer || y2Val.type === EduBasicType.Real ? y2Val.value as number : 0);
-        
+
         if (this.color)
         {
             const colorValue = this.color.evaluate(context);

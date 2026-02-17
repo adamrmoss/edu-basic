@@ -111,7 +111,7 @@ export class RuntimeExecution
     {
         this.ensureProgramLinked();
 
-        // If a sleep is active, keep yielding `Continue` until the timestamp elapses.
+        // If a sleep is active, keep yielding Continue until the timestamp elapses.
         if (this.sleepUntilMs !== null)
         {
             if (Date.now() < this.sleepUntilMs)
@@ -136,6 +136,7 @@ export class RuntimeExecution
         // Execute the statement to obtain the next control action.
         const status = statement.execute(this.context, this.graphics, this.audio, this.program, this);
 
+        // Apply control effect: GOTO unwinds frames so stack matches target; RETURN pops call frame.
         switch (status.result)
         {
             case ExecutionResult.Goto:
@@ -172,6 +173,7 @@ export class RuntimeExecution
             return;
         }
 
+        // Fail fast on any unparsable line (other than comment/empty) before linking.
         const statements = this.program.getStatements();
         for (let i = 0; i < statements.length; i++)
         {
@@ -203,6 +205,7 @@ export class RuntimeExecution
      */
     private unwindControlFramesForGoto(targetPc: number): void
     {
+        // Pop frames until target PC lies inside the top frame's span (or stack empty).
         while (this.unwindOrder.length > 0)
         {
             const entry = this.unwindOrder[this.unwindOrder.length - 1];
@@ -391,6 +394,7 @@ export class RuntimeExecution
         const type = this.unwindOrder[i].type;
         let count = 0;
 
+        // Count how many frames of this type appear up to index i (nth frame of type).
         for (let j = 0; j <= i; j++)
         {
             if (this.unwindOrder[j].type === type)

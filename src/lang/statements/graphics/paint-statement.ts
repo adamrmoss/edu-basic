@@ -86,26 +86,23 @@ export class PaintStatement extends Statement
         const stackX: number[] = [x];
         const stackY: number[] = [y];
 
+        // Flood fill via stack-based 4-neighbour expansion.
         while (stackX.length > 0)
         {
             const cx = stackX.pop()!;
             const cy = stackY.pop()!;
-
             const visitIndex = cy * graphics.width + cx;
             if (visited[visitIndex])
             {
                 continue;
             }
             visited[visitIndex] = 1;
-
             const current = PaintStatement.getPixel(buffer, graphics.width, graphics.height, cx, cy);
             if (current.r !== target.r || current.g !== target.g || current.b !== target.b || current.a !== target.a)
             {
                 continue;
             }
-
             PaintStatement.setPixel(buffer, graphics.width, graphics.height, cx, cy, fill);
-
             if (cx > 0)
             {
                 stackX.push(cx - 1);
@@ -127,7 +124,6 @@ export class PaintStatement extends Statement
                 stackY.push(cy + 1);
             }
         }
-
         graphics.flush();
         runtime.requestTabSwitch('output');
 

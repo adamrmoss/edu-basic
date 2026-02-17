@@ -171,11 +171,12 @@ export class ConsoleService
         this.historyIndexSubject.next(-1);
 
         const trimmedCommand = command.trim();
-        
+
         let parsedLine: ParsedLine | null = null;
-        
+
+        // Try expression first (REPL-style: value is printed); otherwise parse as statement.
         const expressionResult = this.expressionParser.parseExpression(trimmedCommand);
-        
+
         if (expressionResult.success)
         {
             const consoleStatement = new ConsoleStatement(expressionResult.value);

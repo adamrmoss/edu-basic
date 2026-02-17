@@ -144,7 +144,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         {
             const lineIndex = this.textEditorRef.getCursorLineIndex();
 
-            // Defer so the browser inserts the newline first; then input/onLinesChange runs and we see the new empty line.
+            // Defer so the browser inserts the newline first; canonicalize current line, insert new line, then set cursor after indent.
             setTimeout(() => {
                 this.updateLineWithCanonical(lineIndex);
                 this.insertCanonicalEmptyLine(lineIndex);

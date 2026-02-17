@@ -82,6 +82,7 @@ export class CallStatement extends Statement
         const byRefBindings = new Map<string, string>();
         const byValValues = new Map<string, EduBasicValue>();
 
+        // Build by-ref map (param name -> caller variable name) and by-val map; BYREF args must be variables.
         for (let j = 0; j < stmt.parameters.length; j++)
         {
             const param = stmt.parameters[j];

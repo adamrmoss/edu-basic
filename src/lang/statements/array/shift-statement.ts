@@ -47,8 +47,9 @@ export class ShiftStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Resolve the array variable and validate it is a single-dimension array with at least one element.
         const array = context.getVariable(this.arrayVariable);
-        
+
         if (array.type !== EduBasicType.Array)
         {
             throw new Error(`SHIFT: ${this.arrayVariable} is not an array`);
@@ -58,26 +59,27 @@ export class ShiftStatement extends Statement
         {
             throw new Error(`SHIFT: ${this.arrayVariable} is multi-dimensional`);
         }
-        
+
         const arrayData = array.value;
-        
+
         if (arrayData.length === 0)
         {
             throw new Error(`SHIFT: ${this.arrayVariable} is empty`);
         }
-        
+
+        // Remove the first element from the array.
         const value = arrayData.shift()!;
 
         if (array.dimensions && array.dimensions.length === 1)
         {
             array.dimensions[0].length = arrayData.length;
         }
-        
+
         if (this.targetVariable)
         {
             context.setVariable(this.targetVariable, value);
         }
-        
+
         return { result: ExecutionResult.Continue };
     }
 

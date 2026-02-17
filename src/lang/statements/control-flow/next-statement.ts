@@ -81,12 +81,13 @@ export class NextStatement extends Statement
         {
             const currentValue = context.getVariable(forFrame.loopVariable);
             const stepValue = forFrame.loopStepValue ?? 1;
-            
+
             if (currentValue.type === EduBasicType.Integer || currentValue.type === EduBasicType.Real)
             {
                 const newValue = (currentValue.value as number) + stepValue;
                 const endValue = forFrame.loopEndValue;
 
+                // If still within bounds (by step direction), update variable and jump back to FOR body.
                 const shouldContinue = endValue !== undefined && (stepValue > 0
                     ? newValue <= endValue
                     : newValue >= endValue);

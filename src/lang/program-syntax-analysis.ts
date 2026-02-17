@@ -274,6 +274,7 @@ export class ProgramSyntaxAnalyzer
 
     private linkStructuredBlocks(statements: readonly Statement[], errors: StaticAnalysisError[]): void
     {
+        // Single pass with a stack: push on block open (IF/FOR/SUB/etc.), pop and link on block close (END IF/NEXT/etc.).
         const stack: BlockFrame[] = [];
 
         const push = (frame: BlockFrame): void =>

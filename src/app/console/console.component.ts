@@ -45,6 +45,7 @@ export class ConsoleComponent implements OnInit, OnDestroy
      */
     public ngOnInit(): void
     {
+        // Subscribe to display history so the view stays in sync with console output.
         this.consoleService.displayHistory$
             .pipe(takeUntil(this.destroy$))
             .subscribe(history => {
@@ -57,6 +58,7 @@ export class ConsoleComponent implements OnInit, OnDestroy
      */
     public ngOnDestroy(): void
     {
+        // Signal subscribers to tear down and complete the subject.
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -70,16 +72,18 @@ export class ConsoleComponent implements OnInit, OnDestroy
      */
     public onKeyDown(event: KeyboardEvent): void
     {
+        // Enter: run command (canonicalize if parseable); Arrow Up/Down: navigate history and fill input.
         switch (event.key)
         {
             case 'Enter':
             {
                 const input = this.currentInput.trim();
-                
+
                 if (input)
                 {
+                    // If the line parses cleanly, canonicalize and run that; otherwise run raw input.
                     const canonical = this.getCanonicalRepresentation(input);
-                    
+
                     if (canonical !== null)
                     {
                         this.currentInput = canonical;
@@ -98,8 +102,9 @@ export class ConsoleComponent implements OnInit, OnDestroy
             case 'ArrowUp':
             {
                 event.preventDefault();
+                // Move back in history and fill the input line if a previous command exists.
                 const previousCommand = this.consoleService.navigateHistoryUp();
-                
+
                 if (previousCommand !== null)
                 {
                     this.currentInput = previousCommand;
@@ -110,8 +115,9 @@ export class ConsoleComponent implements OnInit, OnDestroy
             case 'ArrowDown':
             {
                 event.preventDefault();
+                // Move forward in history and fill the input line if a next command exists.
                 const nextCommand = this.consoleService.navigateHistoryDown();
-                
+
                 if (nextCommand !== null)
                 {
                     this.currentInput = nextCommand;
@@ -123,6 +129,7 @@ export class ConsoleComponent implements OnInit, OnDestroy
 
     private getCanonicalRepresentation(input: string): string | null
     {
+        // Parse the line; if successful and error-free, return the canonical source form.
         const parsedLine = this.consoleService.parseLine(input);
 
         if (parsedLine !== null && !parsedLine.hasError)

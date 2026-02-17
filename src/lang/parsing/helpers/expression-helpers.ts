@@ -37,6 +37,7 @@ export class ExpressionHelpers
         {
             const token = TokenHelpers.peek(tokens, current.value);
 
+            // Only consider terminators when not inside nested parens/brackets/braces.
             if (parenDepth === 0 && bracketDepth === 0 && braceDepth === 0)
             {
                 const stopTokens = [

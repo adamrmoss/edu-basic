@@ -234,6 +234,7 @@ export class InterpreterService
         const errors: string[] = [];
         const syntaxAnalyzer = new ProgramSyntaxAnalyzer();
 
+        // Parse each line into a statement (or UnparsableStatement); then run syntax analysis and link.
         const lines = sourceCode.split(/\r?\n/);
         for (let i = 0; i < lines.length; i++)
         {

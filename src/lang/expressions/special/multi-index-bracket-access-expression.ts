@@ -102,6 +102,7 @@ export class MultiIndexBracketAccessExpression extends Expression
 
         let flatIndex = 0;
 
+        // Convert multi-dimensional 1-based indices to linear index using dimension strides.
         for (let d = 0; d < dimensions.length; d++)
         {
             const dim = dimensions[d];

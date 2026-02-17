@@ -68,6 +68,7 @@ export class BracketAccessExpression extends Expression
             const length = dimensions && dimensions.length === 1 ? dimensions[0].length : baseValue.value.length;
             const stride = dimensions && dimensions.length === 1 ? dimensions[0].stride : 1;
 
+            // Compute linear offset from 1-based index and dimension lower/stride.
             const offset = index - lower;
             const flatIndex = offset * stride;
             if (offset < 0 || offset >= length || flatIndex < 0 || flatIndex >= baseValue.value.length)

@@ -55,6 +55,7 @@ export class OutputComponent implements AfterViewInit, OnDestroy
             {
                 if (buffer && context)
                 {
+                    // Redraw canvas from flushed ImageData on each buffer update.
                     context.putImageData(buffer, 0, 0);
                 }
             });

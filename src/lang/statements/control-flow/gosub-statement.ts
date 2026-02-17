@@ -60,6 +60,7 @@ export class GosubStatement extends Statement
             throw new Error(`Label '${this.labelName}' not found`);
         }
 
+        // Push return address (next line) then jump to label.
         context.pushStackFrame(currentPc + 1);
 
         return { result: ExecutionResult.Goto, gotoTarget: labelIndex };

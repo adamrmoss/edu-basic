@@ -240,6 +240,7 @@ export class DirectoryNode extends FileSystemNode
      */
     public moveTo(oldParent: DirectoryNode | null, newParent: DirectoryNode): boolean
     {
+        // Prevent move into self or descendant; then remove from old parent, update paths recursively, add to new parent.
         if (newParent === this)
         {
             return false;

@@ -70,6 +70,7 @@ export class ReadFileStatement extends Statement
             const elementType = arrayValue.elementType;
             const values = arrayValue.value;
 
+            // Read one value per array element from the file and assign back into the array.
             for (let i = 0; i < values.length; i++)
             {
                 values[i] = this.readValue(fileSystem, handleId, elementType);

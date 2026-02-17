@@ -69,6 +69,7 @@ export class DimStatement extends Statement
         const values: EduBasicValue[] = new Array(totalLength);
         const defaultValue = this.getDefaultValueForType(elementType);
 
+        // Fill linear buffer with type default; strides in dimensions are for multi-index access.
         for (let i = 0; i < totalLength; i++)
         {
             values[i] = defaultValue;

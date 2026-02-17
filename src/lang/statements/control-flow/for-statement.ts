@@ -118,6 +118,7 @@ export class ForStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
+        // Decide whether to enter the loop or jump past NEXT (step sign determines direction of comparison).
         const shouldEnter = stepValueNum > 0
             ? startValueNum <= endValueNum
             : startValueNum >= endValueNum;

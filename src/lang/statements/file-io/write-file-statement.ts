@@ -70,6 +70,7 @@ export class WriteFileStatement extends Statement
 
         if (value.type === EduBasicType.Array)
         {
+            // Write each array element in order to the file.
             for (const element of value.value)
             {
                 this.writeValue(fileSystem, handleId, element);

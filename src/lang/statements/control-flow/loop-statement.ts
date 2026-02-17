@@ -89,6 +89,7 @@ export class LoopStatement extends Statement
 
         const variant = doStmt.variant;
 
+        // DO LOOP: optional LOOP WHILE/UNTIL tested here; DO WHILE/UNTIL: re-evaluate DO condition at LOOP.
         if (variant === DoLoopVariant.DoLoop)
         {
             if (this.conditionVariant === LoopConditionVariant.None)

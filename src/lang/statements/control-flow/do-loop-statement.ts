@@ -85,6 +85,7 @@ export class DoLoopStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
+        // DO WHILE/UNTIL test at top and jump past LOOP if condition fails; DO LOOP variants just enter body.
         switch (this.variant)
         {
             case DoLoopVariant.DoWhile:

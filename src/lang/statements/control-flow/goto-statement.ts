@@ -52,6 +52,7 @@ export class GotoStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
+        // Use linked target line if set by syntax analysis, otherwise resolve label by name.
         const labelIndex = this.targetLine ?? program.getLabelIndex(this.labelName);
 
         if (labelIndex === undefined)

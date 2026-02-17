@@ -74,6 +74,7 @@ export class LetBracketStatement extends Statement
 
         let current: EduBasicValue = rootValue;
 
+        // Walk path segments to reach the parent of the last; then assign at the last segment.
         for (let i = 0; i < this.segments.length - 1; i++)
         {
             const seg = this.segments[i];

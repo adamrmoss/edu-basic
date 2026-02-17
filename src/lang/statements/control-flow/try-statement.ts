@@ -85,6 +85,7 @@ export class TryStatement extends Statement
     {
         if (this.tryBody.length > 0)
         {
+            // Run TRY body in order; return on first non-Continue so jump or error propagates.
             for (const stmt of this.tryBody)
             {
                 const status = stmt.execute(context, graphics, audio, program, runtime);
@@ -94,7 +95,6 @@ export class TryStatement extends Statement
                 }
             }
         }
-
         return { result: ExecutionResult.Continue };
     }
 
@@ -102,6 +102,7 @@ export class TryStatement extends Statement
     {
         const statements = program.getStatements();
 
+        // Scan forward for END TRY by line index.
         for (let i = startLine + 1; i < statements.length; i++)
         {
             const stmt = statements[i];

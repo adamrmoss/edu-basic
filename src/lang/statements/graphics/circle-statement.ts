@@ -73,7 +73,8 @@ export class CircleStatement extends Statement
         const cxVal = this.centerX.evaluate(context);
         const cyVal = this.centerY.evaluate(context);
         const rVal = this.radius.evaluate(context);
-        
+
+        // Coerce center and radius to integer for the graphics grid.
         const cx = Math.floor(cxVal.type === EduBasicType.Integer || cxVal.type === EduBasicType.Real ? cxVal.value as number : 0);
         const cy = Math.floor(cyVal.type === EduBasicType.Integer || cyVal.type === EduBasicType.Real ? cyVal.value as number : 0);
         const radius = Math.floor(rVal.type === EduBasicType.Integer || rVal.type === EduBasicType.Real ? rVal.value as number : 0);
