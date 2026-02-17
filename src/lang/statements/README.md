@@ -10,6 +10,7 @@ All statements extend the abstract `Statement` class:
 abstract class Statement extends RuntimeNode
 {
     indentLevel: number = 0;
+    lineNumber?: number;
     
     abstract execute(
         context: ExecutionContext,
@@ -318,10 +319,24 @@ interface ExecutionStatus {
 
 ### Indentation
 
-Statements track `indentLevel` for block structure:
-- IF/WHILE/FOR blocks have higher indent
-- Used for parsing nested structures
-- `getIndentAdjustment()` returns indent change
+Statements track `indentLevel` for editor formatting:
+- `ParserService` assigns `indentLevel` based on `getIndentAdjustment()` so the editor can indent blocks while typing.
+- Indentation does **not** define execution semantics.
+
+### Static Control-Flow Linking
+
+Structured control flow is linked by static program syntax analysis:
+- After a `Program` is built (or changed), a linker assigns `statement.lineNumber` and populates line-index references such as:
+  - IF / ELSEIF / ELSE / END IF
+  - UNLESS / ELSE / END UNLESS
+  - FOR / NEXT
+  - WHILE / WEND
+  - DO / LOOP
+  - UNTIL / UEND
+  - SELECT CASE / CASE / END SELECT
+  - SUB / END SUB and CALL -> SUB mapping
+
+At execution-time, the runtime uses these precomputed links (no scanning) plus control frames to track dynamic state (e.g., `branchTaken`, loop counters, select matching).
 
 ## Statement Parsing
 

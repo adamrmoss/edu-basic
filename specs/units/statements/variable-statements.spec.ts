@@ -23,8 +23,7 @@ describe('Variable statements', () =>
 
         expect(context.getVariable('temp%')).toEqual({ type: EduBasicType.Integer, value: 7 });
 
-        context.popStackFrame();
+        context.popCallStackFrame();
         expect(context.getVariable('temp%')).toEqual({ type: EduBasicType.Integer, value: 0 });
     });
-}
-
+});

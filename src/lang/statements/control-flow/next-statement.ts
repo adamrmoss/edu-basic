@@ -12,6 +12,13 @@ import { EduBasicType } from '../../edu-basic-value';
 export class NextStatement extends Statement
 {
     /**
+     * Linked FOR line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public forLine?: number;
+
+    /**
      * Optional loop variable name for `NEXT var%`.
      */
     public readonly variableName: string | null;
@@ -45,28 +52,42 @@ export class NextStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const forFrame = this.variableName
-            ? runtime.findControlFrameWhere(frame =>
-            {
-                if (frame.type !== 'for' || !frame.loopVariable)
-                {
-                    return false;
-                }
+        if (!this.isLinkedToProgram || this.forLine === undefined)
+        {
+            return { result: ExecutionResult.Continue };
+        }
 
-                return frame.loopVariable.toUpperCase() === this.variableName!.toUpperCase();
-            })
-            : runtime.findControlFrame('for');
+        const forFrame = runtime.findControlFrameWhere(frame =>
+        {
+            if (frame.type !== 'for')
+            {
+                return false;
+            }
+
+            if (frame.startLine !== this.forLine)
+            {
+                return false;
+            }
+
+            if (this.variableName && frame.loopVariable)
+            {
+                return frame.loopVariable.toUpperCase() === this.variableName.toUpperCase();
+            }
+
+            return true;
+        });
 
         if (forFrame && forFrame.loopVariable)
         {
             const currentValue = context.getVariable(forFrame.loopVariable);
             const stepValue = forFrame.loopStepValue ?? 1;
-            
+
             if (currentValue.type === EduBasicType.Integer || currentValue.type === EduBasicType.Real)
             {
                 const newValue = (currentValue.value as number) + stepValue;
                 const endValue = forFrame.loopEndValue;
 
+                // If still within bounds (by step direction), update variable and jump back to FOR body.
                 const shouldContinue = endValue !== undefined && (stepValue > 0
                     ? newValue <= endValue
                     : newValue >= endValue);
@@ -80,7 +101,7 @@ export class NextStatement extends Statement
 
             runtime.popControlFramesToAndIncludingWhere(frame =>
             {
-                if (frame.type !== 'for')
+                if (frame.type !== 'for' || frame.startLine !== this.forLine)
                 {
                     return false;
                 }
@@ -90,12 +111,7 @@ export class NextStatement extends Statement
                     return true;
                 }
 
-                if (!frame.loopVariable)
-                {
-                    return false;
-                }
-
-                return frame.loopVariable.toUpperCase() === this.variableName.toUpperCase();
+                return frame.loopVariable?.toUpperCase() === this.variableName.toUpperCase();
             });
         }
 

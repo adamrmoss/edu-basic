@@ -61,7 +61,7 @@ export class ControlFlowFrameStack
      */
     public find(type: ControlStructureType): ControlStructureFrame | undefined
     {
-        // Search from top to bottom to find the nearest matching frame.
+        // Search from top (most recent) to bottom for the nearest frame of this type.
         for (let i = this.frames.length - 1; i >= 0; i--)
         {
             const frame = this.frames[i];
@@ -97,7 +97,7 @@ export class ControlFlowFrameStack
      */
     public popToAndIncluding(type: ControlStructureType): void
     {
-        // Pop frames until the requested type has been removed (or the stack is empty).
+        // Pop from top until a frame of the given type is removed (or stack empty).
         while (this.frames.length > 0)
         {
             const popped = this.pop();

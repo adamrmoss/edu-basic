@@ -5,12 +5,27 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { CaseStatement } from './case-statement';
 
 /**
  * Implements the `SELECT CASE` statement.
  */
 export class SelectCaseStatement extends Statement
 {
+    /**
+     * Linked `END SELECT` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endSelectLine?: number;
+
+    /**
+     * First `CASE` clause line index (0-based), or `endSelectLine` if none exist.
+     *
+     * Populated by static syntax analysis.
+     */
+    public firstCaseLine?: number;
+
     /**
      * Test expression used for subsequent `CASE` matching.
      */
@@ -19,7 +34,7 @@ export class SelectCaseStatement extends Statement
     /**
      * Placeholder list for case clauses (block construction).
      */
-    public readonly cases: any[];
+    public readonly cases: CaseStatement[];
 
     /**
      * Create a new `SELECT CASE` statement.
@@ -27,7 +42,7 @@ export class SelectCaseStatement extends Statement
      * @param testExpression Test expression.
      * @param cases Case list placeholder.
      */
-    public constructor(testExpression: Expression, cases: any[] = [])
+    public constructor(testExpression: Expression, cases: CaseStatement[] = [])
     {
         super();
         this.testExpression = testExpression;
@@ -52,24 +67,24 @@ export class SelectCaseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate test value, push SELECT frame, then jump to first CASE (or END SELECT) for matching.
         const currentPc = context.getProgramCounter();
         const testValue = this.testExpression.evaluate(context);
 
-        const endSelectLine = runtime.findMatchingEndSelect(currentPc);
-        if (endSelectLine === undefined)
+        if (this.endSelectLine === undefined)
         {
-            throw new Error('SELECT CASE: missing END SELECT');
+            return { result: ExecutionResult.Continue };
         }
 
         runtime.pushControlFrame({
             type: 'select',
             startLine: currentPc,
-            endLine: endSelectLine,
+            endLine: this.endSelectLine,
             selectTestValue: testValue,
             selectMatched: false
         });
 
-        const firstCaseOrEnd = runtime.findNextCaseOrEndSelect(currentPc + 1, endSelectLine);
+        const firstCaseOrEnd = this.firstCaseLine ?? this.endSelectLine;
         return { result: ExecutionResult.Goto, gotoTarget: firstCaseOrEnd };
     }
 

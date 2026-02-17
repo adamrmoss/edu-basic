@@ -55,6 +55,7 @@ export class ArraySearchExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Require 1D array and search value; dispatch to INCLUDES / INDEXOF / FIND.
         const arrayValue = this.arrayExpr.evaluate(context);
         if (arrayValue.type !== EduBasicType.Array)
         {

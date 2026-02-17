@@ -41,6 +41,7 @@ export class DeleteStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate path, require string, delete file via runtime filesystem or throw if missing.
         const filenameValue = this.filename.evaluate(context);
         if (filenameValue.type !== EduBasicType.String)
         {

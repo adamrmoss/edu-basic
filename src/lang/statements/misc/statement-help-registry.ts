@@ -3,6 +3,7 @@
  */
 export class StatementHelpRegistry
 {
+    // Maps statement keywords (uppercase) to help form strings shown by HELP keyword.
     private static readonly helpForms: Map<string, string[]> = new Map([
         ['CONSOLE', [
             'CONSOLE expression'
@@ -283,6 +284,7 @@ export class StatementHelpRegistry
 
     public static getHelpForms(command: string): string[]
     {
+        // Look up by uppercase keyword; return empty array if unknown.
         const upperCommand = command.toUpperCase();
         return this.helpForms.get(upperCommand) || [];
     }

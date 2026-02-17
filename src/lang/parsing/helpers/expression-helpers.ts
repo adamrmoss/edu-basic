@@ -37,6 +37,7 @@ export class ExpressionHelpers
         {
             const token = TokenHelpers.peek(tokens, current.value);
 
+            // Only consider terminators when not inside nested parens/brackets/braces.
             if (parenDepth === 0 && bracketDepth === 0 && braceDepth === 0)
             {
                 const stopTokens = [
@@ -54,29 +55,28 @@ export class ExpressionHelpers
                 }
             }
 
-            if (token.type === TokenType.LeftParen)
+            switch (token.type)
             {
-                parenDepth++;
-            }
-            else if (token.type === TokenType.RightParen)
-            {
-                parenDepth--;
-            }
-            else if (token.type === TokenType.LeftBracket)
-            {
-                bracketDepth++;
-            }
-            else if (token.type === TokenType.RightBracket)
-            {
-                bracketDepth--;
-            }
-            else if (token.type === TokenType.LeftBrace)
-            {
-                braceDepth++;
-            }
-            else if (token.type === TokenType.RightBrace)
-            {
-                braceDepth--;
+                case TokenType.LeftParen:
+                    parenDepth++;
+                    break;
+                case TokenType.RightParen:
+                    parenDepth--;
+                    break;
+                case TokenType.LeftBracket:
+                    bracketDepth++;
+                    break;
+                case TokenType.RightBracket:
+                    bracketDepth--;
+                    break;
+                case TokenType.LeftBrace:
+                    braceDepth++;
+                    break;
+                case TokenType.RightBrace:
+                    braceDepth--;
+                    break;
+                default:
+                    break;
             }
 
             exprTokens.push(token);

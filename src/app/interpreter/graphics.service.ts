@@ -28,6 +28,7 @@ export class GraphicsService
      */
     public constructor()
     {
+        // Create the shared Graphics runtime instance.
         this.graphics = new Graphics();
     }
 
@@ -48,6 +49,7 @@ export class GraphicsService
     {
         this.graphics.setContext(context);
         this.graphics.setFlushCallback(() => {
+            // On each flush, read the buffer and emit so the output component can redraw.
             const buffer = this.graphics.getBuffer();
             if (buffer)
             {

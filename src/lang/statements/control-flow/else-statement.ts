@@ -10,6 +10,27 @@ import { RuntimeExecution } from '../../runtime-execution';
  */
 export class ElseStatement extends Statement
 {
+    /**
+     * Linked IF line index (0-based), when this ELSE belongs to an IF block.
+     *
+     * Populated by static syntax analysis.
+     */
+    public ifLine?: number;
+
+    /**
+     * Linked UNLESS line index (0-based), when this ELSE belongs to an UNLESS block.
+     *
+     * Populated by static syntax analysis.
+     */
+    public unlessLine?: number;
+
+    /**
+     * Linked `END IF` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endIfLine?: number;
+
     public constructor()
     {
         super();
@@ -18,6 +39,11 @@ export class ElseStatement extends Statement
     public override getIndentAdjustment(): number
     {
         return 0;
+    }
+
+    public override getDisplayIndentAdjustment(): number
+    {
+        return -1;
     }
 
     /**
@@ -33,6 +59,12 @@ export class ElseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
+        // Peek current IF/UNLESS frame; if a branch already ran, jump to END; else take this branch.
         const top = runtime.getCurrentControlFrame();
         if (!top || (top.type !== 'if' && top.type !== 'unless'))
         {

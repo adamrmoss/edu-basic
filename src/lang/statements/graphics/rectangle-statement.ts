@@ -93,7 +93,8 @@ export class RectangleStatement extends Statement
         const y1 = Math.floor(y1Val.type === EduBasicType.Integer || y1Val.type === EduBasicType.Real ? y1Val.value as number : 0);
         const x2 = Math.floor(x2Val.type === EduBasicType.Integer || x2Val.type === EduBasicType.Real ? x2Val.value as number : 0);
         const y2 = Math.floor(y2Val.type === EduBasicType.Integer || y2Val.type === EduBasicType.Real ? y2Val.value as number : 0);
-        
+
+        // Normalize to top-left corner and width/height regardless of corner order.
         const x = Math.min(x1, x2);
         const y = Math.min(y1, y2);
         const width = Math.abs(x2 - x1);

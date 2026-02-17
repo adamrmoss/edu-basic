@@ -41,6 +41,7 @@ export class TempoStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate BPM (numeric or default 120) and set global tempo.
         const bpmValue = this.bpm.evaluate(context);
         const bpm = bpmValue.type === EduBasicType.Integer || bpmValue.type === EduBasicType.Real ? bpmValue.value as number : 120;
         

@@ -1,3 +1,4 @@
+import { Expression } from '../../expressions/expression';
 import { ExpressionParser } from '../expression-parser';
 import { Token, TokenType } from '../tokenizer';
 import { ExpressionHelpers } from '../helpers/expression-helpers';
@@ -78,7 +79,7 @@ export class ParserContext
      * @param types Token types to match.
      * @returns `true` if a token was consumed.
      */
-    public match(...types: any[]): boolean
+    public match(...types: TokenType[]): boolean
     {
         return TokenHelpers.match(this.tokens, this.current, ...types);
     }
@@ -101,7 +102,7 @@ export class ParserContext
      * @param message Human-readable expected token description.
      * @returns The consumed token, or a failed parse result.
      */
-    public consume(type: any, message: string): ParseResult<Token>
+    public consume(type: TokenType, message: string): ParseResult<Token>
     {
         return TokenHelpers.consume(this.tokens, this.current, type, message);
     }
@@ -114,6 +115,7 @@ export class ParserContext
      */
     public consumeKeyword(keyword: string): ParseResult<Token>
     {
+        // Require current token to be the given keyword (case-insensitive) or return failure.
         if (!this.isAtEnd() &&
             this.peek().type === TokenType.Keyword &&
             this.peek().value.toUpperCase() === keyword.toUpperCase())
@@ -132,7 +134,7 @@ export class ParserContext
      *
      * @returns The parsed expression result.
      */
-    public parseExpression(): ParseResult<any>
+    public parseExpression(): ParseResult<Expression>
     {
         // Expressions embedded in statements are parsed by:
         // - slicing tokens until a statement-specific terminator

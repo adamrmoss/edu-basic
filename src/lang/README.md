@@ -83,7 +83,7 @@ Manages variable storage and program execution state.
 - `hasVariable(name: string): boolean` - Check if variable exists
 - `getCanonicalName(name: string): string` - Get original case of variable name
 - `pushStackFrame(returnAddress: number)` - Push subroutine call frame
-- `popStackFrame(): number | undefined` - Pop frame and return address
+- `popCallStackFrame(): number | undefined` - Pop frame and return address
 - `getProgramCounter()`, `setProgramCounter()`, `incrementProgramCounter()` - PC management
 
 **Variable Lookup**:
@@ -153,6 +153,16 @@ Represents a BASIC program as a collection of statements.
 - Lines are 0-indexed internally
 - Line numbers in source code are separate from indices
 - Indices are used for program counter
+
+### Canonical line representation
+
+**Location**: `src/lang/canonical-line.ts`
+
+Single place for the canonical representation of a program line including indent level.
+
+- `getCanonicalLine(indentLevel, statement | null)` returns the full line string: indent prefix + body.
+- Applies to parsed statements, empty/comment lines (`statement` null), and unparsable lines (`UnparsableStatement`).
+- `INDENT_SPACES_PER_LEVEL` defines spaces per indent level. Used by the code editor and console.
 
 ## Runtime Node
 

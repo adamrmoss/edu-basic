@@ -6,15 +6,27 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
-import { EndStatement, EndType } from './end-statement';
-import { ElseStatement } from './else-statement';
-import { ElseIfStatement } from './elseif-statement';
 
 /**
  * Implements the `IF` statement.
  */
 export class IfStatement extends Statement
 {
+    /**
+     * Linked `END IF` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endIfLine?: number;
+
+    /**
+     * Line index to jump to when the condition is false.
+     *
+     * This is typically the next `ELSEIF`, `ELSE`, or the `END IF`.
+     * Populated by static syntax analysis.
+     */
+    public nextClauseLine?: number;
+
     /**
      * Condition expression.
      */
@@ -75,18 +87,17 @@ export class IfStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate condition (integer); push IF frame with branch flag, then run then-branch or jump to next clause.
         const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
-
         if (conditionValue.type !== EduBasicType.Integer)
         {
             throw new Error('IF condition must evaluate to an integer');
         }
 
-        const endIfLine = runtime.findMatchingEndIf(currentPc);
-        if (endIfLine === undefined)
+        if (this.endIfLine === undefined)
         {
-            throw new Error('IF: missing END IF');
+            return { result: ExecutionResult.Continue };
         }
 
         const branchTaken = conditionValue.value !== 0;
@@ -94,7 +105,7 @@ export class IfStatement extends Statement
         runtime.pushControlFrame({
             type: 'if',
             startLine: currentPc,
-            endLine: endIfLine,
+            endLine: this.endIfLine,
             branchTaken
         });
 
@@ -103,10 +114,8 @@ export class IfStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        const nextClause = runtime.findNextIfClauseOrEnd(currentPc + 1, endIfLine);
+        const nextClause = this.nextClauseLine ?? this.endIfLine;
         return { result: ExecutionResult.Goto, gotoTarget: nextClause };
-
-        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

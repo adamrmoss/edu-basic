@@ -49,6 +49,7 @@ export class ListdirStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Require destination to be a 1D array; evaluate path and resolve directory.
         const suffix = tryGetArrayRankSuffixFromName(this.arrayVariable);
         if (suffix === null || suffix.rank !== 1)
         {
@@ -69,6 +70,7 @@ export class ListdirStatement extends Statement
             throw new Error(`LISTDIR: directory not found: ${path}`);
         }
 
+        // Collect child names as string array and assign to the variable.
         const entries: EduBasicValue[] = [];
         for (const child of dir.children.values())
         {
@@ -86,8 +88,8 @@ export class ListdirStatement extends Statement
 
     private static findDirectory(root: DirectoryNode, path: string): DirectoryNode | null
     {
+        // Normalize path; empty or '.' is root; otherwise walk segments to resolve directory.
         const normalized = (path || '').trim();
-
         if (!normalized || normalized === '.')
         {
             return root;

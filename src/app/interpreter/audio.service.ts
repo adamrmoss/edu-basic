@@ -18,6 +18,7 @@ export class AudioService
      */
     public constructor()
     {
+        // Create the shared Audio runtime instance used by the interpreter.
         this.audio = new Audio();
     }
 
@@ -38,7 +39,7 @@ export class AudioService
     {
         this.audio.setMuted(muted);
     }
-
+    
     /**
      * Get the current mute state.
      */

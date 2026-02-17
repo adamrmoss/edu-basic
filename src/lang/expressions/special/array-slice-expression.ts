@@ -46,6 +46,7 @@ export class ArraySliceExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Resolve base array (variable fallback to []); require 1D; evaluate start/end bounds and slice.
         let baseValue = this.baseExpr.evaluate(context);
 
         if (baseValue.type !== EduBasicType.Array && this.baseExpr instanceof VariableExpression)

@@ -13,6 +13,20 @@ import { EduBasicType } from '../../edu-basic-value';
 export class ElseIfStatement extends Statement
 {
     /**
+     * Linked `END IF` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endIfLine?: number;
+
+    /**
+     * Line index to jump to when this `ELSEIF` condition is false and no prior branch was taken.
+     *
+     * Populated by static syntax analysis.
+     */
+    public nextClauseLine?: number;
+
+    /**
      * Branch condition expression.
      */
     public readonly condition: Expression;
@@ -33,6 +47,11 @@ export class ElseIfStatement extends Statement
         return 0;
     }
 
+    public override getDisplayIndentAdjustment(): number
+    {
+        return -1;
+    }
+
     /**
      * Execute the statement.
      *
@@ -46,6 +65,13 @@ export class ElseIfStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // When not linked, run as no-op; otherwise find IF frame and decide branch or jump.
+        if (this.endIfLine === undefined)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
+        // Find IF frame; if a branch already ran goto END IF; else evaluate condition and take this branch or jump to next clause.
         const frame = runtime.findControlFrame('if');
         if (!frame)
         {
@@ -54,7 +80,7 @@ export class ElseIfStatement extends Statement
 
         if (frame.branchTaken)
         {
-            return { result: ExecutionResult.Goto, gotoTarget: frame.endLine };
+            return { result: ExecutionResult.Goto, gotoTarget: this.endIfLine };
         }
 
         const conditionValue = this.condition.evaluate(context);
@@ -69,8 +95,7 @@ export class ElseIfStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        const currentPc = context.getProgramCounter();
-        const nextClause = runtime.findNextIfClauseOrEnd(currentPc + 1, frame.endLine);
+        const nextClause = this.nextClauseLine ?? this.endIfLine;
         return { result: ExecutionResult.Goto, gotoTarget: nextClause };
     }
 

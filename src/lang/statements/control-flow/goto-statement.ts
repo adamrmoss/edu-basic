@@ -11,6 +11,13 @@ import { RuntimeExecution } from '../../runtime-execution';
 export class GotoStatement extends Statement
 {
     /**
+     * Linked target line index (0-based), if available.
+     *
+     * Populated by static syntax analysis.
+     */
+    public targetLine?: number;
+
+    /**
      * Label identifier.
      */
     public readonly labelName: string;
@@ -40,7 +47,13 @@ export class GotoStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const labelIndex = program.getLabelIndex(this.labelName);
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
+        // Use linked target line if set by syntax analysis, otherwise resolve label by name.
+        const labelIndex = this.targetLine ?? program.getLabelIndex(this.labelName);
 
         if (labelIndex === undefined)
         {

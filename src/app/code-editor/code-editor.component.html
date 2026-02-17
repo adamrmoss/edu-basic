@@ -1,6 +1,6 @@
 <div class="code-editor-container">
     <div class="editor-toolbar">
-        <button class="run-button" (click)="onRun()">Run</button>
+        <button class="run-button" (click)="onRunOrStop()" [disabled]="!isRunning && !canRun">{{ runButtonLabel }}</button>
     </div>
     <app-text-editor
         #textEditor
@@ -10,5 +10,6 @@
         (linesChange)="onLinesChange($event)"
         (keyDown)="onKeyDown($event)"
         (blur)="onBlur()"
+        (cursorLineChange)="onCursorLineChange($event)"
     ></app-text-editor>
 </div>

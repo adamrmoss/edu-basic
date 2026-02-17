@@ -62,10 +62,14 @@ describe('AppComponent', () => {
 
         const component = new AppComponent(tabSwitchService, audioService);
 
-        (component as any).tabsComponent = {
+        const tabsComponentMock = {
             activeTabId: 'console',
-            updateActiveTab: jest.fn()
+            selectTab: jest.fn((tabId: string) => {
+                tabsComponentMock.activeTabId = tabId;
+            })
         };
+
+        (component as any).tabsComponent = tabsComponentMock;
 
         (component as any).tabs = {
             toArray: () => [ { id: 'console' }, { id: 'disk' } ]
@@ -76,7 +80,7 @@ describe('AppComponent', () => {
 
         expect(component.activeTabId).toBe('disk');
         expect((component as any).tabsComponent.activeTabId).toBe('disk');
-        expect((component as any).tabsComponent.updateActiveTab).toHaveBeenCalled();
+        expect((component as any).tabsComponent.selectTab).toHaveBeenCalledWith('disk');
     });
 
     it('should report disk tab active from tabsComponent when available', () => {

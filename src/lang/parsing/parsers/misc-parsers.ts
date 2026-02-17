@@ -65,7 +65,8 @@ export class MiscParsers
             return tokenResult;
         }
         const option1 = tokenResult.value.value.toUpperCase();
-        
+
+        // Dispatch by first keyword (LINE SPACING, TEXT WRAP, AUDIO) then consume ON/OFF.
         switch (option1)
         {
             case 'LINE':

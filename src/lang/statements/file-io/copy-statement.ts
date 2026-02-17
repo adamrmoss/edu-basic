@@ -48,6 +48,7 @@ export class CopyStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate paths, validate strings, read source file and write to destination.
         const sourceValue = this.source.evaluate(context);
         const destinationValue = this.destination.evaluate(context);
 

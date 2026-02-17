@@ -191,7 +191,7 @@ export class Program
         // Clear any prior label indices.
         this.labelMap.clear();
 
-        // Scan the whole program and index any labels found.
+        // Rescan all statements and re-index labels (e.g. after external edits to the statement list).
         for (let i = 0; i < this.statements.length; i++)
         {
             const statement = this.statements[i];
@@ -208,7 +208,7 @@ export class Program
      */
     private updateLabelsAfterInsertion(insertedIndex: number): void
     {
-        // Bump all stored label indices that now occur after the insertion point.
+        // Bump stored label indices at or after the insertion point so they still refer to the same line.
         for (const [labelName, labelIndex] of this.labelMap.entries())
         {
             if (labelIndex >= insertedIndex)
@@ -223,7 +223,7 @@ export class Program
      */
     private updateLabelsAfterDeletion(deletedIndex: number): void
     {
-        // Decrement all stored label indices that were after the deleted line.
+        // Decrement stored label indices after the deleted line so they still refer to the same line.
         for (const [labelName, labelIndex] of this.labelMap.entries())
         {
             if (labelIndex > deletedIndex)

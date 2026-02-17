@@ -38,6 +38,21 @@ export interface ExecutionStatus
 export abstract class Statement extends RuntimeNode
 {
     /**
+     * 0-based program line index.
+     *
+     * This is populated by static syntax analysis after a `Program` is built.
+     */
+    public lineNumber?: number;
+
+    /**
+     * Whether this statement has been linked into a `Program` via static syntax analysis.
+     */
+    public get isLinkedToProgram(): boolean
+    {
+        return this.lineNumber !== undefined;
+    }
+
+    /**
      * Indentation level (used by the editor/runtime for block structure).
      */
     public indentLevel: number = 0;
@@ -52,6 +67,7 @@ export abstract class Statement extends RuntimeNode
      * @param runtime Runtime execution engine.
      * @returns Execution status describing control flow.
      */
+    // Subclasses implement this to perform the statement's effect and return control flow.
     public abstract execute(
         context: ExecutionContext,
         graphics: Graphics,
@@ -68,5 +84,17 @@ export abstract class Statement extends RuntimeNode
     public getIndentAdjustment(): number
     {
         return 0;
+    }
+
+    /**
+     * Indentation delta used only for display (canonical line formatting).
+     * Defaults to getIndentAdjustment(). Override in statements that should
+     * appear outdented (e.g. ELSE, CASE) without changing the parser indent level.
+     *
+     * @returns Display indent adjustment (default is same as getIndentAdjustment()).
+     */
+    public getDisplayIndentAdjustment(): number
+    {
+        return this.getIndentAdjustment();
     }
 }

@@ -28,6 +28,7 @@ export class ReturnStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Signal the runtime to pop the call frame and jump to the return address.
         return { result: ExecutionResult.Return };
     }
 

@@ -31,6 +31,12 @@
     font-size: 12px;
     padding: 4px 12px;
 
+    &:disabled
+    {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
     &:hover
     {
         background-color: $blue-steel-light;

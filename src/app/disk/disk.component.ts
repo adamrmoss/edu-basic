@@ -171,6 +171,7 @@ export class DiskComponent implements OnInit, OnDestroy
      */
     public ngOnInit(): void
     {
+        // Keep disk name and file tree in sync with the service; initial load of the tree.
         this.diskService.diskName$
             .pipe(takeUntil(this.destroy$))
             .subscribe((name: string) => {
@@ -191,6 +192,7 @@ export class DiskComponent implements OnInit, OnDestroy
      */
     public ngOnDestroy(): void
     {
+        // Tear down all subscriptions.
         this.destroy$.next();
         this.destroy$.complete();
     }
@@ -209,7 +211,7 @@ export class DiskComponent implements OnInit, OnDestroy
     public onNewDisk(): void
     {
         const name = prompt('Enter disk name:', 'Untitled');
-        
+
         if (name !== null)
         {
             this.diskService.newDisk(name);
@@ -223,14 +225,15 @@ export class DiskComponent implements OnInit, OnDestroy
      */
     public async onLoadDisk(): Promise<void>
     {
+        // Use a programmatic file input so we can restrict to .disk and handle the chosen file.
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.disk';
-        
+
         input.onchange = async (event: Event) => {
             const target = event.target as HTMLInputElement;
             const file = target.files?.[0];
-            
+
             if (file)
             {
                 try
@@ -245,7 +248,7 @@ export class DiskComponent implements OnInit, OnDestroy
                 }
             }
         };
-        
+
         input.click();
     }
 
@@ -272,14 +275,15 @@ export class DiskComponent implements OnInit, OnDestroy
     public onNewFile(parentPath: string = ''): void
     {
         const fileName = prompt('Enter file name:');
-        
+
         if (fileName)
         {
+            // Expand parent so the new file is visible; then create file at full path.
             if (parentPath)
             {
                 this.expandPathAndParents(parentPath);
             }
-            
+
             const fullPath = parentPath ? `${parentPath}/${fileName}` : fileName;
             this.diskService.createFile(fullPath);
         }
@@ -413,17 +417,18 @@ export class DiskComponent implements OnInit, OnDestroy
     public selectFile(file: FileNode): void
     {
         this.selectedFile = file;
-        
+
         if (file.type === 'file')
         {
             const data = this.diskService.getFile(file.path);
-            
+
             if (data)
             {
+                // Decode file bytes as UTF-8 and split into lines for the editor.
                 const decoder = new TextDecoder('utf-8');
                 const content = decoder.decode(data);
                 this.editorLines = content.split('\n');
-                
+
                 if (this.editorLines.length === 0)
                 {
                     this.editorLines = [''];
@@ -465,6 +470,7 @@ export class DiskComponent implements OnInit, OnDestroy
 
     private expandPathAndParents(path: string): void
     {
+        // Expand each path prefix so the new node's parent is visible in the tree.
         const parts = path.split('/').filter(p => p.length > 0);
         let currentPath = '';
         
@@ -485,9 +491,10 @@ export class DiskComponent implements OnInit, OnDestroy
     public onLinesChange(lines: string[]): void
     {
         this.editorLines = lines;
-        
+
         if (this.selectedFile && this.selectedFile.type === 'file')
         {
+            // Encode lines as UTF-8 and persist to the selected file via the service.
             const content = lines.join('\n');
             const encoder = new TextEncoder();
             const data = encoder.encode(content);
@@ -522,6 +529,7 @@ export class DiskComponent implements OnInit, OnDestroy
 
         let hex = '';
         
+        // Format as 8-column offset, 16-byte hex block, and ASCII column per line.
         for (let i = 0; i < data.length; i += 16)
         {
             const offset = i.toString(16).padStart(8, '0').toUpperCase();
@@ -545,11 +553,12 @@ export class DiskComponent implements OnInit, OnDestroy
     {
         event.preventDefault();
         event.stopPropagation();
-        
+
+        // Resolve the clicked node; context menu folder is the node's path (if directory) or its parent path.
         const node = this.findNodeByPath(this.fileTree, path);
-        
+
         this.contextMenuClickedPath = path;
-        
+
         if (node)
         {
             if (node.type === 'directory')
@@ -565,7 +574,7 @@ export class DiskComponent implements OnInit, OnDestroy
         {
             this.contextMenuPath = '';
         }
-        
+
         this.contextMenuX = event.clientX;
         this.contextMenuY = event.clientY;
         this.showContextMenu = true;
@@ -641,6 +650,7 @@ export class DiskComponent implements OnInit, OnDestroy
 
     private refreshFileTree(): void
     {
+        // Rebuild the tree from the service root; conversion preserves expanded state and sorts nodes.
         const root = this.diskService.getFileSystemRoot();
         this.fileTree = this.convertToFileNodes(root);
     }
@@ -652,6 +662,7 @@ export class DiskComponent implements OnInit, OnDestroy
 
         for (const child of children.values())
         {
+            // One FileNode per child; recurse for directories; expanded state from remembered paths.
             const fileNode: FileNode = {
                 name: child.name,
                 path: child.path,
@@ -694,22 +705,23 @@ export class DiskComponent implements OnInit, OnDestroy
     {
         for (const node of nodes)
         {
+            // Search the tree recursively; match by path, recurse into children if no match.
             if (node.path === path)
             {
                 return node;
             }
-            
+
             if (node.children)
             {
                 const found = this.findNodeByPath(node.children, path);
-                
+
                 if (found)
                 {
                     return found;
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -867,5 +879,4 @@ export class DiskComponent implements OnInit, OnDestroy
 
         return descendantPath.startsWith(ancestorPath + '/');
     }
-
 }

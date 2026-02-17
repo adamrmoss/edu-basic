@@ -12,29 +12,29 @@ import { getColorValue, isColorName } from '../../colors';
  */
 export function resolveColorValue(value: EduBasicValue): number
 {
-    if (value.type === EduBasicType.Integer)
+    switch (value.type)
     {
-        return value.value as number;
-    }
-    
-    if (value.type === EduBasicType.String)
-    {
-        const colorName = value.value as string;
-        
-        if (isColorName(colorName))
+        case EduBasicType.Integer:
+            return value.value as number;
+        case EduBasicType.String:
         {
-            const colorValue = getColorValue(colorName);
-            
-            if (colorValue !== undefined)
+            const colorName = value.value as string;
+
+            if (isColorName(colorName))
             {
-                return colorValue;
+                const colorValue = getColorValue(colorName);
+
+                if (colorValue !== undefined)
+                {
+                    return colorValue;
+                }
             }
+
+            throw new Error(`Unknown color name: ${colorName}`);
         }
-        
-        throw new Error(`Unknown color name: ${colorName}`);
+        default:
+            throw new Error('Color must be an integer or a color name');
     }
-    
-    throw new Error('Color must be an integer or a color name');
 }
 
 /**
@@ -45,6 +45,7 @@ export function resolveColorValue(value: EduBasicValue): number
  */
 export function intToRgba(color: number): { r: number; g: number; b: number; a: number }
 {
+    // Unpack 0xRRGGBBAA into r, g, b, a bytes.
     return {
         r: (color >> 24) & 0xFF,
         g: (color >> 16) & 0xFF,

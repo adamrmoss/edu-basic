@@ -49,8 +49,11 @@ export class ControlFlowParsers
     // These parsers operate on a single tokenized source line.
     // For block statements (IF/ELSE/END IF, FOR/NEXT, TRY/CATCH/FINALLY/END TRY, etc.)
     // the per-line parse methods generally produce "skeleton" statements with empty bodies.
-    // The block structure is assembled later by the program builder / runtime using indent
-    // levels and control-flow frame tracking.
+    // The block structure is assembled later by static program syntax analysis, which links
+    // statements together by line index (e.g., IF -> END IF, FOR -> NEXT).
+    //
+    // Indentation is tracked by `ParserService` for editor formatting only; it does not define
+    // execution semantics.
     /**
      * Parse the `IF` statement.
      *
@@ -59,6 +62,7 @@ export class ControlFlowParsers
      */
     public static parseIf(context: ParserContext): ParseResult<IfStatement>
     {
+        // Consume IF, condition expr, THEN; build IfStatement with empty branches (linked later by syntax analysis).
         // Grammar:
         // IF <conditionExpr> THEN
         const ifTokenResult = context.consume(TokenType.Keyword, 'IF');
@@ -89,6 +93,7 @@ export class ControlFlowParsers
      */
     public static parseElseIf(context: ParserContext): ParseResult<ElseIfStatement>
     {
+        // Consume ELSEIF, condition expr, THEN; build ElseIfStatement (block linked later).
         // Grammar:
         // ELSEIF <conditionExpr> THEN
         const elseifTokenResult = context.consume(TokenType.Keyword, 'ELSEIF');
@@ -478,26 +483,35 @@ export class ControlFlowParsers
             return doTokenResult;
         }
         
-        if (context.matchKeyword('WHILE'))
+        const doKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (doKeyword)
         {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'WHILE':
             {
-                return failure(conditionResult.error || 'Failed to parse WHILE condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse WHILE condition expression');
+                }
+                return success(new DoLoopStatement(DoLoopVariant.DoWhile, conditionResult.value, []));
             }
-            return success(new DoLoopStatement(DoLoopVariant.DoWhile, conditionResult.value, []));
-        }
-        else if (context.matchKeyword('UNTIL'))
-        {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'UNTIL':
             {
-                return failure(conditionResult.error || 'Failed to parse UNTIL condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse UNTIL condition expression');
+                }
+                return success(new DoLoopStatement(DoLoopVariant.DoUntil, conditionResult.value, []));
             }
-            return success(new DoLoopStatement(DoLoopVariant.DoUntil, conditionResult.value, []));
+            default:
+                return success(new DoLoopStatement(DoLoopVariant.DoLoop, null, []));
         }
-        
-        return success(new DoLoopStatement(DoLoopVariant.DoLoop, null, []));
     }
 
     /**
@@ -518,29 +532,37 @@ export class ControlFlowParsers
             return loopTokenResult;
         }
 
-        if (context.matchKeyword('WHILE'))
+        const loopKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (loopKeyword)
         {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'WHILE':
             {
-                return failure(conditionResult.error || 'Failed to parse LOOP WHILE condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse LOOP WHILE condition expression');
+                }
+
+                return success(new LoopStatement(LoopConditionVariant.While, conditionResult.value));
             }
-
-            return success(new LoopStatement(LoopConditionVariant.While, conditionResult.value));
-        }
-
-        if (context.matchKeyword('UNTIL'))
-        {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'UNTIL':
             {
-                return failure(conditionResult.error || 'Failed to parse LOOP UNTIL condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse LOOP UNTIL condition expression');
+                }
+
+                return success(new LoopStatement(LoopConditionVariant.Until, conditionResult.value));
             }
-
-            return success(new LoopStatement(LoopConditionVariant.Until, conditionResult.value));
+            default:
+                return success(new LoopStatement());
         }
-
-        return success(new LoopStatement());
     }
 
     /**
@@ -841,36 +863,41 @@ export class ControlFlowParsers
             return exitTokenResult;
         }
         
-        if (context.matchKeyword('FOR'))
+        const exitKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (exitKeyword)
         {
-            let varName: string | null = null;
-            if (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
+            case 'FOR':
             {
-                const varNameResult = context.consume(TokenType.Identifier, 'variable name');
-                if (!varNameResult.success)
+                context.advance();
+                let varName: string | null = null;
+                if (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
                 {
-                    return varNameResult;
+                    const varNameResult = context.consume(TokenType.Identifier, 'variable name');
+                    if (!varNameResult.success)
+                    {
+                        return varNameResult;
+                    }
+
+                    varName = varNameResult.value.value;
                 }
 
-                varName = varNameResult.value.value;
+                return success(new ExitStatement(ExitTarget.For, varName));
             }
-
-            return success(new ExitStatement(ExitTarget.For, varName));
+            case 'WHILE':
+                context.advance();
+                return success(new ExitStatement(ExitTarget.While));
+            case 'DO':
+                context.advance();
+                return success(new ExitStatement(ExitTarget.Do));
+            case 'SUB':
+                context.advance();
+                return success(new ExitStatement(ExitTarget.Sub));
+            default:
+                return failure('EXIT must specify target: FOR, WHILE, DO, or SUB');
         }
-        else if (context.matchKeyword('WHILE'))
-        {
-            return success(new ExitStatement(ExitTarget.While));
-        }
-        else if (context.matchKeyword('DO'))
-        {
-            return success(new ExitStatement(ExitTarget.Do));
-        }
-        else if (context.matchKeyword('SUB'))
-        {
-            return success(new ExitStatement(ExitTarget.Sub));
-        }
-        
-        return failure('EXIT must specify target: FOR, WHILE, DO, or SUB');
     }
 
     /**
@@ -891,20 +918,24 @@ export class ControlFlowParsers
             return continueTokenResult;
         }
         
-        if (context.matchKeyword('FOR'))
+        const continueKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (continueKeyword)
         {
-            return success(new ContinueStatement(ContinueTarget.For));
+            case 'FOR':
+                context.advance();
+                return success(new ContinueStatement(ContinueTarget.For));
+            case 'WHILE':
+                context.advance();
+                return success(new ContinueStatement(ContinueTarget.While));
+            case 'DO':
+                context.advance();
+                return success(new ContinueStatement(ContinueTarget.Do));
+            default:
+                return failure('CONTINUE must specify target: FOR, WHILE, or DO');
         }
-        else if (context.matchKeyword('WHILE'))
-        {
-            return success(new ContinueStatement(ContinueTarget.While));
-        }
-        else if (context.matchKeyword('DO'))
-        {
-            return success(new ContinueStatement(ContinueTarget.Do));
-        }
-        
-        return failure('CONTINUE must specify target: FOR, WHILE, or DO');
     }
 
     /**

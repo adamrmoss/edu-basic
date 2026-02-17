@@ -28,6 +28,13 @@ export interface SubParameter
 export class SubStatement extends Statement
 {
     /**
+     * Linked `END SUB` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endSubLine?: number;
+
+    /**
      * Subroutine name.
      */
     public readonly name: string;
@@ -77,14 +84,19 @@ export class SubStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // When not linked, no-op; when reached by fall-through, skip to the line after END SUB.
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         const currentPc = context.getProgramCounter();
-        const endSubLine = runtime.findMatchingEndSub(currentPc);
-        if (endSubLine === undefined)
+        if (this.endSubLine === undefined)
         {
             throw new Error(`SUB ${this.name} is missing END SUB`);
         }
 
-        return { result: ExecutionResult.Goto, gotoTarget: endSubLine + 1 };
+        return { result: ExecutionResult.Goto, gotoTarget: this.endSubLine + 1 };
     }
 
     public override toString(): string

@@ -5,6 +5,7 @@ import { MathematicalFunctionEvaluator } from './helpers/mathematical-function-e
 import { ComplexFunctionEvaluator } from './helpers/complex-function-evaluator';
 import { StringFunctionEvaluator } from './helpers/string-function-evaluator';
 import { TypeConversionEvaluator } from './helpers/type-conversion-evaluator';
+import { ParenthesizedExpression } from './special';
 
 /**
  * Unary operators supported by the expression runtime.
@@ -135,6 +136,7 @@ export class UnaryExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Evaluate operand; dispatch by category to prefix, math, complex, string, type conversion, or audio.
         const operandValue = this.operand.evaluate(context);
 
         switch (this.category)
@@ -165,26 +167,23 @@ export class UnaryExpression extends Expression
 
             case UnaryOperator.Minus:
             {
-                if (operandValue.type === EduBasicType.Integer)
+                switch (operandValue.type)
                 {
-                    return { type: EduBasicType.Integer, value: -operandValue.value };
+                    case EduBasicType.Integer:
+                        return { type: EduBasicType.Integer, value: -operandValue.value };
+                    case EduBasicType.Real:
+                        return { type: EduBasicType.Real, value: -operandValue.value };
+                    case EduBasicType.Complex:
+                        return {
+                            type: EduBasicType.Complex,
+                            value: {
+                                real: -operandValue.value.real,
+                                imaginary: -operandValue.value.imaginary
+                            }
+                        };
+                    default:
+                        throw new Error(`Cannot negate ${operandValue.type}`);
                 }
-                else if (operandValue.type === EduBasicType.Real)
-                {
-                    return { type: EduBasicType.Real, value: -operandValue.value };
-                }
-                else if (operandValue.type === EduBasicType.Complex)
-                {
-                    return {
-                        type: EduBasicType.Complex,
-                        value: {
-                            real: -operandValue.value.real,
-                            imaginary: -operandValue.value.imaginary
-                        }
-                    };
-                }
-                
-                throw new Error(`Cannot negate ${operandValue.type}`);
             }
 
             case UnaryOperator.Not:
@@ -244,10 +243,9 @@ export class UnaryExpression extends Expression
             return `${this.operator}${this.operand.toString()}`;
         }
         
-        // Unary keyword-operators are formatted as prefix operators.
-        // Parentheses are only grouping in EduBASIC and are emitted by the operand expression itself
-        // (e.g. SIN (x + y)).
+        // Unary keyword-operators: no space before parenthesized operand (SIN(0), SIN(X# + Y#)), space otherwise (SIN 0).
         const argStr = this.operand.toString();
-        return `${this.operator}${argStr}`;
+        const noSpace = this.operand instanceof ParenthesizedExpression;
+        return noSpace ? `${this.operator}${argStr}` : `${this.operator} ${argStr}`;
     }
 }

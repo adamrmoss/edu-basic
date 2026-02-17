@@ -91,12 +91,13 @@ export class AppComponent implements OnInit, OnDestroy
      */
     public ngOnInit(): void
     {
+        // Subscribe to tab-switch requests and load initial mute state from the audio service.
         this.tabSwitchService.switchTab$
             .pipe(takeUntil(this.destroy$))
             .subscribe(tabId => {
                 this.switchToTab(tabId);
             });
-        
+
         this.muted = this.audioService.getMuted();
     }
 
@@ -116,8 +117,7 @@ export class AppComponent implements OnInit, OnDestroy
     {
         if (this.tabsComponent)
         {
-            const tabsComponentAny = this.tabsComponent as any;
-            return tabsComponentAny.activeTabId === 'disk';
+            return this.tabsComponent.activeTabId === 'disk';
         }
         
         return this.activeTabId === 'disk';
@@ -139,18 +139,17 @@ export class AppComponent implements OnInit, OnDestroy
             return;
         }
 
+        // Update active tab id and select the tab by id when the tab component is ready.
         this.activeTabId = tabId;
 
         if (this.tabsComponent && this.tabs)
         {
             const tabArray = this.tabs.toArray();
-            const tabIndex = tabArray.findIndex((tab: any) => tab.id === tabId);
+            const tabIndex = tabArray.findIndex((tab: TabComponent) => tab.id === tabId);
 
             if (tabIndex >= 0)
             {
-                const tabsComponentAny = this.tabsComponent as any;
-                tabsComponentAny.activeTabId = tabId;
-                tabsComponentAny.updateActiveTab();
+                this.tabsComponent.selectTab(tabId);
             }
         }
     }

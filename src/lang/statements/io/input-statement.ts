@@ -73,6 +73,7 @@ export class InputStatement extends Statement
 
             const targetLength = values.length > 0 ? values.length : parsedElements.length;
 
+            // Pad to target length with defaults, then fill from parsed comma-separated values.
             while (values.length < targetLength)
             {
                 values.push(this.getDefaultValueForType(elementType));

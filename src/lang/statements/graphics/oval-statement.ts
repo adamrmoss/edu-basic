@@ -84,6 +84,7 @@ export class OvalStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate center and radii; compute bounding rect; optional color; draw filled or outline, flush, switch tab.
         const cxVal = this.centerX.evaluate(context);
         const cyVal = this.centerY.evaluate(context);
         const rxVal = this.radiusX.evaluate(context);

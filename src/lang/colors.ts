@@ -213,6 +213,7 @@ export const COLOR_NAMES: Map<string, number> = new Map([
  */
 export function getColorValue(colorName: string): number | undefined
 {
+    // Case-insensitive lookup in COLOR_NAMES.
     const normalized = colorName.toLowerCase();
     return COLOR_NAMES.get(normalized);
 }
@@ -236,9 +237,8 @@ export function isColorName(colorName: string): boolean
  */
 export function getAllColorNames(): string[]
 {
+    // Collect keys, dedupe (e.g. gray/grey), sort alphabetically.
     const names = Array.from(COLOR_NAMES.keys());
-    
-    // Remove duplicates (aliases) and sort
     const uniqueNames = Array.from(new Set(names));
     uniqueNames.sort();
     
@@ -273,8 +273,9 @@ export interface ColorInfo
  */
 export function getAllColorInfo(): ColorInfo[]
 {
+    // Unpack each entry to hex and RGBA, push to info; sort by name.
     const info: ColorInfo[] = [];
-    
+
     for (const [name, rgba] of COLOR_NAMES.entries())
     {
         const normalized = name.toLowerCase();

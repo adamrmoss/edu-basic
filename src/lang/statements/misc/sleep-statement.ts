@@ -47,6 +47,7 @@ export class SleepStatement extends Statement
             throw new Error('SLEEP: milliseconds must be a number');
         }
 
+        // Clamp to non-negative integer milliseconds and request sleep from runtime.
         const ms = Math.max(0, Math.floor(value.value as number));
         runtime.sleep(ms);
         return { result: ExecutionResult.Continue };

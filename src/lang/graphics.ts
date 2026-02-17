@@ -302,9 +302,9 @@ export class Graphics
      */
     public drawLine(x1: number, y1: number, x2: number, y2: number, color?: Color): void
     {
-        // Prepare integer step parameters for a grid line-walk.
         const c = color ?? this.foregroundColor;
-        
+
+        // Bresenham-style integer line: step along the longer axis, use err to decide the other axis.
         const dx = Math.abs(x2 - x1);
         const dy = Math.abs(y2 - y1);
         const sx = x1 < x2 ? 1 : -1;

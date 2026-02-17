@@ -29,6 +29,20 @@ export class EndStatement extends Statement
     public readonly endType: EndType;
 
     /**
+     * Linked IF line index (0-based), when endType is If.
+     *
+     * Populated by static syntax analysis.
+     */
+    public ifLine?: number;
+
+    /**
+     * Linked UNLESS line index (0-based), when endType is Unless.
+     *
+     * Populated by static syntax analysis.
+     */
+    public unlessLine?: number;
+
+    /**
      * Create a new `END` statement.
      *
      * @param endType End variant.
@@ -62,45 +76,54 @@ export class EndStatement extends Statement
             return { result: ExecutionResult.End };
         }
 
-        if (this.endType === EndType.Sub)
+        if (!this.isLinkedToProgram)
         {
-            runtime.popControlFramesToAndIncluding('sub');
-            return { result: ExecutionResult.Return };
+            return { result: ExecutionResult.Continue };
         }
 
-        if (this.endType === EndType.If)
+        // Dispatch by end type: Sub pops to frame and returns; If/Unless/Select pop the matching frame.
+        switch (this.endType)
         {
-            const top = runtime.getCurrentControlFrame();
-            if (!top || top.type !== 'if')
+            case EndType.Sub:
+                runtime.popControlFramesToAndIncluding('sub');
+                return { result: ExecutionResult.Return };
+            case EndType.If:
             {
-                throw new Error('END IF without IF');
+                const top = runtime.getCurrentControlFrame();
+                if (!top || top.type !== 'if')
+                {
+                    throw new Error('END IF without IF');
+                }
+
+                runtime.popControlFrame();
+                break;
             }
-
-            runtime.popControlFrame();
-        }
-
-        if (this.endType === EndType.Unless)
-        {
-            const top = runtime.getCurrentControlFrame();
-            if (!top || top.type !== 'unless')
+            case EndType.Unless:
             {
-                throw new Error('END UNLESS without UNLESS');
+                const top = runtime.getCurrentControlFrame();
+                if (!top || top.type !== 'unless')
+                {
+                    throw new Error('END UNLESS without UNLESS');
+                }
+
+                runtime.popControlFrame();
+                break;
             }
-
-            runtime.popControlFrame();
-        }
-
-        if (this.endType === EndType.Select)
-        {
-            const top = runtime.getCurrentControlFrame();
-            if (!top || top.type !== 'select')
+            case EndType.Select:
             {
-                throw new Error('END SELECT without SELECT');
-            }
+                const top = runtime.getCurrentControlFrame();
+                if (!top || top.type !== 'select')
+                {
+                    throw new Error('END SELECT without SELECT');
+                }
 
-            runtime.popControlFrame();
+                runtime.popControlFrame();
+                break;
+            }
+            default:
+                break;
         }
-        
+
         return { result: ExecutionResult.Continue };
     }
 

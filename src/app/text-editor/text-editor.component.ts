@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, AfterViewInit, OnDestroy, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 /**
  * A single line parse/validation error for the text editor.
@@ -37,6 +38,12 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      */
     @ViewChild('codeTextarea', { static: false })
     public codeTextareaRef!: ElementRef<HTMLTextAreaElement>;
+
+    /**
+     * Reference to the code overlay element (used for per-line styling).
+     */
+    @ViewChild('codeOverlay', { static: false })
+    public codeOverlayRef!: ElementRef<HTMLPreElement>;
 
     /**
      * Reference to the line-numbers gutter element.
@@ -99,9 +106,20 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
     public blur = new EventEmitter<void>();
 
     /**
+     * Emits the new 0-based cursor line index when the cursor moves to a different line (e.g. after click in textarea).
+     */
+    @Output()
+    public cursorLineChange = new EventEmitter<number>();
+
+    /**
      * Rendered line numbers including wrapped visual lines (wrapped lines use -1).
      */
     public lineNumbers: number[] = [1];
+
+    /**
+     * Rendered overlay HTML for styled line display.
+     */
+    public overlayHtml: SafeHtml = '';
 
     /**
      * Start of the selected line range (0-based), if any.
@@ -120,6 +138,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
 
     private textareaElement: HTMLTextAreaElement | null = null;
     private lineNumbersElement: HTMLDivElement | null = null;
+    private overlayElement: HTMLPreElement | null = null;
     private resizeHandler: (() => void) | null = null;
     private mouseMoveHandler: ((event: MouseEvent) => void) | null = null;
     private mouseUpHandler: ((event: MouseEvent) => void) | null = null;
@@ -130,7 +149,10 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      *
      * @param cdr Change detector used to refresh line number rendering after view init.
      */
-    constructor(private readonly cdr: ChangeDetectorRef)
+    constructor(
+        private readonly cdr: ChangeDetectorRef,
+        private readonly sanitizer: DomSanitizer
+    )
     {
     }
 
@@ -139,11 +161,14 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      */
     public ngAfterViewInit(): void
     {
+        // Capture textarea, gutter, and overlay refs; defer first update; attach resize and mouse handlers.
         this.textareaElement = this.codeTextareaRef?.nativeElement || null;
         this.lineNumbersElement = this.lineNumbersRef?.nativeElement || null;
+        this.overlayElement = this.codeOverlayRef?.nativeElement || null;
         
         setTimeout(() => {
             this.updateLineNumbers();
+            this.updateOverlayHtml();
             this.cdr.detectChanges();
         }, 0);
         
@@ -171,7 +196,8 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      */
     public ngOnChanges(changes: SimpleChanges): void
     {
-        if (changes['lines'])
+        // When lines or errorLines change, refresh line numbers and overlay (or simple 1-based if no textarea yet).
+        if (changes['lines'] || changes['errorLines'])
         {
             if (this.textareaElement)
             {
@@ -181,6 +207,8 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
             {
                 this.lineNumbers = this.lines.map((_, i) => i + 1);
             }
+
+            this.updateOverlayHtml();
         }
     }
 
@@ -212,11 +240,13 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      */
     public onTextAreaInput(event: Event): void
     {
+        // Split value by newlines, emit, then refresh line numbers and overlay.
         const textarea = event.target as HTMLTextAreaElement;
         const newLines = textarea.value.split('\n');
         this.lines = newLines;
         this.linesChange.emit(newLines);
         this.updateLineNumbers();
+        this.updateOverlayHtml();
     }
 
     /**
@@ -231,6 +261,11 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         if (this.lineNumbersElement)
         {
             this.lineNumbersElement.scrollTop = textarea.scrollTop;
+        }
+
+        if (this.overlayElement)
+        {
+            this.overlayElement.scrollTop = textarea.scrollTop;
         }
     }
 
@@ -250,6 +285,14 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
     public onBlur(): void
     {
         this.blur.emit();
+    }
+
+    /**
+     * Emit cursor line change when the user clicks in the textarea (cursor may have moved to a different line).
+     */
+    public onTextAreaMouseUp(): void
+    {
+        this.cursorLineChange.emit(this.getCursorLineIndex());
     }
 
     /**
@@ -327,6 +370,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
 
     private getActualLineIndexFromVisual(visualLineIndex: number): number
     {
+        // Walk backwards from visual index to find the last non-negative (logical) line number.
         if (visualLineIndex < 0 || visualLineIndex >= this.lineNumbers.length)
         {
             return -1;
@@ -370,6 +414,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
 
     private updateLineNumbers(): void
     {
+        // Measure font and width to get chars per line; for each logical line emit line number or -1 for wrapped lines.
         if (!this.textareaElement)
         {
             this.lineNumbers = this.lines.map((_, i) => i + 1);
@@ -428,6 +473,31 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         return position;
     }
 
+    private updateOverlayHtml(): void
+    {
+        const parts: string[] = [];
+
+        for (let i = 0; i < this.lines.length; i++)
+        {
+            const line = this.lines[i] ?? '';
+            const escaped = this.escapeHtml(line);
+            const errorClass = this.errorLines.has(i) ? ' code-line-error' : '';
+            parts.push(`<span class="code-line${errorClass}">${escaped}</span><br/>`);
+        }
+
+        this.overlayHtml = this.sanitizer.bypassSecurityTrustHtml(parts.join(''));
+    }
+
+    private escapeHtml(text: string): string
+    {
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     /**
      * Determine whether a given line index is marked as an error.
      *
@@ -481,6 +551,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
         this.lines = code.split('\n');
         this.linesChange.emit(this.lines);
         this.updateLineNumbers();
+        this.updateOverlayHtml();
     }
 
     /**

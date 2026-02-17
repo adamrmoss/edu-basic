@@ -25,6 +25,11 @@ export class FinallyStatement extends Statement
         return 0;
     }
 
+    public override getDisplayIndentAdjustment(): number
+    {
+        return -1;
+    }
+
     /**
      * Execute the statement.
      *
@@ -40,6 +45,7 @@ export class FinallyStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Structural; runtime coordinates TRY/FINALLY flow via control frames.
         return { result: ExecutionResult.Continue };
     }
 

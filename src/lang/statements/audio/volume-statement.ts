@@ -41,6 +41,7 @@ export class VolumeStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate level (numeric or default 100) and set global volume.
         const volumeValue = this.level.evaluate(context);
         const volume = volumeValue.type === EduBasicType.Integer || volumeValue.type === EduBasicType.Real ? volumeValue.value as number : 100;
         

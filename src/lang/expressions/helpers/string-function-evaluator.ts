@@ -15,6 +15,7 @@ export class StringFunctionEvaluator
      */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
+        // Dispatch ASC/CHR/UCASE/LCASE/LTRIM/RTRIM/TRIM/REVERSE; require string (or numeric for CHR).
         switch (operator)
         {
             case UnaryOperator.Asc:
@@ -94,14 +95,14 @@ export class StringFunctionEvaluator
 
     private toInteger(value: EduBasicValue): number
     {
-        if (value.type === EduBasicType.Integer)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Integer:
+                return value.value;
+            case EduBasicType.Real:
+                return Math.trunc(value.value);
+            default:
+                throw new Error(`Cannot convert ${value.type} to integer`);
         }
-        if (value.type === EduBasicType.Real)
-        {
-            return Math.trunc(value.value);
-        }
-        throw new Error(`Cannot convert ${value.type} to integer`);
     }
 }

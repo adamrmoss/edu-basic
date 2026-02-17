@@ -45,6 +45,7 @@ export class VariableParsers
 
         const segments: LetBracketSegment[] = [];
 
+        // Collect optional .member and [indices] segments after the variable name.
         while (!context.isAtEnd())
         {
             if (context.match(TokenType.Dot))

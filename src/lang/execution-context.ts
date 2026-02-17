@@ -127,7 +127,7 @@ export class ExecutionContext
      */
     public getVariable(name: string): EduBasicValue
     {
-        // Normalize the name for case-insensitive lookup.
+        // Lookup: locals (with by-ref redirect) then globals; missing => default by suffix.
         const lookupKey = name.toUpperCase();
 
         // Prefer local scope if a call frame is active (respect by-ref aliasing).
@@ -172,7 +172,7 @@ export class ExecutionContext
      */
     public setVariable(name: string, value: EduBasicValue, isLocal: boolean = false): void
     {
-        // Normalize the name for case-insensitive lookup.
+        // By-ref alias => assign in outer scope; else assign to current frame (if local) or globals.
         const lookupKey = name.toUpperCase();
 
         // If this name is a by-ref alias in the current frame, redirect the assignment outward.
@@ -313,7 +313,7 @@ export class ExecutionContext
     /**
      * Pop the current call frame and return its return address (if any).
      */
-    public popStackFrame(): number | undefined
+    public popCallStackFrame(): number | undefined
     {
         // Pop the call frame and return its return address (if any).
         const frame = this.stackFrames.pop();
@@ -441,7 +441,7 @@ export class ExecutionContext
      */
     private getDefaultValue(variableName: string): EduBasicValue
     {
-        // Array variables have a suffix encoding rank; the base name suffix encodes element type.
+        // Infer type from name: array suffix (rank + element sigil) or scalar sigil (%/#/$/&).
         const arraySuffix = tryGetArrayRankSuffixFromName(variableName);
         if (arraySuffix !== null)
         {

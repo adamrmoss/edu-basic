@@ -121,6 +121,7 @@ export function getArrayRankSuffix(rank: number): string
  */
 export function tryGetArrayRankSuffixFromName(name: string): { baseName: string; rank: number; suffix: string } | null
 {
+    // Find last '['; require matching ']' and only commas between; rank = comma count + 1.
     const left = name.lastIndexOf('[');
     if (left < 0 || !name.endsWith(']'))
     {
@@ -158,6 +159,7 @@ export function tryGetArrayRankSuffixFromName(name: string): { baseName: string;
  */
 export function findMostSpecificCommonType(types: EduBasicType[]): EduBasicType | null
 {
+    // Unify numeric types only; Integer < Real < Complex; string/structure/array => null.
     if (types.length === 0)
     {
         return EduBasicType.Integer;
@@ -205,6 +207,7 @@ export function findMostSpecificCommonType(types: EduBasicType[]): EduBasicType 
  */
 export function coerceArrayElements(elements: EduBasicValue[]): { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType }
 {
+    // Empty => Integer array; else unify element types and coerce each value to common type.
     if (elements.length === 0)
     {
         return {
@@ -267,35 +270,38 @@ export function coerceValue(value: EduBasicValue, targetType: EduBasicType): Edu
     switch (targetType)
     {
         case EduBasicType.Integer:
-            if (value.type === EduBasicType.Real)
+            switch (value.type)
             {
-                return { type: EduBasicType.Integer, value: Math.trunc(value.value) };
-            }
-            if (value.type === EduBasicType.Complex)
-            {
-                return { type: EduBasicType.Integer, value: Math.trunc(value.value.real) };
+                case EduBasicType.Real:
+                    return { type: EduBasicType.Integer, value: Math.trunc(value.value) };
+                case EduBasicType.Complex:
+                    return { type: EduBasicType.Integer, value: Math.trunc(value.value.real) };
+                default:
+                    break;
             }
             break;
-            
+
         case EduBasicType.Real:
-            if (value.type === EduBasicType.Integer)
+            switch (value.type)
             {
-                return { type: EduBasicType.Real, value: value.value };
-            }
-            if (value.type === EduBasicType.Complex)
-            {
-                return { type: EduBasicType.Real, value: value.value.real };
+                case EduBasicType.Integer:
+                    return { type: EduBasicType.Real, value: value.value };
+                case EduBasicType.Complex:
+                    return { type: EduBasicType.Real, value: value.value.real };
+                default:
+                    break;
             }
             break;
-            
+
         case EduBasicType.Complex:
-            if (value.type === EduBasicType.Integer)
+            switch (value.type)
             {
-                return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
-            }
-            if (value.type === EduBasicType.Real)
-            {
-                return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
+                case EduBasicType.Integer:
+                    return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
+                case EduBasicType.Real:
+                    return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
+                default:
+                    break;
             }
             break;
     }

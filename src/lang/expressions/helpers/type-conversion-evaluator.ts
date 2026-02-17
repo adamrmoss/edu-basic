@@ -15,28 +15,29 @@ export class TypeConversionEvaluator
      */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
+        // INT/STR/VAL/HEX/BIN: coerce to integer, string, real, or hex/binary string.
         switch (operator)
         {
             case UnaryOperator.Int:
             {
-                if (argValue.type === EduBasicType.Integer)
+                switch (argValue.type)
                 {
-                    return argValue;
-                }
-                if (argValue.type === EduBasicType.Real)
-                {
-                    return { type: EduBasicType.Integer, value: Math.trunc(argValue.value) };
-                }
-                if (argValue.type === EduBasicType.String)
-                {
-                    const parsed = parseFloat(argValue.value);
-                    if (isNaN(parsed))
+                    case EduBasicType.Integer:
+                        return argValue;
+                    case EduBasicType.Real:
+                        return { type: EduBasicType.Integer, value: Math.trunc(argValue.value) };
+                    case EduBasicType.String:
                     {
-                        throw new Error(`Cannot convert string "${argValue.value}" to integer`);
+                        const parsed = parseFloat(argValue.value);
+                        if (isNaN(parsed))
+                        {
+                            throw new Error(`Cannot convert string "${argValue.value}" to integer`);
+                        }
+                        return { type: EduBasicType.Integer, value: Math.trunc(parsed) };
                     }
-                    return { type: EduBasicType.Integer, value: Math.trunc(parsed) };
+                    default:
+                        throw new Error(`Cannot convert ${argValue.type} to integer`);
                 }
-                throw new Error(`Cannot convert ${argValue.type} to integer`);
             }
             case UnaryOperator.Str:
             {
@@ -94,14 +95,14 @@ export class TypeConversionEvaluator
 
     private toInteger(value: EduBasicValue): number
     {
-        if (value.type === EduBasicType.Integer)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Integer:
+                return value.value;
+            case EduBasicType.Real:
+                return Math.trunc(value.value);
+            default:
+                throw new Error(`Cannot convert ${value.type} to integer`);
         }
-        if (value.type === EduBasicType.Real)
-        {
-            return Math.trunc(value.value);
-        }
-        throw new Error(`Cannot convert ${value.type} to integer`);
     }
 }

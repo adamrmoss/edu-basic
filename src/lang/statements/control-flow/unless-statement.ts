@@ -6,15 +6,27 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
-import { EndStatement, EndType } from './end-statement';
-import { ElseStatement } from './else-statement';
-import { IfStatement } from './if-statement';
 
 /**
  * Implements the `UNLESS` statement.
  */
 export class UnlessStatement extends Statement
 {
+    /**
+     * Linked `END UNLESS` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endUnlessLine?: number;
+
+    /**
+     * Line index to jump to when the condition is true (i.e. the UNLESS body is skipped).
+     *
+     * This is either the `ELSE` line (if present) or the `END UNLESS` line.
+     * Populated by static syntax analysis.
+     */
+    public elseOrEndLine?: number;
+
     /**
      * Condition expression.
      */
@@ -63,6 +75,7 @@ export class UnlessStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate condition (integer); push UNLESS frame; run then-branch or jump to else/END UNLESS.
         const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
 
@@ -71,10 +84,9 @@ export class UnlessStatement extends Statement
             throw new Error('UNLESS condition must evaluate to an integer');
         }
 
-        const endUnlessLine = runtime.findMatchingEndUnless(currentPc);
-        if (endUnlessLine === undefined)
+        if (this.endUnlessLine === undefined)
         {
-            throw new Error('UNLESS: missing END UNLESS');
+            return { result: ExecutionResult.Continue };
         }
 
         const branchTaken = conditionValue.value === 0;
@@ -82,7 +94,7 @@ export class UnlessStatement extends Statement
         runtime.pushControlFrame({
             type: 'unless',
             startLine: currentPc,
-            endLine: endUnlessLine,
+            endLine: this.endUnlessLine,
             branchTaken
         });
 
@@ -91,62 +103,8 @@ export class UnlessStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
-        const elseOrEnd = this.findElseOrEnd(program, currentPc + 1, endUnlessLine);
+        const elseOrEnd = this.elseOrEndLine ?? this.endUnlessLine;
         return { result: ExecutionResult.Goto, gotoTarget: elseOrEnd };
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    private findElseOrEnd(program: Program, fromLine: number, endUnlessLine: number): number
-    {
-        const statements = program.getStatements();
-        let ifDepth = 0;
-        let unlessDepth = 0;
-
-        for (let i = fromLine; i <= endUnlessLine && i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof IfStatement)
-            {
-                ifDepth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.If)
-            {
-                if (ifDepth > 0)
-                {
-                    ifDepth--;
-                    continue;
-                }
-            }
-
-            if (stmt instanceof UnlessStatement)
-            {
-                unlessDepth++;
-                continue;
-            }
-
-            if (stmt instanceof EndStatement && stmt.endType === EndType.Unless)
-            {
-                if (unlessDepth > 0)
-                {
-                    unlessDepth--;
-                    continue;
-                }
-            }
-
-            if (ifDepth === 0 && unlessDepth === 0)
-            {
-                if (stmt instanceof ElseStatement)
-                {
-                    return i;
-                }
-            }
-        }
-
-        return endUnlessLine;
     }
 
     public override toString(): string

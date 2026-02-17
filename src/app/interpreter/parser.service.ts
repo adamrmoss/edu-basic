@@ -114,7 +114,7 @@ export class ParserService
     public parseLine(lineNumber: number, sourceText: string): ParseResult<ParsedLine>
     {
         const trimmedText = sourceText.trim();
-        
+
         if (!trimmedText || trimmedText.startsWith("'"))
         {
             const statement = new UnparsableStatement(sourceText, 'Comment or empty line');
@@ -131,6 +131,7 @@ export class ParserService
             return success(parsed);
         }
 
+        // Tokenize then dispatch by first keyword; failures still return success with UnparsableStatement so UI can show errors.
         const tokenizeResult = this.tokenizer.tokenize(trimmedText);
         if (!tokenizeResult.success)
         {
@@ -173,9 +174,17 @@ export class ParserService
         }
         
         const statement = statementResult.value;
-        statement.indentLevel = this.currentIndentLevel;
-        
         const indentAdjustment = statement.getIndentAdjustment();
+
+        if (indentAdjustment < 0)
+        {
+            statement.indentLevel = this.currentIndentLevel + indentAdjustment;
+        }
+        else
+        {
+            statement.indentLevel = this.currentIndentLevel;
+        }
+
         if (indentAdjustment !== 0)
         {
             this.currentIndentLevel = this.currentIndentLevel + indentAdjustment;
@@ -192,8 +201,47 @@ export class ParserService
         return success(parsed);
     }
 
+    /**
+     * Parse a single source line without mutating parser state.
+     *
+     * This is primarily used for per-line operations like canonicalization where we do not want to
+     * affect `currentIndentLevel` or the `parsedLines` map.
+     *
+     * @param sourceText Raw source text.
+     */
+    public parseLineStateless(sourceText: string): ParseResult<Statement>
+    {
+        const trimmedText = sourceText.trim();
+
+        if (!trimmedText || trimmedText.startsWith("'"))
+        {
+            return failure('Comment or empty line');
+        }
+
+        const tokenizeResult = new Tokenizer().tokenize(trimmedText);
+        if (!tokenizeResult.success)
+        {
+            return failure(tokenizeResult.error || 'Tokenization error');
+        }
+
+        const tokens = tokenizeResult.value;
+        const current: { value: number } = { value: 0 };
+        const context = new ParserContext(tokens, current, new ExpressionParser());
+        const statementResult = this.parseStatement(context);
+
+        if (!statementResult.success)
+        {
+            return failure(statementResult.error || 'Parse error');
+        }
+
+        const statement = statementResult.value;
+        statement.indentLevel = 0;
+        return success(statement);
+    }
+
     private parseStatement(context: ParserContext): ParseResult<Statement>
     {
+        // Dispatch by first keyword; non-keyword tokens fall through to label or error.
         const token = context.peek();
 
         if (token.type === TokenType.Keyword)

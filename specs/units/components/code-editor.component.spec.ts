@@ -39,7 +39,18 @@ describe('CodeEditorComponent', () => {
         } as any;
 
         const parserServiceMock = {
-            parseLine: jest.fn()
+            clear: jest.fn(),
+            currentIndentLevel: 0,
+            parseLine: jest.fn().mockImplementation((lineNumber: number, sourceText: string) =>
+            {
+                return success({
+                    lineNumber,
+                    sourceText,
+                    statement: new UnparsableStatement(sourceText, 'Comment or empty line'),
+                    hasError: false
+                } as ParsedLine);
+            }),
+            parseLineStateless: jest.fn().mockReturnValue(failure('Comment or empty line'))
         } as any;
 
         const sharedProgram = new Program();
@@ -142,14 +153,7 @@ describe('CodeEditorComponent', () => {
 
         it('should replace line with canonical representation on Enter', (done) => {
             const statement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
-            const parsedLine: ParsedLine = {
-                lineNumber: 0,
-                sourceText: 'let x=42',
-                statement,
-                hasError: false
-            };
-
-            parserService.parseLine.mockReturnValue(success(parsedLine));
+            parserService.parseLineStateless.mockReturnValue(success(statement));
 
             component.lines = ['let x=42'];
             fixture.detectChanges();
@@ -179,16 +183,9 @@ describe('CodeEditorComponent', () => {
             }
         });
 
-        it('should preserve indentation when replacing with canonical representation', (done) => {
+        it('should use canonical indent level when replacing (block-structure indent)', (done) => {
             const statement = new PrintStatement([new LiteralExpression({ type: EduBasicType.String, value: 'Hello' })]);
-            const parsedLine: ParsedLine = {
-                lineNumber: 0,
-                sourceText: 'print "Hello"',
-                statement,
-                hasError: false
-            };
-
-            parserService.parseLine.mockReturnValue(success(parsedLine));
+            parserService.parseLineStateless.mockReturnValue(success(statement));
 
             component.lines = ['    print "Hello"'];
             fixture.detectChanges();
@@ -202,8 +199,8 @@ describe('CodeEditorComponent', () => {
                 component.onBlur();
 
                 setTimeout(() => {
-                    expect(component.lines).toEqual(['    PRINT "Hello"']);
-                    expect(diskService.programCode).toBe('    PRINT "Hello"');
+                    expect(component.lines).toEqual(['PRINT "Hello"']);
+                    expect(diskService.programCode).toBe('PRINT "Hello"');
                     done();
                 }, 10);
             }
@@ -219,7 +216,7 @@ describe('CodeEditorComponent', () => {
 
             component.onBlur();
 
-            expect(parserService.parseLine).not.toHaveBeenCalled();
+            expect(parserService.parseLineStateless).not.toHaveBeenCalled();
         });
 
         it('should not replace comment lines', () => {
@@ -228,19 +225,12 @@ describe('CodeEditorComponent', () => {
 
             component.onBlur();
 
-            expect(parserService.parseLine).not.toHaveBeenCalled();
+            expect(parserService.parseLineStateless).not.toHaveBeenCalled();
         });
 
         it('should not replace if canonical representation matches original', () => {
             const statement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
-            const parsedLine: ParsedLine = {
-                lineNumber: 0,
-                sourceText: 'LET x = 42',
-                statement,
-                hasError: false
-            };
-
-            parserService.parseLine.mockReturnValue(success(parsedLine));
+            parserService.parseLineStateless.mockReturnValue(success(statement));
 
             component.lines = ['LET x = 42'];
             fixture.detectChanges();
@@ -254,20 +244,26 @@ describe('CodeEditorComponent', () => {
             const validStatement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const errorStatement = new UnparsableStatement('INVALID', 'Error');
 
-            parserService.parseLine
-                .mockReturnValueOnce(success({
-                    lineNumber: 0,
-                    sourceText: 'LET x = 42',
-                    statement: validStatement,
-                    hasError: false
-                } as ParsedLine))
-                .mockReturnValueOnce(success({
-                    lineNumber: 1,
-                    sourceText: 'INVALID',
+            parserService.parseLine.mockImplementation((lineNumber: number, sourceText: string) =>
+            {
+                if (sourceText.trim().toUpperCase().startsWith('LET'))
+                {
+                    return success({
+                        lineNumber,
+                        sourceText,
+                        statement: validStatement,
+                        hasError: false
+                    } as ParsedLine);
+                }
+
+                return success({
+                    lineNumber,
+                    sourceText,
                     statement: errorStatement,
                     hasError: true,
                     errorMessage: 'Error'
-                } as ParsedLine));
+                } as ParsedLine);
+            });
 
             component.lines = ['LET x = 42', 'INVALID'];
             component.onLinesChange(['LET x = 42', 'INVALID']);
@@ -322,27 +318,27 @@ describe('CodeEditorComponent', () => {
             const validStatement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
             const anotherErrorStatement = new UnparsableStatement('INVALID2', 'Error');
 
-            parserService.parseLine
-                .mockReturnValueOnce(success({
-                    lineNumber: 0,
-                    sourceText: 'INVALID1',
-                    statement: errorStatement,
+            parserService.parseLine.mockImplementation((lineNumber: number, sourceText: string) =>
+            {
+                if (sourceText.trim().toUpperCase().startsWith('LET'))
+                {
+                    return success({
+                        lineNumber,
+                        sourceText,
+                        statement: validStatement,
+                        hasError: false
+                    } as ParsedLine);
+                }
+
+                const isInvalid1 = sourceText.includes('INVALID1');
+                return success({
+                    lineNumber,
+                    sourceText,
+                    statement: isInvalid1 ? errorStatement : anotherErrorStatement,
                     hasError: true,
                     errorMessage: 'Error'
-                } as ParsedLine))
-                .mockReturnValueOnce(success({
-                    lineNumber: 1,
-                    sourceText: 'LET x = 42',
-                    statement: validStatement,
-                    hasError: false
-                } as ParsedLine))
-                .mockReturnValueOnce(success({
-                    lineNumber: 2,
-                    sourceText: 'INVALID2',
-                    statement: anotherErrorStatement,
-                    hasError: true,
-                    errorMessage: 'Error'
-                } as ParsedLine));
+                } as ParsedLine);
+            });
 
             component.lines = ['INVALID1', 'LET x = 42', 'INVALID2'];
             component.onLinesChange(['INVALID1', 'LET x = 42', 'INVALID2']);
@@ -356,20 +352,26 @@ describe('CodeEditorComponent', () => {
             const errorStatement = new UnparsableStatement('INVALID', 'Error');
             const validStatement = new LetStatement('x', new LiteralExpression({ type: EduBasicType.Integer, value: 42 }));
 
-            parserService.parseLine
-                .mockReturnValueOnce(success({
-                    lineNumber: 0,
-                    sourceText: 'INVALID',
+            parserService.parseLine.mockImplementation((lineNumber: number, sourceText: string) =>
+            {
+                if (sourceText.trim().toUpperCase().startsWith('LET'))
+                {
+                    return success({
+                        lineNumber,
+                        sourceText,
+                        statement: validStatement,
+                        hasError: false
+                    } as ParsedLine);
+                }
+
+                return success({
+                    lineNumber,
+                    sourceText,
                     statement: errorStatement,
                     hasError: true,
                     errorMessage: 'Error'
-                } as ParsedLine))
-                .mockReturnValueOnce(success({
-                    lineNumber: 0,
-                    sourceText: 'LET x = 42',
-                    statement: validStatement,
-                    hasError: false
-                } as ParsedLine));
+                } as ParsedLine);
+            });
 
             component.lines = ['INVALID'];
             component.onLinesChange(['INVALID']);
@@ -456,10 +458,13 @@ describe('CodeEditorComponent', () => {
         {
             diskService.getProgramCodeFromFile = jest.fn().mockReturnValue('   \n   ');
 
+            interpreterService.reset.mockClear();
+            interpreterService.run.mockClear();
+            parserService.parseLine.mockClear();
+
             component.onRun();
 
             expect(interpreterService.reset).not.toHaveBeenCalled();
-            expect(parserService.parseLine).not.toHaveBeenCalled();
             expect(interpreterService.run).not.toHaveBeenCalled();
         });
 
@@ -475,6 +480,17 @@ describe('CodeEditorComponent', () => {
 
             parserService.parseLine.mockImplementation((lineNumber: number, sourceText: string) =>
             {
+                const trimmed = sourceText.trim();
+                if (!trimmed || trimmed.startsWith("'"))
+                {
+                    return success({
+                        lineNumber,
+                        sourceText,
+                        statement: new UnparsableStatement(sourceText, 'Comment or empty line'),
+                        hasError: false
+                    } as ParsedLine);
+                }
+
                 if (sourceText.startsWith('LET'))
                 {
                     return success({
@@ -495,17 +511,13 @@ describe('CodeEditorComponent', () => {
 
             runtimeExecution.executeStep.mockReturnValue(ExecutionResult.End);
 
-            const program = interpreterService.getSharedProgram();
-            const clearSpy = jest.spyOn(program, 'clear');
-            const appendSpy = jest.spyOn(program, 'appendLine');
-            const rebuildSpy = jest.spyOn(program, 'rebuildLabelMap');
-
+            parserService.clear.mockClear();
+            parserService.parseLine.mockClear();
             component.onRun();
 
             expect(interpreterService.reset).toHaveBeenCalled();
-            expect(clearSpy).toHaveBeenCalled();
-            expect(appendSpy).toHaveBeenCalledTimes(2);
-            expect(rebuildSpy).toHaveBeenCalled();
+            expect(parserService.clear).toHaveBeenCalled();
+            expect(parserService.parseLine).toHaveBeenCalledTimes(3);
 
             expect(interpreterService.run).toHaveBeenCalled();
 
@@ -525,7 +537,7 @@ describe('CodeEditorComponent', () => {
             expect(interpreterService.reset).toHaveBeenCalled();
             expect(interpreterService.run).not.toHaveBeenCalled();
             expect(interpreterService.stop).not.toHaveBeenCalled();
-            expect(console.error).toHaveBeenCalled();
+            expect(component.errorLines.has(0)).toBe(true);
         });
 
         it('should stop when runtime execution throws', () =>
@@ -548,7 +560,6 @@ describe('CodeEditorComponent', () => {
             component.onRun();
             jest.advanceTimersByTime(10);
 
-            expect(console.error).toHaveBeenCalledWith('Error executing step:', expect.any(Error));
             expect(interpreterService.stop).toHaveBeenCalled();
         });
     });

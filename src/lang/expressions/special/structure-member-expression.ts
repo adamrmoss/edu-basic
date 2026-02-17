@@ -38,6 +38,7 @@ export class StructureMemberExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Evaluate base to structure; lookup member (case-insensitive); default if missing.
         const structureValue = this.structureExpr.evaluate(context);
         if (structureValue.type !== EduBasicType.Structure)
         {

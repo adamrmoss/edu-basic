@@ -459,25 +459,29 @@ export class FileSystemService
 
         let buffer: Uint8Array;
 
-        if (mode === 'read')
+        switch (mode)
         {
-            const existingFile = this.readFile(path);
-            
-            if (!existingFile)
+            case 'read':
             {
-                throw new Error(`File not found: ${path}`);
+                const existingFile = this.readFile(path);
+
+                if (!existingFile)
+                {
+                    throw new Error(`File not found: ${path}`);
+                }
+
+                buffer = existingFile;
+                break;
             }
-            
-            buffer = existingFile;
-        }
-        else if (mode === 'write')
-        {
-            buffer = new Uint8Array(0);
-        }
-        else
-        {
-            const existingFile = this.readFile(path);
-            buffer = existingFile ? new Uint8Array(existingFile) : new Uint8Array(0);
+            case 'write':
+                buffer = new Uint8Array(0);
+                break;
+            case 'append':
+            {
+                const existingFile = this.readFile(path);
+                buffer = existingFile ? new Uint8Array(existingFile) : new Uint8Array(0);
+                break;
+            }
         }
 
         const handle: FileHandle = {

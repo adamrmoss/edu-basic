@@ -12,6 +12,13 @@ import { EduBasicType } from '../../edu-basic-value';
  */
 export class WendStatement extends Statement
 {
+    /**
+     * Linked WHILE line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public whileLine?: number;
+
     public constructor()
     {
         super();
@@ -40,34 +47,33 @@ export class WendStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const top = runtime.getCurrentControlFrame();
-
-        if (top && top.type === 'while')
+        // When not linked, no-op; else resolve WHILE, re-evaluate condition and loop back or fall through.
+        if (!this.isLinkedToProgram)
         {
-            const whileStmt = program.getStatement(top.startLine);
-
-            if (whileStmt instanceof WhileStatement)
-            {
-                const conditionValue = whileStmt.condition.evaluate(context);
-
-                if (conditionValue.type !== EduBasicType.Integer)
-                {
-                    throw new Error('WHILE condition must evaluate to an integer');
-                }
-
-                if (conditionValue.value !== 0)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: top.startLine + 1 };
-                }
-                else
-                {
-                    runtime.popControlFrame();
-                }
-            }
+            return { result: ExecutionResult.Continue };
         }
-        else
+
+        if (this.whileLine === undefined)
         {
             throw new Error('WEND without WHILE');
+        }
+
+        const whileStmt = program.getStatement(this.whileLine);
+        if (!(whileStmt instanceof WhileStatement))
+        {
+            throw new Error('WEND without WHILE');
+        }
+
+        // Re-evaluate WHILE condition; if true loop back to body (whileLine+1), else fall through past WEND.
+        const conditionValue = whileStmt.condition.evaluate(context);
+        if (conditionValue.type !== EduBasicType.Integer)
+        {
+            throw new Error('WHILE condition must evaluate to an integer');
+        }
+
+        if (conditionValue.value !== 0)
+        {
+            return { result: ExecutionResult.Goto, gotoTarget: this.whileLine + 1 };
         }
 
         return { result: ExecutionResult.Continue };

@@ -22,6 +22,13 @@ export enum ExitTarget
 export class ExitStatement extends Statement
 {
     /**
+     * Linked line index (0-based) to jump to (line after the block end).
+     *
+     * Populated by static syntax analysis.
+     */
+    public exitTargetLine?: number;
+
+    /**
      * Target control-flow construct to exit.
      */
     public readonly target: ExitTarget;
@@ -57,61 +64,20 @@ export class ExitStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        let frameType: 'if' | 'while' | 'do' | 'for' | undefined;
-
-        switch (this.target)
+        if (!this.isLinkedToProgram)
         {
-            case ExitTarget.For:
-                frameType = 'for';
-                break;
-            case ExitTarget.While:
-                frameType = 'while';
-                break;
-            case ExitTarget.Do:
-                frameType = 'do';
-                break;
-            case ExitTarget.Sub:
-                return { result: ExecutionResult.Return };
+            return { result: ExecutionResult.Continue };
         }
 
-        if (frameType)
+        // EXIT SUB: return from current sub; otherwise jump to line after the block (syntax-linked).
+        if (this.target === ExitTarget.Sub)
         {
-            const predicate = (frame: any): boolean =>
-            {
-                if (!frame || frame.type !== frameType)
-                {
-                    return false;
-                }
+            return { result: ExecutionResult.Return };
+        }
 
-                if (frameType !== 'for')
-                {
-                    return true;
-                }
-
-                if (!this.forVariableName)
-                {
-                    return true;
-                }
-
-                if (!frame.loopVariable)
-                {
-                    return false;
-                }
-
-                return frame.loopVariable.toUpperCase() === this.forVariableName.toUpperCase();
-            };
-
-            const frame = runtime.findControlFrameWhere(predicate);
-            if (frame)
-            {
-                const popped = runtime.popControlFramesToAndIncludingWhere(predicate);
-                const endLine = popped?.endLine ?? frame.endLine;
-
-                if (endLine !== undefined)
-                {
-                    return { result: ExecutionResult.Goto, gotoTarget: endLine + 1 };
-                }
-            }
+        if (this.exitTargetLine !== undefined)
+        {
+            return { result: ExecutionResult.Goto, gotoTarget: this.exitTargetLine };
         }
 
         return { result: ExecutionResult.Continue };

@@ -15,6 +15,13 @@ import { EduBasicValue } from '../../edu-basic-value';
 export class CallStatement extends Statement
 {
     /**
+     * Linked `SUB` declaration line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public subLine?: number;
+
+    /**
      * Subroutine name to invoke.
      */
     public readonly subroutineName: string;
@@ -50,67 +57,71 @@ export class CallStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const currentPc = context.getProgramCounter();
-        const statements = program.getStatements();
-
-        for (let i = 0; i < statements.length; i++)
+        if (!this.isLinkedToProgram)
         {
-            const stmt = statements[i];
-
-            if (stmt instanceof SubStatement && stmt.name.toUpperCase() === this.subroutineName.toUpperCase())
-            {
-                if (stmt.parameters.length !== this.args.length)
-                {
-                    throw new Error(`SUB ${this.subroutineName} expects ${stmt.parameters.length} parameters, got ${this.args.length}`);
-                }
-
-                const byRefBindings = new Map<string, string>();
-                const byValValues = new Map<string, EduBasicValue>();
-
-                for (let j = 0; j < stmt.parameters.length; j++)
-                {
-                    const param = stmt.parameters[j];
-
-                    if (param.byRef)
-                    {
-                        const argExpr = this.args[j];
-                        if (!(argExpr instanceof VariableExpression))
-                        {
-                            throw new Error('CALL: BYREF argument must be a variable');
-                        }
-
-                        byRefBindings.set(param.name.toUpperCase(), argExpr.name);
-                        continue;
-                    }
-
-                    const argValue = this.args[j].evaluate(context);
-                    byValValues.set(param.name, argValue);
-                }
-
-                context.pushStackFrame(currentPc + 1, byRefBindings);
-
-                for (const [paramName, value] of byValValues.entries())
-                {
-                    context.setVariable(paramName, value, true);
-                }
-
-                const endSubLine = runtime.findMatchingEndSub(i);
-                if (endSubLine === undefined)
-                {
-                    throw new Error(`SUB ${this.subroutineName} is missing END SUB`);
-                }
-
-                runtime.pushControlFrame({
-                    type: 'sub',
-                    startLine: i,
-                    endLine: endSubLine
-                });
-
-                return { result: ExecutionResult.Goto, gotoTarget: i + 1 };
-            }
+            return { result: ExecutionResult.Continue };
         }
 
-        throw new Error(`SUB ${this.subroutineName} not found`);
+        const currentPc = context.getProgramCounter();
+        if (this.subLine === undefined)
+        {
+            throw new Error(`SUB ${this.subroutineName} not found`);
+        }
+
+        const stmt = program.getStatement(this.subLine);
+        if (!(stmt instanceof SubStatement))
+        {
+            throw new Error(`CALL: target SUB ${this.subroutineName} is invalid`);
+        }
+
+        if (stmt.parameters.length !== this.args.length)
+        {
+            throw new Error(`SUB ${this.subroutineName} expects ${stmt.parameters.length} parameters, got ${this.args.length}`);
+        }
+
+        const byRefBindings = new Map<string, string>();
+        const byValValues = new Map<string, EduBasicValue>();
+
+        // Build by-ref map (param name -> caller variable name) and by-val map; BYREF args must be variables.
+        for (let j = 0; j < stmt.parameters.length; j++)
+        {
+            const param = stmt.parameters[j];
+
+            if (param.byRef)
+            {
+                const argExpr = this.args[j];
+                if (!(argExpr instanceof VariableExpression))
+                {
+                    throw new Error('CALL: BYREF argument must be a variable');
+                }
+
+                byRefBindings.set(param.name.toUpperCase(), argExpr.name);
+                continue;
+            }
+
+            const argValue = this.args[j].evaluate(context);
+            byValValues.set(param.name, argValue);
+        }
+
+        context.pushStackFrame(currentPc + 1, byRefBindings);
+
+        for (const [paramName, value] of byValValues.entries())
+        {
+            context.setVariable(paramName, value, true);
+        }
+
+        if (stmt.endSubLine === undefined)
+        {
+            throw new Error(`SUB ${this.subroutineName} is missing END SUB`);
+        }
+
+        runtime.pushControlFrame({
+            type: 'sub',
+            startLine: this.subLine,
+            endLine: stmt.endSubLine
+        });
+
+        return { result: ExecutionResult.Goto, gotoTarget: this.subLine + 1 };
     }
 
     public override toString(): string

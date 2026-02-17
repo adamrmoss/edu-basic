@@ -41,6 +41,7 @@ export class ConsoleStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Get console service; if absent no-op; else evaluate expression, stringify, and print to console.
         const consoleService = runtime.getConsoleService();
 
         if (!consoleService)

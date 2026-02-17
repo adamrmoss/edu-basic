@@ -106,7 +106,8 @@ export class TriangleStatement extends Statement
         const y2Val = this.y2.evaluate(context);
         const x3Val = this.x3.evaluate(context);
         const y3Val = this.y3.evaluate(context);
-        
+
+        // Coerce vertex coordinates to integer for the graphics grid.
         const x1 = Math.floor(x1Val.type === EduBasicType.Integer || x1Val.type === EduBasicType.Real ? x1Val.value as number : 0);
         const y1 = Math.floor(y1Val.type === EduBasicType.Integer || y1Val.type === EduBasicType.Real ? y1Val.value as number : 0);
         const x2 = Math.floor(x2Val.type === EduBasicType.Integer || x2Val.type === EduBasicType.Real ? x2Val.value as number : 0);

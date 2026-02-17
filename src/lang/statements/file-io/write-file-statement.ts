@@ -6,6 +6,7 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, valueToString } from '../../edu-basic-value';
+import { FileSystemService } from '../../../app/disk/filesystem.service';
 
 /**
  * Implements the `WRITE` statement.
@@ -59,25 +60,25 @@ export class WriteFileStatement extends Statement
         const handleId = handleValue.value as number;
         const fileSystem = runtime.getFileSystem();
 
-        if (value.type === EduBasicType.String)
+        switch (value.type)
         {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(`${value.value}\n`);
-            fileSystem.writeBytes(handleId, data);
-            return { result: ExecutionResult.Continue };
-        }
-
-        if (value.type === EduBasicType.Array)
-        {
-            for (const element of value.value)
+            case EduBasicType.String:
             {
-                this.writeValue(fileSystem, handleId, element);
+                const encoder = new TextEncoder();
+                const data = encoder.encode(`${value.value}\n`);
+                fileSystem.writeBytes(handleId, data);
+                return { result: ExecutionResult.Continue };
             }
-            return { result: ExecutionResult.Continue };
+            case EduBasicType.Array:
+                for (const element of value.value)
+                {
+                    this.writeValue(fileSystem, handleId, element);
+                }
+                return { result: ExecutionResult.Continue };
+            default:
+                this.writeValue(fileSystem, handleId, value);
+                return { result: ExecutionResult.Continue };
         }
-
-        this.writeValue(fileSystem, handleId, value);
-        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string
@@ -85,7 +86,7 @@ export class WriteFileStatement extends Statement
         return `WRITE ${this.expression.toString()} TO ${this.fileHandle.toString()}`;
     }
 
-    private writeValue(fileSystem: any, handleId: number, value: EduBasicValue): void
+    private writeValue(fileSystem: FileSystemService, handleId: number, value: EduBasicValue): void
     {
         switch (value.type)
         {

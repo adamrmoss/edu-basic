@@ -31,6 +31,7 @@ export class ArrayLiteralExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Evaluate elements; if all scalars coerce to common type; if all arrays flatten to 2D; no jagged.
         const evaluated = this.elements.map(e => e.evaluate(context));
 
         const hasArrays = evaluated.some(v => v.type === EduBasicType.Array);

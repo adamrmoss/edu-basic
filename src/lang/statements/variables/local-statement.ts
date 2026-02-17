@@ -48,6 +48,7 @@ export class LocalStatement extends Statement
     ): ExecutionStatus
     {
         const evaluatedValue = this.value.evaluate(context);
+        // Store in the current call frame as a local variable (isLocal true).
         context.setVariable(this.variableName, evaluatedValue, true);
 
         return { result: ExecutionResult.Continue };

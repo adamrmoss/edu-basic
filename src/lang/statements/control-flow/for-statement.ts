@@ -6,13 +6,19 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
-import { NextStatement } from './next-statement';
 
 /**
  * Implements the `FOR` statement.
  */
 export class ForStatement extends Statement
 {
+    /**
+     * Linked `NEXT` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public nextLine?: number;
+
     /**
      * Loop variable name.
      */
@@ -107,25 +113,25 @@ export class ForStatement extends Statement
 
         context.setVariable(this.variableName, startVal);
 
-        const nextLine = runtime.findMatchingNext(currentPc);
-        if (nextLine === undefined)
+        if (this.nextLine === undefined)
         {
-            throw new Error('FOR: missing NEXT');
+            return { result: ExecutionResult.Continue };
         }
 
+        // Decide whether to enter the loop or jump past NEXT (step sign determines direction of comparison).
         const shouldEnter = stepValueNum > 0
             ? startValueNum <= endValueNum
             : startValueNum >= endValueNum;
 
         if (!shouldEnter)
         {
-            return { result: ExecutionResult.Goto, gotoTarget: nextLine + 1 };
+            return { result: ExecutionResult.Goto, gotoTarget: this.nextLine + 1 };
         }
 
         runtime.pushControlFrame({
             type: 'for',
             startLine: currentPc,
-            endLine: nextLine,
+            endLine: this.nextLine,
             loopVariable: this.variableName,
             loopEndValue: endValueNum,
             loopStepValue: stepValueNum

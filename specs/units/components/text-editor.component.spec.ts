@@ -12,7 +12,8 @@ describe('TextEditorComponent', () =>
     function createComponent(): TextEditorComponent
     {
         const cdr = { detectChanges: jest.fn() } as any;
-        return new TextEditorComponent(cdr);
+        const sanitizer = { bypassSecurityTrustHtml: (html: string) => html } as any;
+        return new TextEditorComponent(cdr, sanitizer);
     }
 
     it('setCode updates lines, emits, and updates lineNumbers without a textarea element', () =>

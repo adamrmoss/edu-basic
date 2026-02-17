@@ -17,6 +17,7 @@ export class IoParsers
      */
     public static parsePrint(context: ParserContext): ParseResult<PrintStatement>
     {
+        // Consume PRINT; loop over expr, comma/semicolon; build PrintStatement with expressions and hasNewline.
         // Spec: docs/edu-basic-language.md
         //
         // PRINT forms:
@@ -45,22 +46,26 @@ export class IoParsers
             }
             expressions.push(exprResult.value);
             
-            if (context.match(TokenType.Semicolon))
+            const separatorType = context.isAtEnd() ? null : context.peek().type;
+
+            switch (separatorType)
             {
-                if (context.isAtEnd() || context.peek().type === TokenType.EOF)
-                {
-                    hasNewline = false;
+                case TokenType.Semicolon:
+                    context.advance();
+                    if (context.isAtEnd() || context.peek().type === TokenType.EOF)
+                    {
+                        hasNewline = false;
+                        break;
+                    }
                     break;
-                }
+                case TokenType.Comma:
+                    context.advance();
+                    continue;
+                default:
+                    break;
             }
-            else if (context.match(TokenType.Comma))
-            {
-                continue;
-            }
-            else
-            {
-                break;
-            }
+
+            break;
         }
         
         return success(new PrintStatement(expressions, hasNewline));
@@ -74,6 +79,7 @@ export class IoParsers
      */
     public static parseInput(context: ParserContext): ParseResult<InputStatement>
     {
+        // Consume INPUT, variable identifier; build InputStatement.
         // Spec: docs/edu-basic-language.md
         //
         // INPUT <variable>
@@ -100,6 +106,7 @@ export class IoParsers
      */
     public static parseColor(context: ParserContext): ParseResult<ColorStatement>
     {
+        // Consume COLOR; optional foreground/background exprs (comma first => background only); build ColorStatement.
         // Spec: docs/edu-basic-language.md
         //
         // COLOR foregroundExpr[, backgroundExpr]
@@ -157,6 +164,7 @@ export class IoParsers
      */
     public static parseLocate(context: ParserContext): ParseResult<LocateStatement>
     {
+        // Consume LOCATE, row expr, comma, column expr; build LocateStatement.
         // Spec: docs/edu-basic-language.md
         //
         // LOCATE rowExpr, columnExpr
@@ -194,6 +202,7 @@ export class IoParsers
      */
     public static parseCls(context: ParserContext): ParseResult<ClsStatement>
     {
+        // Consume CLS; build ClsStatement (no arguments).
         // Spec: docs/edu-basic-language.md
         //
         // CLS

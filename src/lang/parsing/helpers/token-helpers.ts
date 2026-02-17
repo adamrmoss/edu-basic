@@ -27,6 +27,7 @@ export class TokenHelpers
      */
     public static advance(tokens: Token[], current: { value: number }): Token
     {
+        // Increment cursor if not at end; return the token at the previous index.
         if (!this.isAtEnd(tokens, current.value))
         {
             current.value++;
@@ -57,6 +58,7 @@ export class TokenHelpers
      */
     public static match(tokens: Token[], current: { value: number }, ...types: TokenType[]): boolean
     {
+        // If current token matches any of the types, consume it and return true.
         for (const type of types)
         {
             if (!this.isAtEnd(tokens, current.value) && this.peek(tokens, current.value).type === type)
@@ -101,6 +103,7 @@ export class TokenHelpers
      */
     public static consume(tokens: Token[], current: { value: number }, type: TokenType, message: string): ParseResult<Token>
     {
+        // Require current token to have expected type; otherwise return failure with message.
         if (!this.isAtEnd(tokens, current.value) && this.peek(tokens, current.value).type === type)
         {
             return success(this.advance(tokens, current));

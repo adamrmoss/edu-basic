@@ -6,13 +6,19 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType } from '../../edu-basic-value';
-import { UendStatement } from './uend-statement';
 
 /**
  * Implements the `UNTIL` statement.
  */
 export class UntilStatement extends Statement
 {
+    /**
+     * Linked `UEND` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public uendLine?: number;
+
     /**
      * Condition expression.
      */
@@ -59,7 +65,7 @@ export class UntilStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const currentPc = context.getProgramCounter();
+        // Evaluate condition at loop top; non-zero exits past UEND, zero continues body.
         const conditionValue = this.condition.evaluate(context);
 
         if (conditionValue.type !== EduBasicType.Integer)
@@ -67,55 +73,17 @@ export class UntilStatement extends Statement
             throw new Error('UNTIL condition must evaluate to an integer');
         }
 
-        const uendLine = this.findUend(program, currentPc);
-        if (uendLine === undefined)
+        if (this.uendLine === undefined)
         {
-            throw new Error('UNTIL: missing UEND');
+            return { result: ExecutionResult.Continue };
         }
 
         if (conditionValue.value !== 0)
         {
-            return { result: ExecutionResult.Goto, gotoTarget: uendLine + 1 };
+            return { result: ExecutionResult.Goto, gotoTarget: this.uendLine + 1 };
         }
 
-        runtime.pushControlFrame({
-            type: 'while',
-            startLine: currentPc,
-            endLine: uendLine
-        });
-
         return { result: ExecutionResult.Continue };
-
-        return { result: ExecutionResult.Continue };
-    }
-
-    private findUend(program: Program, startLine: number): number | undefined
-    {
-        const statements = program.getStatements();
-        let depth = 0;
-
-        for (let i = startLine + 1; i < statements.length; i++)
-        {
-            const stmt = statements[i];
-
-            if (stmt instanceof UntilStatement)
-            {
-                depth++;
-                continue;
-            }
-
-            if (stmt instanceof UendStatement)
-            {
-                if (depth === 0)
-                {
-                    return i;
-                }
-
-                depth--;
-            }
-        }
-
-        return undefined;
     }
 
     public override toString(): string

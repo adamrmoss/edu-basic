@@ -247,6 +247,7 @@ export class Tokenizer
 
     private nextToken(): ParseResult<Token>
     {
+        // Dispatch by current character: ellipsis, string, number, &H/&B, identifier/keyword, or symbol.
         const startColumn = this.column;
         const char = this.peek();
 

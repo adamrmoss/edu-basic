@@ -47,8 +47,9 @@ export class PopStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Resolve the array variable and validate it is a single-dimension array with at least one element.
         const array = context.getVariable(this.arrayVariable);
-        
+
         if (array.type !== EduBasicType.Array)
         {
             throw new Error(`POP: ${this.arrayVariable} is not an array`);
@@ -58,26 +59,27 @@ export class PopStatement extends Statement
         {
             throw new Error(`POP: ${this.arrayVariable} is multi-dimensional`);
         }
-        
-        const arrayData = array.value as any[];
-        
+
+        const arrayData = array.value;
+
         if (arrayData.length === 0)
         {
             throw new Error(`POP: ${this.arrayVariable} is empty`);
         }
-        
-        const value = arrayData.pop();
+
+        // Remove the last element from the array.
+        const value = arrayData.pop()!;
 
         if (array.dimensions && array.dimensions.length === 1)
         {
             array.dimensions[0].length = arrayData.length;
         }
-        
+
         if (this.targetVariable)
         {
             context.setVariable(this.targetVariable, value);
         }
-        
+
         return { result: ExecutionResult.Continue };
     }
 

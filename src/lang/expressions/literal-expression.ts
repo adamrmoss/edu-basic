@@ -31,6 +31,7 @@ export class LiteralExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Literals evaluate to their stored value without using context.
         return this.value;
     }
 

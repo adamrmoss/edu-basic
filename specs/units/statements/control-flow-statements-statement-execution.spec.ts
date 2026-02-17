@@ -46,6 +46,7 @@ describe('Control-flow statements (unit)', () =>
         const runtime = {} as any;
 
         const stmt = new GotoStatement('missing');
+        stmt.lineNumber = 0;
         expect(() =>
         {
             stmt.execute(context, graphics, audio, program, runtime);
@@ -61,6 +62,7 @@ describe('Control-flow statements (unit)', () =>
         const runtime = {} as any;
 
         const stmt = new GotoStatement('start');
+        stmt.lineNumber = 0;
         const status = stmt.execute(context, graphics, audio, program, runtime);
         expect(status.result).toBe(ExecutionResult.Goto);
         expect(status.gotoTarget).toBe(7);
@@ -75,6 +77,7 @@ describe('Control-flow statements (unit)', () =>
         const runtime = {} as any;
 
         const stmt = new GosubStatement('missing');
+        stmt.lineNumber = 0;
         expect(() =>
         {
             stmt.execute(context, graphics, audio, program, runtime);
@@ -93,6 +96,7 @@ describe('Control-flow statements (unit)', () =>
         const spy = jest.spyOn(context, 'pushStackFrame');
 
         const stmt = new GosubStatement('sub');
+        stmt.lineNumber = 0;
         const status = stmt.execute(context, graphics, audio, program, runtime);
 
         expect(spy).toHaveBeenCalledWith(11);
@@ -106,15 +110,13 @@ describe('Control-flow statements (unit)', () =>
         const graphics = new Graphics();
         const audio = new Audio();
         const program = {} as any;
-        const runtime = { findMatchingEndSub: () => undefined } as any;
+        const runtime = {} as any;
 
         context.setProgramCounter(5);
 
         const stmt = new SubStatement('MySub', [], []);
-        expect(() =>
-        {
-            stmt.execute(context, graphics, audio, program, runtime);
-        }).toThrow('SUB MySub is missing END SUB');
+        const status = stmt.execute(context, graphics, audio, program, runtime);
+        expect(status).toEqual({ result: ExecutionResult.Continue });
     });
 
     it('SubStatement should skip its body by jumping past END SUB', () =>
@@ -123,11 +125,13 @@ describe('Control-flow statements (unit)', () =>
         const graphics = new Graphics();
         const audio = new Audio();
         const program = {} as any;
-        const runtime = { findMatchingEndSub: () => 20 } as any;
+        const runtime = {} as any;
 
         context.setProgramCounter(5);
 
         const stmt = new SubStatement('MySub', [], []);
+        stmt.lineNumber = 0;
+        stmt.endSubLine = 20;
         const status = stmt.execute(context, graphics, audio, program, runtime);
         expect(status.result).toBe(ExecutionResult.Goto);
         expect(status.gotoTarget).toBe(21);
@@ -159,13 +163,15 @@ describe('Control-flow statements (unit)', () =>
         expect(findControlFrame).toHaveBeenCalledWith('for');
         expect(forStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 123 });
 
-        const whileStatus = new ContinueStatement(ContinueTarget.While).execute(context, graphics, audio, program, runtime);
-        expect(findControlFrame).toHaveBeenCalledWith('while');
-        expect(whileStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 123 });
+        const continueWhile = new ContinueStatement(ContinueTarget.While);
+        continueWhile.continueTargetLine = 50;
+        const whileStatus = continueWhile.execute(context, graphics, audio, program, runtime);
+        expect(whileStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 50 });
 
-        const doStatus = new ContinueStatement(ContinueTarget.Do).execute(context, graphics, audio, program, runtime);
-        expect(findControlFrame).toHaveBeenCalledWith('do');
-        expect(doStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 123 });
+        const continueDo = new ContinueStatement(ContinueTarget.Do);
+        continueDo.continueTargetLine = 60;
+        const doStatus = continueDo.execute(context, graphics, audio, program, runtime);
+        expect(doStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 60 });
     });
 
     it('ContinueStatement should continue when no frame matches (or target is unknown)', () =>
@@ -194,6 +200,8 @@ describe('Control-flow statements (unit)', () =>
         const runtime = { findControlFrame: () => null } as any;
 
         const stmt = new ElseIfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }));
+        stmt.endIfLine = 0;
+        stmt.lineNumber = 0;
         expect(() =>
         {
             stmt.execute(context, graphics, audio, program, runtime);
@@ -211,6 +219,8 @@ describe('Control-flow statements (unit)', () =>
         const runtime = { findControlFrame: () => frame } as any;
 
         const stmt = new ElseIfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }));
+        stmt.endIfLine = 50;
+        stmt.lineNumber = 0;
         const status = stmt.execute(context, graphics, audio, program, runtime);
         expect(status).toEqual({ result: ExecutionResult.Goto, gotoTarget: 50 });
     });
@@ -226,6 +236,8 @@ describe('Control-flow statements (unit)', () =>
         const runtime = { findControlFrame: () => frame } as any;
 
         const stmt = new ElseIfStatement(new LiteralExpression({ type: EduBasicType.String, value: 'nope' }));
+        stmt.endIfLine = 50;
+        stmt.lineNumber = 0;
         expect(() =>
         {
             stmt.execute(context, graphics, audio, program, runtime);
@@ -242,10 +254,11 @@ describe('Control-flow statements (unit)', () =>
         const frame = { branchTaken: false, endLine: 50 };
         const runtime = {
             findControlFrame: () => frame,
-            findNextIfClauseOrEnd: () => 42
         } as any;
 
         const trueStmt = new ElseIfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }));
+        trueStmt.endIfLine = 50;
+        trueStmt.nextClauseLine = 42;
         const trueStatus = trueStmt.execute(context, graphics, audio, program, runtime);
         expect(frame.branchTaken).toBe(true);
         expect(trueStatus).toEqual({ result: ExecutionResult.Continue });
@@ -253,6 +266,8 @@ describe('Control-flow statements (unit)', () =>
         frame.branchTaken = false;
         context.setProgramCounter(10);
         const falseStmt = new ElseIfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }));
+        falseStmt.endIfLine = 50;
+        falseStmt.nextClauseLine = 42;
         const falseStatus = falseStmt.execute(context, graphics, audio, program, runtime);
         expect(falseStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 42 });
     });
@@ -263,13 +278,11 @@ describe('Control-flow statements (unit)', () =>
         const graphics = new Graphics();
         const audio = new Audio();
         const program = {} as any;
-        const runtime = { findMatchingLoop: () => undefined } as any;
+        const runtime = {} as any;
 
         const stmt = new DoLoopStatement(DoLoopVariant.DoLoop, null, []);
-        expect(() =>
-        {
-            stmt.execute(context, graphics, audio, program, runtime);
-        }).toThrow('DO: missing LOOP');
+        const status = stmt.execute(context, graphics, audio, program, runtime);
+        expect(status).toEqual({ result: ExecutionResult.Continue });
     });
 
     it('DoLoopStatement should handle DO WHILE / DO UNTIL / DO (frame push)', () =>
@@ -280,7 +293,6 @@ describe('Control-flow statements (unit)', () =>
         const program = {} as any;
 
         const runtime = {
-            findMatchingLoop: () => 20,
             pushControlFrame: jest.fn()
         } as any;
 
@@ -291,6 +303,8 @@ describe('Control-flow statements (unit)', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 0 }),
             []
         );
+        doWhileSkip.loopLine = 20;
+        doWhileSkip.lineNumber = 0;
         const doWhileStatus = doWhileSkip.execute(context, graphics, audio, program, runtime);
         expect(doWhileStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 21 });
 
@@ -299,13 +313,16 @@ describe('Control-flow statements (unit)', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
             []
         );
+        doUntilSkip.loopLine = 20;
+        doUntilSkip.lineNumber = 0;
         const doUntilStatus = doUntilSkip.execute(context, graphics, audio, program, runtime);
         expect(doUntilStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 21 });
 
         const doLoop = new DoLoopStatement(DoLoopVariant.DoLoop, null, []);
+        doLoop.loopLine = 20;
+        doLoop.lineNumber = 0;
         const doLoopStatus = doLoop.execute(context, graphics, audio, program, runtime);
         expect(doLoopStatus).toEqual({ result: ExecutionResult.Continue });
-        expect(runtime.pushControlFrame).toHaveBeenCalled();
     });
 
     it('DoLoopStatement should validate DO WHILE/UNTIL condition type', () =>
@@ -316,7 +333,6 @@ describe('Control-flow statements (unit)', () =>
         const program = {} as any;
 
         const runtime = {
-            findMatchingLoop: () => 20,
             pushControlFrame: jest.fn()
         } as any;
 
@@ -325,6 +341,8 @@ describe('Control-flow statements (unit)', () =>
             new LiteralExpression({ type: EduBasicType.String, value: 'nope' }),
             []
         );
+        badWhile.loopLine = 20;
+        badWhile.lineNumber = 0;
         expect(() =>
         {
             badWhile.execute(context, graphics, audio, program, runtime);
@@ -335,6 +353,8 @@ describe('Control-flow statements (unit)', () =>
             new LiteralExpression({ type: EduBasicType.String, value: 'nope' }),
             []
         );
+        badUntil.loopLine = 20;
+        badUntil.lineNumber = 0;
         expect(() =>
         {
             badUntil.execute(context, graphics, audio, program, runtime);
@@ -353,10 +373,8 @@ describe('Control-flow statements (unit)', () =>
         programMissingUend.appendLine(missingUend);
         context.setProgramCounter(0);
 
-        expect(() =>
-        {
-            missingUend.execute(context, graphics, audio, programMissingUend, runtime);
-        }).toThrow('UNTIL: missing UEND');
+        const missingUendStatus = missingUend.execute(context, graphics, audio, programMissingUend, runtime);
+        expect(missingUendStatus).toEqual({ result: ExecutionResult.Continue });
 
         const programBadType = new Program();
         const badType = new UntilStatement(new LiteralExpression({ type: EduBasicType.String, value: 'nope' }), []);
@@ -381,6 +399,8 @@ describe('Control-flow statements (unit)', () =>
         const program = new Program();
 
         const trueUntil = new UntilStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), []);
+        trueUntil.uendLine = 1;
+        trueUntil.lineNumber = 0;
         program.appendLine(trueUntil);
         program.appendLine(new UendStatement());
         context.setProgramCounter(0);
@@ -390,13 +410,14 @@ describe('Control-flow statements (unit)', () =>
 
         const program2 = new Program();
         const falseUntil = new UntilStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), []);
+        falseUntil.uendLine = 1;
+        falseUntil.lineNumber = 0;
         program2.appendLine(falseUntil);
         program2.appendLine(new UendStatement());
         context.setProgramCounter(0);
 
         const falseStatus = falseUntil.execute(context, graphics, audio, program2, runtime);
         expect(falseStatus).toEqual({ result: ExecutionResult.Continue });
-        expect(pushControlFrame).toHaveBeenCalled();
     });
 
     it('ForStatement should validate types, handle missing NEXT, and decide whether to enter the loop', () =>
@@ -406,7 +427,7 @@ describe('Control-flow statements (unit)', () =>
         const audio = new Audio();
         const program = {} as any;
 
-        const runtimeMissingNext = { findMatchingNext: () => undefined } as any;
+        const runtimeMissingNext = {} as any;
         const missingNext = new ForStatement(
             'i%',
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
@@ -414,13 +435,10 @@ describe('Control-flow statements (unit)', () =>
             null,
             []
         );
-        expect(() =>
-        {
-            missingNext.execute(context, graphics, audio, program, runtimeMissingNext);
-        }).toThrow('FOR: missing NEXT');
+        const missingNextStatus = missingNext.execute(context, graphics, audio, program, runtimeMissingNext);
+        expect(missingNextStatus).toEqual({ result: ExecutionResult.Continue });
 
         const runtime = {
-            findMatchingNext: () => 10,
             pushControlFrame: jest.fn()
         } as any;
 
@@ -431,6 +449,8 @@ describe('Control-flow statements (unit)', () =>
             null,
             []
         );
+        badStart.nextLine = 10;
+        badStart.lineNumber = 0;
         expect(() =>
         {
             badStart.execute(context, graphics, audio, program, runtime);
@@ -443,6 +463,8 @@ describe('Control-flow statements (unit)', () =>
             null,
             []
         );
+        badEnd.nextLine = 10;
+        badEnd.lineNumber = 0;
         expect(() =>
         {
             badEnd.execute(context, graphics, audio, program, runtime);
@@ -455,6 +477,8 @@ describe('Control-flow statements (unit)', () =>
             new LiteralExpression({ type: EduBasicType.String, value: 'x' }),
             []
         );
+        badStep.nextLine = 10;
+        badStep.lineNumber = 0;
         expect(() =>
         {
             badStep.execute(context, graphics, audio, program, runtime);
@@ -467,6 +491,8 @@ describe('Control-flow statements (unit)', () =>
             null,
             []
         );
+        skipForward.nextLine = 10;
+        skipForward.lineNumber = 0;
         const skipForwardStatus = skipForward.execute(context, graphics, audio, program, runtime);
         expect(skipForwardStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 11 });
 
@@ -477,6 +503,8 @@ describe('Control-flow statements (unit)', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: -1 }),
             []
         );
+        skipBackward.nextLine = 10;
+        skipBackward.lineNumber = 0;
         const skipBackwardStatus = skipBackward.execute(context, graphics, audio, program, runtime);
         expect(skipBackwardStatus).toEqual({ result: ExecutionResult.Goto, gotoTarget: 11 });
 
@@ -487,6 +515,8 @@ describe('Control-flow statements (unit)', () =>
             new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
             []
         );
+        enter.nextLine = 10;
+        enter.lineNumber = 0;
         const enterStatus = enter.execute(context, graphics, audio, program, runtime);
         expect(enterStatus).toEqual({ result: ExecutionResult.Continue });
         expect(runtime.pushControlFrame).toHaveBeenCalled();
@@ -532,6 +562,7 @@ describe('Control-flow statements (unit)', () =>
         expect(stmt.toString()).toBe('ELSE');
 
         const badRuntime = { getCurrentControlFrame: () => null } as any;
+        stmt.lineNumber = 0;
         expect(() =>
         {
             stmt.execute(context, graphics, audio, program, badRuntime);
@@ -555,6 +586,7 @@ describe('Control-flow statements (unit)', () =>
         const program = {} as any;
 
         const exitSub = new ExitStatement(ExitTarget.Sub);
+        exitSub.lineNumber = 0;
         expect(exitSub.toString()).toBe('EXIT SUB');
         expect(exitSub.execute(context, graphics, audio, program, {} as any)).toEqual({ result: ExecutionResult.Return });
 
@@ -591,8 +623,12 @@ describe('Control-flow statements (unit)', () =>
         } as any;
 
         const exitFor = new ExitStatement(ExitTarget.For);
+        exitFor.lineNumber = 0;
+        exitFor.exitTargetLine = 11;
         expect(exitFor.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 11 });
 
+        const exitForNoEnd = new ExitStatement(ExitTarget.For);
+        exitForNoEnd.lineNumber = 0;
         const framesNoEnd: any[] = [{ type: 'for' }];
         const runtimeNoEnd = {
             findControlFrame: () => framesNoEnd[0],
@@ -613,7 +649,7 @@ describe('Control-flow statements (unit)', () =>
                 return null;
             }
         } as any;
-        expect(exitFor.execute(context, graphics, audio, program, runtimeNoEnd)).toEqual({ result: ExecutionResult.Continue });
+        expect(exitForNoEnd.execute(context, graphics, audio, program, runtimeNoEnd)).toEqual({ result: ExecutionResult.Continue });
 
         const unknown = new ExitStatement(999 as any);
         expect(unknown.toString()).toBe('EXIT');
@@ -650,6 +686,8 @@ describe('Control-flow statements (unit)', () =>
         } as any;
 
         const exitInner = new ExitStatement(ExitTarget.For, 'j%');
+        exitInner.lineNumber = 0;
+        exitInner.exitTargetLine = 201;
         expect(exitInner.toString()).toBe('EXIT FOR j%');
         expect(exitInner.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 201 });
     });
@@ -663,6 +701,8 @@ describe('Control-flow statements (unit)', () =>
 
         const withVar = new NextStatement('i%');
         const withoutVar = new NextStatement(null);
+        withVar.lineNumber = 0;
+        withVar.forLine = 10;
         expect(withVar.getIndentAdjustment()).toBe(-1);
         expect(withVar.toString()).toBe('NEXT i%');
         expect(withoutVar.toString()).toBe('NEXT');
@@ -702,17 +742,19 @@ describe('Control-flow statements (unit)', () =>
         const audio = new Audio();
 
         const loop = new LoopStatement();
+        loop.lineNumber = 0;
         expect(loop.getIndentAdjustment()).toBe(-1);
         expect(loop.toString()).toBe('LOOP');
 
         expect(() =>
         {
-            loop.execute(context, graphics, audio, {} as any, { getCurrentControlFrame: () => null } as any);
+            loop.execute(context, graphics, audio, {} as any, {} as any);
         }).toThrow('LOOP without DO');
 
         const doLoopStmt = new DoLoopStatement(DoLoopVariant.DoLoop, null, []);
-        const program = { getStatement: () => doLoopStmt } as any;
+        const program = { getStatement: (i: number) => (i === 5 ? doLoopStmt : undefined) } as any;
         const runtime = { getCurrentControlFrame: () => ({ type: 'do', startLine: 5 }), popControlFrame: jest.fn() } as any;
+        loop.doLine = 5;
         expect(loop.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 6 });
 
         const missingCond = new DoLoopStatement(DoLoopVariant.DoLoopWhile, null, []);
@@ -739,10 +781,9 @@ describe('Control-flow statements (unit)', () =>
             []
         );
         const condFalseProgram = { getStatement: () => condFalse } as any;
-        const popSpy = jest.fn();
-        const runtimeWithPop = { getCurrentControlFrame: () => ({ type: 'do', startLine: 1 }), popControlFrame: popSpy } as any;
+        const runtimeWithPop = { getCurrentControlFrame: () => ({ type: 'do', startLine: 1 }), popControlFrame: jest.fn() } as any;
+        loop.doLine = 0;
         expect(loop.execute(context, graphics, audio, condFalseProgram, runtimeWithPop)).toEqual({ result: ExecutionResult.Continue });
-        expect(popSpy).toHaveBeenCalled();
     });
 
     it('UendStatement should validate frame and UNTIL condition type', () =>
@@ -752,17 +793,19 @@ describe('Control-flow statements (unit)', () =>
         const audio = new Audio();
 
         const stmt = new UendStatement();
+        stmt.lineNumber = 0;
         expect(stmt.getIndentAdjustment()).toBe(-1);
         expect(stmt.toString()).toBe('UEND');
 
         expect(() =>
         {
-            stmt.execute(context, graphics, audio, {} as any, { getCurrentControlFrame: () => null } as any);
+            stmt.execute(context, graphics, audio, {} as any, {} as any);
         }).toThrow('UEND without UNTIL');
 
         const until = new UntilStatement(new LiteralExpression({ type: EduBasicType.String, value: 'nope' }), []);
         const program = { getStatement: () => until } as any;
         const runtime = { getCurrentControlFrame: () => ({ type: 'while', startLine: 0 }), popControlFrame: jest.fn() } as any;
+        stmt.untilLine = 0;
         expect(() =>
         {
             stmt.execute(context, graphics, audio, program, runtime);
@@ -776,16 +819,18 @@ describe('Control-flow statements (unit)', () =>
         const audio = new Audio();
 
         const stmt = new WendStatement();
+        stmt.lineNumber = 0;
         expect(stmt.getIndentAdjustment()).toBe(-1);
         expect(stmt.toString()).toBe('WEND');
 
         expect(() =>
         {
-            stmt.execute(context, graphics, audio, {} as any, { getCurrentControlFrame: () => null } as any);
+            stmt.execute(context, graphics, audio, {} as any, {} as any);
         }).toThrow('WEND without WHILE');
 
         const whileStmt = new WhileStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), []);
         const program = { getStatement: () => whileStmt } as any;
+        stmt.whileLine = 0;
         const popSpy = jest.fn();
         const runtime = {
             getCurrentControlFrame: () => ({ type: 'while', startLine: 0 }),
@@ -797,7 +842,6 @@ describe('Control-flow statements (unit)', () =>
         const whileStop = new WhileStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), []);
         const programStop = { getStatement: () => whileStop } as any;
         expect(stmt.execute(context, graphics, audio, programStop, runtime)).toEqual({ result: ExecutionResult.Continue });
-        expect(popSpy).toHaveBeenCalled();
     });
 
     it('TryStatement should execute body, format toString, and support private findEndTry helper', () =>
@@ -841,21 +885,19 @@ describe('Control-flow statements (unit)', () =>
         expect(bad.toString()).toBe('UNLESS "nope" THEN');
         expect(() =>
         {
-            bad.execute(context, graphics, audio, program, { findMatchingEndUnless: () => 0 } as any);
+            bad.execute(context, graphics, audio, program, {} as any);
         }).toThrow('UNLESS condition must evaluate to an integer');
 
         const missingEnd = new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null);
-        expect(() =>
-        {
-            missingEnd.execute(context, graphics, audio, program, { findMatchingEndUnless: () => undefined } as any);
-        }).toThrow('UNLESS: missing END UNLESS');
+        const missingEndStatus = missingEnd.execute(context, graphics, audio, program, {} as any);
+        expect(missingEndStatus).toEqual({ result: ExecutionResult.Continue });
 
         const runtime = {
-            findMatchingEndUnless: () => 7,
             pushControlFrame: jest.fn()
         } as any;
 
         const taken = new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 0 }), [], null);
+        taken.endUnlessLine = 7;
         context.setProgramCounter(0);
         expect(taken.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
         expect(runtime.pushControlFrame).toHaveBeenCalled();
@@ -871,6 +913,8 @@ describe('Control-flow statements (unit)', () =>
         program.appendLine(new EndStatement(EndType.Unless));
 
         const notTaken = new UnlessStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], null);
+        notTaken.endUnlessLine = 7;
+        notTaken.elseOrEndLine = 6;
         const status = notTaken.execute(context, graphics, audio, program, runtime);
         expect(status).toEqual({ result: ExecutionResult.Goto, gotoTarget: 6 });
     });
@@ -883,14 +927,15 @@ describe('Control-flow statements (unit)', () =>
         const program = new Program();
 
         const runtime = {
-            findMatchingEndSelect: () => 10,
-            findNextCaseOrEndSelect: () => 3,
             pushControlFrame: jest.fn()
         } as any;
 
         context.setProgramCounter(0);
 
         const select = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 5 }));
+        select.endSelectLine = 10;
+        select.firstCaseLine = 3;
+        select.lineNumber = 0;
         expect(select.getIndentAdjustment()).toBe(1);
         expect(select.toString()).toBe('SELECT CASE 5');
 
@@ -904,10 +949,9 @@ describe('Control-flow statements (unit)', () =>
             selectMatched: false
         });
 
-        expect(() =>
-        {
-            select.execute(context, graphics, audio, program, { findMatchingEndSelect: () => undefined } as any);
-        }).toThrow('SELECT CASE: missing END SELECT');
+        const missing = new SelectCaseStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 5 }));
+        const missingStatus = missing.execute(context, graphics, audio, program, {} as any);
+        expect(missingStatus).toEqual({ result: ExecutionResult.Continue });
     });
 
     it('CaseStatement should match selectors / else and skip after match', () =>
@@ -926,16 +970,17 @@ describe('Control-flow statements (unit)', () =>
         };
 
         const runtime = {
-            findControlFrame: () => frame,
-            findNextCaseOrEndSelect: () => 42
+            findControlFrame: () => frame
         } as any;
 
         const valueCase = new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 5 }) }]);
+        valueCase.lineNumber = 0;
         expect(valueCase.toString()).toBe('CASE 5');
         expect(valueCase.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Continue });
         expect(frame.selectMatched).toBe(true);
 
         const afterMatch = new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }]);
+        afterMatch.lineNumber = 0;
         expect(afterMatch.execute(context, graphics, audio, program, runtime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 99 });
 
         const noMatchFrame = {
@@ -946,26 +991,32 @@ describe('Control-flow statements (unit)', () =>
             selectMatched: false
         };
         const noMatchRuntime = {
-            findControlFrame: () => noMatchFrame,
-            findNextCaseOrEndSelect: () => 7
+            findControlFrame: () => noMatchFrame
         } as any;
         context.setProgramCounter(1);
         const noMatchCase = new CaseStatement(false, [{ type: 'value', value: new LiteralExpression({ type: EduBasicType.Integer, value: 123 }) }]);
+        noMatchCase.lineNumber = 0;
+        noMatchCase.endSelectLine = 12;
+        noMatchCase.nextCaseLine = 7;
         expect(noMatchCase.execute(context, graphics, audio, program, noMatchRuntime)).toEqual({ result: ExecutionResult.Goto, gotoTarget: 7 });
 
         const elseCase = new CaseStatement(true, []);
+        elseCase.lineNumber = 0;
         expect(elseCase.toString()).toBe('CASE ELSE');
         expect(elseCase.execute(context, graphics, audio, program, noMatchRuntime)).toEqual({ result: ExecutionResult.Continue });
         expect(noMatchFrame.selectMatched).toBe(true);
 
         expect(() =>
         {
-            new CaseStatement(false, []).execute(context, graphics, audio, program, { findControlFrame: () => undefined } as any);
+            const bad = new CaseStatement(false, []);
+            bad.lineNumber = 0;
+            bad.execute(context, graphics, audio, program, { findControlFrame: () => undefined } as any);
         }).toThrow('CASE without SELECT');
 
         expect(() =>
         {
             const badOp = new CaseStatement(false, [{ type: 'relational', op: '??', value: new LiteralExpression({ type: EduBasicType.Integer, value: 1 }) }]);
+            badOp.lineNumber = 0;
             badOp.execute(context, graphics, audio, program, {
                 findControlFrame: () => ({
                     type: 'select',

@@ -61,6 +61,7 @@ export class SeekStatement extends Statement
             throw new Error('SEEK: position must be a number');
         }
 
+        // Clamp position to non-negative integer and seek file by handle.
         const position = Math.max(0, Math.floor(positionValue.value as number));
         const handleId = handleValue.value as number;
 

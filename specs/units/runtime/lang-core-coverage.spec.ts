@@ -7,6 +7,7 @@ import { FileSystemService } from '@/app/disk/filesystem.service';
 
 import { EduBasicType } from '@/lang/edu-basic-value';
 import { BinaryExpression, BinaryOperator, BinaryOperatorCategory, LiteralExpression, VariableExpression } from '@/lang/expressions';
+import { ProgramSyntaxAnalyzer } from '@/lang/program-syntax-analysis';
 import { LetStatement } from '@/lang/statements/variables';
 import { LabelStatement } from '@/lang/statements/control-flow/label-statement';
 import { EndStatement, EndType } from '@/lang/statements/control-flow/end-statement';
@@ -14,6 +15,9 @@ import { IfStatement } from '@/lang/statements/control-flow/if-statement';
 import { WhileStatement } from '@/lang/statements/control-flow/while-statement';
 import { DoLoopStatement, DoLoopVariant } from '@/lang/statements/control-flow/do-loop-statement';
 import { ForStatement } from '@/lang/statements/control-flow/for-statement';
+import { LoopStatement } from '@/lang/statements/control-flow/loop-statement';
+import { NextStatement } from '@/lang/statements/control-flow/next-statement';
+import { WendStatement } from '@/lang/statements/control-flow/wend-statement';
 
 describe('Core language coverage', () =>
 {
@@ -127,7 +131,7 @@ describe('Core language coverage', () =>
             expect(context.getStackDepth()).toBe(1);
             expect(context.getCurrentReturnAddress()).toBe(123);
 
-            const popped = context.popStackFrame();
+            const popped = context.popCallStackFrame();
             expect(popped).toBe(123);
             expect(context.getVariable('x%').value).toBe(1);
         });
@@ -147,7 +151,7 @@ describe('Core language coverage', () =>
             context.setVariable('p%', { type: EduBasicType.Integer, value: 42 }, true);
             expect(context.getVariable('outer%')).toEqual({ type: EduBasicType.Integer, value: 42 });
 
-            context.popStackFrame();
+            context.popCallStackFrame();
             expect(context.getVariable('outer%')).toEqual({ type: EduBasicType.Integer, value: 42 });
         });
 
@@ -218,34 +222,18 @@ describe('Core language coverage', () =>
             expect(context.getVariable('touched%').value).toBe(1);
         });
 
-        it('should find IF/WHILE/DO/FOR end lines based on indent', () =>
+        it('should link IF/WHILE/DO/FOR using static syntax analysis', () =>
         {
             const program = new Program();
 
-            const ifStmt = new IfStatement(
-                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                [],
-                [],
-                null
-            );
-            ifStmt.indentLevel = 0;
-
-            const nestedIf = new IfStatement(
-                new LiteralExpression({ type: EduBasicType.Integer, value: 1 }),
-                [],
-                [],
-                null
-            );
-            nestedIf.indentLevel = 0;
-
+            const ifStmt = new IfStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), [], [], null);
             const endIf = new EndStatement(EndType.If);
-            endIf.indentLevel = 0;
 
             const whileStmt = new WhileStatement(new LiteralExpression({ type: EduBasicType.Integer, value: 1 }), []);
-            whileStmt.indentLevel = 0;
+            const wend = new WendStatement();
 
             const doStmt = new DoLoopStatement(DoLoopVariant.DoLoop, null, []);
-            doStmt.indentLevel = 0;
+            const loop = new LoopStatement();
 
             const forStmt = new ForStatement(
                 'i%',
@@ -254,28 +242,26 @@ describe('Core language coverage', () =>
                 null,
                 []
             );
-            forStmt.indentLevel = 0;
+            const next = new NextStatement(null);
 
-            const endBlock = new LetStatement('endBlock%', new LiteralExpression({ type: EduBasicType.Integer, value: 0 }));
-            endBlock.indentLevel = 0;
+            program.appendLine(ifStmt);     // 0
+            program.appendLine(endIf);      // 1
+            program.appendLine(whileStmt);  // 2
+            program.appendLine(wend);       // 3
+            program.appendLine(doStmt);     // 4
+            program.appendLine(loop);       // 5
+            program.appendLine(forStmt);    // 6
+            program.appendLine(next);       // 7
 
-            program.appendLine(ifStmt);      // 0
-            program.appendLine(nestedIf);    // 1
-            program.appendLine(endIf);       // 2
-            program.appendLine(whileStmt);   // 3
-            program.appendLine(endBlock);    // 4
-            program.appendLine(doStmt);      // 5
-            program.appendLine(endBlock);    // 6
-            program.appendLine(forStmt);     // 7
-            program.appendLine(endBlock);    // 8
+            const analysis = new ProgramSyntaxAnalyzer().analyzeAndLink(program);
+            expect(analysis.errors).toEqual([]);
 
-            const context = new ExecutionContext();
-            const runtime = new RuntimeExecution(program, context, new Graphics(), new Audio(), new FileSystemService());
+            expect(ifStmt.endIfLine).toBe(1);
+            expect(ifStmt.nextClauseLine).toBe(1);
 
-            expect(runtime.getIfEndLine(0)).toBe(2);
-            expect(runtime.getWhileEndLine(3)).toBe(4);
-            expect(runtime.getDoLoopEndLine(5)).toBe(6);
-            expect(runtime.getForEndLine(7)).toBe(8);
+            expect(whileStmt.wendLine).toBe(3);
+            expect(doStmt.loopLine).toBe(5);
+            expect(forStmt.nextLine).toBe(7);
         });
     });
 });

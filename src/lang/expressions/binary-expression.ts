@@ -94,6 +94,7 @@ export class BinaryExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Evaluate both operands; dispatch by category to arithmetic, comparison, or logical.
         const leftValue = this.left.evaluate(context);
         const rightValue = this.right.evaluate(context);
 
@@ -452,26 +453,28 @@ export class BinaryExpression extends Expression
 
     private toNumber(value: EduBasicValue): number
     {
-        if (value.type === EduBasicType.Integer || value.type === EduBasicType.Real)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Integer:
+            case EduBasicType.Real:
+                return value.value;
+            default:
+                throw new Error(`Cannot convert ${value.type} to number`);
         }
-        
-        throw new Error(`Cannot convert ${value.type} to number`);
     }
 
     private toComplex(value: EduBasicValue): ComplexValue
     {
-        if (value.type === EduBasicType.Complex)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Complex:
+                return value.value;
+            case EduBasicType.Integer:
+            case EduBasicType.Real:
+                return { real: value.value, imaginary: 0 };
+            default:
+                throw new Error(`Cannot convert ${value.type} to complex number`);
         }
-        else if (value.type === EduBasicType.Integer || value.type === EduBasicType.Real)
-        {
-            return { real: value.value, imaginary: 0 };
-        }
-        
-        throw new Error(`Cannot convert ${value.type} to complex number`);
     }
 
     public toString(omitOuterParens: boolean = true): string

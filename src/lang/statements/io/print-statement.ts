@@ -50,6 +50,7 @@ export class PrintStatement extends Statement
     {
         const values = this.expressions.map(expr => expr.evaluate(context));
 
+        // Evaluate expressions, convert to text, then print and optionally newline.
         for (let i = 0; i < values.length; i++)
         {
             const value = values[i];

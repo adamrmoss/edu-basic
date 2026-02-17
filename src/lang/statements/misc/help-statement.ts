@@ -40,6 +40,7 @@ export class HelpStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Get console; if absent no-op; else lookup help forms for keyword and print each or "No help available".
         const consoleService = runtime.getConsoleService();
 
         if (!consoleService)

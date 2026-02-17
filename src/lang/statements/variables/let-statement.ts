@@ -96,6 +96,7 @@ export class LetStatement extends Statement
         const arraySuffix = tryGetArrayRankSuffixFromName(this.variableName);
         if (evaluatedValue.type === EduBasicType.Array && arraySuffix !== null)
         {
+            // Coerce array elements to the variable's element type when assigning to a typed array.
             const sigil = arraySuffix.baseName.charAt(arraySuffix.baseName.length - 1);
             let targetElementType: EduBasicType | null = null;
             
@@ -117,7 +118,6 @@ export class LetStatement extends Statement
             
             if (targetElementType !== null && evaluatedValue.elementType !== targetElementType)
             {
-                // Check for downcasting in array elements
                 if (evaluatedValue.elementType === EduBasicType.Complex && (targetElementType === EduBasicType.Integer || targetElementType === EduBasicType.Real))
                 {
                     throw new Error(`Cannot assign complex array to ${targetElementType} array ${this.variableName}. Use REALPART or IMAGPART to extract parts.`);

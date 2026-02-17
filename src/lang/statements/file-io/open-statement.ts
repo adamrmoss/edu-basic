@@ -90,6 +90,7 @@ export class OpenStatement extends Statement
         }
 
         const fileSystem = runtime.getFileSystem();
+        // Open via runtime filesystem and store handle in variable.
         const handleId = fileSystem.openFile(filename, modeStr);
 
         context.setVariable(this.handleVariable, { type: EduBasicType.Integer, value: handleId });

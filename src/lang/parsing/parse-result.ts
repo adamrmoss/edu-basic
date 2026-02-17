@@ -2,7 +2,7 @@
  * Lightweight result type used by parsing/tokenization APIs.
  *
  * Parsing is expected to fail as part of normal operation (invalid input), so callers use
- * `ParseResult<T>` to handle errors without throwing.
+ * `ParseResult<T>` to handle errors without throwing. Success carries the parsed value; failure carries an error message.
  */
 export type ParseResult<T> =
     | { success: true; value: T }

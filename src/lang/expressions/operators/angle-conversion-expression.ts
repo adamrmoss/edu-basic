@@ -47,6 +47,7 @@ export class AngleConversionExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Coerce operand to number; DEG => radians, RAD => degrees.
         const value = this.operand.evaluate(context);
 
         let num: number;

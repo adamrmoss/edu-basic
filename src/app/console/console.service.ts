@@ -128,20 +128,37 @@ export class ConsoleService
     }
 
     /**
-     * Parse a single console input line into a statement wrapper.
+     * Parse a single console input line as expression or statement.
+     *
+     * Tries expression first (REPL-style), then statement, so canonical form
+     * can be computed for both.
      *
      * @param command User-entered command line.
      * @returns The parsed line, or `null` if parsing fails.
      */
     public parseLine(command: string): ParsedLine | null
     {
-        const parseResult = this.parserService.parseLine(0, command);
-        
+        const trimmed = command.trim();
+
+        const expressionResult = this.expressionParser.parseExpression(trimmed);
+
+        if (expressionResult.success)
+        {
+            return {
+                lineNumber: 0,
+                sourceText: command,
+                statement: new ConsoleStatement(expressionResult.value),
+                hasError: false
+            };
+        }
+
+        const parseResult = this.parserService.parseLine(0, trimmed);
+
         if (!parseResult.success)
         {
             return null;
         }
-        
+
         return parseResult.value;
     }
 
@@ -171,11 +188,12 @@ export class ConsoleService
         this.historyIndexSubject.next(-1);
 
         const trimmedCommand = command.trim();
-        
+
         let parsedLine: ParsedLine | null = null;
-        
+
+        // Try expression first (REPL-style: value is printed); otherwise parse as statement.
         const expressionResult = this.expressionParser.parseExpression(trimmedCommand);
-        
+
         if (expressionResult.success)
         {
             const consoleStatement = new ConsoleStatement(expressionResult.value);

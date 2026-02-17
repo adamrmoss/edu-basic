@@ -58,7 +58,8 @@ export class PsetStatement extends Statement
     {
         const xValue = this.x.evaluate(context);
         const yValue = this.y.evaluate(context);
-        
+
+        // Coerce coordinates to integer for the graphics grid.
         const x = Math.floor(xValue.type === EduBasicType.Integer || xValue.type === EduBasicType.Real ? xValue.value as number : 0);
         const y = Math.floor(yValue.type === EduBasicType.Integer || yValue.type === EduBasicType.Real ? yValue.value as number : 0);
         

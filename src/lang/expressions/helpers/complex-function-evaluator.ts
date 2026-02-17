@@ -15,6 +15,7 @@ export class ComplexFunctionEvaluator
      */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
+        // REALPART/IMAGPART accept any numeric; REAL/IMAG/CONJ/CABS/CARG/CSQRT require complex.
         switch (operator)
         {
             case UnaryOperator.Realpart:

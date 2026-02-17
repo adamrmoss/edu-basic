@@ -8,8 +8,6 @@
  */
 export abstract class RuntimeNode
 {
-    /**
-     * Return a lightweight source-ish representation of this node.
-     */
+    // Subclasses return a source-ish string for debug, matching, and display.
     public abstract toString(): string;
 }

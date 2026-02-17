@@ -7,6 +7,7 @@ import { ExecutionContext } from '../execution-context';
  */
 export abstract class Expression extends RuntimeNode
 {
+    // Subclasses evaluate to a runtime value and provide source-like toString.
     /**
      * Evaluate this expression in the given execution context.
      *

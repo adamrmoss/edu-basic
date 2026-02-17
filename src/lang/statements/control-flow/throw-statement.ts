@@ -42,6 +42,7 @@ export class ThrowStatement extends Statement
     ): ExecutionStatus
     {
         const messageValue = this.message.evaluate(context);
+        // Evaluate message and throw so TRY/CATCH can catch.
         throw new Error(valueToString(messageValue));
     }
 

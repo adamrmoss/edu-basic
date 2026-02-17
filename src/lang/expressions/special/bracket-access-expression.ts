@@ -49,41 +49,41 @@ export class BracketAccessExpression extends Expression
     {
         const baseValue = this.evaluateBaseValue(context);
 
-        if (baseValue.type === EduBasicType.Array)
+        switch (baseValue.type)
         {
-            const dimensions = baseValue.dimensions;
-            if (dimensions && dimensions.length > 1)
+            case EduBasicType.Array:
             {
-                throw new Error('BracketAccessExpression: multi-dimensional arrays require comma-separated indices (e.g., a#[i, j])');
+                const dimensions = baseValue.dimensions;
+                if (dimensions && dimensions.length > 1)
+                {
+                    throw new Error('BracketAccessExpression: multi-dimensional arrays require comma-separated indices (e.g., a#[i, j])');
+                }
+
+                const indexValue = this.evaluateIndexValue(context);
+                const index = this.toOneBasedIndex(indexValue);
+                if (index === null)
+                {
+                    throw new Error('Array index is out of bounds');
+                }
+
+                const lower = dimensions && dimensions.length === 1 ? dimensions[0].lower : 1;
+                const length = dimensions && dimensions.length === 1 ? dimensions[0].length : baseValue.value.length;
+                const stride = dimensions && dimensions.length === 1 ? dimensions[0].stride : 1;
+
+                const offset = index - lower;
+                const flatIndex = offset * stride;
+                if (offset < 0 || offset >= length || flatIndex < 0 || flatIndex >= baseValue.value.length)
+                {
+                    throw new Error('Array index is out of bounds');
+                }
+
+                return baseValue.value[flatIndex] ?? BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
             }
-
-            const indexValue = this.evaluateIndexValue(context);
-            const index = this.toOneBasedIndex(indexValue);
-            if (index === null)
-            {
-                throw new Error('Array index is out of bounds');
-            }
-
-            const lower = dimensions && dimensions.length === 1 ? dimensions[0].lower : 1;
-            const length = dimensions && dimensions.length === 1 ? dimensions[0].length : baseValue.value.length;
-            const stride = dimensions && dimensions.length === 1 ? dimensions[0].stride : 1;
-
-            const offset = index - lower;
-            const flatIndex = offset * stride;
-            if (offset < 0 || offset >= length || flatIndex < 0 || flatIndex >= baseValue.value.length)
-            {
-                throw new Error('Array index is out of bounds');
-            }
-
-            return baseValue.value[flatIndex] ?? BracketAccessExpression.getDefaultValueForType(baseValue.elementType);
+            case EduBasicType.Structure:
+                throw new Error("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
+            default:
+                throw new Error(`Cannot apply [ ] to ${baseValue.type}`);
         }
-
-        if (baseValue.type === EduBasicType.Structure)
-        {
-            throw new Error("Cannot apply [ ] to STRUCTURE (use '.' for structure members)");
-        }
-
-        throw new Error(`Cannot apply [ ] to ${baseValue.type}`);
     }
 
     public toString(omitOuterParens?: boolean): string

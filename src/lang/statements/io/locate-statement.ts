@@ -48,6 +48,7 @@ export class LocateStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate row and column, coerce to integers, and set cursor position.
         const rowValue = this.row.evaluate(context);
         const colValue = this.column.evaluate(context);
         

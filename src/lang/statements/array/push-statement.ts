@@ -60,12 +60,13 @@ export class PushStatement extends Statement
         {
             throw new Error(`PUSH: ${this.arrayVariable} is multi-dimensional`);
         }
-        
-        (array.value as any[]).push(valueResult);
+
+        // Append value and keep single-dimension length in sync.
+        array.value.push(valueResult);
 
         if (array.dimensions && array.dimensions.length === 1)
         {
-            array.dimensions[0].length = (array.value as any[]).length;
+            array.dimensions[0].length = array.value.length;
         }
         
         return { result: ExecutionResult.Continue };

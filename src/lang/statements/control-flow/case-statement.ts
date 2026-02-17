@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
 
 /**
  * Selector clause used by the `CASE` statement.
@@ -20,6 +20,20 @@ export type CaseSelector =
  */
 export class CaseStatement extends Statement
 {
+    /**
+     * Linked `END SELECT` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endSelectLine?: number;
+
+    /**
+     * Next `CASE` clause line index (0-based), or `endSelectLine` if none remain.
+     *
+     * Populated by static syntax analysis.
+     */
+    public nextCaseLine?: number;
+
     /**
      * Whether this is the `CASE ELSE` clause.
      */
@@ -48,6 +62,11 @@ export class CaseStatement extends Statement
         return 0;
     }
 
+    public override getDisplayIndentAdjustment(): number
+    {
+        return -1;
+    }
+
     /**
      * Execute the statement.
      *
@@ -61,6 +80,11 @@ export class CaseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        if (!this.isLinkedToProgram)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
         const frame = runtime.findControlFrame('select');
         if (!frame)
         {
@@ -69,7 +93,8 @@ export class CaseStatement extends Statement
 
         if (frame.selectMatched)
         {
-            return { result: ExecutionResult.Goto, gotoTarget: frame.endLine };
+            const endLine = this.endSelectLine ?? frame.endLine;
+            return { result: ExecutionResult.Goto, gotoTarget: endLine };
         }
 
         if (this.isElse)
@@ -83,6 +108,7 @@ export class CaseStatement extends Statement
             throw new Error('CASE: missing SELECT test value');
         }
 
+        // First selector that matches (value, range, or IS op) runs this clause; else skip to next CASE.
         for (const selector of this.selectors)
         {
             if (this.matchesSelector(frame.selectTestValue, selector, context))
@@ -92,8 +118,12 @@ export class CaseStatement extends Statement
             }
         }
 
-        const currentPc = context.getProgramCounter();
-        const nextCaseOrEnd = runtime.findNextCaseOrEndSelect(currentPc + 1, frame.endLine);
+        if (this.endSelectLine === undefined)
+        {
+            return { result: ExecutionResult.Continue };
+        }
+
+        const nextCaseOrEnd = this.nextCaseLine ?? this.endSelectLine;
         return { result: ExecutionResult.Goto, gotoTarget: nextCaseOrEnd };
     }
 
@@ -125,7 +155,7 @@ export class CaseStatement extends Statement
         return `CASE ${parts.join(', ')}`;
     }
 
-    private matchesSelector(testValue: any, selector: CaseSelector, context: ExecutionContext): boolean
+    private matchesSelector(testValue: EduBasicValue, selector: CaseSelector, context: ExecutionContext): boolean
     {
         switch (selector.type)
         {
@@ -142,12 +172,12 @@ export class CaseStatement extends Statement
         }
     }
 
-    private valuesEqual(a: any, b: any): boolean
+    private valuesEqual(a: EduBasicValue, b: EduBasicValue): boolean
     {
         return a.value === b.value;
     }
 
-    private compareValues(a: any, b: any): number
+    private compareValues(a: EduBasicValue, b: EduBasicValue): number
     {
         if (a.type === EduBasicType.String || b.type === EduBasicType.String)
         {
@@ -169,7 +199,7 @@ export class CaseStatement extends Statement
         return 0;
     }
 
-    private evaluateRelational(testValue: any, op: string, compareValue: any): boolean
+    private evaluateRelational(testValue: EduBasicValue, op: string, compareValue: EduBasicValue): boolean
     {
         const cmp = this.compareValues(testValue, compareValue);
 

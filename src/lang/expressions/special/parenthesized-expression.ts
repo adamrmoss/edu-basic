@@ -31,6 +31,7 @@ export class ParenthesizedExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Grouping only; evaluate inner expression.
         return this.innerExpression.evaluate(context);
     }
 
