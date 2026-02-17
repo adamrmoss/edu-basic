@@ -116,8 +116,7 @@ export class AppComponent implements OnInit, OnDestroy
     {
         if (this.tabsComponent)
         {
-            const tabsComponentAny = this.tabsComponent as any;
-            return tabsComponentAny.activeTabId === 'disk';
+            return this.tabsComponent.activeTabId === 'disk';
         }
         
         return this.activeTabId === 'disk';
@@ -148,9 +147,7 @@ export class AppComponent implements OnInit, OnDestroy
 
             if (tabIndex >= 0)
             {
-                const tabsComponentAny = this.tabsComponent as any;
-                tabsComponentAny.activeTabId = tabId;
-                tabsComponentAny.updateActiveTab();
+                this.tabsComponent.selectTab(tabId);
             }
         }
     }

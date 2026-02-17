@@ -416,7 +416,7 @@ export class InterpreterService
             return true;
         }
 
-        const contentEditable = (target as any).contentEditable;
+        const contentEditable = target.contentEditable;
         if (typeof contentEditable === 'string' && contentEditable.toLowerCase() === 'true')
         {
             return true;

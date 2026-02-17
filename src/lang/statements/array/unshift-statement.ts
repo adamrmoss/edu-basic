@@ -61,11 +61,11 @@ export class UnshiftStatement extends Statement
             throw new Error(`UNSHIFT: ${this.arrayVariable} is multi-dimensional`);
         }
         
-        (array.value as any[]).unshift(valueResult);
+        array.value.unshift(valueResult);
 
         if (array.dimensions && array.dimensions.length === 1)
         {
-            array.dimensions[0].length = (array.value as any[]).length;
+            array.dimensions[0].length = array.value.length;
         }
         
         return { result: ExecutionResult.Continue };

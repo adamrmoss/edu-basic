@@ -72,27 +72,42 @@ describe('StructureMemberExpression', () =>
 
         const intArray = new StructureMemberExpression(base, 'arr%[]').evaluate(context);
         expect(intArray.type).toBe(EduBasicType.Array);
-        expect(intArray.elementType).toBe(EduBasicType.Integer);
+        if (intArray.type === EduBasicType.Array)
+        {
+            expect(intArray.elementType).toBe(EduBasicType.Integer);
+        }
         expect(intArray.value).toEqual([]);
 
         const realArray = new StructureMemberExpression(base, 'arr#[]').evaluate(context);
         expect(realArray.type).toBe(EduBasicType.Array);
-        expect(realArray.elementType).toBe(EduBasicType.Real);
+        if (realArray.type === EduBasicType.Array)
+        {
+            expect(realArray.elementType).toBe(EduBasicType.Real);
+        }
         expect(realArray.value).toEqual([]);
 
         const stringArray = new StructureMemberExpression(base, 'arr$[]').evaluate(context);
         expect(stringArray.type).toBe(EduBasicType.Array);
-        expect(stringArray.elementType).toBe(EduBasicType.String);
+        if (stringArray.type === EduBasicType.Array)
+        {
+            expect(stringArray.elementType).toBe(EduBasicType.String);
+        }
         expect(stringArray.value).toEqual([]);
 
         const complexArray = new StructureMemberExpression(base, 'arr&[]').evaluate(context);
         expect(complexArray.type).toBe(EduBasicType.Array);
-        expect(complexArray.elementType).toBe(EduBasicType.Complex);
+        if (complexArray.type === EduBasicType.Array)
+        {
+            expect(complexArray.elementType).toBe(EduBasicType.Complex);
+        }
         expect(complexArray.value).toEqual([]);
 
         const structArray = new StructureMemberExpression(base, 'arr[]').evaluate(context);
         expect(structArray.type).toBe(EduBasicType.Array);
-        expect(structArray.elementType).toBe(EduBasicType.Structure);
+        if (structArray.type === EduBasicType.Array)
+        {
+            expect(structArray.elementType).toBe(EduBasicType.Structure);
+        }
         expect(structArray.value).toEqual([]);
     });
 

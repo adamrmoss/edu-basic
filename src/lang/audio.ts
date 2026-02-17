@@ -66,7 +66,7 @@ export class Audio
     private async initializeAudio(): Promise<void>
     {
         // Detect the browser-specific AudioContext constructor.
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 
         // When audio is unavailable (e.g. tests / restricted environments), remain a no-op.
         if (!AudioContextClass)

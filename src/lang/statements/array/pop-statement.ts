@@ -59,14 +59,14 @@ export class PopStatement extends Statement
             throw new Error(`POP: ${this.arrayVariable} is multi-dimensional`);
         }
         
-        const arrayData = array.value as any[];
+        const arrayData = array.value;
         
         if (arrayData.length === 0)
         {
             throw new Error(`POP: ${this.arrayVariable} is empty`);
         }
         
-        const value = arrayData.pop();
+        const value = arrayData.pop()!;
 
         if (array.dimensions && array.dimensions.length === 1)
         {

@@ -27,6 +27,13 @@ export interface CatchClause
 export class TryStatement extends Statement
 {
     /**
+     * Linked `END TRY` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endTryLine?: number;
+
+    /**
      * TRY body statements.
      */
     public readonly tryBody: Statement[];

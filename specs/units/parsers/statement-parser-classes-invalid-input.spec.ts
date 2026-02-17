@@ -1889,5 +1889,4 @@ describe('Parser parsers (edge cases)', () =>
             ]))));
         });
     });
-}
-
+});

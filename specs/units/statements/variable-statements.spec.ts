@@ -26,5 +26,4 @@ describe('Variable statements', () =>
         context.popStackFrame();
         expect(context.getVariable('temp%')).toEqual({ type: EduBasicType.Integer, value: 0 });
     });
-}
-
+});

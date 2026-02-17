@@ -10,6 +10,13 @@ import { RuntimeExecution } from '../../runtime-execution';
  */
 export class ElseStatement extends Statement
 {
+    /**
+     * Linked `END IF` line index (0-based).
+     *
+     * Populated by static syntax analysis.
+     */
+    public endIfLine?: number;
+
     public constructor()
     {
         super();

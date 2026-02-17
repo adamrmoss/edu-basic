@@ -78,6 +78,26 @@ interface BlockFrame
     hasCaseElse?: boolean;
 }
 
+type StatementWithOptionalLinks = Statement &
+{
+    lineNumber?: number;
+    endIfLine?: number;
+    endUnlessLine?: number;
+    elseOrEndLine?: number;
+    endSelectLine?: number;
+    firstCaseLine?: number;
+    nextCaseLine?: number;
+    endSubLine?: number;
+    endTryLine?: number;
+    nextClauseLine?: number;
+    nextLine?: number;
+    wendLine?: number;
+    loopLine?: number;
+    uendLine?: number;
+    targetLine?: number;
+    subLine?: number;
+};
+
 /**
  * Performs static syntax analysis over a parsed `Program` and links control-flow statements together.
  *
@@ -97,7 +117,7 @@ export class ProgramSyntaxAnalyzer
         // Pass 1: assign line numbers and clear stale link metadata.
         for (let i = 0; i < statements.length; i++)
         {
-            const stmt = statements[i] as any;
+            const stmt = statements[i] as StatementWithOptionalLinks;
             stmt.lineNumber = i;
 
             // Clear common link properties (they are re-populated below when applicable).
@@ -202,7 +222,7 @@ export class ProgramSyntaxAnalyzer
                     continue;
                 }
 
-                (stmt as any).targetLine = target;
+                stmt.targetLine = target;
             }
         }
     }
@@ -229,7 +249,7 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
-            (stmt as any).subLine = target;
+            stmt.subLine = target;
         }
     }
 
@@ -370,7 +390,7 @@ export class ProgramSyntaxAnalyzer
                 const forStmt = statements[frame.startLine];
                 if (forStmt instanceof ForStatement)
                 {
-                    (forStmt as any).nextLine = i;
+                    forStmt.nextLine = i;
 
                     if (stmt.variableName && forStmt.variableName.toUpperCase() !== stmt.variableName.toUpperCase())
                     {
@@ -401,7 +421,7 @@ export class ProgramSyntaxAnalyzer
                 const whileStmt = statements[frame.startLine];
                 if (whileStmt instanceof WhileStatement)
                 {
-                    (whileStmt as any).wendLine = i;
+                    whileStmt.wendLine = i;
                 }
 
                 continue;
@@ -424,7 +444,7 @@ export class ProgramSyntaxAnalyzer
                 const doStmt = statements[frame.startLine];
                 if (doStmt instanceof DoLoopStatement)
                 {
-                    (doStmt as any).loopLine = i;
+                    doStmt.loopLine = i;
                 }
 
                 continue;
@@ -447,7 +467,7 @@ export class ProgramSyntaxAnalyzer
                 const untilStmt = statements[frame.startLine];
                 if (untilStmt instanceof UntilStatement)
                 {
-                    (untilStmt as any).uendLine = i;
+                    untilStmt.uendLine = i;
                 }
 
                 continue;
@@ -491,8 +511,8 @@ export class ProgramSyntaxAnalyzer
                         const unlessStmt = statements[frame.startLine];
                         if (unlessStmt instanceof UnlessStatement)
                         {
-                            (unlessStmt as any).endUnlessLine = i;
-                            (unlessStmt as any).elseOrEndLine = frame.elseLine ?? i;
+                            unlessStmt.endUnlessLine = i;
+                            unlessStmt.elseOrEndLine = frame.elseLine ?? i;
                         }
 
                         break;
@@ -519,7 +539,7 @@ export class ProgramSyntaxAnalyzer
                         const subStmt = statements[frame.startLine];
                         if (subStmt instanceof SubStatement)
                         {
-                            (subStmt as any).endSubLine = i;
+                            subStmt.endSubLine = i;
                         }
 
                         break;
@@ -535,7 +555,7 @@ export class ProgramSyntaxAnalyzer
                         const tryStmt = statements[frame.startLine];
                         if (tryStmt instanceof TryStatement)
                         {
-                            (tryStmt as any).endTryLine = i;
+                            tryStmt.endTryLine = i;
                         }
 
                         break;
@@ -570,18 +590,22 @@ export class ProgramSyntaxAnalyzer
             return;
         }
 
-        (ifStmt as any).endIfLine = endIfLine;
+        ifStmt.endIfLine = endIfLine;
 
         const clauseLines = frame.clauseLines ?? [frame.startLine];
         for (let i = 0; i < clauseLines.length; i++)
         {
             const clauseLine = clauseLines[i];
-            const clauseStmt = statements[clauseLine] as any;
+            const clauseStmt = statements[clauseLine];
+            if (!(clauseStmt instanceof IfStatement) && !(clauseStmt instanceof ElseIfStatement) && !(clauseStmt instanceof ElseStatement))
+            {
+                continue;
+            }
 
             clauseStmt.endIfLine = endIfLine;
 
             const nextClauseLine = i + 1 < clauseLines.length ? clauseLines[i + 1] : endIfLine;
-            if (statements[clauseLine] instanceof IfStatement || statements[clauseLine] instanceof ElseIfStatement)
+            if (clauseStmt instanceof IfStatement || clauseStmt instanceof ElseIfStatement)
             {
                 clauseStmt.nextClauseLine = nextClauseLine;
             }
@@ -598,17 +622,20 @@ export class ProgramSyntaxAnalyzer
 
         const caseLines = frame.caseLines ?? [];
 
-        (selectStmt as any).endSelectLine = endSelectLine;
-        (selectStmt as any).firstCaseLine = caseLines.length > 0 ? caseLines[0] : endSelectLine;
+        selectStmt.endSelectLine = endSelectLine;
+        selectStmt.firstCaseLine = caseLines.length > 0 ? caseLines[0] : endSelectLine;
 
         for (let i = 0; i < caseLines.length; i++)
         {
             const caseLine = caseLines[i];
             const nextCaseLine = i + 1 < caseLines.length ? caseLines[i + 1] : endSelectLine;
 
-            const caseStmt = statements[caseLine] as any;
-            caseStmt.endSelectLine = endSelectLine;
-            caseStmt.nextCaseLine = nextCaseLine;
+            const caseStmt = statements[caseLine];
+            if (caseStmt instanceof CaseStatement)
+            {
+                caseStmt.endSelectLine = endSelectLine;
+                caseStmt.nextCaseLine = nextCaseLine;
+            }
         }
     }
 

@@ -59,14 +59,14 @@ export class ShiftStatement extends Statement
             throw new Error(`SHIFT: ${this.arrayVariable} is multi-dimensional`);
         }
         
-        const arrayData = array.value as any[];
+        const arrayData = array.value;
         
         if (arrayData.length === 0)
         {
             throw new Error(`SHIFT: ${this.arrayVariable} is empty`);
         }
         
-        const value = arrayData.shift();
+        const value = arrayData.shift()!;
 
         if (array.dimensions && array.dimensions.length === 1)
         {
