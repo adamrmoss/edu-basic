@@ -131,7 +131,7 @@ describe('Core language coverage', () =>
             expect(context.getStackDepth()).toBe(1);
             expect(context.getCurrentReturnAddress()).toBe(123);
 
-            const popped = context.popStackFrame();
+            const popped = context.popCallStackFrame();
             expect(popped).toBe(123);
             expect(context.getVariable('x%').value).toBe(1);
         });
@@ -151,7 +151,7 @@ describe('Core language coverage', () =>
             context.setVariable('p%', { type: EduBasicType.Integer, value: 42 }, true);
             expect(context.getVariable('outer%')).toEqual({ type: EduBasicType.Integer, value: 42 });
 
-            context.popStackFrame();
+            context.popCallStackFrame();
             expect(context.getVariable('outer%')).toEqual({ type: EduBasicType.Integer, value: 42 });
         });
 

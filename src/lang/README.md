@@ -83,7 +83,7 @@ Manages variable storage and program execution state.
 - `hasVariable(name: string): boolean` - Check if variable exists
 - `getCanonicalName(name: string): string` - Get original case of variable name
 - `pushStackFrame(returnAddress: number)` - Push subroutine call frame
-- `popStackFrame(): number | undefined` - Pop frame and return address
+- `popCallStackFrame(): number | undefined` - Pop frame and return address
 - `getProgramCounter()`, `setProgramCounter()`, `incrementProgramCounter()` - PC management
 
 **Variable Lookup**:

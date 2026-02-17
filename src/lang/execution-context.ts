@@ -313,7 +313,7 @@ export class ExecutionContext
     /**
      * Pop the current call frame and return its return address (if any).
      */
-    public popStackFrame(): number | undefined
+    public popCallStackFrame(): number | undefined
     {
         // Pop the call frame and return its return address (if any).
         const frame = this.stackFrames.pop();

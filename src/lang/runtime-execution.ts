@@ -149,7 +149,7 @@ export class RuntimeExecution
                 return ExecutionResult.End;
             case ExecutionResult.Return:
             {
-                const returnAddress = this.context.popStackFrame();
+                const returnAddress = this.context.popCallStackFrame();
 
                 if (returnAddress !== undefined)
                 {
@@ -214,7 +214,7 @@ export class RuntimeExecution
 
             if (entry.type === 'sub')
             {
-                this.context.popStackFrame();
+                this.context.popCallStackFrame();
             }
 
             this.popControlFrame();

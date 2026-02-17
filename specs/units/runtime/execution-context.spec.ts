@@ -57,7 +57,7 @@ describe('ExecutionContext', () =>
         expect(context.hasVariable('LOCAL%')).toBe(true);
         expect(context.getCanonicalName('LOCAL%')).toBe('local%');
 
-        context.popStackFrame();
+        context.popCallStackFrame();
         expect(context.getVariable('local%')).toEqual({ type: EduBasicType.Integer, value: 0 });
         expect(context.hasVariable('local%')).toBe(false);
 
@@ -84,7 +84,7 @@ describe('ExecutionContext', () =>
 
         expect(context.getCanonicalName('p%')).toBe('y%');
 
-        context.popStackFrame();
+        context.popCallStackFrame();
         expect(context.getVariable('y%')).toEqual({ type: EduBasicType.Integer, value: 9 });
     });
 
@@ -116,7 +116,7 @@ describe('ExecutionContext', () =>
         expect(context.getStackDepth()).toBe(1);
         expect(context.getCurrentReturnAddress()).toBe(123);
 
-        expect(context.popStackFrame()).toBe(123);
+        expect(context.popCallStackFrame()).toBe(123);
         expect(context.getCurrentReturnAddress()).toBeUndefined();
 
         context.pushStackFrame(1);
