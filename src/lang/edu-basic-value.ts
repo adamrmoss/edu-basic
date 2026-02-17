@@ -270,35 +270,38 @@ export function coerceValue(value: EduBasicValue, targetType: EduBasicType): Edu
     switch (targetType)
     {
         case EduBasicType.Integer:
-            if (value.type === EduBasicType.Real)
+            switch (value.type)
             {
-                return { type: EduBasicType.Integer, value: Math.trunc(value.value) };
-            }
-            if (value.type === EduBasicType.Complex)
-            {
-                return { type: EduBasicType.Integer, value: Math.trunc(value.value.real) };
+                case EduBasicType.Real:
+                    return { type: EduBasicType.Integer, value: Math.trunc(value.value) };
+                case EduBasicType.Complex:
+                    return { type: EduBasicType.Integer, value: Math.trunc(value.value.real) };
+                default:
+                    break;
             }
             break;
-            
+
         case EduBasicType.Real:
-            if (value.type === EduBasicType.Integer)
+            switch (value.type)
             {
-                return { type: EduBasicType.Real, value: value.value };
-            }
-            if (value.type === EduBasicType.Complex)
-            {
-                return { type: EduBasicType.Real, value: value.value.real };
+                case EduBasicType.Integer:
+                    return { type: EduBasicType.Real, value: value.value };
+                case EduBasicType.Complex:
+                    return { type: EduBasicType.Real, value: value.value.real };
+                default:
+                    break;
             }
             break;
-            
+
         case EduBasicType.Complex:
-            if (value.type === EduBasicType.Integer)
+            switch (value.type)
             {
-                return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
-            }
-            if (value.type === EduBasicType.Real)
-            {
-                return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
+                case EduBasicType.Integer:
+                    return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
+                case EduBasicType.Real:
+                    return { type: EduBasicType.Complex, value: { real: value.value, imaginary: 0 } };
+                default:
+                    break;
             }
             break;
     }

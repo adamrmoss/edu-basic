@@ -56,15 +56,15 @@ export class LeftOperatorExpression extends Expression
 
     private toInteger(value: EduBasicValue): number
     {
-        if (value.type === EduBasicType.Integer)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Integer:
+                return value.value;
+            case EduBasicType.Real:
+                return Math.trunc(value.value);
+            default:
+                throw new Error(`Cannot convert ${value.type} to integer`);
         }
-        if (value.type === EduBasicType.Real)
-        {
-            return Math.trunc(value.value);
-        }
-        throw new Error(`Cannot convert ${value.type} to integer`);
     }
 }
 
@@ -123,15 +123,15 @@ export class RightOperatorExpression extends Expression
 
     private toInteger(value: EduBasicValue): number
     {
-        if (value.type === EduBasicType.Integer)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Integer:
+                return value.value;
+            case EduBasicType.Real:
+                return Math.trunc(value.value);
+            default:
+                throw new Error(`Cannot convert ${value.type} to integer`);
         }
-        if (value.type === EduBasicType.Real)
-        {
-            return Math.trunc(value.value);
-        }
-        throw new Error(`Cannot convert ${value.type} to integer`);
     }
 }
 
@@ -205,15 +205,15 @@ export class MidOperatorExpression extends Expression
 
     private toInteger(value: EduBasicValue): number
     {
-        if (value.type === EduBasicType.Integer)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Integer:
+                return value.value;
+            case EduBasicType.Real:
+                return Math.trunc(value.value);
+            default:
+                throw new Error(`Cannot convert ${value.type} to integer`);
         }
-        if (value.type === EduBasicType.Real)
-        {
-            return Math.trunc(value.value);
-        }
-        throw new Error(`Cannot convert ${value.type} to integer`);
     }
 }
 
@@ -292,15 +292,15 @@ export class InstrOperatorExpression extends Expression
 
     private toInteger(value: EduBasicValue): number
     {
-        if (value.type === EduBasicType.Integer)
+        switch (value.type)
         {
-            return value.value;
+            case EduBasicType.Integer:
+                return value.value;
+            case EduBasicType.Real:
+                return Math.trunc(value.value);
+            default:
+                throw new Error(`Cannot convert ${value.type} to integer`);
         }
-        if (value.type === EduBasicType.Real)
-        {
-            return Math.trunc(value.value);
-        }
-        throw new Error(`Cannot convert ${value.type} to integer`);
     }
 }
 

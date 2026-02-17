@@ -15,19 +15,15 @@ export class MathematicalFunctionEvaluator
      */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
-        // Complex => evaluateComplex; numeric => evaluateReal (upcast to complex if needed); else throw.
-        if (argValue.type === EduBasicType.Complex)
+        switch (argValue.type)
         {
-            return this.evaluateComplex(operator, argValue.value);
-        }
-        else if (argValue.type === EduBasicType.Integer || argValue.type === EduBasicType.Real)
-        {
-            const numValue = argValue.type === EduBasicType.Integer ? argValue.value : argValue.value;
-            return this.evaluateReal(operator, numValue);
-        }
-        else
-        {
-            throw new Error(`Mathematical operator ${operator} requires numeric operand, got ${argValue.type}`);
+            case EduBasicType.Complex:
+                return this.evaluateComplex(operator, argValue.value);
+            case EduBasicType.Integer:
+            case EduBasicType.Real:
+                return this.evaluateReal(operator, argValue.value);
+            default:
+                throw new Error(`Mathematical operator ${operator} requires numeric operand, got ${argValue.type}`);
         }
     }
 

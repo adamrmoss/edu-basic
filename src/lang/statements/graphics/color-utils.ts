@@ -12,30 +12,29 @@ import { getColorValue, isColorName } from '../../colors';
  */
 export function resolveColorValue(value: EduBasicValue): number
 {
-    // Integer is pass-through; string is looked up by name; otherwise throw.
-    if (value.type === EduBasicType.Integer)
+    switch (value.type)
     {
-        return value.value as number;
-    }
-    
-    if (value.type === EduBasicType.String)
-    {
-        const colorName = value.value as string;
-        
-        if (isColorName(colorName))
+        case EduBasicType.Integer:
+            return value.value as number;
+        case EduBasicType.String:
         {
-            const colorValue = getColorValue(colorName);
-            
-            if (colorValue !== undefined)
+            const colorName = value.value as string;
+
+            if (isColorName(colorName))
             {
-                return colorValue;
+                const colorValue = getColorValue(colorName);
+
+                if (colorValue !== undefined)
+                {
+                    return colorValue;
+                }
             }
+
+            throw new Error(`Unknown color name: ${colorName}`);
         }
-        
-        throw new Error(`Unknown color name: ${colorName}`);
+        default:
+            throw new Error('Color must be an integer or a color name');
     }
-    
-    throw new Error('Color must be an integer or a color name');
 }
 
 /**

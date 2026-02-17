@@ -46,22 +46,26 @@ export class IoParsers
             }
             expressions.push(exprResult.value);
             
-            if (context.match(TokenType.Semicolon))
+            const separatorType = context.isAtEnd() ? null : context.peek().type;
+
+            switch (separatorType)
             {
-                if (context.isAtEnd() || context.peek().type === TokenType.EOF)
-                {
-                    hasNewline = false;
+                case TokenType.Semicolon:
+                    context.advance();
+                    if (context.isAtEnd() || context.peek().type === TokenType.EOF)
+                    {
+                        hasNewline = false;
+                        break;
+                    }
                     break;
-                }
+                case TokenType.Comma:
+                    context.advance();
+                    continue;
+                default:
+                    break;
             }
-            else if (context.match(TokenType.Comma))
-            {
-                continue;
-            }
-            else
-            {
-                break;
-            }
+
+            break;
         }
         
         return success(new PrintStatement(expressions, hasNewline));

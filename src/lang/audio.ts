@@ -454,22 +454,25 @@ export class Audio
         // Schedule notes/rests sequentially, advancing the running time.
         for (const note of notes)
         {
-            if (note.type === 'rest')
+            switch (note.type)
             {
-                time += note.duration * beatDuration;
-            }
-            else if (note.type === 'note' && note.midiNote !== undefined)
-            {
-                // Compute the effective note duration and velocity, then schedule the note.
-                const duration = note.duration * beatDuration;
-                const vel = Math.round((note.velocity ?? 64) * this.volume / 100);
+                case 'rest':
+                    time += note.duration * beatDuration;
+                    break;
+                case 'note':
+                    if (note.midiNote !== undefined)
+                    {
+                        const duration = note.duration * beatDuration;
+                        const vel = Math.round((note.velocity ?? 64) * this.volume / 100);
 
-                this.synth.setProgram(voice, this.voiceConfigs.get(voice)?.program ?? 0);
-                this.synth.noteOn(voice, note.midiNote, vel, time);
-                this.synth.noteOff(voice, note.midiNote, time + duration);
+                        this.synth.setProgram(voice, this.voiceConfigs.get(voice)?.program ?? 0);
+                        this.synth.noteOn(voice, note.midiNote, vel, time);
+                        this.synth.noteOff(voice, note.midiNote, time + duration);
 
-                this.recordScheduledNote(voice, note.midiNote, time, duration, vel);
-                time += duration;
+                        this.recordScheduledNote(voice, note.midiNote, time, duration, vel);
+                        time += duration;
+                    }
+                    break;
             }
         }
 

@@ -109,10 +109,11 @@ describe('ConsoleService', () => {
         });
 
         it('should handle commands with parse errors', () => {
-            const unparsableStatement = new UnparsableStatement('INVALID', 'Syntax error');
+            const command = 'IF 1 THEN';
+            const unparsableStatement = new UnparsableStatement(command, 'Syntax error');
             const parsedLine: ParsedLine = {
                 lineNumber: 0,
-                sourceText: 'INVALID',
+                sourceText: command,
                 statement: unparsableStatement,
                 hasError: true,
                 errorMessage: 'Syntax error'
@@ -120,7 +121,7 @@ describe('ConsoleService', () => {
 
             parserService.parseLine.mockReturnValue(success(parsedLine));
 
-            const result = service.parseLine('INVALID');
+            const result = service.parseLine(command);
 
             expect(result).toBe(parsedLine);
             expect(result?.hasError).toBe(true);

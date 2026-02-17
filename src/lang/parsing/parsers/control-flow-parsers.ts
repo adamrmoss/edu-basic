@@ -483,26 +483,35 @@ export class ControlFlowParsers
             return doTokenResult;
         }
         
-        if (context.matchKeyword('WHILE'))
+        const doKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (doKeyword)
         {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'WHILE':
             {
-                return failure(conditionResult.error || 'Failed to parse WHILE condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse WHILE condition expression');
+                }
+                return success(new DoLoopStatement(DoLoopVariant.DoWhile, conditionResult.value, []));
             }
-            return success(new DoLoopStatement(DoLoopVariant.DoWhile, conditionResult.value, []));
-        }
-        else if (context.matchKeyword('UNTIL'))
-        {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'UNTIL':
             {
-                return failure(conditionResult.error || 'Failed to parse UNTIL condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse UNTIL condition expression');
+                }
+                return success(new DoLoopStatement(DoLoopVariant.DoUntil, conditionResult.value, []));
             }
-            return success(new DoLoopStatement(DoLoopVariant.DoUntil, conditionResult.value, []));
+            default:
+                return success(new DoLoopStatement(DoLoopVariant.DoLoop, null, []));
         }
-        
-        return success(new DoLoopStatement(DoLoopVariant.DoLoop, null, []));
     }
 
     /**
@@ -523,29 +532,37 @@ export class ControlFlowParsers
             return loopTokenResult;
         }
 
-        if (context.matchKeyword('WHILE'))
+        const loopKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (loopKeyword)
         {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'WHILE':
             {
-                return failure(conditionResult.error || 'Failed to parse LOOP WHILE condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse LOOP WHILE condition expression');
+                }
+
+                return success(new LoopStatement(LoopConditionVariant.While, conditionResult.value));
             }
-
-            return success(new LoopStatement(LoopConditionVariant.While, conditionResult.value));
-        }
-
-        if (context.matchKeyword('UNTIL'))
-        {
-            const conditionResult = context.parseExpression();
-            if (!conditionResult.success)
+            case 'UNTIL':
             {
-                return failure(conditionResult.error || 'Failed to parse LOOP UNTIL condition expression');
+                context.advance();
+                const conditionResult = context.parseExpression();
+                if (!conditionResult.success)
+                {
+                    return failure(conditionResult.error || 'Failed to parse LOOP UNTIL condition expression');
+                }
+
+                return success(new LoopStatement(LoopConditionVariant.Until, conditionResult.value));
             }
-
-            return success(new LoopStatement(LoopConditionVariant.Until, conditionResult.value));
+            default:
+                return success(new LoopStatement());
         }
-
-        return success(new LoopStatement());
     }
 
     /**
@@ -846,36 +863,41 @@ export class ControlFlowParsers
             return exitTokenResult;
         }
         
-        if (context.matchKeyword('FOR'))
+        const exitKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (exitKeyword)
         {
-            let varName: string | null = null;
-            if (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
+            case 'FOR':
             {
-                const varNameResult = context.consume(TokenType.Identifier, 'variable name');
-                if (!varNameResult.success)
+                context.advance();
+                let varName: string | null = null;
+                if (!context.isAtEnd() && context.peek().type === TokenType.Identifier)
                 {
-                    return varNameResult;
+                    const varNameResult = context.consume(TokenType.Identifier, 'variable name');
+                    if (!varNameResult.success)
+                    {
+                        return varNameResult;
+                    }
+
+                    varName = varNameResult.value.value;
                 }
 
-                varName = varNameResult.value.value;
+                return success(new ExitStatement(ExitTarget.For, varName));
             }
-
-            return success(new ExitStatement(ExitTarget.For, varName));
+            case 'WHILE':
+                context.advance();
+                return success(new ExitStatement(ExitTarget.While));
+            case 'DO':
+                context.advance();
+                return success(new ExitStatement(ExitTarget.Do));
+            case 'SUB':
+                context.advance();
+                return success(new ExitStatement(ExitTarget.Sub));
+            default:
+                return failure('EXIT must specify target: FOR, WHILE, DO, or SUB');
         }
-        else if (context.matchKeyword('WHILE'))
-        {
-            return success(new ExitStatement(ExitTarget.While));
-        }
-        else if (context.matchKeyword('DO'))
-        {
-            return success(new ExitStatement(ExitTarget.Do));
-        }
-        else if (context.matchKeyword('SUB'))
-        {
-            return success(new ExitStatement(ExitTarget.Sub));
-        }
-        
-        return failure('EXIT must specify target: FOR, WHILE, DO, or SUB');
     }
 
     /**
@@ -896,20 +918,24 @@ export class ControlFlowParsers
             return continueTokenResult;
         }
         
-        if (context.matchKeyword('FOR'))
+        const continueKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (continueKeyword)
         {
-            return success(new ContinueStatement(ContinueTarget.For));
+            case 'FOR':
+                context.advance();
+                return success(new ContinueStatement(ContinueTarget.For));
+            case 'WHILE':
+                context.advance();
+                return success(new ContinueStatement(ContinueTarget.While));
+            case 'DO':
+                context.advance();
+                return success(new ContinueStatement(ContinueTarget.Do));
+            default:
+                return failure('CONTINUE must specify target: FOR, WHILE, or DO');
         }
-        else if (context.matchKeyword('WHILE'))
-        {
-            return success(new ContinueStatement(ContinueTarget.While));
-        }
-        else if (context.matchKeyword('DO'))
-        {
-            return success(new ContinueStatement(ContinueTarget.Do));
-        }
-        
-        return failure('CONTINUE must specify target: FOR, WHILE, or DO');
     }
 
     /**

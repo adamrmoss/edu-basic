@@ -54,19 +54,24 @@ export class VoiceStatement extends Statement
 
         const instrumentValue = this.instrument.evaluate(context);
 
-        if (instrumentValue.type === EduBasicType.Integer || instrumentValue.type === EduBasicType.Real)
+        switch (instrumentValue.type)
         {
-            const programNum = Math.floor(instrumentValue.value as number);
-            audio.setVoiceInstrument(voice, programNum);
-        }
-        else if (instrumentValue.type === EduBasicType.String)
-        {
-            const name = String(instrumentValue.value ?? '').trim();
-            audio.setVoiceInstrumentByName(voice, name);
-        }
-        else
-        {
-            audio.setVoiceInstrument(voice, 0);
+            case EduBasicType.Integer:
+            case EduBasicType.Real:
+            {
+                const programNum = Math.floor(instrumentValue.value as number);
+                audio.setVoiceInstrument(voice, programNum);
+                break;
+            }
+            case EduBasicType.String:
+            {
+                const name = String(instrumentValue.value ?? '').trim();
+                audio.setVoiceInstrumentByName(voice, name);
+                break;
+            }
+            default:
+                audio.setVoiceInstrument(voice, 0);
+                break;
         }
 
         audio.setVoice(voice);

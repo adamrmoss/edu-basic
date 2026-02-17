@@ -126,14 +126,14 @@ export class ProgramSyntaxAnalyzer
         const statements = program.getStatements() as readonly Statement[];
         const errors: StaticAnalysisError[] = [];
 
-        // Pass 1: assign line numbers and clear stale link metadata.
+        // Pass 1: assign a 0-based line index to each statement and reset all link fields.
         for (let i = 0; i < statements.length; i++)
         {
             const stmt = statements[i];
             const links = stmt as StatementWithOptionalLinks;
             links.lineNumber = i;
 
-            // Clear common link properties (they are re-populated below when applicable).
+            // Reset control-flow link properties so they can be repopulated in later passes.
             links.continueTargetLine = undefined;
             links.doLine = undefined;
             links.endIfLine = undefined;
@@ -157,14 +157,14 @@ export class ProgramSyntaxAnalyzer
             links.whileLine = undefined;
         }
 
-        // Pass 2: build label and subroutine maps + basic reference linking (GOTO/GOSUB/CALL).
+        // Pass 2: build maps from uppercase label/sub names to line indices and report duplicates.
         const labels = this.buildLabelMap(statements, errors);
         const subs = this.buildSubMap(statements, errors);
 
-        // Pass 3: link structured control flow.
+        // Pass 3: single-pass stack walk to link IF/END IF, FOR/NEXT, SUB/END SUB, etc.
         this.linkStructuredBlocks(statements, errors);
 
-        // Pass 4: link label and sub references (now that maps exist).
+        // Pass 4: resolve GOTO/GOSUB targets and CALL targets using the label and sub maps.
         this.linkLabelReferences(statements, labels, errors);
         this.linkSubReferences(statements, subs, errors);
 
@@ -175,6 +175,7 @@ export class ProgramSyntaxAnalyzer
     {
         const labels = new Map<string, number>();
 
+        // Scan for LABEL statements and record line index by uppercase name; error on duplicate.
         for (let i = 0; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -200,6 +201,7 @@ export class ProgramSyntaxAnalyzer
     {
         const subs = new Map<string, number>();
 
+        // Scan for SUB statements and record line index by uppercase name; error on duplicate.
         for (let i = 0; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -227,6 +229,7 @@ export class ProgramSyntaxAnalyzer
         errors: StaticAnalysisError[]
     ): void
     {
+        // For each GOTO/GOSUB, look up the label and set targetLine or report undefined label.
         for (let i = 0; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -252,6 +255,7 @@ export class ProgramSyntaxAnalyzer
         errors: StaticAnalysisError[]
     ): void
     {
+        // For each CALL, look up the sub name and set subLine or report undefined sub.
         for (let i = 0; i < statements.length; i++)
         {
             const stmt = statements[i];
@@ -274,14 +278,16 @@ export class ProgramSyntaxAnalyzer
 
     private linkStructuredBlocks(statements: readonly Statement[], errors: StaticAnalysisError[]): void
     {
-        // Single pass with a stack: push on block open (IF/FOR/SUB/etc.), pop and link on block close (END IF/NEXT/etc.).
+        // Stack of open blocks; push on opener (IF, FOR, SUB, etc.), pop and link on closer.
         const stack: BlockFrame[] = [];
 
+        // Push a new block frame onto the stack.
         const push = (frame: BlockFrame): void =>
         {
             stack.push(frame);
         };
 
+        // Pop only if top frame matches type; otherwise push an error and return null.
         const popExpected = (type: BlockType, lineNumber: number, message: string): BlockFrame | null =>
         {
             const top = stack.length > 0 ? stack[stack.length - 1] : null;
@@ -294,22 +300,25 @@ export class ProgramSyntaxAnalyzer
             return stack.pop() ?? null;
         };
 
+        // One forward pass over statements: openers push, closers pop and wire line references.
         for (let i = 0; i < statements.length; i++)
         {
             const stmt = statements[i];
 
-            // Unparsable statements can still exist for empty/comment lines; they do not participate in structure.
+            // Skip unparsable lines (e.g. blank or comment); they do not open or close blocks.
             if (stmt instanceof UnparsableStatement)
             {
                 continue;
             }
 
+            // IF opens a new block; record this line as the first clause.
             if (stmt instanceof IfStatement)
             {
                 push({ type: 'if', startLine: i, clauseLines: [i] });
                 continue;
             }
 
+            // ELSEIF must be under an IF block and before any ELSE; add this line to the clause list.
             if (stmt instanceof ElseIfStatement)
             {
                 const top = stack.length > 0 ? stack[stack.length - 1] : null;
@@ -329,6 +338,7 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
+            // ELSE must be under IF or UNLESS, at most once; record else line and update block by type.
             if (stmt instanceof ElseStatement)
             {
                 const top = stack.length > 0 ? stack[stack.length - 1] : null;
@@ -345,31 +355,37 @@ export class ProgramSyntaxAnalyzer
                 }
 
                 top.elseLine = i;
-                if (top.type === 'if' && top.clauseLines)
+                switch (top.type)
                 {
-                    top.clauseLines.push(i);
-                }
-
-                if (top.type === 'unless')
-                {
-                    (stmt as ElseStatement).unlessLine = top.startLine;
+                    case 'if':
+                        if (top.clauseLines)
+                        {
+                            top.clauseLines.push(i);
+                        }
+                        break;
+                    case 'unless':
+                        (stmt as ElseStatement).unlessLine = top.startLine;
+                        break;
                 }
 
                 continue;
             }
 
+            // UNLESS opens a new block (same stack discipline as IF).
             if (stmt instanceof UnlessStatement)
             {
                 push({ type: 'unless', startLine: i });
                 continue;
             }
 
+            // SELECT CASE opens a new block; case line numbers will be collected by CASE statements.
             if (stmt instanceof SelectCaseStatement)
             {
                 push({ type: 'select', startLine: i, caseLines: [] });
                 continue;
             }
 
+            // CASE must be under SELECT; no CASE after CASE ELSE; record CASE ELSE if present.
             if (stmt instanceof CaseStatement)
             {
                 const top = stack.length > 0 ? stack[stack.length - 1] : null;
@@ -398,12 +414,14 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
+            // FOR opens a new block.
             if (stmt instanceof ForStatement)
             {
                 push({ type: 'for', startLine: i });
                 continue;
             }
 
+            // NEXT closes the innermost FOR: back-patch EXIT FOR in range, pop frame, link FOR and NEXT.
             if (stmt instanceof NextStatement)
             {
                 const frame = stack.length > 0 ? stack[stack.length - 1] : null;
@@ -427,6 +445,7 @@ export class ProgramSyntaxAnalyzer
                     forStmt.nextLine = i;
                     (stmt as NextStatement).forLine = popped.startLine;
 
+                    // Optional variable name on NEXT must match the FOR variable.
                     if (stmt.variableName && forStmt.variableName.toUpperCase() !== stmt.variableName.toUpperCase())
                     {
                         errors.push({
@@ -439,12 +458,14 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
+            // WHILE opens a new block.
             if (stmt instanceof WhileStatement)
             {
                 push({ type: 'while', startLine: i });
                 continue;
             }
 
+            // WEND closes the innermost WHILE: back-patch EXIT WHILE, pop frame, link WHILE and WEND.
             if (stmt instanceof WendStatement)
             {
                 const frame = stack.length > 0 ? stack[stack.length - 1] : null;
@@ -470,12 +491,14 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
+            // DO opens a new block.
             if (stmt instanceof DoLoopStatement)
             {
                 push({ type: 'do', startLine: i });
                 continue;
             }
 
+            // LOOP closes the innermost DO: back-patch EXIT DO, pop frame, link DO and LOOP.
             if (stmt instanceof LoopStatement)
             {
                 const frame = stack.length > 0 ? stack[stack.length - 1] : null;
@@ -501,40 +524,44 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
+            // CONTINUE DO/WHILE: find the matching open block and set the line after it as the target.
             if (stmt instanceof ContinueStatement)
             {
-                if (stmt.target === ContinueTarget.Do)
+                switch (stmt.target)
                 {
-                    for (let k = stack.length - 1; k >= 0; k--)
-                    {
-                        if (stack[k].type === 'do')
+                    case ContinueTarget.Do:
+                        for (let k = stack.length - 1; k >= 0; k--)
                         {
-                            (stmt as ContinueStatement).continueTargetLine = stack[k].startLine + 1;
-                            break;
+                            if (stack[k].type === 'do')
+                            {
+                                (stmt as ContinueStatement).continueTargetLine = stack[k].startLine + 1;
+                                break;
+                            }
                         }
-                    }
-                }
-                else if (stmt.target === ContinueTarget.While)
-                {
-                    for (let k = stack.length - 1; k >= 0; k--)
-                    {
-                        if (stack[k].type === 'while')
+                        break;
+                    case ContinueTarget.While:
+                        for (let k = stack.length - 1; k >= 0; k--)
                         {
-                            (stmt as ContinueStatement).continueTargetLine = stack[k].startLine + 1;
-                            break;
+                            if (stack[k].type === 'while')
+                            {
+                                (stmt as ContinueStatement).continueTargetLine = stack[k].startLine + 1;
+                                break;
+                            }
                         }
-                    }
+                        break;
                 }
 
                 continue;
             }
 
+            // UNTIL opens a new block (closed by UEND).
             if (stmt instanceof UntilStatement)
             {
                 push({ type: 'until', startLine: i });
                 continue;
             }
 
+            // UEND closes the innermost UNTIL; link UNTIL and UEND.
             if (stmt instanceof UendStatement)
             {
                 const popped = popExpected('until', i, 'UEND without UNTIL');
@@ -553,18 +580,21 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
+            // SUB opens a new block (closed by END SUB).
             if (stmt instanceof SubStatement)
             {
                 push({ type: 'sub', startLine: i });
                 continue;
             }
 
+            // TRY opens a new block (closed by END TRY).
             if (stmt instanceof TryStatement)
             {
                 push({ type: 'try', startLine: i });
                 continue;
             }
 
+            // END IF / END UNLESS / END SELECT / END SUB / END TRY: pop matching frame and link.
             if (stmt instanceof EndStatement)
             {
                 switch (stmt.endType)
@@ -577,6 +607,7 @@ export class ProgramSyntaxAnalyzer
                             break;
                         }
 
+                        // Wire endIfLine, ifLine, nextClauseLine on each IF/ELSEIF/ELSE and on END IF.
                         this.linkIfBlock(statements, frame, i, errors);
                         break;
                     }
@@ -588,6 +619,7 @@ export class ProgramSyntaxAnalyzer
                             break;
                         }
 
+                        // Link UNLESS to END UNLESS and set elseOrEndLine (else line or end line).
                         const unlessStmt = statements[frame.startLine];
                         if (unlessStmt instanceof UnlessStatement)
                         {
@@ -606,6 +638,7 @@ export class ProgramSyntaxAnalyzer
                             break;
                         }
 
+                        // Wire endSelectLine, firstCaseLine, nextCaseLine on SELECT and each CASE.
                         this.linkSelectBlock(statements, frame, i);
                         break;
                     }
@@ -649,7 +682,7 @@ export class ProgramSyntaxAnalyzer
             }
         }
 
-        // Any blocks still open are missing terminators.
+        // Report one error per block that was opened but never closed.
         while (stack.length > 0)
         {
             const frame = stack.pop()!;
@@ -673,6 +706,7 @@ export class ProgramSyntaxAnalyzer
 
         ifStmt.endIfLine = endIfLine;
 
+        // For each clause (IF/ELSEIF/ELSE), set endIfLine, ifLine, and nextClauseLine where applicable.
         const clauseLines = frame.clauseLines ?? [frame.startLine];
         for (let i = 0; i < clauseLines.length; i++)
         {
@@ -693,6 +727,7 @@ export class ProgramSyntaxAnalyzer
             }
         }
 
+        // Point the END IF statement back at the opening IF.
         const endIfStmt = statements[endIfLine];
         if (endIfStmt instanceof EndStatement && endIfStmt.endType === EndType.If)
         {
@@ -713,6 +748,7 @@ export class ProgramSyntaxAnalyzer
         selectStmt.endSelectLine = endSelectLine;
         selectStmt.firstCaseLine = caseLines.length > 0 ? caseLines[0] : endSelectLine;
 
+        // For each CASE, set endSelectLine and the line of the next CASE (or END SELECT).
         for (let i = 0; i < caseLines.length; i++)
         {
             const caseLine = caseLines[i];
@@ -727,6 +763,7 @@ export class ProgramSyntaxAnalyzer
         }
     }
 
+    // Set exitTargetLine on EXIT FOR/WHILE/DO in [startLine, endLine] to targetLine; for EXIT FOR, optional variable match.
     private backPatchExits(
         statements: readonly Statement[],
         startLine: number,
@@ -744,6 +781,7 @@ export class ProgramSyntaxAnalyzer
                 continue;
             }
 
+            // EXIT FOR with a variable only matches the FOR with that variable; others get target if not yet set.
             const shouldSet =
                 exitTarget === ExitTarget.For && forVariableName !== undefined && s.forVariableName != null
                     ? s.forVariableName.toUpperCase() === forVariableName.toUpperCase()
@@ -756,6 +794,7 @@ export class ProgramSyntaxAnalyzer
         }
     }
 
+    // Human-readable message for a block type that was left open (missing closer).
     private getMissingTerminatorMessage(type: BlockType): string
     {
         switch (type)

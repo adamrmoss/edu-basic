@@ -60,26 +60,25 @@ export class WriteFileStatement extends Statement
         const handleId = handleValue.value as number;
         const fileSystem = runtime.getFileSystem();
 
-        if (value.type === EduBasicType.String)
+        switch (value.type)
         {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(`${value.value}\n`);
-            fileSystem.writeBytes(handleId, data);
-            return { result: ExecutionResult.Continue };
-        }
-
-        if (value.type === EduBasicType.Array)
-        {
-            // Write each array element in order to the file.
-            for (const element of value.value)
+            case EduBasicType.String:
             {
-                this.writeValue(fileSystem, handleId, element);
+                const encoder = new TextEncoder();
+                const data = encoder.encode(`${value.value}\n`);
+                fileSystem.writeBytes(handleId, data);
+                return { result: ExecutionResult.Continue };
             }
-            return { result: ExecutionResult.Continue };
+            case EduBasicType.Array:
+                for (const element of value.value)
+                {
+                    this.writeValue(fileSystem, handleId, element);
+                }
+                return { result: ExecutionResult.Continue };
+            default:
+                this.writeValue(fileSystem, handleId, value);
+                return { result: ExecutionResult.Continue };
         }
-
-        this.writeValue(fileSystem, handleId, value);
-        return { result: ExecutionResult.Continue };
     }
 
     public override toString(): string

@@ -813,30 +813,38 @@ export class GraphicsParsers
             return lineTokenResult;
         }
         
-        if (context.matchKeyword('INPUT'))
+        const lineKeyword = !context.isAtEnd() && context.peek().type === TokenType.Keyword
+            ? context.peek().value.toUpperCase()
+            : null;
+
+        switch (lineKeyword)
         {
-            const varNameTokenResult = context.consume(TokenType.Identifier, 'variable name');
-            if (!varNameTokenResult.success)
+            case 'INPUT':
             {
-                return varNameTokenResult;
+                context.advance();
+                const varNameTokenResult = context.consume(TokenType.Identifier, 'variable name');
+                if (!varNameTokenResult.success)
+                {
+                    return varNameTokenResult;
+                }
+
+                const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
+                if (!fromTokenResult.success)
+                {
+                    return fromTokenResult;
+                }
+
+                const fileHandleResult = context.parseExpression();
+                if (!fileHandleResult.success)
+                {
+                    return fileHandleResult;
+                }
+
+                return success(new LineInputStatement(varNameTokenResult.value.value, fileHandleResult.value));
             }
-            
-            const fromTokenResult = context.consume(TokenType.Keyword, 'FROM');
-            if (!fromTokenResult.success)
+            case 'FROM':
             {
-                return fromTokenResult;
-            }
-            
-            const fileHandleResult = context.parseExpression();
-            if (!fileHandleResult.success)
-            {
-                return fileHandleResult;
-            }
-            
-            return success(new LineInputStatement(varNameTokenResult.value.value, fileHandleResult.value));
-        }
-        else if (context.matchKeyword('FROM'))
-        {
+                context.advance();
             const leftParen1Result = context.consume(TokenType.LeftParen, '(');
             if (!leftParen1Result.success)
             {
@@ -910,8 +918,9 @@ export class GraphicsParsers
             }
             
             return success(new LineStatement(x1Result.value, y1Result.value, x2Result.value, y2Result.value, color));
+            }
+            default:
+                return failure('Expected INPUT or FROM after LINE');
         }
-        
-        return failure('Expected INPUT or FROM after LINE');
     }
 }
