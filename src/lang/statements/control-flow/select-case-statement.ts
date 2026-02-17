@@ -5,6 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { CaseStatement } from './case-statement';
 
 /**
  * Implements the `SELECT CASE` statement.
@@ -33,7 +34,7 @@ export class SelectCaseStatement extends Statement
     /**
      * Placeholder list for case clauses (block construction).
      */
-    public readonly cases: any[];
+    public readonly cases: CaseStatement[];
 
     /**
      * Create a new `SELECT CASE` statement.
@@ -41,7 +42,7 @@ export class SelectCaseStatement extends Statement
      * @param testExpression Test expression.
      * @param cases Case list placeholder.
      */
-    public constructor(testExpression: Expression, cases: any[] = [])
+    public constructor(testExpression: Expression, cases: CaseStatement[] = [])
     {
         super();
         this.testExpression = testExpression;

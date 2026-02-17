@@ -6,6 +6,7 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
+import { FileSystemService } from '../../../app/disk/filesystem.service';
 
 /**
  * Implements the `READ` statement for reading values from an open file handle.
@@ -127,7 +128,7 @@ export class ReadFileStatement extends Statement
         }
     }
 
-    private readValue(fileSystem: any, handleId: number, type: EduBasicType): EduBasicValue
+    private readValue(fileSystem: FileSystemService, handleId: number, type: EduBasicType): EduBasicValue
     {
         switch (type)
         {

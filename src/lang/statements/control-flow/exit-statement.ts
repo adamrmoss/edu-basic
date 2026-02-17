@@ -4,6 +4,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
+import { ControlStructureFrame } from '../../control-flow-frames';
 
 /**
  * `EXIT` statement targets.
@@ -81,7 +82,7 @@ export class ExitStatement extends Statement
 
         if (frameType)
         {
-            const predicate = (frame: any): boolean =>
+            const predicate = (frame: ControlStructureFrame): boolean =>
             {
                 if (!frame || frame.type !== frameType)
                 {

@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType, EduBasicValue, coerceValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
+import { ArrayDimension, EduBasicType, EduBasicValue, coerceValue, tryGetArrayRankSuffixFromName } from '../../edu-basic-value';
 
 /**
  * Segment used by `LET` bracket/member assignment (e.g. `.x` or `[i]`).
@@ -398,7 +398,7 @@ export class LetBracketStatement extends Statement
         current.value[jsIndex] = coerced;
     }
 
-    private computeFlatIndex(context: ExecutionContext, array: { value: EduBasicValue[]; elementType: EduBasicType; dimensions?: any[] }, indices: Expression[]): number | null
+    private computeFlatIndex(context: ExecutionContext, array: { value: EduBasicValue[]; elementType: EduBasicType; dimensions?: ArrayDimension[] }, indices: Expression[]): number | null
     {
         const dims = array.dimensions;
         if (!dims || dims.length === 0)

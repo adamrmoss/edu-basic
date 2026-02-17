@@ -5,7 +5,7 @@ import { Graphics } from '../../graphics';
 import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
-import { EduBasicType } from '../../edu-basic-value';
+import { EduBasicType, EduBasicValue } from '../../edu-basic-value';
 
 /**
  * Selector clause used by the `CASE` statement.
@@ -149,7 +149,7 @@ export class CaseStatement extends Statement
         return `CASE ${parts.join(', ')}`;
     }
 
-    private matchesSelector(testValue: any, selector: CaseSelector, context: ExecutionContext): boolean
+    private matchesSelector(testValue: EduBasicValue, selector: CaseSelector, context: ExecutionContext): boolean
     {
         switch (selector.type)
         {
@@ -166,12 +166,12 @@ export class CaseStatement extends Statement
         }
     }
 
-    private valuesEqual(a: any, b: any): boolean
+    private valuesEqual(a: EduBasicValue, b: EduBasicValue): boolean
     {
         return a.value === b.value;
     }
 
-    private compareValues(a: any, b: any): number
+    private compareValues(a: EduBasicValue, b: EduBasicValue): number
     {
         if (a.type === EduBasicType.String || b.type === EduBasicType.String)
         {
@@ -193,7 +193,7 @@ export class CaseStatement extends Statement
         return 0;
     }
 
-    private evaluateRelational(testValue: any, op: string, compareValue: any): boolean
+    private evaluateRelational(testValue: EduBasicValue, op: string, compareValue: EduBasicValue): boolean
     {
         const cmp = this.compareValues(testValue, compareValue);
 

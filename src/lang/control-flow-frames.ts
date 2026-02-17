@@ -1,3 +1,5 @@
+import { EduBasicValue } from './edu-basic-value';
+
 /**
  * Structured control-flow metadata tracked during execution.
  *
@@ -42,11 +44,8 @@ export interface ControlStructureFrame
 
     /**
      * SELECT CASE metadata for matching CASE branches.
-     *
-     * `selectTestValue` is intentionally loose-typed because CASE comparisons operate
-     * on the runtime value domain.
      */
-    selectTestValue?: any;
+    selectTestValue?: EduBasicValue;
     selectMatched?: boolean;
 }
 

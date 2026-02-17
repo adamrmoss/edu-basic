@@ -143,7 +143,7 @@ export class AppComponent implements OnInit, OnDestroy
         if (this.tabsComponent && this.tabs)
         {
             const tabArray = this.tabs.toArray();
-            const tabIndex = tabArray.findIndex((tab: any) => tab.id === tabId);
+            const tabIndex = tabArray.findIndex((tab: TabComponent) => tab.id === tabId);
 
             if (tabIndex >= 0)
             {
