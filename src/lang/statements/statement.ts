@@ -84,4 +84,16 @@ export abstract class Statement extends RuntimeNode
     {
         return 0;
     }
+
+    /**
+     * Indentation delta used only for display (canonical line formatting).
+     * Defaults to getIndentAdjustment(). Override in statements that should
+     * appear outdented (e.g. ELSE, CASE) without changing the parser indent level.
+     *
+     * @returns Display indent adjustment (default is same as getIndentAdjustment()).
+     */
+    public getDisplayIndentAdjustment(): number
+    {
+        return this.getIndentAdjustment();
+    }
 }

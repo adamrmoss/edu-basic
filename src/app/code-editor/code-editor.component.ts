@@ -353,7 +353,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         return this.parserService.currentIndentLevel;
     }
 
-    /** Full canonical line (indent + body) for the given line; closing statements use effectiveLevel so they outdent. */
+    /** Full canonical line (indent + body) for the given line; closing and clause statements use display adjustment so they outdent. */
     private getCanonicalRepresentation(lineIndex: number): string | null
     {
         const indentLevel = this.getIndentLevelForLine(lineIndex);
@@ -366,7 +366,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
 
         const statement = parseResult.value;
-        const adjustment = statement.getIndentAdjustment();
+        const adjustment = statement.getDisplayIndentAdjustment();
         const effectiveLevel = adjustment < 0 ? indentLevel + adjustment : indentLevel;
 
         return getCanonicalLine(effectiveLevel, statement);

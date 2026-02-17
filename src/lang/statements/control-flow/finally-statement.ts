@@ -25,6 +25,11 @@ export class FinallyStatement extends Statement
         return 0;
     }
 
+    public override getDisplayIndentAdjustment(): number
+    {
+        return -1;
+    }
+
     /**
      * Execute the statement.
      *
