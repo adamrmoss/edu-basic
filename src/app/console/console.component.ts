@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { getCanonicalLine } from '../../lang/canonical-line';
+import { ConsoleStatement } from '../../lang/statements/misc';
 import { ConsoleService, ConsoleEntry } from './console.service';
 
 /**
@@ -129,14 +130,20 @@ export class ConsoleComponent implements OnInit, OnDestroy
 
     private getCanonicalRepresentation(input: string): string | null
     {
-        // Parse the line; if successful and error-free, return the canonical source form.
         const parsedLine = this.consoleService.parseLine(input);
 
-        if (parsedLine !== null && !parsedLine.hasError)
+        if (parsedLine === null || parsedLine.hasError)
         {
-            return getCanonicalLine(0, parsedLine.statement);
+            return null;
         }
 
-        return null;
+        const stmt = parsedLine.statement;
+
+        if (stmt instanceof ConsoleStatement)
+        {
+            return stmt.expression.toString();
+        }
+
+        return getCanonicalLine(0, stmt);
     }
 }
