@@ -42,6 +42,7 @@ export class GraphicsParsers
      */
     public static parsePset(context: ParserContext): ParseResult<PsetStatement>
     {
+        // Consume PSET, (x, y), optional WITH color; build PsetStatement.
         // Grammar:
         // PSET (xExpr, yExpr) [WITH colorExpr]
         const psetTokenResult = context.consume(TokenType.Keyword, 'PSET');
@@ -99,6 +100,7 @@ export class GraphicsParsers
      */
     public static parseRectangle(context: ParserContext): ParseResult<RectangleStatement>
     {
+        // Consume RECTANGLE FROM (x1,y1) TO (x2,y2), optional WITH color, optional FILLED; build RectangleStatement.
         // Grammar:
         // RECTANGLE FROM (x1Expr, y1Expr) TO (x2Expr, y2Expr) [WITH colorExpr] [FILLED]
         const rectTokenResult = context.consume(TokenType.Keyword, 'RECTANGLE');

@@ -135,6 +135,7 @@ export class UnaryExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Evaluate operand; dispatch by category to prefix, math, complex, string, type conversion, or audio.
         const operandValue = this.operand.evaluate(context);
 
         switch (this.category)

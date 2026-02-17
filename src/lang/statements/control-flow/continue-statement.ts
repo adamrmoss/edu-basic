@@ -67,6 +67,7 @@ export class ContinueStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Use pre-resolved line when set (CONTINUE DO/WHILE); otherwise resolve FOR frame at runtime.
         if (this.continueTargetLine !== undefined)
         {
             return { result: ExecutionResult.Goto, gotoTarget: this.continueTargetLine };
@@ -75,7 +76,6 @@ export class ContinueStatement extends Statement
         if (this.target === ContinueTarget.For)
         {
             const frame = runtime.findControlFrame('for');
-
             if (frame)
             {
                 return { result: ExecutionResult.Goto, gotoTarget: frame.endLine };

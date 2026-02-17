@@ -18,6 +18,7 @@ export const INDENT_SPACES_PER_LEVEL = 4;
  */
 export function getCanonicalLine(indentLevel: number, statement: Statement | null): string
 {
+    // Build indent prefix from level, body from statement toString or empty; concatenate.
     const spaces = Math.max(0, indentLevel) * INDENT_SPACES_PER_LEVEL;
     const prefix = ' '.repeat(spaces);
     const body = statement !== null ? statement.toString() : '';

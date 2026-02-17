@@ -17,6 +17,7 @@ export class ArrayParsers
      */
     public static parsePush(context: ParserContext): ParseResult<PushStatement>
     {
+        // Consume PUSH, array identifier, comma, value expression; build PushStatement.
         // Grammar:
         // PUSH <arrayIdentifier>, <valueExpr>
         //
@@ -57,6 +58,7 @@ export class ArrayParsers
      */
     public static parsePop(context: ParserContext): ParseResult<PopStatement>
     {
+        // Consume POP, array identifier, INTO, target variable; build PopStatement.
         // Spec: docs/edu-basic-language.md
         //
         // POP array[] INTO variable
@@ -97,6 +99,7 @@ export class ArrayParsers
      */
     public static parseShift(context: ParserContext): ParseResult<ShiftStatement>
     {
+        // Consume SHIFT, array identifier, INTO, target variable; build ShiftStatement.
         // Spec: docs/edu-basic-language.md
         //
         // SHIFT array[] INTO variable
@@ -137,6 +140,7 @@ export class ArrayParsers
      */
     public static parseUnshift(context: ParserContext): ParseResult<UnshiftStatement>
     {
+        // Consume UNSHIFT, array identifier, comma, value expression; build UnshiftStatement.
         // Grammar:
         // UNSHIFT <arrayIdentifier>, <valueExpr>
         //

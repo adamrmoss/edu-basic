@@ -84,6 +84,7 @@ export class ArcStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate center, radius, angles; optional color; draw arc then flush and switch to output.
         const cxVal = this.centerX.evaluate(context);
         const cyVal = this.centerY.evaluate(context);
         const rVal = this.radius.evaluate(context);

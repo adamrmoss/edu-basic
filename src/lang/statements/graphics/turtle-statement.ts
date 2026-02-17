@@ -43,6 +43,7 @@ export class TurtleStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate command string; get or create turtle; run FD/BK/RT/LT/PU/PD/HOME; flush and switch tab.
         const commandsValue = this.commands.evaluate(context);
         if (commandsValue.type !== EduBasicType.String)
         {
@@ -86,6 +87,7 @@ export class TurtleStatement extends Statement
 
     private static executeCommands(graphics: Graphics, state: { x: number; y: number; angleDeg: number; penDown: boolean }, commands: string): void
     {
+        // Tokenize by whitespace; dispatch FD/BK (move), RT/LT (turn), PU/PD (pen), HOME.
         const tokens = commands.trim().split(/\s+/).filter(t => t.length > 0);
 
         let i = 0;
@@ -156,6 +158,7 @@ export class TurtleStatement extends Statement
 
     private static move(graphics: Graphics, state: { x: number; y: number; angleDeg: number; penDown: boolean }, distance: number): void
     {
+        // Advance position by distance along current angle; draw line if pen down, then update state.
         const radians = (state.angleDeg * Math.PI) / 180;
         const startX = state.x;
         const startY = state.y;

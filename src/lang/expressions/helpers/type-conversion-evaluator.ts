@@ -15,6 +15,7 @@ export class TypeConversionEvaluator
      */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
+        // INT/STR/VAL/HEX/BIN: coerce to integer, string, real, or hex/binary string.
         switch (operator)
         {
             case UnaryOperator.Int:

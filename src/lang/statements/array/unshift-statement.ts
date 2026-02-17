@@ -50,7 +50,8 @@ export class UnshiftStatement extends Statement
     {
         const valueResult = this.value.evaluate(context);
         const array = context.getVariable(this.arrayVariable);
-        
+
+        // Validate single-dimension array; insert at front and keep length in sync.
         if (array.type !== EduBasicType.Array)
         {
             throw new Error(`UNSHIFT: ${this.arrayVariable} is not an array`);
@@ -60,14 +61,14 @@ export class UnshiftStatement extends Statement
         {
             throw new Error(`UNSHIFT: ${this.arrayVariable} is multi-dimensional`);
         }
-        
+
         array.value.unshift(valueResult);
 
         if (array.dimensions && array.dimensions.length === 1)
         {
             array.dimensions[0].length = array.value.length;
         }
-        
+
         return { result: ExecutionResult.Continue };
     }
 

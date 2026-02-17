@@ -6,6 +6,7 @@
  */
 export function toSet(...arrays: readonly (readonly string[])[]): Set<string>
 {
+    // Union all array elements into a single set (duplicates removed).
     const set = new Set<string>();
     for (const arr of arrays)
     {

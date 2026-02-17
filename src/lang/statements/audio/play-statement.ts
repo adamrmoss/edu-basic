@@ -48,6 +48,7 @@ export class PlayStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate voice and MML; coerce to integer voice and string, then play sequence on audio.
         const voiceValue = this.voiceNumber.evaluate(context);
         const mmlValue = this.mml.evaluate(context);
         

@@ -41,6 +41,7 @@ export class MkdirStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate path (must be string), then create directory via runtime filesystem.
         const pathValue = this.path.evaluate(context);
         if (pathValue.type !== EduBasicType.String)
         {

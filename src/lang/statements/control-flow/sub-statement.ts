@@ -84,6 +84,7 @@ export class SubStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // When not linked, no-op; when reached by fall-through, skip to the line after END SUB.
         if (!this.isLinkedToProgram)
         {
             return { result: ExecutionResult.Continue };

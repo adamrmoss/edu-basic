@@ -48,6 +48,7 @@ export class LineInputStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Validate integer handle and string variable; read bytes until newline, decode and assign.
         const handleValue = this.fileHandle.evaluate(context);
 
         if (handleValue.type !== EduBasicType.Integer)
@@ -64,7 +65,6 @@ export class LineInputStatement extends Statement
         const fileSystem = runtime.getFileSystem();
 
         const bytes: number[] = [];
-
         while (true)
         {
             const chunk = fileSystem.readBytes(handleId, 1);

@@ -69,6 +69,7 @@ export class GetStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Require 1D array; evaluate rect, clamp to buffer; pack width, height, then RGBA ints per pixel.
         const suffix = tryGetArrayRankSuffixFromName(this.arrayVariable);
         if (suffix === null || suffix.rank !== 1)
         {
@@ -122,6 +123,7 @@ export class GetStatement extends Statement
 
     private static getPixelRgbaInt(buffer: ImageData, width: number, height: number, x: number, y: number): number
     {
+        // Flip Y for screen coords; index RGBA and pack into 0xRRGGBBAA.
         const flippedY = height - 1 - y;
         const index = (flippedY * width + x) * 4;
         const r = buffer.data[index];

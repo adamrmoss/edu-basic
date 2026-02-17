@@ -15,6 +15,7 @@ export class StringFunctionEvaluator
      */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
+        // Dispatch ASC/CHR/UCASE/LCASE/LTRIM/RTRIM/TRIM/REVERSE; require string (or numeric for CHR).
         switch (operator)
         {
             case UnaryOperator.Asc:

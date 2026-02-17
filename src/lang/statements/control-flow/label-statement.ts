@@ -41,6 +41,7 @@ export class LabelStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // No-op at runtime; GOTO/GOSUB use the label index from syntax analysis.
         return { result: ExecutionResult.Continue };
     }
 

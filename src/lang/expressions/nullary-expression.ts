@@ -34,6 +34,7 @@ export class NullaryExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Delegate to ConstantEvaluator (e.g. RND, PI, INKEY$, DATE).
         return this.constantEvaluator.evaluate(this.constant, context);
     }
 

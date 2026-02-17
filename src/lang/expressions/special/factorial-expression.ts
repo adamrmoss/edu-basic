@@ -31,6 +31,7 @@ export class FactorialExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Coerce operand to non-negative integer; compute factorial (iterative to detect overflow).
         const value = this.operand.evaluate(context);
 
         let n: number | null = null;

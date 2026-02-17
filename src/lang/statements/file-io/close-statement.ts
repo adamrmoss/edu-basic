@@ -42,7 +42,8 @@ export class CloseStatement extends Statement
     ): ExecutionStatus
     {
         const handleValue = this.fileHandle.evaluate(context);
-        
+
+        // Evaluate handle, validate integer, then close via runtime filesystem.
         if (handleValue.type !== EduBasicType.Integer)
         {
             throw new Error('CLOSE: file handle must be an integer');
@@ -50,7 +51,7 @@ export class CloseStatement extends Statement
 
         const handleId = handleValue.value as number;
         const fileSystem = runtime.getFileSystem();
-        
+
         fileSystem.closeFile(handleId);
 
         return { result: ExecutionResult.Continue };

@@ -121,6 +121,7 @@ export function getArrayRankSuffix(rank: number): string
  */
 export function tryGetArrayRankSuffixFromName(name: string): { baseName: string; rank: number; suffix: string } | null
 {
+    // Find last '['; require matching ']' and only commas between; rank = comma count + 1.
     const left = name.lastIndexOf('[');
     if (left < 0 || !name.endsWith(']'))
     {
@@ -158,6 +159,7 @@ export function tryGetArrayRankSuffixFromName(name: string): { baseName: string;
  */
 export function findMostSpecificCommonType(types: EduBasicType[]): EduBasicType | null
 {
+    // Unify numeric types only; Integer < Real < Complex; string/structure/array => null.
     if (types.length === 0)
     {
         return EduBasicType.Integer;
@@ -205,6 +207,7 @@ export function findMostSpecificCommonType(types: EduBasicType[]): EduBasicType 
  */
 export function coerceArrayElements(elements: EduBasicValue[]): { type: EduBasicType.Array; value: EduBasicValue[]; elementType: EduBasicType }
 {
+    // Empty => Integer array; else unify element types and coerce each value to common type.
     if (elements.length === 0)
     {
         return {

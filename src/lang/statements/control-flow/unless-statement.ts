@@ -75,6 +75,7 @@ export class UnlessStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate condition (integer); push UNLESS frame; run then-branch or jump to else/END UNLESS.
         const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
 

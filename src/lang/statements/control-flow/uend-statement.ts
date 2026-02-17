@@ -42,6 +42,7 @@ export class UendStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // When not linked, no-op; else resolve UNTIL, evaluate condition—loop back or exit past UEND.
         if (!this.isLinkedToProgram)
         {
             return { result: ExecutionResult.Continue };

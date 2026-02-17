@@ -17,6 +17,7 @@ export class AudioParsers
      */
     public static parseTempo(context: ParserContext): ParseResult<TempoStatement>
     {
+        // Consume TEMPO, BPM expression; build TempoStatement.
         // Spec: docs/edu-basic-language.md
         //
         // TEMPO bpmExpr
@@ -43,6 +44,7 @@ export class AudioParsers
      */
     public static parseVolume(context: ParserContext): ParseResult<VolumeStatement>
     {
+        // Consume VOLUME, level expression; build VolumeStatement.
         // Spec: docs/edu-basic-language.md
         //
         // VOLUME levelExpr
@@ -69,6 +71,7 @@ export class AudioParsers
      */
     public static parseVoice(context: ParserContext): ParseResult<VoiceStatement>
     {
+        // Consume VOICE, voice expr, INSTRUMENT, instrument expr; build VoiceStatement.
         // Spec: docs/edu-basic-language.md
         //
         // VOICE voiceNumberExpr INSTRUMENT instrumentExpr
@@ -107,6 +110,7 @@ export class AudioParsers
      */
     public static parsePlay(context: ParserContext): ParseResult<PlayStatement>
     {
+        // Consume PLAY, voice expr, comma, MML expr; build PlayStatement.
         // Spec: docs/edu-basic-language.md
         //
         // PLAY voiceNumberExpr, mmlStringExpr

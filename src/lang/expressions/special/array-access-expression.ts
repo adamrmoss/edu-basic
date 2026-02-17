@@ -40,6 +40,7 @@ export class ArrayAccessExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Resolve array (or variable with [] fallback); require 1D; convert index to 1-based and bounds-check.
         let arrayValue = this.arrayExpr.evaluate(context);
 
         if (arrayValue.type !== EduBasicType.Array && this.arrayExpr instanceof VariableExpression)

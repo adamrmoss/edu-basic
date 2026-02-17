@@ -81,6 +81,7 @@ export class EndStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
+        // Dispatch by end type: Sub pops to frame and returns; If/Unless/Select pop the matching frame.
         switch (this.endType)
         {
             case EndType.Sub:

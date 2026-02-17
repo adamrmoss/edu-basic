@@ -38,6 +38,7 @@ export class LeftOperatorExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Require string; coerce length to integer; return substring from start.
         const strValue = this.stringExpr.evaluate(context);
         if (strValue.type !== EduBasicType.String)
         {
@@ -103,6 +104,7 @@ export class RightOperatorExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Require string; coerce length to integer; return substring from end.
         const strValue = this.stringExpr.evaluate(context);
         if (strValue.type !== EduBasicType.String)
         {

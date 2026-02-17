@@ -100,12 +100,13 @@ export class ExpressionParser
             return exprResult;
         }
         
+        // Ensure entire input was consumed; fail if any token remains.
         if (!this.isAtEnd())
         {
             const unexpectedToken = this.peek();
             return failure(`Unexpected token: ${unexpectedToken.value} at line ${unexpectedToken.line}`);
         }
-        
+
         return success(exprResult.value);
     }
 

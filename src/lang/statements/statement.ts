@@ -67,6 +67,7 @@ export abstract class Statement extends RuntimeNode
      * @param runtime Runtime execution engine.
      * @returns Execution status describing control flow.
      */
+    // Subclasses implement this to perform the statement's effect and return control flow.
     public abstract execute(
         context: ExecutionContext,
         graphics: Graphics,

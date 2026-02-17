@@ -65,11 +65,13 @@ export class ElseIfStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // When not linked, run as no-op; otherwise find IF frame and decide branch or jump.
         if (this.endIfLine === undefined)
         {
             return { result: ExecutionResult.Continue };
         }
 
+        // Find IF frame; if a branch already ran goto END IF; else evaluate condition and take this branch or jump to next clause.
         const frame = runtime.findControlFrame('if');
         if (!frame)
         {

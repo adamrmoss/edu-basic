@@ -32,6 +32,7 @@ export class FileIoParsers
      */
     public static parseOpen(context: ParserContext): ParseResult<OpenStatement>
     {
+        // Consume OPEN, filename, FOR, mode (READ|APPEND|OVERWRITE), AS, handle var; build OpenStatement.
         // Spec: docs/edu-basic-language.md
         //
         // OPEN filenameExpr FOR READ|APPEND|OVERWRITE AS handleVar%
@@ -98,6 +99,7 @@ export class FileIoParsers
      */
     public static parseClose(context: ParserContext): ParseResult<CloseStatement>
     {
+        // Consume CLOSE, file handle expr; build CloseStatement.
         // Spec: docs/edu-basic-language.md
         //
         // CLOSE fileHandleExpr
@@ -124,6 +126,7 @@ export class FileIoParsers
      */
     public static parseRead(context: ParserContext): ParseResult<ReadFileStatement>
     {
+        // Consume READ, variable, FROM, handle expr; build ReadFileStatement.
         // Spec: docs/edu-basic-language.md
         //
         // READ varName FROM fileHandleExpr

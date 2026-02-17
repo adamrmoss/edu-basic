@@ -65,6 +65,7 @@ export class UntilStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate condition at loop top; non-zero exits past UEND, zero continues body.
         const conditionValue = this.condition.evaluate(context);
 
         if (conditionValue.type !== EduBasicType.Integer)

@@ -35,6 +35,7 @@ export class BarsExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Absolute value (numeric), magnitude (complex), or length (string/array).
         const value = this.operand.evaluate(context);
 
         switch (value.type)

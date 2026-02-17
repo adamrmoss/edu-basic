@@ -56,6 +56,7 @@ export class PutStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Require 1D sprite array (width, height, pixels); evaluate position; alpha-blend each pixel to buffer, flush.
         const suffix = tryGetArrayRankSuffixFromName(this.arrayVariable);
         if (suffix === null || suffix.rank !== 1)
         {
@@ -168,6 +169,7 @@ export class PutStatement extends Statement
 
     private static alphaBlend(src: { r: number; g: number; b: number; a: number }, dst: { r: number; g: number; b: number; a: number }): { r: number; g: number; b: number; a: number }
     {
+        // Standard over operator: src over dst.
         const a = Math.max(0, Math.min(255, src.a));
         const invA = 255 - a;
 

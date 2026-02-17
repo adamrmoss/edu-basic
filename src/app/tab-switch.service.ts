@@ -26,6 +26,7 @@ export class TabSwitchService
      */
     public requestTabSwitch(tabId: string): void
     {
+        // Emit the requested tab id so subscribers (e.g. app component) can switch the active tab.
         this.switchTabSubject.next(tabId);
     }
 }

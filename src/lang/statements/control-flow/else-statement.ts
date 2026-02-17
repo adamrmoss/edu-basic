@@ -64,6 +64,7 @@ export class ElseStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
+        // Peek current IF/UNLESS frame; if a branch already ran, jump to END; else take this branch.
         const top = runtime.getCurrentControlFrame();
         if (!top || (top.type !== 'if' && top.type !== 'unless'))
         {

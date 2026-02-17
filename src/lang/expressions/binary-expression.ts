@@ -94,6 +94,7 @@ export class BinaryExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Evaluate both operands; dispatch by category to arithmetic, comparison, or logical.
         const leftValue = this.left.evaluate(context);
         const rightValue = this.right.evaluate(context);
 

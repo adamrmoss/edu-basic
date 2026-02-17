@@ -12,6 +12,7 @@ import { getColorValue, isColorName } from '../../colors';
  */
 export function resolveColorValue(value: EduBasicValue): number
 {
+    // Integer is pass-through; string is looked up by name; otherwise throw.
     if (value.type === EduBasicType.Integer)
     {
         return value.value as number;
@@ -45,6 +46,7 @@ export function resolveColorValue(value: EduBasicValue): number
  */
 export function intToRgba(color: number): { r: number; g: number; b: number; a: number }
 {
+    // Unpack 0xRRGGBBAA into r, g, b, a bytes.
     return {
         r: (color >> 24) & 0xFF,
         g: (color >> 16) & 0xFF,

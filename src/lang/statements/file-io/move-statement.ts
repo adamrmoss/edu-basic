@@ -48,6 +48,7 @@ export class MoveStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate paths, read source, write to destination, then delete source.
         const sourceValue = this.source.evaluate(context);
         const destinationValue = this.destination.evaluate(context);
 

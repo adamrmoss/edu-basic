@@ -45,6 +45,7 @@ export class CatchStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Structural; runtime coordinates TRY/CATCH flow via control frames.
         return { result: ExecutionResult.Continue };
     }
 

@@ -15,6 +15,7 @@ export class MathematicalFunctionEvaluator
      */
     public evaluate(operator: UnaryOperator, argValue: EduBasicValue): EduBasicValue
     {
+        // Complex => evaluateComplex; numeric => evaluateReal (upcast to complex if needed); else throw.
         if (argValue.type === EduBasicType.Complex)
         {
             return this.evaluateComplex(operator, argValue.value);

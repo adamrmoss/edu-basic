@@ -67,6 +67,7 @@ export class SelectCaseStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate test value, push SELECT frame, then jump to first CASE (or END SELECT) for matching.
         const currentPc = context.getProgramCounter();
         const testValue = this.testExpression.evaluate(context);
 

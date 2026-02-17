@@ -49,6 +49,7 @@ export class UnparsableStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Comment/empty sentinel is a no-op; otherwise throw so the runtime can report the error.
         if (this.errorMessage === 'Comment or empty line')
         {
             return { result: ExecutionResult.Continue };

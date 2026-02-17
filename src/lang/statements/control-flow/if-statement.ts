@@ -87,9 +87,9 @@ export class IfStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate condition (integer); push IF frame with branch flag, then run then-branch or jump to next clause.
         const currentPc = context.getProgramCounter();
         const conditionValue = this.condition.evaluate(context);
-
         if (conditionValue.type !== EduBasicType.Integer)
         {
             throw new Error('IF condition must evaluate to an integer');

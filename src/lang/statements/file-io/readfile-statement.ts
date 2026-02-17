@@ -48,6 +48,7 @@ export class ReadfileStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate filename (string), read raw bytes, decode as UTF-8 and assign to variable.
         const filenameValue = this.filename.evaluate(context);
         
         if (filenameValue.type !== EduBasicType.String)

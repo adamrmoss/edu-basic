@@ -69,6 +69,7 @@ export class ExitStatement extends Statement
             return { result: ExecutionResult.Continue };
         }
 
+        // EXIT SUB: return from current sub; otherwise jump to line after the block (syntax-linked).
         if (this.target === ExitTarget.Sub)
         {
             return { result: ExecutionResult.Return };

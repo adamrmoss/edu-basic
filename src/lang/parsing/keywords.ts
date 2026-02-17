@@ -213,6 +213,7 @@ export class Keywords
     /**
      * Set containing all defined keywords.
      */
+    // Union of all category arrays for case-insensitive membership tests.
     public static readonly all = toSet(
         VARIABLE_KEYWORDS,
         CONTROL_FLOW_KEYWORDS,

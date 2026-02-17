@@ -50,6 +50,7 @@ export class ColorStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Resolve foreground (and optional background) to RGBA and set on graphics.
         const foreground = this.foregroundExpr.evaluate(context);
         const foregroundRgba = resolveColorValue(foreground);
         const foregroundColor = intToRgba(foregroundRgba);
@@ -75,5 +76,4 @@ export class ColorStatement extends Statement
         
         return `COLOR ${this.foregroundExpr.toString()}`;
     }
-
 }

@@ -28,6 +28,7 @@ export class ClsStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Clear the graphics buffer and switch to output tab so the user sees the result.
         graphics.clear();
         runtime.requestTabSwitch('output');
         return { result: ExecutionResult.Continue };

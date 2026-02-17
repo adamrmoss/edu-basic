@@ -115,6 +115,7 @@ export class ParserContext
      */
     public consumeKeyword(keyword: string): ParseResult<Token>
     {
+        // Require current token to be the given keyword (case-insensitive) or return failure.
         if (!this.isAtEnd() &&
             this.peek().type === TokenType.Keyword &&
             this.peek().value.toUpperCase() === keyword.toUpperCase())

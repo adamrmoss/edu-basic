@@ -41,6 +41,7 @@ export class RmdirStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate path (string), remove directory via runtime filesystem or throw on failure.
         const pathValue = this.path.evaluate(context);
         if (pathValue.type !== EduBasicType.String)
         {

@@ -12,6 +12,7 @@ export type ControlStructureType = 'if' | 'unless' | 'while' | 'do' | 'for' | 's
  * A single active structured-control block.
  *
  * `startLine` and `endLine` are statement indices (0-based) spanning the full block.
+ * Optional fields (branchTaken, loopVariable, selectTestValue, etc.) are used by specific structure types.
  */
 export interface ControlStructureFrame
 {

@@ -48,6 +48,7 @@ export class WritefileStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate content and filename (both strings), encode as UTF-8 and write via filesystem.
         const contentValue = this.content.evaluate(context);
         const filenameValue = this.filename.evaluate(context);
         

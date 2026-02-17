@@ -62,6 +62,7 @@ export class ControlFlowParsers
      */
     public static parseIf(context: ParserContext): ParseResult<IfStatement>
     {
+        // Consume IF, condition expr, THEN; build IfStatement with empty branches (linked later by syntax analysis).
         // Grammar:
         // IF <conditionExpr> THEN
         const ifTokenResult = context.consume(TokenType.Keyword, 'IF');
@@ -92,6 +93,7 @@ export class ControlFlowParsers
      */
     public static parseElseIf(context: ParserContext): ParseResult<ElseIfStatement>
     {
+        // Consume ELSEIF, condition expr, THEN; build ElseIfStatement (block linked later).
         // Grammar:
         // ELSEIF <conditionExpr> THEN
         const elseifTokenResult = context.consume(TokenType.Keyword, 'ELSEIF');

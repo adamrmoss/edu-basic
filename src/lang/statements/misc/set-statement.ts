@@ -59,6 +59,7 @@ export class SetStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Dispatch option to graphics (line spacing, text wrap) or audio (muted) settings.
         switch (this.option)
         {
             case SetOption.LineSpacingOn:

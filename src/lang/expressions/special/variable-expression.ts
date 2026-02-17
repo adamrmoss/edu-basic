@@ -31,6 +31,7 @@ export class VariableExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Look up variable by name (case-insensitive; default by suffix if missing).
         return context.getVariable(this.name);
     }
 

@@ -45,6 +45,7 @@ export class FinallyStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Structural; runtime coordinates TRY/FINALLY flow via control frames.
         return { result: ExecutionResult.Continue };
     }
 

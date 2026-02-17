@@ -103,5 +103,6 @@ export const statementDispatch = new Map<string, StatementParser>(Object.entries
  */
 export function getStatementParser(keyword: string): StatementParser | undefined
 {
+    // Look up parser by uppercase keyword; undefined if not a statement starter.
     return statementDispatch.get(keyword.toUpperCase());
 }

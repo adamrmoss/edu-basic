@@ -161,6 +161,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      */
     public ngAfterViewInit(): void
     {
+        // Capture textarea, gutter, and overlay refs; defer first update; attach resize and mouse handlers.
         this.textareaElement = this.codeTextareaRef?.nativeElement || null;
         this.lineNumbersElement = this.lineNumbersRef?.nativeElement || null;
         this.overlayElement = this.codeOverlayRef?.nativeElement || null;
@@ -195,6 +196,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      */
     public ngOnChanges(changes: SimpleChanges): void
     {
+        // When lines or errorLines change, refresh line numbers and overlay (or simple 1-based if no textarea yet).
         if (changes['lines'] || changes['errorLines'])
         {
             if (this.textareaElement)
@@ -238,6 +240,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
      */
     public onTextAreaInput(event: Event): void
     {
+        // Split value by newlines, emit, then refresh line numbers and overlay.
         const textarea = event.target as HTMLTextAreaElement;
         const newLines = textarea.value.split('\n');
         this.lines = newLines;
@@ -367,6 +370,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
 
     private getActualLineIndexFromVisual(visualLineIndex: number): number
     {
+        // Walk backwards from visual index to find the last non-negative (logical) line number.
         if (visualLineIndex < 0 || visualLineIndex >= this.lineNumbers.length)
         {
             return -1;
@@ -410,6 +414,7 @@ export class TextEditorComponent implements AfterViewInit, OnDestroy, OnChanges
 
     private updateLineNumbers(): void
     {
+        // Measure font and width to get chars per line; for each logical line emit line number or -1 for wrapped lines.
         if (!this.textareaElement)
         {
             this.lineNumbers = this.lines.map((_, i) => i + 1);

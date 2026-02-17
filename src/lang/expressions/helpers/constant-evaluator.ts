@@ -31,6 +31,7 @@ export class ConstantEvaluator
      */
     public evaluate(constant: Constant, context?: ExecutionContext): EduBasicValue
     {
+        // Dispatch: PI/E/TRUE/FALSE/RND fixed; INKEY/DATE/TIME/NOW use context or system.
         switch (constant)
         {
             case Constant.Pi:

@@ -65,8 +65,8 @@ export class WhileStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Evaluate condition; if zero jump past WEND, else enter body.
         const conditionValue = this.condition.evaluate(context);
-
         if (conditionValue.type !== EduBasicType.Integer)
         {
             throw new Error('WHILE condition must evaluate to an integer');

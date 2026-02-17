@@ -493,9 +493,7 @@ export class Audio
         const notes = this.scheduledNotes.get(voice) ?? [];
         const now = this.audioContext.currentTime;
 
-        /*
-         * Keep only notes that have not finished yet.
-         */
+        // Keep only notes that have not finished yet; then replace stored list for future calls.
         const remainingNotes = notes.filter((n) => (n.startTime + n.duration) > now);
 
         // Persist the filtered list so future calls stay cheap.
@@ -730,7 +728,7 @@ export class Audio
      */
     public stop(): void
     {
-        // Request an immediate stop from the synth (best-effort).
+        // All sound off on each voice, then clear scheduling metadata so status queries reset.
         if (this.synth)
         {
             for (let i = 0; i < 8; i++)

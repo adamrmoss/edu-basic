@@ -47,6 +47,7 @@ export class StructureLiteralExpression extends Expression
      */
     public evaluate(context: ExecutionContext): EduBasicValue
     {
+        // Evaluate each member expression and build a structure map.
         const map = new Map<string, EduBasicValue>();
 
         for (const member of this.members)

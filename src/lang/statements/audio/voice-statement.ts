@@ -48,6 +48,7 @@ export class VoiceStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
+        // Resolve voice index; set instrument by number or name, then set active voice.
         const voiceValue = this.voiceNumber.evaluate(context);
         const voice = voiceValue.type === EduBasicType.Integer || voiceValue.type === EduBasicType.Real ? Math.floor(voiceValue.value as number) : 0;
 
