@@ -5,6 +5,7 @@ import { MathematicalFunctionEvaluator } from './helpers/mathematical-function-e
 import { ComplexFunctionEvaluator } from './helpers/complex-function-evaluator';
 import { StringFunctionEvaluator } from './helpers/string-function-evaluator';
 import { TypeConversionEvaluator } from './helpers/type-conversion-evaluator';
+import { ParenthesizedExpression } from './special';
 
 /**
  * Unary operators supported by the expression runtime.
@@ -242,14 +243,9 @@ export class UnaryExpression extends Expression
             return `${this.operator}${this.operand.toString()}`;
         }
         
-        // Unary keyword-operators are formatted as prefix operators.
-        // Parentheses are only grouping in EduBASIC and are emitted by the operand expression itself
-        // (e.g. SIN (x + y)).
+        // Unary keyword-operators: no space before parenthesized operand (SIN(0), SIN(X# + Y#)), space otherwise (SIN 0).
         const argStr = this.operand.toString();
-        if (this.category === UnaryOperatorCategory.Audio)
-        {
-            return `${this.operator} ${argStr}`;
-        }
-        return `${this.operator}${argStr}`;
+        const noSpace = this.operand instanceof ParenthesizedExpression;
+        return noSpace ? `${this.operator}${argStr}` : `${this.operator} ${argStr}`;
     }
 }

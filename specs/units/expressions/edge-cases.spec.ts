@@ -1,6 +1,7 @@
 import { BinaryExpression, BinaryOperator, BinaryOperatorCategory } from '@/lang/expressions/binary-expression';
 import { UnaryExpression, UnaryOperator, UnaryOperatorCategory } from '@/lang/expressions/unary-expression';
 import { LiteralExpression } from '@/lang/expressions/literal-expression';
+import { ParenthesizedExpression } from '@/lang/expressions/special';
 import { ExecutionContext } from '@/lang/execution-context';
 import { EduBasicType } from '@/lang/edu-basic-value';
 
@@ -481,6 +482,35 @@ describe('Expression Edge Cases', () =>
             const arg1 = new LiteralExpression({ type: EduBasicType.Integer, value: 1 });
             const expr1 = new UnaryExpression(UnaryOperator.Notes, arg1, UnaryOperatorCategory.Audio);
             expect(expr1.toString()).toBe('NOTES 1');
+        });
+    });
+
+    describe('UnaryExpression toString spacing', () =>
+    {
+        it('should use space before non-parenthesized operand (e.g. SIN 0, NOTES 0)', () =>
+        {
+            const sinArg = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const sinExpr = new UnaryExpression(UnaryOperator.Sin, sinArg, UnaryOperatorCategory.Mathematical);
+            expect(sinExpr.toString()).toBe('SIN 0');
+
+            const notesArg = new LiteralExpression({ type: EduBasicType.Integer, value: 0 });
+            const notesExpr = new UnaryExpression(UnaryOperator.Notes, notesArg, UnaryOperatorCategory.Audio);
+            expect(notesExpr.toString()).toBe('NOTES 0');
+        });
+
+        it('should use no space before parenthesized operand (e.g. SIN(0), NOTES(0))', () =>
+        {
+            const sinArg = new ParenthesizedExpression(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 })
+            );
+            const sinExpr = new UnaryExpression(UnaryOperator.Sin, sinArg, UnaryOperatorCategory.Mathematical);
+            expect(sinExpr.toString()).toBe('SIN(0)');
+
+            const notesArg = new ParenthesizedExpression(
+                new LiteralExpression({ type: EduBasicType.Integer, value: 0 })
+            );
+            const notesExpr = new UnaryExpression(UnaryOperator.Notes, notesArg, UnaryOperatorCategory.Audio);
+            expect(notesExpr.toString()).toBe('NOTES(0)');
         });
     });
 });
