@@ -16,16 +16,16 @@ describe('INPUT statement', () =>
         const { context, program, graphics, audio, runtime, fileSystem } = createRuntimeFixture();
         fileSystem.clear();
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('42');
+        runtime.setPendingInput('42');
         new InputStatement('x%').execute(context, graphics, audio, program, runtime);
         expect(context.getVariable('x%')).toEqual({ type: EduBasicType.Integer, value: 42 });
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('1,2,3');
         context.setVariable('a%[]', {
             type: EduBasicType.Array,
             elementType: EduBasicType.Integer,
             value: [{ type: EduBasicType.Integer, value: 0 }],
         } as any, false);
+        runtime.setPendingInput('1,2,3');
         new InputStatement('a%[]').execute(context, graphics, audio, program, runtime);
         const arr = context.getVariable('a%[]');
         expect(arr.type).toBe(EduBasicType.Array);
@@ -36,17 +36,17 @@ describe('INPUT statement', () =>
         const { context, program, graphics, audio, runtime, fileSystem } = createRuntimeFixture();
         fileSystem.clear();
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('3+4i');
+        runtime.setPendingInput('3+4i');
         new InputStatement('z&').execute(context, graphics, audio, program, runtime);
         expect(context.getVariable('z&')).toEqual({ type: EduBasicType.Complex, value: { real: 3, imaginary: 4 } });
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('not a number');
+        runtime.setPendingInput('not a number');
         expect(() =>
         {
             new InputStatement('x%').execute(context, graphics, audio, program, runtime);
         }).toThrow('INPUT: invalid integer');
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('x');
+        runtime.setPendingInput('x');
         expect(() =>
         {
             new InputStatement('obj').execute(context, graphics, audio, program, runtime);
@@ -58,15 +58,15 @@ describe('INPUT statement', () =>
         const { context, program, graphics, audio, runtime, fileSystem } = createRuntimeFixture();
         fileSystem.clear();
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('3.5');
+        runtime.setPendingInput('3.5');
         new InputStatement('x#').execute(context, graphics, audio, program, runtime);
         expect(context.getVariable('x#')).toEqual({ type: EduBasicType.Real, value: 3.5 });
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('"hello"');
+        runtime.setPendingInput('"hello"');
         new InputStatement('s$').execute(context, graphics, audio, program, runtime);
         expect(context.getVariable('s$')).toEqual({ type: EduBasicType.String, value: 'hello' });
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('not a number');
+        runtime.setPendingInput('not a number');
         expect(() =>
         {
             new InputStatement('bad#').execute(context, graphics, audio, program, runtime);
@@ -78,8 +78,8 @@ describe('INPUT statement', () =>
         const { context, program, graphics, audio, runtime, fileSystem } = createRuntimeFixture();
         fileSystem.clear();
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('1,2,3');
         context.setVariable('a%[]', { type: EduBasicType.Array, elementType: EduBasicType.Integer, value: [] } as any, false);
+        runtime.setPendingInput('1,2,3');
         new InputStatement('a%[]').execute(context, graphics, audio, program, runtime);
         const arr1 = context.getVariable('a%[]');
         expect(arr1.type).toBe(EduBasicType.Array);
@@ -87,8 +87,8 @@ describe('INPUT statement', () =>
         expect(arr1.elementType).toBe(EduBasicType.Integer);
         expect(arr1.value.length).toBe(3);
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('4,5');
         context.setVariable('a%[]', { type: EduBasicType.Array, elementType: EduBasicType.Real, value: [] } as any, false);
+        runtime.setPendingInput('4,5');
         new InputStatement('a%[]').execute(context, graphics, audio, program, runtime);
         const arr2 = context.getVariable('a%[]');
         expect(arr2.type).toBe(EduBasicType.Array);
@@ -112,7 +112,7 @@ describe('INPUT statement', () =>
             ]
         } as any, false);
 
-        jest.spyOn(window, 'prompt').mockReturnValueOnce('1');
+        runtime.setPendingInput('1');
         new InputStatement('a%[]').execute(context, graphics, audio, program, runtime);
 
         const arr = context.getVariable('a%[]');

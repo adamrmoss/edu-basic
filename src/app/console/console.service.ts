@@ -1,12 +1,14 @@
 import { Injectable } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { LunaModalService } from 'ng-luna';
 import { ParserService, ParsedLine } from '../interpreter/parser.service';
 import { InterpreterService } from '../interpreter/interpreter.service';
 import { GraphicsService } from '../interpreter/graphics.service';
 import { AudioService } from '../interpreter/audio.service';
 import { ExpressionParser } from '../../lang/parsing/expression-parser';
 import { Expression } from '../../lang/expressions/expression';
-import { Statement } from '../../lang/statements/statement';
+import { Statement, ExecutionResult } from '../../lang/statements/statement';
 import { ConsoleStatement } from '../../lang/statements/misc';
 
 /**
@@ -80,7 +82,8 @@ export class ConsoleService
         private readonly parserService: ParserService,
         private readonly interpreterService: InterpreterService,
         private readonly graphicsService: GraphicsService,
-        private readonly audioService: AudioService
+        private readonly audioService: AudioService,
+        private readonly modalService: LunaModalService
     )
     {
     }
@@ -170,7 +173,7 @@ export class ConsoleService
      *
      * @param command Raw user input command.
      */
-    public executeCommand(command: string): void
+    public async executeCommand(command: string): Promise<void>
     {
         if (!command.trim())
         {
@@ -238,7 +241,20 @@ export class ConsoleService
             const graphics = this.graphicsService.getGraphics();
             const audio = this.audioService.getAudio();
 
-            statement.execute(context, graphics, audio, program, runtime);
+            let status = statement.execute(context, graphics, audio, program, runtime);
+
+            while (status.result === ExecutionResult.WaitingForInput)
+            {
+                const modalResult = await firstValueFrom(
+                    this.modalService.prompt(status.inputMessage ?? '', {
+                        title: 'Input',
+                        promptDefaultValue: status.inputDefault ?? ''
+                    })
+                );
+
+                runtime.setPendingInput(modalResult.button === 'ok' ? (modalResult.promptValue ?? '') : '');
+                status = statement.execute(context, graphics, audio, program, runtime);
+            }
         }
         catch (error)
         {

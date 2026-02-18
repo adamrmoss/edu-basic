@@ -20,15 +20,15 @@
             </div>
             
             <div class="disk-actions">
-                <button class="action-button primary" (click)="onNewDisk()" title="Create New Disk">
+                <button class="action-button primary" (click)="onNewDisk()" lunaTooltip="Create New Disk">
                     <luna-icon class="button-icon" size="16" [svg]="plusIcon"></luna-icon>
                     <span>New Disk</span>
                 </button>
-                <button class="action-button" (click)="onLoadDisk()" title="Load Disk from File">
+                <button class="action-button" (click)="onLoadDisk()" lunaTooltip="Load Disk from File">
                     <luna-icon class="button-icon" size="16" [svg]="folderOpenIcon"></luna-icon>
                     <span>Load</span>
                 </button>
-                <button class="action-button" (click)="onSaveDisk()" title="Save Disk to File">
+                <button class="action-button" (click)="onSaveDisk()" lunaTooltip="Save Disk to File">
                     <luna-icon class="button-icon" size="16" [svg]="saveIcon"></luna-icon>
                     <span>Save</span>
                 </button>
@@ -40,10 +40,10 @@
             <div class="section-header">
                 <h3>Files</h3>
                 <div class="header-actions">
-                    <button class="icon-button" (click)="onNewFileInSelectedOrRoot()" [title]="getNewFileTitle()">
+                    <button class="icon-button" (click)="onNewFileInSelectedOrRoot()" [lunaTooltip]="getNewFileTitle()">
                         <luna-icon size="16" [svg]="fileIcon"></luna-icon>
                     </button>
-                    <button class="icon-button" (click)="onNewDirectoryInSelectedOrRoot()" [title]="getNewDirectoryTitle()">
+                    <button class="icon-button" (click)="onNewDirectoryInSelectedOrRoot()" [lunaTooltip]="getNewDirectoryTitle()">
                         <luna-icon size="16" [svg]="folderIcon"></luna-icon>
                     </button>
                 </div>
@@ -71,14 +71,14 @@
             
             <div class="toolbar-right">
                 <div class="file-actions" *ngIf="selectedFile.type === 'file'">
-                    <button class="toolbar-button" (click)="toggleViewMode()" [title]="viewMode === 'text' ? 'Switch to Hex View' : 'Switch to Text View'">
+                    <button class="toolbar-button" (click)="toggleViewMode()" [lunaTooltip]="viewMode === 'text' ? 'Switch to Hex View' : 'Switch to Text View'">
                         <span *ngIf="viewMode === 'text'">Hex</span>
                         <span *ngIf="viewMode === 'hex'">Text</span>
                     </button>
                     <button 
                         class="toolbar-button" 
                         (click)="onRenameFile()" 
-                        title="Rename File"
+                        lunaTooltip="Rename File"
                         *ngIf="!isProgramBas(selectedFile)"
                     >
                         <luna-icon size="16" [svg]="editIcon"></luna-icon>
@@ -87,7 +87,7 @@
                     <button 
                         class="toolbar-button danger" 
                         (click)="onDeleteFile()" 
-                        title="Delete File"
+                        lunaTooltip="Delete File"
                         *ngIf="!isProgramBas(selectedFile)"
                     >
                         <luna-icon size="16" [svg]="trashIcon"></luna-icon>
@@ -96,19 +96,19 @@
                 </div>
                 
                 <div class="directory-actions" *ngIf="selectedFile.type === 'directory'">
-                    <button class="toolbar-button" (click)="onNewFile(selectedFile.path)" title="New File in Directory">
+                    <button class="toolbar-button" (click)="onNewFile(selectedFile.path)" lunaTooltip="New File in Directory">
                         <luna-icon size="16" [svg]="fileIcon"></luna-icon>
                         <span>New File</span>
                     </button>
-                    <button class="toolbar-button" (click)="onNewDirectory(selectedFile.path)" title="New Directory">
+                    <button class="toolbar-button" (click)="onNewDirectory(selectedFile.path)" lunaTooltip="New Directory">
                         <luna-icon size="16" [svg]="folderIcon"></luna-icon>
                         <span>New Dir</span>
                     </button>
-                    <button class="toolbar-button" (click)="onRenameFile()" title="Rename Directory">
+                    <button class="toolbar-button" (click)="onRenameFile()" lunaTooltip="Rename Directory">
                         <luna-icon size="16" [svg]="editIcon"></luna-icon>
                         <span>Rename</span>
                     </button>
-                    <button class="toolbar-button danger" (click)="onDeleteFile()" title="Delete Directory">
+                    <button class="toolbar-button danger" (click)="onDeleteFile()" lunaTooltip="Delete Directory">
                         <luna-icon size="16" [svg]="trashIcon"></luna-icon>
                         <span>Delete</span>
                     </button>
@@ -185,10 +185,10 @@
                 <span class="name">{{ node.name }}</span>
             </div>
             <div class="item-actions" *ngIf="selectedFile === node && !isProgramBas(node)" (click)="$event.stopPropagation()">
-                <button class="item-action-button" (click)="onRenameFile()" title="Rename">
+                <button class="item-action-button" (click)="onRenameFile()" lunaTooltip="Rename">
                     <luna-icon size="16" [svg]="editIcon"></luna-icon>
                 </button>
-                <button class="item-action-button danger" (click)="onDeleteFile()" title="Delete">
+                <button class="item-action-button danger" (click)="onDeleteFile()" lunaTooltip="Delete">
                     <luna-icon size="16" [svg]="trashIcon"></luna-icon>
                 </button>
             </div>
