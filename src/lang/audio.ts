@@ -283,31 +283,28 @@ export class Audio
     /**
      * Parse a note name into a MIDI note number.
      *
-     * Example note names: "C", "C#", "Db".
+     * Note letters may be upper or lower case. Sharp: + or # after the letter. Flat: - after the letter.
+     * Example note names: "C", "c+", "C#", "C-", "D-".
      */
     private parseNoteName(noteName: string, octave: number): number | null
     {
-        // Map note spellings to semitone offsets within an octave.
         const noteMap: Record<string, number> = {
-            'C': 0, 'C#': 1, 'Db': 1,
-            'D': 2, 'D#': 3, 'Eb': 3,
-            'E': 4,
-            'F': 5, 'F#': 6, 'Gb': 6,
-            'G': 7, 'G#': 8, 'Ab': 8,
-            'A': 9, 'A#': 10, 'Bb': 10,
-            'B': 11,
+            'C': 0, 'C+': 1, 'C#': 1, 'C-': 11,
+            'D': 2, 'D+': 3, 'D#': 3, 'D-': 1,
+            'E': 4, 'E+': 4, 'E#': 4, 'E-': 3,
+            'F': 5, 'F+': 6, 'F#': 6, 'F-': 4,
+            'G': 7, 'G+': 8, 'G#': 8, 'G-': 6,
+            'A': 9, 'A+': 10, 'A#': 10, 'A-': 8,
+            'B': 11, 'B+': 12, 'B#': 12, 'B-': 10,
         };
 
-        // Normalize the token to match against the spelling map.
         const upper = noteName.toUpperCase();
 
         if (noteMap[upper] !== undefined)
         {
-            // Convert (octave, semitone) into a MIDI note number.
             return octave * 12 + noteMap[upper];
         }
 
-        // Unknown spelling.
         return null;
     }
 
@@ -534,6 +531,7 @@ export class Audio
         let velocity = 64;
 
         // Consume the string left-to-right, handling one token at a time.
+        // Note letters are normalized via toUpperCase so A–G and a–g are both accepted.
         while (i < mml.length)
         {
             const char = mml[i].toUpperCase();
@@ -594,10 +592,10 @@ export class Audio
                     }
                 }
 
-                // Encode duration as a fraction of a beat (optionally dotted).
+                // Encode duration in beats: L4 = quarter = 1 beat, so beats = 4/length (dotted = 1.5×).
                 result.push({
                     type: 'rest',
-                    duration: hasDot ? 1.5 / length : 1 / length,
+                    duration: hasDot ? 6 / length : 4 / length,
                 });
 
                 // Advance past the token (and optional dot).
@@ -633,11 +631,11 @@ export class Audio
                         }
                     }
 
-                    // Emit a note token with duration as a fraction of a beat (optionally dotted).
+                    // Emit a note token with duration in beats: L4 = 1 beat (optionally dotted).
                     result.push({
                         type: 'note',
                         midiNote,
-                        duration: hasDot ? 1.5 / length : 1 / length,
+                        duration: hasDot ? 6 / length : 4 / length,
                         velocity,
                     });
 
@@ -653,34 +651,34 @@ export class Audio
                 }
             }
 
-            // Letter note tokens (A..G with optional #/b and optional length).
+            // Letter note tokens (A..G with optional sharp +/# or flat -).
             const baseNoteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
             const noteIndexMap: Record<string, number> = {
-                'C': 0, 'C#': 1, 'Db': 1,
-                'D': 2, 'D#': 3, 'Eb': 3,
-                'E': 4,
-                'F': 5, 'F#': 6, 'Gb': 6,
-                'G': 7, 'G#': 8, 'Ab': 8,
-                'A': 9, 'A#': 10, 'Bb': 10,
-                'B': 11,
+                'C': 0, 'C+': 1, 'C#': 1, 'C-': 11,
+                'D': 2, 'D+': 3, 'D#': 3, 'D-': 1,
+                'E': 4, 'E+': 4, 'E#': 4, 'E-': 3,
+                'F': 5, 'F+': 6, 'F#': 6, 'F-': 4,
+                'G': 7, 'G+': 8, 'G#': 8, 'G-': 6,
+                'A': 9, 'A+': 10, 'A#': 10, 'A-': 8,
+                'B': 11, 'B+': 12, 'B#': 12, 'B-': 10,
             };
 
             if (baseNoteNames.includes(char))
             {
-                // Parse accidental (#/b) if present.
                 let noteName = char;
                 let noteIndex: number;
 
                 if (i + 1 < mml.length)
                 {
-                    if (mml[i + 1] === '#')
+                    const next = mml[i + 1];
+                    if (next === '#' || next === '+')
                     {
-                        noteName = char + '#';
+                        noteName = char + next;
                         i++;
                     }
-                    else if (mml[i + 1].toLowerCase() === 'b' && char !== 'B')
+                    else if (next === '-')
                     {
-                        noteName = char + 'b';
+                        noteName = char + '-';
                         i++;
                     }
                 }
@@ -703,13 +701,13 @@ export class Audio
                     }
                 }
 
-                // Emit a note token with duration as a fraction of a beat (optionally dotted).
+                // Emit a note token with duration in beats: L4 = 1 beat (optionally dotted).
                 const midiNote = octave * 12 + noteIndex;
 
                 result.push({
                     type: 'note',
                     midiNote,
-                    duration: hasDot ? 1.5 / length : 1 / length,
+                    duration: hasDot ? 6 / length : 4 / length,
                     velocity,
                 });
 
