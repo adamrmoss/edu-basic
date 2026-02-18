@@ -3937,9 +3937,9 @@ PLAY voiceNumber%, mmlString$
 Music Macro Language (MML) controls frequency (notes), timing, and velocity for all voices. MML is used within `PLAY` statements to specify musical sequences.
 
 **Notes:**
-- **Note Names:** `C`, `D`, `E`, `F`, `G`, `A`, `B` (or lowercase `c`, `d`, `e`, `f`, `g`, `a`, `b`)
-- **Sharps:** `#` after note name (e.g., `C#` = C sharp)
-- **Flats:** `b` after note name (e.g., `Bb` = B flat) - note: lowercase `b` is both the B note and the flat symbol
+- **Note Names:** Note letters may be upper or lower case: `C`, `D`, `E`, `F`, `G`, `A`, `B` or `c`, `d`, `e`, `f`, `g`, `a`, `b`
+- **Sharps:** `+` or `#` after note name (e.g., `C+` or `C#` = C sharp)
+- **Flats:** `-` after note name (e.g., `B-` = B flat)
 - **Note Numbers:** `N` followed by MIDI note number (0-127), where 60 = Middle C (C4)
 
 **Octaves:**

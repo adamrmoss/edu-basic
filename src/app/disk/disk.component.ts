@@ -1,8 +1,19 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IconComponent, Folder, File, Plus, Save, FolderOpen, Edit, Trash } from 'ng-luna';
-import { Subject, takeUntil } from 'rxjs';
+import {
+    IconComponent,
+    Folder,
+    File,
+    Plus,
+    Save,
+    FolderOpen,
+    Edit,
+    Trash,
+    LunaModalService,
+    TooltipDirective
+} from 'ng-luna';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { DiskService } from './disk.service';
 import { TextEditorComponent } from '../text-editor/text-editor.component';
 import { DirectoryNode, FileSystemNode } from './filesystem-node';
@@ -44,7 +55,13 @@ export interface FileNode
 @Component({
     selector: 'app-disk',
     standalone: true,
-    imports: [ CommonModule, FormsModule, IconComponent, TextEditorComponent ],
+    imports: [
+        CommonModule,
+        FormsModule,
+        IconComponent,
+        TextEditorComponent,
+        TooltipDirective
+    ],
     templateUrl: './disk.component.html',
     styleUrl: './disk.component.scss'
 })
@@ -162,7 +179,10 @@ export class DiskComponent implements OnInit, OnDestroy
      *
      * @param diskService Disk service backing this UI.
      */
-    constructor(private readonly diskService: DiskService)
+    constructor(
+        private readonly diskService: DiskService,
+        private readonly modalService: LunaModalService
+    )
     {
     }
 
@@ -208,12 +228,15 @@ export class DiskComponent implements OnInit, OnDestroy
     /**
      * Create a new disk after prompting for a name.
      */
-    public onNewDisk(): void
+    public async onNewDisk(): Promise<void>
     {
-        const name = prompt('Enter disk name:', 'Untitled');
+        const result = await firstValueFrom(
+            this.modalService.prompt('Enter disk name:', { title: 'New Disk', promptDefaultValue: 'Untitled' })
+        );
 
-        if (name !== null)
+        if (result.button === 'ok' && result.promptValue !== undefined)
         {
+            const name = result.promptValue.trim() || 'Untitled';
             this.diskService.newDisk(name);
             this.selectedFile = null;
             this.editorLines = [''];
@@ -272,13 +295,16 @@ export class DiskComponent implements OnInit, OnDestroy
      *
      * @param parentPath Directory path to create the file under.
      */
-    public onNewFile(parentPath: string = ''): void
+    public async onNewFile(parentPath: string = ''): Promise<void>
     {
-        const fileName = prompt('Enter file name:');
+        const result = await firstValueFrom(
+            this.modalService.prompt('Enter file name:', { title: 'New File' })
+        );
 
-        if (fileName)
+        if (result.button === 'ok' && result.promptValue !== undefined && result.promptValue.trim())
         {
-            // Expand parent so the new file is visible; then create file at full path.
+            const fileName = result.promptValue.trim();
+
             if (parentPath)
             {
                 this.expandPathAndParents(parentPath);
@@ -294,17 +320,21 @@ export class DiskComponent implements OnInit, OnDestroy
      *
      * @param parentPath Directory path to create the directory under.
      */
-    public onNewDirectory(parentPath: string = ''): void
+    public async onNewDirectory(parentPath: string = ''): Promise<void>
     {
-        const dirName = prompt('Enter directory name:');
-        
-        if (dirName)
+        const result = await firstValueFrom(
+            this.modalService.prompt('Enter directory name:', { title: 'New Directory' })
+        );
+
+        if (result.button === 'ok' && result.promptValue !== undefined && result.promptValue.trim())
         {
+            const dirName = result.promptValue.trim();
+
             if (parentPath)
             {
                 this.expandPathAndParents(parentPath);
             }
-            
+
             const fullPath = parentPath ? `${parentPath}/${dirName}` : dirName;
             this.diskService.createDirectory(fullPath);
         }
@@ -357,12 +387,14 @@ export class DiskComponent implements OnInit, OnDestroy
     /**
      * Delete the currently selected file/directory (except `program.bas`).
      */
-    public onDeleteFile(): void
+    public async onDeleteFile(): Promise<void>
     {
         if (this.selectedFile && !this.isProgramBas(this.selectedFile))
         {
-            const confirmed = confirm(`Delete ${this.selectedFile.name}?`);
-            
+            const confirmed = await firstValueFrom(
+                this.modalService.confirm(`Delete ${this.selectedFile.name}?`, { title: 'Confirm Delete' })
+            );
+
             if (confirmed)
             {
                 if (this.selectedFile.type === 'directory')
@@ -373,7 +405,7 @@ export class DiskComponent implements OnInit, OnDestroy
                 {
                     this.diskService.deleteFile(this.selectedFile.path);
                 }
-                
+
                 this.selectedFile = null;
                 this.editorLines = [''];
             }
@@ -383,17 +415,28 @@ export class DiskComponent implements OnInit, OnDestroy
     /**
      * Rename the currently selected file/directory (except `program.bas`).
      */
-    public onRenameFile(): void
+    public async onRenameFile(): Promise<void>
     {
         if (this.selectedFile && !this.isProgramBas(this.selectedFile))
         {
-            const newName = prompt('Enter new name:', this.selectedFile.name);
-            
-            if (newName && newName !== this.selectedFile.name)
+            const result = await firstValueFrom(
+                this.modalService.prompt('Enter new name:', {
+                    title: 'Rename',
+                    promptDefaultValue: this.selectedFile.name
+                })
+            );
+
+            if (
+                result.button === 'ok' &&
+                result.promptValue !== undefined &&
+                result.promptValue.trim() &&
+                result.promptValue.trim() !== this.selectedFile.name
+            )
             {
+                const newName = result.promptValue.trim();
                 const parentPath = this.getParentPath(this.selectedFile.path);
                 const newPath = parentPath ? `${parentPath}/${newName}` : newName;
-                
+
                 if (this.selectedFile.type === 'directory')
                 {
                     this.diskService.renameDirectory(this.selectedFile.path, newPath);
@@ -402,7 +445,7 @@ export class DiskComponent implements OnInit, OnDestroy
                 {
                     this.diskService.renameFile(this.selectedFile.path, newPath);
                 }
-                
+
                 this.selectedFile = null;
                 this.editorLines = [''];
             }
@@ -613,38 +656,38 @@ export class DiskComponent implements OnInit, OnDestroy
     /**
      * Delete the node that was right-clicked (except `program.bas`).
      */
-    public onContextMenuDelete(): void
+    public async onContextMenuDelete(): Promise<void>
     {
         if (this.contextMenuClickedPath !== null)
         {
             const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
-            
+
             if (node && !this.isProgramBas(node))
             {
                 this.selectedFile = node;
-                this.onDeleteFile();
+                await this.onDeleteFile();
             }
         }
-        
+
         this.closeContextMenu();
     }
 
     /**
      * Rename the node that was right-clicked (except `program.bas`).
      */
-    public onContextMenuRename(): void
+    public async onContextMenuRename(): Promise<void>
     {
         if (this.contextMenuClickedPath !== null)
         {
             const node = this.findNodeByPath(this.fileTree, this.contextMenuClickedPath);
-            
+
             if (node && !this.isProgramBas(node))
             {
                 this.selectedFile = node;
-                this.onRenameFile();
+                await this.onRenameFile();
             }
         }
-        
+
         this.closeContextMenu();
     }
 

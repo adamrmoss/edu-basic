@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { Subject, takeUntil } from 'rxjs';
+import { LunaModalService } from 'ng-luna';
 import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
 import { ParserService } from '../interpreter/parser.service';
@@ -70,7 +72,8 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     constructor(
         private readonly diskService: DiskService,
         private readonly interpreterService: InterpreterService,
-        private readonly parserService: ParserService
+        private readonly parserService: ParserService,
+        private readonly modalService: LunaModalService
     )
     {
     }
@@ -236,8 +239,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
             this.interpreterService.run();
 
-            // Step loop: run one step, then schedule next after 10ms so UI stays responsive.
-            const executeProgram = () => {
+            const executeProgram = async (): Promise<void> => {
                 try
                 {
                     if (this.interpreterService.state !== InterpreterState.Running)
@@ -253,7 +255,30 @@ export class CodeEditorComponent implements OnInit, OnDestroy
                         return;
                     }
 
-                    setTimeout(executeProgram, 10);
+                    if (result === ExecutionResult.WaitingForInput)
+                    {
+                        const req = runtime.getPendingInputRequest();
+                        const modalResult = await firstValueFrom(
+                            this.modalService.prompt(req?.message ?? '', {
+                                title: 'Input',
+                                promptDefaultValue: req?.default ?? ''
+                            })
+                        );
+
+                        if (modalResult.button === 'ok')
+                        {
+                            runtime.setPendingInput(modalResult.promptValue ?? '');
+                        }
+                        else
+                        {
+                            runtime.setPendingInput('');
+                        }
+
+                        setTimeout(() => executeProgram(), 10);
+                        return;
+                    }
+
+                    setTimeout(() => executeProgram(), 10);
                 }
                 catch (error)
                 {
@@ -262,7 +287,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
                 }
             };
 
-            setTimeout(executeProgram, 10);
+            setTimeout(() => executeProgram(), 10);
         }
         catch (error)
         {

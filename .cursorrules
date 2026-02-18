@@ -105,11 +105,11 @@ When solving problems, follow this workflow:
   - Example: `{ align-items: center; background-color: $navy; display: flex; }` ✅
   - Example: `{ display: flex; align-items: center; background-color: $navy; }` ❌
 
-## C# Code Style
-- Use explicit 'this.' to reference instance members (methods and properties)
-- Use braces { } for all control structures, even single-line blocks
-- Add line breaks between logical groups of code for readability
-- Keep each logical operation visually separate
+## HTML Semantics and Layout
+
+- Use semantic elements wherever they apply: `<header>`, `<footer>`, `<main>`, `<nav>`, `<section>`, `<article>`, `<aside>`, `<figure>`, `<figcaption>`, form elements (`<button>`, `<input>`, `<label>`, `<fieldset>`, `<legend>`, `<select>`, `<textarea>`, `<progress>`), and list structure (`<ul>`, `<ol>`, `<li>`) instead of generic `<div>`/`<span>` when the meaning fits
+- Prefer Flexbox or CSS Grid for layout; avoid layout patterns that rely on floats or table display when flex/grid are appropriate
+
 
 ## TypeScript/JavaScript Code Style
 - **Imports first** - All import statements must be at the top of the file, before any other code (exports, types, classes, etc.), unless there is a special reason (e.g. dynamic import, circular dependency workaround).

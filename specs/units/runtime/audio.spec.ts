@@ -311,12 +311,12 @@ describe('Audio', () =>
             expect(mockSynthInstance.noteOff).toHaveBeenCalled();
         });
 
-        it('should handle sharp and flat in MML', () =>
+        it('should handle sharp (+ or #) and flat (-) in MML', () =>
         {
             audio.setVoiceInstrument(0, 0);
             mockSynthInstance.noteOn.mockClear();
             mockSynthInstance.noteOff.mockClear();
-            audio.playSequence(0, 'O4 C# Eb');
+            audio.playSequence(0, 'O4 C+ E-');
             expect(mockSynthInstance.noteOn).toHaveBeenCalledTimes(2);
             expect(mockSynthInstance.noteOff).toHaveBeenCalledTimes(2);
         });
