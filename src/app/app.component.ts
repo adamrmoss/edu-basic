@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList } from '@angular/core';
-import { OverlayModule } from '@angular/cdk/overlay';
+import { OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { CommonModule } from '@angular/common';
-import { WindowComponent, TabsComponent, TabComponent, IconComponent, X, Check } from 'ng-luna';
+import { LunaOverlayContainer, OverlayComponent, WindowComponent, TabsComponent, TabComponent, IconComponent, X, Check } from 'ng-luna';
 import { Subject, takeUntil } from 'rxjs';
 import { ConsoleComponent } from './console/console.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
@@ -22,6 +22,7 @@ import { AudioService } from './interpreter/audio.service';
     imports: [
         CommonModule,
         OverlayModule,
+        OverlayComponent,
         WindowComponent,
         TabsComponent,
         TabComponent,
@@ -30,6 +31,9 @@ import { AudioService } from './interpreter/audio.service';
         CodeEditorComponent,
         DiskComponent,
         OutputComponent
+    ],
+    providers: [
+        { provide: OverlayContainer, useClass: LunaOverlayContainer }
     ],
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss'

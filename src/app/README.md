@@ -24,6 +24,7 @@ All components are **standalone** (no NgModules) and follow Angular 19 best prac
 - Subscribes to tab switch requests and programmatically switches tabs
 
 **Dependencies**:
+- `OverlayModule` (Angular CDK) - Required for ng-luna modal/overlay UI (prompts, confirms). Ensures the overlay container is available for dialogs.
 - `TabSwitchService` - For receiving tab switch requests
 - `TabsComponent` (ng-luna) - Tab container component
 
@@ -88,35 +89,58 @@ Results displayed in console/output
 
 **Location**: `src/app/code-editor/code-editor.component.ts`
 
-**Purpose**: Multi-line code editor for writing BASIC programs.
+**Purpose**: Code editor for authoring and running EduBASIC programs. Wraps the reusable text editor and adds run/stop, validation, and disk integration.
 
 **Key Features**:
-- Line numbers display
-- Textarea for code input
-- Synchronized scrolling between line numbers and editor
+- Embeds `TextEditorComponent` for the actual editor surface (line numbers, textarea, code overlay)
+- Run/Stop button; runs program via InterpreterService
+- Line-level parse validation and error display (error lines and messages passed to text editor)
 - Integration with DiskService for program persistence
+- INPUT statement support: prompts via LunaModalService when runtime waits for input
 
 **Key Properties**:
 - `lines: string[]` - Array of code lines
-- `currentLine: number` - Currently focused line
+- `errorLines: Set<number>` - 0-based line indices with parse errors
+- `errorMessages: Map<number, string>` - Error message per line
+- `isExecutable: boolean` - Whether current content has no static errors
 
 **Key Methods**:
 - `ngOnInit()`: Subscribes to DiskService.programCode$ to load program
-- `getLineNumbers()`: Returns array of line numbers for display
-- `onTextAreaInput(event)`: Updates lines and saves to DiskService
-- `onTextAreaScroll(event)`: Synchronizes line number scroll with editor scroll
+- `onLinesChange(lines)`: Updates lines, validates, saves to DiskService
+- `onRunOrStop()`: Runs or stops the program
+- `onKeyDown()`, `onBlur()`, `onCursorLineChange()`: Forward to text editor and handle canonicalization/validation
 
 **Dependencies**:
 - `DiskService` - For loading and saving program code
-
-**Integration**:
-- Subscribes to `programCode$` observable to load program when disk changes
-- Updates DiskService when code is edited
-- Program code is automatically saved with disk
+- `InterpreterService` - For running programs
+- `ParserService` - For line validation and canonicalization
+- `LunaModalService` (ng-luna) - For INPUT prompts
 
 **UI Structure**:
-- Left: Line numbers column
-- Right: Textarea for code editing
+- Toolbar with Run/Stop button
+- `TextEditorComponent`: line numbers, textarea, and code overlay for styled/error lines
+
+### TextEditorComponent
+
+**Location**: `src/app/text-editor/text-editor.component.ts`
+
+**Purpose**: Reusable multi-line text editor with synchronized line numbers, textarea, and a **code overlay** for per-line styling (e.g. error highlighting).
+
+**Key Features**:
+- Line numbers column
+- Textarea for input; value is bound via `lines` and emitted via `linesChange`
+- **Code overlay**: a `<pre>` element over the textarea that displays the same text with per-line HTML styling (e.g. error class). Used for syntax/error highlighting without affecting textarea content.
+- Synchronized scrolling between line numbers, textarea, and overlay
+- Optional `errorLines` and `errorMessages` for error styling
+
+**Key Properties**:
+- `lines: string[]` - Input lines
+- `errorLines: Set<number>` - 0-based line indices to style as errors
+- `errorMessages: Map<number, string>` - Optional messages per line
+- `overlayHtml: SafeHtml` - Rendered overlay content
+
+**Dependencies**:
+- Used by CodeEditorComponent only (no direct service dependencies)
 
 ## Output Component
 
@@ -263,6 +287,12 @@ AppComponent.switchToTab('output')
 TabsComponent.selectTab()
 ```
 
+## Overlay
+
+**CDK Overlay (root):** The root component imports `OverlayModule` and places `<luna-overlay></luna-overlay>` (ng-luna’s `OverlayComponent`) inside the main window. It also provides `LunaOverlayContainer` in place of the default CDK `OverlayContainer` so that modals, menus, and tooltips render inside the overlay host. This is required by ng-luna for `LunaModalService` (prompt/confirm) and other overlay-based UI.
+
+**Code overlay (text editor):** The code editor uses an internal overlay—a `<pre class="code-overlay">` positioned over the textarea—to render line content with per-line styling (e.g. error highlighting) without affecting the editable text. This is implemented in `TextEditorComponent` (`codeOverlayRef`, `overlayHtml`, `updateOverlayHtml()`).
+
 ## Styling
 
 All components use SCSS:
@@ -280,8 +310,6 @@ Standard Angular lifecycle hooks are used:
 ## Future Enhancements
 
 Potential additions:
-- Syntax highlighting in code editor
 - Code completion/suggestions
-- File save/load functionality
 - Multiple file tabs
 - Split pane editing
