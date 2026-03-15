@@ -31,7 +31,8 @@ describe('CALL/SUB statements (program execution)', () =>
         graphics = new Graphics();
         audio = new Audio();
         fileSystem = new FileSystemService();
-        runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
+        const facade = { getFileSystem: (): typeof fileSystem => fileSystem, getConsole: (): null => null };
+        runtime = new RuntimeExecution(program, context, graphics, audio, facade);
         context.setProgramCounter(0);
     });
 

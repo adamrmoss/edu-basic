@@ -49,7 +49,8 @@ describe('Graphics sprite statements', () =>
         program = new Program();
         audio = new Audio();
         fileSystem = new FileSystemService();
-        runtime = new RuntimeExecution(program, context, new Graphics(), audio, fileSystem);
+        const facade = { getFileSystem: () => fileSystem, getConsole: () => null };
+        runtime = new RuntimeExecution(program, context, new Graphics(), audio, facade);
     });
 
     afterEach(() =>

@@ -41,7 +41,8 @@ describe('Statement Implementations', () =>
         audio = new MockAudio();
         program = new Program();
         const fileSystem = new FileSystemService();
-        runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
+        const facade = { getFileSystem: () => fileSystem, getConsole: () => null };
+        runtime = new RuntimeExecution(program, context, graphics, audio, facade);
     });
     
     describe('CLS Statement', () =>

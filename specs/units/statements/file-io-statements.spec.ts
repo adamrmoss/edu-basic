@@ -42,7 +42,8 @@ describe('File I/O Statements', () => {
         graphics = new Graphics();
         audio = new Audio();
         fileSystem = new FileSystemService();
-        runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
+        const facade = { getFileSystem: () => fileSystem, getConsole: () => null };
+        runtime = new RuntimeExecution(program, context, graphics, audio, facade);
     });
 
     afterEach(() => {

@@ -41,9 +41,9 @@ export class HelpStatement extends Statement
     ): ExecutionStatus
     {
         // Get console; if absent no-op; else lookup help forms for keyword and print each or "No help available".
-        const consoleService = runtime.getConsoleService();
+        const consoleFacade = runtime.getConsole();
 
-        if (!consoleService)
+        if (!consoleFacade)
         {
             return { result: ExecutionResult.Continue };
         }
@@ -54,13 +54,13 @@ export class HelpStatement extends Statement
 
         if (helpForms.length === 0)
         {
-            consoleService.printOutput(`No help available for statement: ${upperKeyword}`);
+            consoleFacade.printOutput(`No help available for statement: ${upperKeyword}`);
         }
         else
         {
             for (const form of helpForms)
             {
-                consoleService.printOutput(form);
+                consoleFacade.printOutput(form);
             }
         }
 

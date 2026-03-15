@@ -116,7 +116,8 @@ describe('Misc statements', () =>
             fileSystem.clear();
 
             const consoleService = new MockConsoleService();
-            const runtimeWithConsole = new RuntimeExecution(program, context, graphics, audio, fileSystem, consoleService as any);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => consoleService as any };
+            const runtimeWithConsole = new RuntimeExecution(program, context, graphics, audio, facade);
 
             const stmt = new ConsoleStatement(new LiteralExpression({ type: EduBasicType.String, value: 'hi' }));
             stmt.execute(context, graphics, audio, program, runtimeWithConsole);
@@ -152,7 +153,8 @@ describe('Misc statements', () =>
             fileSystem.clear();
 
             const consoleService = new MockConsoleService();
-            const runtimeWithConsole = new RuntimeExecution(program, context, graphics, audio, fileSystem, consoleService as any);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => consoleService as any };
+            const runtimeWithConsole = new RuntimeExecution(program, context, graphics, audio, facade);
             const help = new HelpStatement('PRINT');
             help.execute(context, graphics, audio, program, runtimeWithConsole);
             expect(consoleService.printOutput).toHaveBeenCalled();
@@ -174,7 +176,8 @@ describe('Misc statements', () =>
             fileSystem.clear();
 
             const consoleService = new MockConsoleService();
-            const runtimeWithConsole = new RuntimeExecution(program, context, graphics, audio, fileSystem, consoleService as any);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => consoleService as any };
+            const runtimeWithConsole = new RuntimeExecution(program, context, graphics, audio, facade);
             const help = new HelpStatement('THIS_DOES_NOT_EXIST');
             help.execute(context, graphics, audio, program, runtimeWithConsole);
             expect(consoleService.printOutput).toHaveBeenCalledWith(expect.stringContaining('No help available'));

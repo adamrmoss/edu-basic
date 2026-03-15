@@ -42,6 +42,7 @@ describe('Audio', () =>
 
     beforeEach(() =>
     {
+        jest.useFakeTimers();
         mockSynthInstance.setProgram.mockClear();
         mockSynthInstance.setAudioContext.mockClear();
         mockSynthInstance.setTsMode.mockClear();
@@ -50,6 +51,11 @@ describe('Audio', () =>
         mockAudioContext();
 
         audio = new Audio();
+    });
+
+    afterEach(() =>
+    {
+        jest.useRealTimers();
     });
 
     describe('initialization', () =>
@@ -213,6 +219,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOff.mockClear();
 
             audio.playNote('C', 0.5);
+            jest.runAllTimers();
 
             const midiC4 = 4 * 12 + 0;
             expect(mockSynthInstance.noteOn).toHaveBeenCalledWith(0, midiC4, expect.any(Number), expect.any(Number));
@@ -239,6 +246,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOff.mockClear();
 
             audio.playFrequency(440, 0.5);
+            jest.runAllTimers();
 
             const midiA4 = 69;
             expect(mockSynthInstance.noteOn).toHaveBeenCalledWith(0, midiA4, expect.any(Number), expect.any(Number));
@@ -256,6 +264,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOff.mockClear();
 
             audio.playSequence(0, 'O4 C D E');
+            jest.runAllTimers();
 
             expect(mockSynthInstance.setProgram).toHaveBeenCalledWith(0, 0);
             expect(mockSynthInstance.noteOn).toHaveBeenCalled();
@@ -269,6 +278,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOff.mockClear();
 
             audio.playSequence(0, 'O5 L4 C');
+            jest.runAllTimers();
 
             expect(mockSynthInstance.noteOn).toHaveBeenCalledWith(0, expect.any(Number), expect.any(Number), expect.any(Number));
             expect(mockSynthInstance.noteOff).toHaveBeenCalledWith(0, expect.any(Number), expect.any(Number));
@@ -297,6 +307,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOn.mockClear();
             mockSynthInstance.noteOff.mockClear();
             audio.playSequence(0, 'O4 N60');
+            jest.runAllTimers();
             expect(mockSynthInstance.noteOn).toHaveBeenCalledWith(0, 60, expect.any(Number), expect.any(Number));
             expect(mockSynthInstance.noteOff).toHaveBeenCalledWith(0, 60, expect.any(Number));
         });
@@ -307,6 +318,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOn.mockClear();
             mockSynthInstance.noteOff.mockClear();
             audio.playSequence(0, 'O4 L4 C.');
+            jest.runAllTimers();
             expect(mockSynthInstance.noteOn).toHaveBeenCalled();
             expect(mockSynthInstance.noteOff).toHaveBeenCalled();
         });
@@ -317,6 +329,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOn.mockClear();
             mockSynthInstance.noteOff.mockClear();
             audio.playSequence(0, 'O4 C+ E-');
+            jest.runAllTimers();
             expect(mockSynthInstance.noteOn).toHaveBeenCalledTimes(2);
             expect(mockSynthInstance.noteOff).toHaveBeenCalledTimes(2);
         });
@@ -327,6 +340,7 @@ describe('Audio', () =>
             mockSynthInstance.noteOn.mockClear();
             mockSynthInstance.noteOff.mockClear();
             audio.playSequence(0, 'O4 cdefgab > c < bagfedc');
+            jest.runAllTimers();
             const midiC4 = 4 * 12 + 0;
             const midiC5 = 5 * 12 + 0;
             expect(mockSynthInstance.noteOn).toHaveBeenCalledTimes(15);

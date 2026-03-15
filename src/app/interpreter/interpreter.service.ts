@@ -1,6 +1,7 @@
 import { Injector, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+import { InterpreterFacade } from '../../lang/interpreter-facade';
 import { Program } from '../../lang/program';
 import { ExecutionContext } from '../../lang/execution-context';
 import { RuntimeExecution } from '../../lang/runtime-execution';
@@ -373,14 +374,16 @@ export class InterpreterService
         if (!this.runtimeExecution)
         {
             const consoleService = this.injector.get(ConsoleService);
-            
+            const facade: InterpreterFacade = {
+                getFileSystem: () => this.fileSystemService,
+                getConsole: () => consoleService
+            };
             this.runtimeExecution = new RuntimeExecution(
                 this.sharedProgram,
                 this.executionContext,
                 this.graphicsService.getGraphics(),
                 this.audioService.getAudio(),
-                this.fileSystemService,
-                consoleService
+                facade
             );
             this.runtimeExecution.setTabSwitchCallback((tabId: string) => {
                 this.tabSwitchService.requestTabSwitch(tabId);

@@ -42,9 +42,9 @@ export class ConsoleStatement extends Statement
     ): ExecutionStatus
     {
         // Get console service; if absent no-op; else evaluate expression, stringify, and print to console.
-        const consoleService = runtime.getConsoleService();
+        const consoleFacade = runtime.getConsole();
 
-        if (!consoleService)
+        if (!consoleFacade)
         {
             return { result: ExecutionResult.Continue };
         }
@@ -52,7 +52,7 @@ export class ConsoleStatement extends Statement
         const value = this.expression.evaluate(context);
         const text = valueToString(value);
 
-        consoleService.printOutput(text);
+        consoleFacade.printOutput(text);
 
         return { result: ExecutionResult.Continue };
     }

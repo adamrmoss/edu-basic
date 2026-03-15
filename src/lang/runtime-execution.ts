@@ -6,8 +6,7 @@ import { Audio } from './audio';
 import { ControlStructureFrame, ControlStructureType } from './control-flow-frames';
 import { ProgramSyntaxAnalyzer } from './program-syntax-analysis';
 import { UnparsableStatement } from './statements/unparsable-statement';
-import { FileSystemService } from '../app/disk/filesystem.service';
-import { ConsoleService } from '../app/console/console.service';
+import { InterpreterFacade, LangFileSystem, LangConsole } from './interpreter-facade';
 
 type UnwindEntry = { type: 'for' | 'select' | 'sub' | 'if' | 'unless'; startLine: number; endLine: number };
 
@@ -50,16 +49,14 @@ export class RuntimeExecution
      * @param context Shared execution context (variables, call frames, program counter).
      * @param graphics Graphics runtime for drawing statements.
      * @param audio Audio runtime for audio statements.
-     * @param fileSystem Virtual filesystem used by file I/O statements.
-     * @param consoleService Optional console service for interactive hosts.
+     * @param facade Host-provided facade for filesystem and console.
      */
     public constructor(
         private readonly program: Program,
         private readonly context: ExecutionContext,
         private readonly graphics: Graphics,
         private readonly audio: Audio,
-        private readonly fileSystem: FileSystemService,
-        private readonly consoleService: ConsoleService | null = null
+        private readonly facade: InterpreterFacade
     )
     {
         this.context.setAudio(this.audio);
@@ -68,17 +65,17 @@ export class RuntimeExecution
     /**
      * Get the filesystem bridge used by file I/O statements.
      */
-    public getFileSystem(): FileSystemService
+    public getFileSystem(): LangFileSystem
     {
-        return this.fileSystem;
+        return this.facade.getFileSystem();
     }
 
     /**
-     * Get the console service, if provided (it may be null in some hosting contexts).
+     * Get the console, if provided (it may be null in some hosting contexts).
      */
-    public getConsoleService(): ConsoleService | null
+    public getConsole(): LangConsole | null
     {
-        return this.consoleService;
+        return this.facade.getConsole();
     }
 
     /**

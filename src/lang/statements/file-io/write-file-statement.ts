@@ -6,7 +6,7 @@ import { Audio } from '../../audio';
 import { Program } from '../../program';
 import { RuntimeExecution } from '../../runtime-execution';
 import { EduBasicType, EduBasicValue, valueToString } from '../../edu-basic-value';
-import { FileSystemService } from '../../../app/disk/filesystem.service';
+import { LangFileSystem } from '../../interpreter-facade';
 
 /**
  * Implements the `WRITE` statement.
@@ -86,7 +86,7 @@ export class WriteFileStatement extends Statement
         return `WRITE ${this.expression.toString()} TO ${this.fileHandle.toString()}`;
     }
 
-    private writeValue(fileSystem: FileSystemService, handleId: number, value: EduBasicValue): void
+    private writeValue(fileSystem: LangFileSystem, handleId: number, value: EduBasicValue): void
     {
         switch (value.type)
         {

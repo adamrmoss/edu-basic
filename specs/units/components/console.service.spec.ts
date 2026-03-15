@@ -175,7 +175,8 @@ describe('ConsoleService', () => {
             const graphics = new Graphics();
             const audio = new Audio();
             const fileSystem = new FileSystemService();
-            const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem, service);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => service };
+            const runtime = new RuntimeExecution(program, context, graphics, audio, facade);
 
             interpreterService.getExecutionContext.mockReturnValue(context as any);
             interpreterService.getSharedProgram.mockReturnValue(program as any);
@@ -202,7 +203,8 @@ describe('ConsoleService', () => {
             const graphics = new Graphics();
             const audio = new Audio();
             const fileSystem = new FileSystemService();
-            const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem, service);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => service };
+            const runtime = new RuntimeExecution(program, context, graphics, audio, facade);
 
             interpreterService.getExecutionContext.mockReturnValue(context as any);
             interpreterService.getSharedProgram.mockReturnValue(program as any);
@@ -260,7 +262,8 @@ describe('ConsoleService', () => {
             const graphics = new Graphics();
             const audio = new Audio();
             const fileSystem = new FileSystemService();
-            const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem, service);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => service };
+            const runtime = new RuntimeExecution(program, context, graphics, audio, facade);
 
             interpreterService.getExecutionContext.mockReturnValue(context as any);
             interpreterService.getSharedProgram.mockReturnValue(program as any);
@@ -298,7 +301,9 @@ describe('ConsoleService', () => {
 
             interpreterService.getExecutionContext.mockReturnValue(new ExecutionContext() as any);
             interpreterService.getSharedProgram.mockReturnValue(new Program() as any);
-            interpreterService.getRuntimeExecution.mockReturnValue(new RuntimeExecution(new Program(), new ExecutionContext(), new Graphics(), new Audio(), new FileSystemService()) as any);
+            const fs = new FileSystemService();
+            const facade = { getFileSystem: () => fs, getConsole: () => null };
+            interpreterService.getRuntimeExecution.mockReturnValue(new RuntimeExecution(new Program(), new ExecutionContext(), new Graphics(), new Audio(), facade) as any);
             graphicsService.getGraphics.mockReturnValue(new Graphics() as any);
             audioService.getAudio.mockReturnValue(new Audio() as any);
 

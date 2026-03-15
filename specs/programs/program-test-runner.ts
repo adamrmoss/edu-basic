@@ -94,7 +94,8 @@ export class BasProgramTestRunner
         const audio = new TestAudio();
         const fileSystem = new FileSystemService();
         const consoleService = new TestConsoleService();
-        const runtime = new RuntimeExecution(program, context, graphics as any, audio as any, fileSystem, consoleService as any);
+        const facade = { getFileSystem: () => fileSystem, getConsole: () => consoleService as any };
+        const runtime = new RuntimeExecution(program, context, graphics as any, audio as any, facade);
         const tabSwitches: string[] = [];
         runtime.setTabSwitchCallback((tabId: string) =>
         {

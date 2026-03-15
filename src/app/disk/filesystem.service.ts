@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { LangFileSystem } from '../../lang/interpreter-facade';
 import { FileSystemNode, FileNode, DirectoryNode } from './filesystem-node';
 
 /**
@@ -41,7 +42,7 @@ export interface FileHandle
 @Injectable({
     providedIn: 'root'
 })
-export class FileSystemService
+export class FileSystemService implements LangFileSystem
 {
     private root: DirectoryNode;
     private openHandles: Map<number, FileHandle> = new Map();
@@ -329,6 +330,38 @@ export class FileSystemService
         }
 
         return false;
+    }
+
+    /**
+     * List direct child names of a directory.
+     *
+     * @param path Directory path (empty or '.' for root).
+     * @returns Child names.
+     * @throws If path is not a valid directory.
+     */
+    public listDirectory(path: string): string[]
+    {
+        const dir = this.findDirectory(path);
+        if (!dir)
+        {
+            throw new Error(`LISTDIR: directory not found: ${path}`);
+        }
+        return Array.from(dir.children.keys());
+    }
+
+    private findDirectory(path: string): DirectoryNode | null
+    {
+        const normalized = (path || '').trim();
+        if (!normalized || normalized === '.')
+        {
+            return this.root;
+        }
+        const node = this.findNode(normalized);
+        if (!node || node.type !== 'directory')
+        {
+            return null;
+        }
+        return node as DirectoryNode;
     }
 
     /**

@@ -31,7 +31,8 @@ export function createRuntimeFixture(): RuntimeFixture
     const graphics = new TrackingGraphics();
     const audio = new TrackingAudio();
     const fileSystem = new FileSystemService();
-    const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
+    const facade = { getFileSystem: (): typeof fileSystem => fileSystem, getConsole: (): null => null };
+    const runtime = new RuntimeExecution(program, context, graphics, audio, facade);
     context.setProgramCounter(0);
 
     return {

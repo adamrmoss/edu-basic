@@ -177,7 +177,8 @@ describe('Core language coverage', () =>
             const graphics = new Graphics();
             const audio = new Audio();
             const fileSystem = new FileSystemService();
-            const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => null };
+            const runtime = new RuntimeExecution(program, context, graphics, audio, facade);
 
             const callback = jest.fn();
             runtime.setTabSwitchCallback(callback);
@@ -205,7 +206,8 @@ describe('Core language coverage', () =>
             const graphics = new Graphics();
             const audio = new Audio();
             const fileSystem = new FileSystemService();
-            const runtime = new RuntimeExecution(program, context, graphics, audio, fileSystem);
+            const facade = { getFileSystem: () => fileSystem, getConsole: () => null };
+            const runtime = new RuntimeExecution(program, context, graphics, audio, facade);
 
             const nowSpy = jest.spyOn(Date, 'now');
             nowSpy
