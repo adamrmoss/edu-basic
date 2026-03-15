@@ -4,6 +4,17 @@ import JSZip from 'jszip';
 import { FileSystemService } from './filesystem.service';
 import { DirectoryNode } from './filesystem-node';
 
+interface SaveFilePickerOptions
+{
+    suggestedName?: string;
+    types?: Array<{ description: string; accept: Record<string, string[]> }>;
+}
+
+interface SaveFilePickerHandle
+{
+    createWritable(): Promise<{ write(data: Blob): Promise<void>; close(): Promise<void> }>;
+}
+
 /**
  * Manages the in-browser “disk” abstraction (a zip-backed virtual file system).
  *
@@ -103,12 +114,15 @@ export class DiskService
 
     /**
      * Save the current disk as a `.disk` zip archive.
+     * Uses the File System Access API when available so the user can confirm
+     * or change the file name in a save dialog; otherwise falls back to
+     * programmatic download with the disk name as suggested filename.
      */
     public async saveDisk(): Promise<void>
     {
         const zip = new JSZip();
         const files = this.fileSystemService.getAllFiles();
-        
+
         for (const [path, data] of files.entries())
         {
             const buffer = new Uint8Array(data).buffer;
@@ -116,12 +130,41 @@ export class DiskService
         }
 
         const blob = await zip.generateAsync({ type: 'blob' });
+        const suggestedName = `${this.diskNameSubject.value}.disk`;
+
+        if (typeof window !== 'undefined' && 'showSaveFilePicker' in window)
+        {
+            try
+            {
+                const handle = await (window as unknown as { showSaveFilePicker: (options: SaveFilePickerOptions) => Promise<SaveFilePickerHandle> })
+                    .showSaveFilePicker({
+                        suggestedName,
+                        types: [
+                            {
+                                description: 'EduBASIC Disk',
+                                accept: { 'application/zip': ['.disk'] }
+                            }
+                        ]
+                    });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return;
+            }
+            catch (err: unknown)
+            {
+                if (err instanceof Error && err.name === 'AbortError')
+                {
+                    return;
+                }
+                throw err;
+            }
+        }
 
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `${this.diskNameSubject.value}.disk`;
+        link.download = suggestedName;
         link.click();
-
         URL.revokeObjectURL(link.href);
     }
 
