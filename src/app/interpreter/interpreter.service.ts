@@ -293,6 +293,7 @@ export class InterpreterService
             return;
         }
 
+        this.audioService.getAudio().stop();
         this.stateSubject.next(InterpreterState.Running);
         this.isRunningSubject.next(true);
     }
@@ -327,6 +328,8 @@ export class InterpreterService
 
     /**
      * Stop execution and return to Idle.
+     *
+     * Audio is left running so any queued music continues to play.
      */
     public stop(): void
     {

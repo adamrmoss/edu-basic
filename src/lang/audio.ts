@@ -32,16 +32,14 @@ type QueueEntry =
     | { kind: 'length'; value: number }
     | { kind: 'octave'; value: number }
     | { kind: 'velocity'; value: number }
-    | { kind: 'note'; midiNote: number; duration: number; velocity: number; endTime?: number }
-    | { kind: 'rest'; duration: number; endTime?: number };
+    | { kind: 'note'; midiNote: number; duration: number; velocity: number }
+    | { kind: 'rest'; duration: number };
 
 /**
  * Stateful audio engine for the interpreter runtime.
  *
- * Notes:
- * - Calls are ignored until initialization succeeds (`ready === true`).
- * - Scheduling is tracked per-voice using `nextNoteTime` to avoid overlaps when a program
- *   issues back-to-back play commands.
+ * No scheduling: each voice has a queue. A "player" dequeues one note/rest at a time,
+ * plays it now, pauses (setTimeout) for its duration, then continues. NOTES = queue length + 1 if currently playing.
  */
 export class Audio
 {
@@ -57,8 +55,9 @@ export class Audio
 
     private voiceConfigs: Map<number, VoiceConfig> = new Map();
     private scheduledNotes: Map<number, ScheduledNote[]> = new Map();
-    private nextNoteTime: Map<number, number> = new Map();
     private voiceQueues: Map<number, QueueEntry[]> = new Map();
+    private voicePlaying: Map<number, boolean> = new Map();
+    private voiceTimeouts: Map<number, ReturnType<typeof setTimeout>> = new Map();
 
     /**
      * Create a new audio runtime instance and begin async initialization.
@@ -68,6 +67,7 @@ export class Audio
         for (let i = 0; i < 8; i++)
         {
             this.voiceQueues.set(i, []);
+            this.voicePlaying.set(i, false);
         }
         this.initializeAudio();
     }
@@ -101,12 +101,10 @@ export class Audio
             this.synth.setTsMode(0);
             this.ready = true;
 
-            // Initialize per-voice defaults (program, scheduling, and volume).
             for (let i = 0; i < 8; i++)
             {
                 this.voiceConfigs.set(i, { program: 0 });
                 this.scheduledNotes.set(i, []);
-                this.nextNoteTime.set(i, 0);
                 this.synth.setProgram(i, 0);
                 this.synth.setChVol(i, Math.round(127 * this.volume / 100), 0);
             }
@@ -365,19 +363,18 @@ export class Audio
             return;
         }
 
-        // Convert the frequency to a MIDI note and choose the earliest allowed start time.
         const midiNote = this.frequencyToMidiNote(frequency);
-        const currentTime = this.audioContext.currentTime;
-        const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
+        const now = this.audioContext.currentTime;
+        const vel = Math.round(127 * this.volume / 100);
 
-        // Schedule the note in the synth.
         this.synth.setProgram(voice, config.program);
-        this.synth.noteOn(voice, midiNote, Math.round(127 * this.volume / 100), startTime);
-        this.synth.noteOff(voice, midiNote, startTime + duration);
-
-        // Record scheduling metadata for status queries and sequencing.
-        this.recordScheduledNote(voice, midiNote, startTime, duration, Math.round(127 * this.volume / 100));
-        this.nextNoteTime.set(voice, startTime + duration);
+        this.synth.noteOn(voice, midiNote, vel, now);
+        this.recordScheduledNote(voice, midiNote, now, duration, vel);
+        setTimeout(() =>
+        {
+            const stopTime = this.audioContext?.currentTime ?? now + duration;
+            this.synth?.noteOff(voice, midiNote, stopTime);
+        }, duration * 1000);
     }
 
     /**
@@ -400,19 +397,17 @@ export class Audio
             return;
         }
 
-        // Choose the earliest allowed start time to avoid overlapping notes.
-        const currentTime = this.audioContext.currentTime;
-        const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
+        const now = this.audioContext.currentTime;
         const vel = Math.round(velocity * this.volume / 100);
 
-        // Schedule the note in the synth.
         this.synth.setProgram(voice, config.program);
-        this.synth.noteOn(voice, midiNote, vel, startTime);
-        this.synth.noteOff(voice, midiNote, startTime + duration);
-
-        // Record scheduling metadata for status queries and sequencing.
-        this.recordScheduledNote(voice, midiNote, startTime, duration, vel);
-        this.nextNoteTime.set(voice, startTime + duration);
+        this.synth.noteOn(voice, midiNote, vel, now);
+        this.recordScheduledNote(voice, midiNote, now, duration, vel);
+        setTimeout(() =>
+        {
+            const stopTime = this.audioContext?.currentTime ?? now + duration;
+            this.synth?.noteOff(voice, midiNote, stopTime);
+        }, duration * 1000);
     }
 
     /**
@@ -438,22 +433,33 @@ export class Audio
 
         if (this.audioContext.state === 'suspended')
         {
+            this.enqueueOnly(voiceIndex, entries);
             this.audioContext.resume().then(() =>
             {
-                this.enqueueAndProcess(voiceIndex, entries);
+                this.processVoiceQueue(voice);
             }).catch(() =>
             {
             });
             return;
         }
 
-        this.enqueueAndProcess(voiceIndex, entries);
+        this.enqueueAndKick(voiceIndex, entries);
     }
 
     /**
-     * Append parsed entries to the voice queue and process the queue.
+     * Append to queue without starting the player (used when context is suspended).
      */
-    private enqueueAndProcess(voiceIndex: number, entries: QueueEntry[]): void
+    private enqueueOnly(voiceIndex: number, entries: QueueEntry[]): void
+    {
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const queue = this.voiceQueues.get(voice) ?? [];
+        this.voiceQueues.set(voice, [...queue, ...entries]);
+    }
+
+    /**
+     * Append to queue and start the player if it is not already running.
+     */
+    private enqueueAndKick(voiceIndex: number, entries: QueueEntry[]): void
     {
         if (!this.ready || !this.synth || !this.audioContext)
         {
@@ -463,97 +469,79 @@ export class Audio
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
         const queue = this.voiceQueues.get(voice) ?? [];
         this.voiceQueues.set(voice, [...queue, ...entries]);
-        this.processQueue(voice);
+        this.processVoiceQueue(voice);
     }
 
     /**
-     * Remove finished entries from a voice's queue (endTime <= now).
+     * Process one entry from the voice queue: dequeue, play (or wait for rest), pause for duration, then continue.
+     * No scheduling: noteOn(now), setTimeout(duration), noteOff(now), then process next.
      */
-    private pruneQueue(voice: number): void
-    {
-        const now = this.audioContext?.currentTime ?? 0;
-        const queue = this.voiceQueues.get(voice) ?? [];
-        const remaining = queue.filter((e) =>
-        {
-            if (e.kind === 'note' || e.kind === 'rest')
-            {
-                return e.endTime === undefined || e.endTime > now;
-            }
-            return true;
-        });
-        this.voiceQueues.set(voice, remaining);
-    }
-
-    /**
-     * Process pending queue entries for a voice: remove controls, schedule each note/rest and set endTime.
-     */
-    private processQueue(voice: number): void
+    private processVoiceQueue(voice: number): void
     {
         if (!this.ready || !this.synth || !this.audioContext)
         {
             return;
         }
 
-        this.pruneQueue(voice);
+        if (this.voicePlaying.get(voice))
+        {
+            return;
+        }
+
         const queue = this.voiceQueues.get(voice) ?? [];
         const beatDuration = 60 / this.tempo;
-        let time = Math.max(
-            this.audioContext.currentTime,
-            this.nextNoteTime.get(voice) ?? this.audioContext.currentTime
-        );
 
-        let i = 0;
-        while (i < queue.length)
+        while (queue.length > 0)
         {
-            const entry = queue[i];
+            const entry = queue.shift()!;
 
             if (entry.kind === 'length' || entry.kind === 'octave' || entry.kind === 'velocity')
             {
-                queue.splice(i, 1);
                 continue;
             }
 
             if (entry.kind === 'rest')
             {
-                if (entry.endTime !== undefined)
+                const durationMs = (entry.duration * beatDuration) * 1000;
+                this.voicePlaying.set(voice, true);
+                const id = setTimeout(() =>
                 {
-                    i++;
-                    continue;
-                }
-                const durationSec = entry.duration * beatDuration;
-                entry.endTime = time + durationSec;
-                time = entry.endTime;
-                i++;
-                continue;
+                    this.voicePlaying.set(voice, false);
+                    this.voiceTimeouts.delete(voice);
+                    this.processVoiceQueue(voice);
+                }, durationMs);
+                this.voiceTimeouts.set(voice, id);
+                return;
             }
 
             if (entry.kind === 'note')
             {
-                if (entry.endTime !== undefined)
-                {
-                    i++;
-                    continue;
-                }
                 const durationSec = entry.duration * beatDuration;
+                const durationMs = durationSec * 1000;
                 const vel = Math.round(entry.velocity * this.volume / 100);
+                const now = this.audioContext.currentTime;
 
                 this.synth.setProgram(voice, this.voiceConfigs.get(voice)?.program ?? 0);
-                this.synth.noteOn(voice, entry.midiNote, vel, time);
-                this.synth.noteOff(voice, entry.midiNote, time + durationSec);
+                this.synth.noteOn(voice, entry.midiNote, vel, now);
+                this.recordScheduledNote(voice, entry.midiNote, now, durationSec, vel);
 
-                this.recordScheduledNote(voice, entry.midiNote, time, durationSec, vel);
-                entry.endTime = time + durationSec;
-                time = entry.endTime;
-                i++;
-                continue;
+                this.voicePlaying.set(voice, true);
+                const id = setTimeout(() =>
+                {
+                    const stopTime = this.audioContext?.currentTime ?? now + durationSec;
+                    this.synth?.noteOff(voice, entry.midiNote, stopTime);
+                    this.voicePlaying.set(voice, false);
+                    this.voiceTimeouts.delete(voice);
+                    this.processVoiceQueue(voice);
+                }, durationMs);
+                this.voiceTimeouts.set(voice, id);
+                return;
             }
         }
-
-        this.nextNoteTime.set(voice, time);
     }
 
     /**
-     * Return the number of queue entries (notes/rests/controls) remaining for a voice, up to 1024 per voice.
+     * Return the number of entries remaining: queue length plus 1 if a note/rest is currently playing (paused in its duration).
      */
     public getNotesRemaining(voiceIndex: number): number
     {
@@ -563,8 +551,9 @@ export class Audio
         }
 
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
-        this.pruneQueue(voice);
-        return (this.voiceQueues.get(voice) ?? []).length;
+        const queueLen = (this.voiceQueues.get(voice) ?? []).length;
+        const playing = this.voicePlaying.get(voice) ? 1 : 0;
+        return queueLen + playing;
     }
 
     /**
@@ -779,11 +768,16 @@ export class Audio
             }
         }
 
-        // Clear all scheduling metadata and per-voice queues so status queries reset immediately.
         for (let i = 0; i < 8; i++)
         {
+            const timeoutId = this.voiceTimeouts.get(i);
+            if (timeoutId !== undefined)
+            {
+                clearTimeout(timeoutId);
+                this.voiceTimeouts.delete(i);
+            }
+            this.voicePlaying.set(i, false);
             this.scheduledNotes.set(i, []);
-            this.nextNoteTime.set(i, 0);
             this.voiceQueues.set(i, []);
         }
     }

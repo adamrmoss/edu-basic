@@ -5,6 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { LunaModalService } from 'ng-luna';
 import { ConsoleService } from '../console/console.service';
 import { DiskService } from '../disk/disk.service';
+import { AudioService } from '../interpreter/audio.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
 import { ParserService } from '../interpreter/parser.service';
 import { TabSwitchService } from '../tab-switch.service';
@@ -67,6 +68,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     /**
      * Create a new code editor component.
      *
+     * @param audioService Audio service; used to reset audio on music-related errors.
      * @param consoleService Console service used to print runtime errors.
      * @param diskService Disk service used for persisting program code.
      * @param interpreterService Interpreter service used to run programs.
@@ -75,6 +77,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
      * @param modalService Modal service for input prompts.
      */
     constructor(
+        private readonly audioService: AudioService,
         private readonly consoleService: ConsoleService,
         private readonly diskService: DiskService,
         private readonly interpreterService: InterpreterService,
@@ -93,6 +96,12 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         this.diskService.programCode$
             .pipe(takeUntil(this.destroy$))
             .subscribe((code: string) => {
+                const currentCode = this.lines.join('\n');
+                if (code === currentCode)
+                {
+                    return;
+                }
+
                 if (this.interpreterService.isRunning)
                 {
                     this.interpreterService.stop();
@@ -309,6 +318,10 @@ export class CodeEditorComponent implements OnInit, OnDestroy
                     const message = error instanceof Error ? error.message : String(error);
                     this.consoleService.printError(message);
                     this.tabSwitchService.requestTabSwitch('console');
+                    if (this.isMusicRelatedError(message))
+                    {
+                        this.audioService.getAudio().stop();
+                    }
                     this.interpreterService.stop();
                 }
             };
@@ -320,8 +333,17 @@ export class CodeEditorComponent implements OnInit, OnDestroy
             const message = error instanceof Error ? error.message : String(error);
             this.consoleService.printError(message);
             this.tabSwitchService.requestTabSwitch('console');
+            if (this.isMusicRelatedError(message))
+            {
+                this.audioService.getAudio().stop();
+            }
             this.interpreterService.stop();
         }
+    }
+
+    private isMusicRelatedError(message: string): boolean
+    {
+        return /music/i.test(message);
     }
 
     private validateAndUpdateLines(): void

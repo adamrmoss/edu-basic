@@ -337,7 +337,7 @@ describe('Audio', () =>
 
     describe('getNotesRemaining', () =>
     {
-        it('should return queue length (controls are consumed when processed; notes/rests remain until finished)', () =>
+        it('should return count of entries not yet scheduled plus scheduled but not yet finished (so WHILE NOTES > 0 can wait for playback)', () =>
         {
             audio.setVoiceInstrument(0, 0);
             audio.playSequence(0, 'L4 C');
