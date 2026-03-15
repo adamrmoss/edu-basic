@@ -85,6 +85,11 @@ export class AppComponent implements OnInit, OnDestroy
     public muted: boolean = false;
 
     /**
+     * Whether output is in full-screen mode (tabs hidden, output fills layout).
+     */
+    public fullScreen: boolean = false;
+
+    /**
      * Disk menu entries: New Disk, Load, Save, Rename…
      */
     public get diskMenuItems(): Array<{ label: string } | { separator: true }>
@@ -99,12 +104,13 @@ export class AppComponent implements OnInit, OnDestroy
     }
 
     /**
-     * Output menu entries: Mute (checked when muted).
+     * Output menu entries: Mute (checked when muted), Full Screen (checked when active).
      */
     public get outputMenuItems(): Array<{ label: string; checked: boolean }>
     {
         return [
-            { label: 'Mute', checked: this.muted }
+            { label: 'Mute', checked: this.muted },
+            { label: 'Full Screen', checked: this.fullScreen }
         ];
     }
 
@@ -188,9 +194,21 @@ export class AppComponent implements OnInit, OnDestroy
      */
     public onOutputMenuSelect(item: { label: string } | null): void
     {
-        if (item && item.label === 'Mute')
+        if (!item)
         {
-            this.toggleMute();
+            return;
+        }
+
+        switch (item.label)
+        {
+            case 'Mute':
+                this.toggleMute();
+                break;
+            case 'Full Screen':
+                this.fullScreen = !this.fullScreen;
+                break;
+            default:
+                break;
         }
     }
 
