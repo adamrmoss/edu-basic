@@ -50,6 +50,11 @@ export class TestAudio
     {
     }
 
+    public getNotesRemaining(_voiceIndex: number): number
+    {
+        return 0;
+    }
+
     public playSequence(voiceIndex: number, mml: string): void
     {
         this.sequences.push({ voiceIndex, mml });
