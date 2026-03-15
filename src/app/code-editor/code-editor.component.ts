@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { Subject, takeUntil } from 'rxjs';
 import { LunaModalService } from 'ng-luna';
+import { ConsoleService } from '../console/console.service';
 import { DiskService } from '../disk/disk.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
 import { ParserService } from '../interpreter/parser.service';
+import { TabSwitchService } from '../tab-switch.service';
 import { getCanonicalLine } from '../../lang/canonical-line';
 import { Program } from '../../lang/program';
 import { ProgramSyntaxAnalyzer } from '../../lang/program-syntax-analysis';
@@ -65,14 +67,19 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     /**
      * Create a new code editor component.
      *
+     * @param consoleService Console service used to print runtime errors.
      * @param diskService Disk service used for persisting program code.
      * @param interpreterService Interpreter service used to run programs.
      * @param parserService Parser service used for line validation and canonicalization.
+     * @param tabSwitchService Tab switch service used to switch to console on error.
+     * @param modalService Modal service for input prompts.
      */
     constructor(
+        private readonly consoleService: ConsoleService,
         private readonly diskService: DiskService,
         private readonly interpreterService: InterpreterService,
         private readonly parserService: ParserService,
+        private readonly tabSwitchService: TabSwitchService,
         private readonly modalService: LunaModalService
     )
     {
@@ -299,7 +306,9 @@ export class CodeEditorComponent implements OnInit, OnDestroy
                 }
                 catch (error)
                 {
-                    console.error('Error executing step:', error);
+                    const message = error instanceof Error ? error.message : String(error);
+                    this.consoleService.printError(message);
+                    this.tabSwitchService.requestTabSwitch('console');
                     this.interpreterService.stop();
                 }
             };
@@ -308,6 +317,9 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
         catch (error)
         {
+            const message = error instanceof Error ? error.message : String(error);
+            this.consoleService.printError(message);
+            this.tabSwitchService.requestTabSwitch('console');
             this.interpreterService.stop();
         }
     }
