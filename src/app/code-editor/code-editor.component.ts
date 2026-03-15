@@ -128,6 +128,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         this.lines = lines;
         const code = lines.join('\n');
         this.diskService.programCode = code;
+
         this.validateAndUpdateLines();
     }
 
@@ -145,18 +146,29 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
         if (event.key === 'Enter')
         {
+            event.preventDefault();
+
             const lineIndex = this.textEditorRef.getCursorLineIndex();
+            const cursorAtStartOfLine =
+                this.textEditorRef.getCursorPosition() === this.getPositionFromLineIndex(lineIndex);
 
-            // Defer so the browser inserts the newline first; canonicalize current line, insert new line, then set cursor after indent.
-            setTimeout(() => {
-                this.updateLineWithCanonical(lineIndex);
-                this.insertCanonicalEmptyLine(lineIndex);
+            if (cursorAtStartOfLine)
+            {
+                this.insertNewLineBefore(lineIndex);
                 this.validateAndUpdateLines();
-                this.lastCursorLineIndex = this.textEditorRef.getCursorLineIndex();
+                this.lastCursorLineIndex = lineIndex;
 
-                // Second tick: Angular has bound the updated lines to the textarea (which resets cursor). Set cursor after indent.
+                setTimeout(() => this.setCursorToEndOfIndentOnLine(lineIndex), 0);
+            }
+            else
+            {
+                this.updateLineWithCanonical(lineIndex, true);
+                this.insertNewLineAfter(lineIndex);
+                this.validateAndUpdateLines();
+                this.lastCursorLineIndex = lineIndex + 1;
+
                 setTimeout(() => this.setCursorToEndOfIndentOnLine(lineIndex + 1), 0);
-            }, 0);
+            }
         }
         else
         {
@@ -166,13 +178,11 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     }
 
     /**
-     * Handle editor blur by canonicalizing the current line and re-validating.
+     * Handle editor blur by canonicalizing all lines and re-validating.
      */
     public onBlur(): void
     {
-        const lineIndex = this.textEditorRef.getCursorLineIndex();
-        this.updateLineWithCanonical(lineIndex);
-        this.validateAndUpdateLines();
+        this.canonicalizeAllLines();
     }
 
     /** Cursor moved to another line (e.g. from click); canonicalize the line we left. newLineIndex from click, or read from editor when from keyboard. */
@@ -192,8 +202,15 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
         if (this.lastCursorLineIndex !== undefined && this.lastCursorLineIndex !== current)
         {
-            this.updateLineWithCanonical(this.lastCursorLineIndex);
-            this.validateAndUpdateLines();
+            this.canonicalizeAllLines();
+
+            setTimeout(() => {
+                if (this.textEditorRef && current >= 0 && current < this.lines.length)
+                {
+                    const position = this.getPositionFromLineIndex(current);
+                    this.textEditorRef.setCursorPosition(position);
+                }
+            }, 0);
         }
 
         this.lastCursorLineIndex = current;
@@ -342,7 +359,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     }
 
     /** Replace the line at lineIndex with its canonical form (block indent + keyword casing/spacing); skip empty and comment lines. */
-    private updateLineWithCanonical(lineIndex: number): void
+    private updateLineWithCanonical(lineIndex: number, skipCursorMove: boolean = false): void
     {
         if (lineIndex < 0 || lineIndex >= this.lines.length)
         {
@@ -365,9 +382,8 @@ export class CodeEditorComponent implements OnInit, OnDestroy
             const newCode = this.lines.join('\n');
             this.diskService.programCode = newCode;
 
-            if (this.textEditorRef)
+            if (this.textEditorRef && !skipCursorMove)
             {
-                // Defer cursor move so the text editor has applied the new line content to the textarea.
                 setTimeout(() => {
                     const newPosition = this.getPositionFromLineIndex(lineIndex + 1);
                     this.textEditorRef.setCursorPosition(newPosition);
@@ -376,20 +392,35 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
     }
 
-    /** Replace the new line (after Enter) with canonical empty form: indent spaces only, via getCanonicalLine(level, null). */
-    private insertCanonicalEmptyLine(afterLineIndex: number): void
+    /** Canonicalize every line in the program (without moving the cursor). */
+    private canonicalizeAllLines(): void
     {
-        const newLineIndex = afterLineIndex + 1;
-
-        if (newLineIndex >= this.lines.length)
+        for (let i = 0; i < this.lines.length; i++)
         {
-            return;
+            this.updateLineWithCanonical(i, true);
         }
 
-        const indentLevel = this.getIndentLevelForLine(newLineIndex);
+        this.diskService.programCode = this.lines.join('\n');
+        this.validateAndUpdateLines();
+    }
+
+    /** Insert a new canonical empty line before the given line index (same indent as that line). */
+    private insertNewLineBefore(lineIndex: number): void
+    {
+        const indentLevel = this.getIndentLevelForLine(lineIndex);
         const canonicalEmpty = getCanonicalLine(indentLevel, null);
 
-        this.lines[newLineIndex] = canonicalEmpty;
+        this.lines.splice(lineIndex, 0, canonicalEmpty);
+        this.diskService.programCode = this.lines.join('\n');
+    }
+
+    /** Insert a new canonical empty line after the given line index (same indent as next logical line). */
+    private insertNewLineAfter(afterLineIndex: number): void
+    {
+        const indentLevel = this.getIndentLevelForLine(afterLineIndex + 1);
+        const canonicalEmpty = getCanonicalLine(indentLevel, null);
+
+        this.lines.splice(afterLineIndex + 1, 0, canonicalEmpty);
         this.diskService.programCode = this.lines.join('\n');
     }
 
