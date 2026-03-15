@@ -1,7 +1,16 @@
 import { Component, OnInit, OnDestroy, ViewChild, ViewChildren, QueryList } from '@angular/core';
 import { OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { CommonModule } from '@angular/common';
-import { LunaOverlayContainer, OverlayComponent, WindowComponent, TabsComponent, TabComponent, IconComponent, X, Check } from 'ng-luna';
+import {
+    LunaOverlayContainer,
+    OverlayComponent,
+    WindowComponent,
+    TabsComponent,
+    TabComponent,
+    LunaMenuComponent,
+    LunaMenuTriggerDirective,
+    MenuBarComponent
+} from 'ng-luna';
 import { Subject, takeUntil } from 'rxjs';
 import { ConsoleComponent } from './console/console.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
@@ -26,7 +35,9 @@ import { AudioService } from './interpreter/audio.service';
         WindowComponent,
         TabsComponent,
         TabComponent,
-        IconComponent,
+        LunaMenuComponent,
+        LunaMenuTriggerDirective,
+        MenuBarComponent,
         ConsoleComponent,
         CodeEditorComponent,
         DiskComponent,
@@ -52,6 +63,12 @@ export class AppComponent implements OnInit, OnDestroy
     @ViewChildren(TabComponent)
     public tabs!: QueryList<TabComponent>;
 
+    @ViewChild(DiskComponent, { static: false })
+    private diskComponent!: DiskComponent;
+
+    @ViewChild(CodeEditorComponent, { static: false })
+    private codeEditorComponent!: CodeEditorComponent;
+
     /**
      * Title displayed in the application window chrome.
      */
@@ -68,14 +85,35 @@ export class AppComponent implements OnInit, OnDestroy
     public muted: boolean = false;
 
     /**
-     * Icon used when audio is muted.
+     * Disk menu entries: New Disk, Load, Save, Rename…
      */
-    public readonly muteIcon = X;
+    public get diskMenuItems(): Array<{ label: string } | { separator: true }>
+    {
+        return [
+            { label: 'New Disk' },
+            { label: 'Load' },
+            { label: 'Save' },
+            { separator: true },
+            { label: 'Rename…' }
+        ];
+    }
 
     /**
-     * Icon used when audio is not muted.
+     * Output menu entries: Mute (checked when muted).
      */
-    public readonly unmuteIcon = Check;
+    public get outputMenuItems(): Array<{ label: string; checked: boolean }>
+    {
+        return [
+            { label: 'Mute', checked: this.muted }
+        ];
+    }
+
+    /**
+     * Debug menu entries: Run.
+     */
+    public readonly debugMenuItems: Array<{ label: string }> = [
+        { label: 'Run' }
+    ];
 
     private readonly destroy$ = new Subject<void>();
 
@@ -114,6 +152,63 @@ export class AppComponent implements OnInit, OnDestroy
     {
         this.muted = !this.muted;
         this.audioService.setMuted(this.muted);
+    }
+
+    /**
+     * Handle Disk menu item selection.
+     */
+    public onDiskMenuSelect(item: { label: string } | null): void
+    {
+        if (!item || !this.diskComponent)
+        {
+            return;
+        }
+
+        switch (item.label)
+        {
+            case 'New Disk':
+                this.diskComponent.onNewDisk();
+                break;
+            case 'Load':
+                this.diskComponent.onLoadDisk();
+                break;
+            case 'Save':
+                this.diskComponent.onSaveDisk();
+                break;
+            case 'Rename…':
+                this.diskComponent.onRenameFile();
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Handle Output menu item selection.
+     */
+    public onOutputMenuSelect(item: { label: string } | null): void
+    {
+        if (item && item.label === 'Mute')
+        {
+            this.toggleMute();
+        }
+    }
+
+    /**
+     * Handle Debug menu item selection.
+     */
+    public onDebugMenuSelect(item: { label: string } | null): void
+    {
+        if (!item || !this.codeEditorComponent)
+        {
+            return;
+        }
+
+        if (item.label === 'Run')
+        {
+            this.switchToTab('code');
+            setTimeout(() => this.codeEditorComponent.onRunOrStop(), 0);
+        }
     }
 
     /**

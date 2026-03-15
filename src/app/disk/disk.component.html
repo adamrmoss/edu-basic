@@ -32,6 +32,15 @@
                     <luna-icon class="button-icon" size="16" [svg]="saveIcon"></luna-icon>
                     <span>Save</span>
                 </button>
+                <button
+                    class="action-button"
+                    (click)="onRenameFile()"
+                    lunaTooltip="Rename selected file or directory"
+                    [disabled]="!selectedFile || isProgramBas(selectedFile)"
+                >
+                    <luna-icon class="button-icon" size="16" [svg]="editIcon"></luna-icon>
+                    <span>Rename…</span>
+                </button>
             </div>
         </div>
         

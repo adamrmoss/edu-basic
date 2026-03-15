@@ -24,15 +24,14 @@
 
 .output-canvas
 {
-    border: 1px solid $blue-steel-dark;
-    height: auto;
-    image-rendering: crisp-edges;
+    display: block;
+    height: 100%;
     image-rendering: pixelated;
     max-height: 100%;
     max-width: 100%;
     object-fit: contain;
-    width: auto;
-    
+    width: 100%;
+
     .running &
     {
         max-height: 100vh;
