@@ -1,9 +1,14 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { Subject, takeUntil } from 'rxjs';
+import { LunaModalService } from 'ng-luna';
+import { ConsoleService } from '../console/console.service';
 import { DiskService } from '../disk/disk.service';
+import { AudioService } from '../interpreter/audio.service';
 import { InterpreterService, InterpreterState } from '../interpreter/interpreter.service';
 import { ParserService } from '../interpreter/parser.service';
+import { TabSwitchService } from '../tab-switch.service';
 import { getCanonicalLine } from '../../lang/canonical-line';
 import { Program } from '../../lang/program';
 import { ProgramSyntaxAnalyzer } from '../../lang/program-syntax-analysis';
@@ -63,14 +68,22 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     /**
      * Create a new code editor component.
      *
+     * @param audioService Audio service; used to reset audio on music-related errors.
+     * @param consoleService Console service used to print runtime errors.
      * @param diskService Disk service used for persisting program code.
      * @param interpreterService Interpreter service used to run programs.
      * @param parserService Parser service used for line validation and canonicalization.
+     * @param tabSwitchService Tab switch service used to switch to console on error.
+     * @param modalService Modal service for input prompts.
      */
     constructor(
+        private readonly audioService: AudioService,
+        private readonly consoleService: ConsoleService,
         private readonly diskService: DiskService,
         private readonly interpreterService: InterpreterService,
-        private readonly parserService: ParserService
+        private readonly parserService: ParserService,
+        private readonly tabSwitchService: TabSwitchService,
+        private readonly modalService: LunaModalService
     )
     {
     }
@@ -83,6 +96,12 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         this.diskService.programCode$
             .pipe(takeUntil(this.destroy$))
             .subscribe((code: string) => {
+                const currentCode = this.lines.join('\n');
+                if (code === currentCode)
+                {
+                    return;
+                }
+
                 if (this.interpreterService.isRunning)
                 {
                     this.interpreterService.stop();
@@ -125,6 +144,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         this.lines = lines;
         const code = lines.join('\n');
         this.diskService.programCode = code;
+
         this.validateAndUpdateLines();
     }
 
@@ -142,18 +162,29 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
         if (event.key === 'Enter')
         {
+            event.preventDefault();
+
             const lineIndex = this.textEditorRef.getCursorLineIndex();
+            const cursorAtStartOfLine =
+                this.textEditorRef.getCursorPosition() === this.getPositionFromLineIndex(lineIndex);
 
-            // Defer so the browser inserts the newline first; canonicalize current line, insert new line, then set cursor after indent.
-            setTimeout(() => {
-                this.updateLineWithCanonical(lineIndex);
-                this.insertCanonicalEmptyLine(lineIndex);
+            if (cursorAtStartOfLine)
+            {
+                this.insertNewLineBefore(lineIndex);
                 this.validateAndUpdateLines();
-                this.lastCursorLineIndex = this.textEditorRef.getCursorLineIndex();
+                this.lastCursorLineIndex = lineIndex;
 
-                // Second tick: Angular has bound the updated lines to the textarea (which resets cursor). Set cursor after indent.
+                setTimeout(() => this.setCursorToEndOfIndentOnLine(lineIndex), 0);
+            }
+            else
+            {
+                this.updateLineWithCanonical(lineIndex, true);
+                this.insertNewLineAfter(lineIndex);
+                this.validateAndUpdateLines();
+                this.lastCursorLineIndex = lineIndex + 1;
+
                 setTimeout(() => this.setCursorToEndOfIndentOnLine(lineIndex + 1), 0);
-            }, 0);
+            }
         }
         else
         {
@@ -163,13 +194,11 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     }
 
     /**
-     * Handle editor blur by canonicalizing the current line and re-validating.
+     * Handle editor blur by canonicalizing all lines and re-validating.
      */
     public onBlur(): void
     {
-        const lineIndex = this.textEditorRef.getCursorLineIndex();
-        this.updateLineWithCanonical(lineIndex);
-        this.validateAndUpdateLines();
+        this.canonicalizeAllLines();
     }
 
     /** Cursor moved to another line (e.g. from click); canonicalize the line we left. newLineIndex from click, or read from editor when from keyboard. */
@@ -189,8 +218,15 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
         if (this.lastCursorLineIndex !== undefined && this.lastCursorLineIndex !== current)
         {
-            this.updateLineWithCanonical(this.lastCursorLineIndex);
-            this.validateAndUpdateLines();
+            this.canonicalizeAllLines();
+
+            setTimeout(() => {
+                if (this.textEditorRef && current >= 0 && current < this.lines.length)
+                {
+                    const position = this.getPositionFromLineIndex(current);
+                    this.textEditorRef.setCursorPosition(position);
+                }
+            }, 0);
         }
 
         this.lastCursorLineIndex = current;
@@ -236,8 +272,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
 
             this.interpreterService.run();
 
-            // Step loop: run one step, then schedule next after 10ms so UI stays responsive.
-            const executeProgram = () => {
+            const executeProgram = async (): Promise<void> => {
                 try
                 {
                     if (this.interpreterService.state !== InterpreterState.Running)
@@ -253,21 +288,62 @@ export class CodeEditorComponent implements OnInit, OnDestroy
                         return;
                     }
 
-                    setTimeout(executeProgram, 10);
+                    if (result === ExecutionResult.WaitingForInput)
+                    {
+                        const req = runtime.getPendingInputRequest();
+                        const modalResult = await firstValueFrom(
+                            this.modalService.prompt(req?.message ?? '', {
+                                title: 'Input',
+                                promptDefaultValue: req?.default ?? ''
+                            })
+                        );
+
+                        if (modalResult.button === 'ok')
+                        {
+                            runtime.setPendingInput(modalResult.promptValue ?? '');
+                        }
+                        else
+                        {
+                            runtime.setPendingInput('');
+                        }
+
+                        setTimeout(() => executeProgram(), 10);
+                        return;
+                    }
+
+                    setTimeout(() => executeProgram(), 10);
                 }
                 catch (error)
                 {
-                    console.error('Error executing step:', error);
+                    const message = error instanceof Error ? error.message : String(error);
+                    this.consoleService.printError(message);
+                    this.tabSwitchService.requestTabSwitch('console');
+                    if (this.isMusicRelatedError(message))
+                    {
+                        this.audioService.getAudio().stop();
+                    }
                     this.interpreterService.stop();
                 }
             };
 
-            setTimeout(executeProgram, 10);
+            setTimeout(() => executeProgram(), 10);
         }
         catch (error)
         {
+            const message = error instanceof Error ? error.message : String(error);
+            this.consoleService.printError(message);
+            this.tabSwitchService.requestTabSwitch('console');
+            if (this.isMusicRelatedError(message))
+            {
+                this.audioService.getAudio().stop();
+            }
             this.interpreterService.stop();
         }
+    }
+
+    private isMusicRelatedError(message: string): boolean
+    {
+        return /music/i.test(message);
     }
 
     private validateAndUpdateLines(): void
@@ -317,7 +393,7 @@ export class CodeEditorComponent implements OnInit, OnDestroy
     }
 
     /** Replace the line at lineIndex with its canonical form (block indent + keyword casing/spacing); skip empty and comment lines. */
-    private updateLineWithCanonical(lineIndex: number): void
+    private updateLineWithCanonical(lineIndex: number, skipCursorMove: boolean = false): void
     {
         if (lineIndex < 0 || lineIndex >= this.lines.length)
         {
@@ -340,9 +416,8 @@ export class CodeEditorComponent implements OnInit, OnDestroy
             const newCode = this.lines.join('\n');
             this.diskService.programCode = newCode;
 
-            if (this.textEditorRef)
+            if (this.textEditorRef && !skipCursorMove)
             {
-                // Defer cursor move so the text editor has applied the new line content to the textarea.
                 setTimeout(() => {
                     const newPosition = this.getPositionFromLineIndex(lineIndex + 1);
                     this.textEditorRef.setCursorPosition(newPosition);
@@ -351,20 +426,35 @@ export class CodeEditorComponent implements OnInit, OnDestroy
         }
     }
 
-    /** Replace the new line (after Enter) with canonical empty form: indent spaces only, via getCanonicalLine(level, null). */
-    private insertCanonicalEmptyLine(afterLineIndex: number): void
+    /** Canonicalize every line in the program (without moving the cursor). */
+    private canonicalizeAllLines(): void
     {
-        const newLineIndex = afterLineIndex + 1;
-
-        if (newLineIndex >= this.lines.length)
+        for (let i = 0; i < this.lines.length; i++)
         {
-            return;
+            this.updateLineWithCanonical(i, true);
         }
 
-        const indentLevel = this.getIndentLevelForLine(newLineIndex);
+        this.diskService.programCode = this.lines.join('\n');
+        this.validateAndUpdateLines();
+    }
+
+    /** Insert a new canonical empty line before the given line index (same indent as that line). */
+    private insertNewLineBefore(lineIndex: number): void
+    {
+        const indentLevel = this.getIndentLevelForLine(lineIndex);
         const canonicalEmpty = getCanonicalLine(indentLevel, null);
 
-        this.lines[newLineIndex] = canonicalEmpty;
+        this.lines.splice(lineIndex, 0, canonicalEmpty);
+        this.diskService.programCode = this.lines.join('\n');
+    }
+
+    /** Insert a new canonical empty line after the given line index (same indent as next logical line). */
+    private insertNewLineAfter(afterLineIndex: number): void
+    {
+        const indentLevel = this.getIndentLevelForLine(afterLineIndex + 1);
+        const canonicalEmpty = getCanonicalLine(indentLevel, null);
+
+        this.lines.splice(afterLineIndex + 1, 0, canonicalEmpty);
         this.diskService.programCode = this.lines.join('\n');
     }
 

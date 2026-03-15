@@ -99,17 +99,20 @@ When solving problems, follow this workflow:
 - **ALWAYS use IconComponent from ng-luna** - NEVER create custom SVG icons or invent your own icon rendering
   - Use `<luna-icon>` component with the appropriate icon from ng-luna (e.g., `Folder`, `File`, `Edit`, `Trash`)
   - For drag images or other DOM manipulation, clone the actual DOM elements that use IconComponent, never create facsimiles
+- **UI reference: ng-luna README** - For all UI work (menus, buttons, overlays, window, tabs, forms, etc.), use the component library documentation at `node_modules/ng-luna/README.md`
+  - Reference it (e.g. via `@node_modules/ng-luna/README.md`) when adding or changing UI that uses ng-luna components
+  - Follow the README for selectors, inputs/outputs, examples, and overlay setup (LunaOverlayComponent, LunaOverlayContainer)
 - **SCSS Property Ordering**: ALL CSS/SCSS properties MUST be alphabetized within each selector block
   - Properties should be sorted alphabetically by property name (e.g., `align-items`, `background-color`, `border`, `color`, `display`, `font-size`, etc.)
   - This applies to all selector blocks, including nested selectors, pseudo-classes (`:hover`, `:active`, etc.), and pseudo-elements (`::placeholder`, etc.)
   - Example: `{ align-items: center; background-color: $navy; display: flex; }` ✅
   - Example: `{ display: flex; align-items: center; background-color: $navy; }` ❌
 
-## C# Code Style
-- Use explicit 'this.' to reference instance members (methods and properties)
-- Use braces { } for all control structures, even single-line blocks
-- Add line breaks between logical groups of code for readability
-- Keep each logical operation visually separate
+## HTML Semantics and Layout
+
+- Use semantic elements wherever they apply: `<header>`, `<footer>`, `<main>`, `<nav>`, `<section>`, `<article>`, `<aside>`, `<figure>`, `<figcaption>`, form elements (`<button>`, `<input>`, `<label>`, `<fieldset>`, `<legend>`, `<select>`, `<textarea>`, `<progress>`), and list structure (`<ul>`, `<ol>`, `<li>`) instead of generic `<div>`/`<span>` when the meaning fits
+- Prefer Flexbox or CSS Grid for layout; avoid layout patterns that rely on floats or table display when flex/grid are appropriate
+
 
 ## TypeScript/JavaScript Code Style
 - **Imports first** - All import statements must be at the top of the file, before any other code (exports, types, classes, etc.), unless there is a special reason (e.g. dynamic import, circular dependency workaround).

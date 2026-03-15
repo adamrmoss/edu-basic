@@ -10,64 +10,61 @@
     width: calc(100vw - 16px);
 }
 
+#main-window::ng-deep .window
+{
+    height: 100%;
+    min-height: 0;
+}
+
+#main-window::ng-deep .window-body
+{
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.window-content
+{
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
 .app-layout
 {
     display: flex;
+    flex: 1;
     flex-direction: row;
     gap: 8px;
-    height: 100%;
+    min-height: 0;
     width: 100%;
 }
 
 .tabs-container
 {
     display: flex;
-    flex-direction: column;
     flex: 1;
-    height: 100%;
+    flex-direction: column;
+    min-height: 0;
     min-width: 0;
 }
 
 .output-panel
 {
     display: flex;
+    flex: 1 1 0%;
     flex-direction: column;
-    flex: 1;
-    height: 100%;
+    min-height: 0;
     min-width: 0;
+    overflow: hidden;
+
+    > app-output
+    {
+        display: block;
+        flex: 1;
+        min-height: 0;
+    }
 }
 
-.window-header-actions
-{
-    align-items: center;
-    display: flex;
-    gap: 8px;
-    padding: 8px;
-    position: absolute;
-    right: 0;
-    top: 0;
-    z-index: 1000;
-}
-
-.mute-button
-{
-    align-items: center;
-    background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    color: inherit;
-    cursor: pointer;
-    display: flex;
-    gap: 4px;
-    padding: 4px 8px;
-}
-
-.mute-button:hover
-{
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.mute-icon
-{
-    font-size: 16px;
-}

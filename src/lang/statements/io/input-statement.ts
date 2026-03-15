@@ -41,7 +41,18 @@ export class InputStatement extends Statement
         runtime: RuntimeExecution
     ): ExecutionStatus
     {
-        const raw = this.readUserInput();
+        const pending = runtime.getAndClearPendingInput();
+
+        if (pending === null)
+        {
+            return {
+                result: ExecutionResult.WaitingForInput,
+                inputMessage: '',
+                inputDefault: ''
+            };
+        }
+
+        const raw = pending;
 
         const arraySuffix = tryGetArrayRankSuffixFromName(this.variableName);
         if (arraySuffix !== null)
@@ -97,17 +108,6 @@ export class InputStatement extends Statement
     public override toString(): string
     {
         return `INPUT ${this.variableName}`;
-    }
-
-    private readUserInput(): string
-    {
-        if (typeof window !== 'undefined' && typeof window.prompt === 'function')
-        {
-            const result = window.prompt('') ?? '';
-            return result;
-        }
-
-        return '';
     }
 
     private parseArrayInput(text: string, arrayName: string): EduBasicValue[]

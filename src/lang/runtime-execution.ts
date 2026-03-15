@@ -40,6 +40,8 @@ export class RuntimeExecution
     private sleepUntilMs: number | null = null;
     private readonly syntaxAnalyzer = new ProgramSyntaxAnalyzer();
     private isProgramLinked: boolean = false;
+    private pendingInputRequest: { message: string; default: string } | null = null;
+    private pendingInputValue: string | null = null;
 
     /**
      * Create a new runtime execution engine.
@@ -99,6 +101,34 @@ export class RuntimeExecution
     }
 
     /**
+     * Get the current INPUT request (message and default) when execution is waiting for user input.
+     * Cleared after reading so the next step can proceed with the value set via setPendingInput.
+     */
+    public getPendingInputRequest(): { message: string; default: string } | null
+    {
+        return this.pendingInputRequest;
+    }
+
+    /**
+     * Set the user's input value and clear the pending request so the next executeStep continues.
+     */
+    public setPendingInput(value: string): void
+    {
+        this.pendingInputValue = value;
+        this.pendingInputRequest = null;
+    }
+
+    /**
+     * Consumed by InputStatement: returns and clears the pending input value.
+     */
+    public getAndClearPendingInput(): string | null
+    {
+        const value = this.pendingInputValue;
+        this.pendingInputValue = null;
+        return value;
+    }
+
+    /**
      * Execute exactly one statement at the current program counter.
      *
      * High-level flow:
@@ -135,6 +165,15 @@ export class RuntimeExecution
 
         // Execute the statement to obtain the next control action.
         const status = statement.execute(this.context, this.graphics, this.audio, this.program, this);
+
+        if (status.result === ExecutionResult.WaitingForInput)
+        {
+            this.pendingInputRequest = {
+                message: status.inputMessage ?? '',
+                default: status.inputDefault ?? ''
+            };
+            return ExecutionResult.WaitingForInput;
+        }
 
         // Apply control effect: GOTO unwinds frames so stack matches target; RETURN pops call frame.
         switch (status.result)

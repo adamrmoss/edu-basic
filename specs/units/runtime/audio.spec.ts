@@ -311,14 +311,64 @@ describe('Audio', () =>
             expect(mockSynthInstance.noteOff).toHaveBeenCalled();
         });
 
-        it('should handle sharp and flat in MML', () =>
+        it('should handle sharp (+ or #) and flat (-) in MML', () =>
         {
             audio.setVoiceInstrument(0, 0);
             mockSynthInstance.noteOn.mockClear();
             mockSynthInstance.noteOff.mockClear();
-            audio.playSequence(0, 'O4 C# Eb');
+            audio.playSequence(0, 'O4 C+ E-');
             expect(mockSynthInstance.noteOn).toHaveBeenCalledTimes(2);
             expect(mockSynthInstance.noteOff).toHaveBeenCalledTimes(2);
+        });
+
+        it('should handle octave up (>) and down (<) in MML', () =>
+        {
+            audio.setVoiceInstrument(0, 0);
+            mockSynthInstance.noteOn.mockClear();
+            mockSynthInstance.noteOff.mockClear();
+            audio.playSequence(0, 'O4 cdefgab > c < bagfedc');
+            const midiC4 = 4 * 12 + 0;
+            const midiC5 = 5 * 12 + 0;
+            expect(mockSynthInstance.noteOn).toHaveBeenCalledTimes(15);
+            expect(mockSynthInstance.noteOn).toHaveBeenCalledWith(0, midiC4, expect.any(Number), expect.any(Number));
+            expect(mockSynthInstance.noteOn).toHaveBeenCalledWith(0, midiC5, expect.any(Number), expect.any(Number));
+        });
+    });
+
+    describe('getNotesRemaining', () =>
+    {
+        it('should return count of entries not yet scheduled plus scheduled but not yet finished (so WHILE NOTES > 0 can wait for playback)', () =>
+        {
+            audio.setVoiceInstrument(0, 0);
+            audio.playSequence(0, 'L4 C');
+            expect(audio.getNotesRemaining(0)).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should be per-voice', () =>
+        {
+            audio.setVoiceInstrument(0, 0);
+            audio.setVoiceInstrument(1, 0);
+            audio.playSequence(0, 'O4 C D E');
+            audio.playSequence(1, 'O4 F');
+            expect(audio.getNotesRemaining(0)).toBeGreaterThanOrEqual(3);
+            expect(audio.getNotesRemaining(1)).toBeGreaterThanOrEqual(1);
+        });
+    });
+
+    describe('Music Overflow', () =>
+    {
+        it('should throw Music Overflow when queue would exceed 1024', () =>
+        {
+            audio.setVoiceInstrument(0, 0);
+            const longMml = 'L4 ' + 'C D E F G A B '.repeat(147);
+            expect(() => audio.playSequence(0, longMml)).toThrow('Music Overflow');
+        });
+
+        it('should allow exactly 1024 entries', () =>
+        {
+            audio.setVoiceInstrument(0, 0);
+            const mml1024 = 'C '.repeat(1024);
+            expect(() => audio.playSequence(0, mml1024)).not.toThrow();
         });
     });
 

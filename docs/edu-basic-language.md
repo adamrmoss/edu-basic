@@ -3931,19 +3931,22 @@ PLAY voiceNumber%, mmlString$
 - Multiple voices can play simultaneously
 - **All `PLAY` statements execute asynchronously in the background**—the program continues immediately
 - Velocity in MML (`V` command) is relative to the global `VOLUME` setting
+- Each voice has a **playback queue** of up to **1024 entries**. Each MML token (notes, rests, and commands such as `L`, `O`, `V`) counts as one entry. If a `PLAY` would cause the queue for that voice to exceed 1024 entries, a **Music Overflow** error is raised.
 
 ### MML Syntax Reference
 
 Music Macro Language (MML) controls frequency (notes), timing, and velocity for all voices. MML is used within `PLAY` statements to specify musical sequences.
 
 **Notes:**
-- **Note Names:** `C`, `D`, `E`, `F`, `G`, `A`, `B` (or lowercase `c`, `d`, `e`, `f`, `g`, `a`, `b`)
-- **Sharps:** `#` after note name (e.g., `C#` = C sharp)
-- **Flats:** `b` after note name (e.g., `Bb` = B flat) - note: lowercase `b` is both the B note and the flat symbol
+- **Note Names:** Note letters may be upper or lower case: `C`, `D`, `E`, `F`, `G`, `A`, `B` or `c`, `d`, `e`, `f`, `g`, `a`, `b`
+- **Sharps:** `+` or `#` after note name (e.g., `C+` or `C#` = C sharp)
+- **Flats:** `-` after note name (e.g., `B-` = B flat)
 - **Note Numbers:** `N` followed by MIDI note number (0-127), where 60 = Middle C (C4)
 
 **Octaves:**
 - `O` followed by number (0-9) sets the octave for subsequent notes
+- `>` raises the octave by one (e.g. after C in octave 4, `>` then plays the next note in octave 5)
+- `<` lowers the octave by one
 - Default octave is typically 4 (middle octave)
 - Higher numbers = higher octaves
 
@@ -3976,9 +3979,9 @@ Music Macro Language (MML) controls frequency (notes), timing, and velocity for 
 - Example: `V0 C D E` plays all three notes silently (velocity 0)
 
 **Checking Remaining Notes:**
-- Use the `NOTES` operator to check how many notes remain for a voice
+- Use the `NOTES` operator to check how many entries remain in a voice's playback queue
 - Syntax: `NOTES voiceNumber%`
-- Returns the number of notes remaining in the voice's playback queue
+- Returns the number of entries (notes, rests, and unprocessed MML commands) remaining for that voice. Queues are per-voice and limited to 1024 entries.
 - Returns 0 when the voice has finished playing all notes
 - Useful for checking if a voice is still playing music
 
@@ -5577,7 +5580,7 @@ PAINT (200, 200) WITH &H00FF00FF BORDER &H0000FFFF    ' Fill bounded by blue pix
 
 **Type:** Command (Audio)  
 **Syntax:** `PLAY voiceNumber%, mmlString$`  
-**Description:** Plays music or sound on a specific voice using Music Macro Language (MML). **All `PLAY` statements play music in the background**—execution continues immediately without waiting for the music to finish. `voiceNumber%` identifies the voice (0–7). `mmlString$` contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the General MIDI instrument set with `VOICE ... INSTRUMENT`. Multiple voices can play simultaneously. Use `NOTES` operator to check how many notes remain for a voice. Velocity in MML (`V` command) is relative to the global `VOLUME` setting.  
+**Description:** Plays music or sound on a specific voice using Music Macro Language (MML). **All `PLAY` statements play music in the background**—execution continues immediately without waiting for the music to finish. `voiceNumber%` identifies the voice (0–7). `mmlString$` contains the MML sequence that controls frequency (notes), timing, and velocity. The voice's timbre is determined by the General MIDI instrument set with `VOICE ... INSTRUMENT`. Multiple voices can play simultaneously. Each voice has a queue of up to 1024 entries (each MML token counts as one); if `PLAY` would exceed that, a **Music Overflow** error is raised. Use `NOTES` operator to check how many entries remain for a voice. Velocity in MML (`V` command) is relative to the global `VOLUME` setting.  
 **Example:**
 ```
 VOICE 0 INSTRUMENT 0
@@ -5708,7 +5711,7 @@ RANDOMIZE NOW%         ' Explicitly seed with current timestamp
 
 **Type:** Operator (Audio)  
 **Syntax:** `NOTES voiceNumber%`  
-**Description:** Returns the number of notes remaining in the playback queue for the specified voice. Returns 0 when the voice has finished playing all notes. Useful for checking if a voice is still playing music.  
+**Description:** Returns the number of entries remaining in the playback queue for the specified voice (per-voice queue, max 1024 entries). Returns 0 when the voice has finished playing all notes. Useful for checking if a voice is still playing music.  
 **Example:**
 ```
 PLAY 0, "CDEFGAB C"

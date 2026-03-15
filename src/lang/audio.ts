@@ -26,13 +26,20 @@ interface ScheduledNote
     velocity: number;
 }
 
+const MAX_QUEUE_SIZE = 1024;
+
+type QueueEntry =
+    | { kind: 'length'; value: number }
+    | { kind: 'octave'; value: number }
+    | { kind: 'velocity'; value: number }
+    | { kind: 'note'; midiNote: number; duration: number; velocity: number }
+    | { kind: 'rest'; duration: number };
+
 /**
  * Stateful audio engine for the interpreter runtime.
  *
- * Notes:
- * - Calls are ignored until initialization succeeds (`ready === true`).
- * - Scheduling is tracked per-voice using `nextNoteTime` to avoid overlaps when a program
- *   issues back-to-back play commands.
+ * No scheduling: each voice has a queue. A "player" dequeues one note/rest at a time,
+ * plays it now, pauses (setTimeout) for its duration, then continues. NOTES = queue length + 1 if currently playing.
  */
 export class Audio
 {
@@ -48,13 +55,20 @@ export class Audio
 
     private voiceConfigs: Map<number, VoiceConfig> = new Map();
     private scheduledNotes: Map<number, ScheduledNote[]> = new Map();
-    private nextNoteTime: Map<number, number> = new Map();
+    private voiceQueues: Map<number, QueueEntry[]> = new Map();
+    private voicePlaying: Map<number, boolean> = new Map();
+    private voiceTimeouts: Map<number, ReturnType<typeof setTimeout>> = new Map();
 
     /**
      * Create a new audio runtime instance and begin async initialization.
      */
     public constructor()
     {
+        for (let i = 0; i < 8; i++)
+        {
+            this.voiceQueues.set(i, []);
+            this.voicePlaying.set(i, false);
+        }
         this.initializeAudio();
     }
 
@@ -87,12 +101,10 @@ export class Audio
             this.synth.setTsMode(0);
             this.ready = true;
 
-            // Initialize per-voice defaults (program, scheduling, and volume).
             for (let i = 0; i < 8; i++)
             {
                 this.voiceConfigs.set(i, { program: 0 });
                 this.scheduledNotes.set(i, []);
-                this.nextNoteTime.set(i, 0);
                 this.synth.setProgram(i, 0);
                 this.synth.setChVol(i, Math.round(127 * this.volume / 100), 0);
             }
@@ -283,31 +295,28 @@ export class Audio
     /**
      * Parse a note name into a MIDI note number.
      *
-     * Example note names: "C", "C#", "Db".
+     * Note letters may be upper or lower case. Sharp: + or # after the letter. Flat: - after the letter.
+     * Example note names: "C", "c+", "C#", "C-", "D-".
      */
     private parseNoteName(noteName: string, octave: number): number | null
     {
-        // Map note spellings to semitone offsets within an octave.
         const noteMap: Record<string, number> = {
-            'C': 0, 'C#': 1, 'Db': 1,
-            'D': 2, 'D#': 3, 'Eb': 3,
-            'E': 4,
-            'F': 5, 'F#': 6, 'Gb': 6,
-            'G': 7, 'G#': 8, 'Ab': 8,
-            'A': 9, 'A#': 10, 'Bb': 10,
-            'B': 11,
+            'C': 0, 'C+': 1, 'C#': 1, 'C-': 11,
+            'D': 2, 'D+': 3, 'D#': 3, 'D-': 1,
+            'E': 4, 'E+': 4, 'E#': 4, 'E-': 3,
+            'F': 5, 'F+': 6, 'F#': 6, 'F-': 4,
+            'G': 7, 'G+': 8, 'G#': 8, 'G-': 6,
+            'A': 9, 'A+': 10, 'A#': 10, 'A-': 8,
+            'B': 11, 'B+': 12, 'B#': 12, 'B-': 10,
         };
 
-        // Normalize the token to match against the spelling map.
         const upper = noteName.toUpperCase();
 
         if (noteMap[upper] !== undefined)
         {
-            // Convert (octave, semitone) into a MIDI note number.
             return octave * 12 + noteMap[upper];
         }
 
-        // Unknown spelling.
         return null;
     }
 
@@ -354,19 +363,18 @@ export class Audio
             return;
         }
 
-        // Convert the frequency to a MIDI note and choose the earliest allowed start time.
         const midiNote = this.frequencyToMidiNote(frequency);
-        const currentTime = this.audioContext.currentTime;
-        const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
+        const now = this.audioContext.currentTime;
+        const vel = Math.round(127 * this.volume / 100);
 
-        // Schedule the note in the synth.
         this.synth.setProgram(voice, config.program);
-        this.synth.noteOn(voice, midiNote, Math.round(127 * this.volume / 100), startTime);
-        this.synth.noteOff(voice, midiNote, startTime + duration);
-
-        // Record scheduling metadata for status queries and sequencing.
-        this.recordScheduledNote(voice, midiNote, startTime, duration, Math.round(127 * this.volume / 100));
-        this.nextNoteTime.set(voice, startTime + duration);
+        this.synth.noteOn(voice, midiNote, vel, now);
+        this.recordScheduledNote(voice, midiNote, now, duration, vel);
+        setTimeout(() =>
+        {
+            const stopTime = this.audioContext?.currentTime ?? now + duration;
+            this.synth?.noteOff(voice, midiNote, stopTime);
+        }, duration * 1000);
     }
 
     /**
@@ -389,19 +397,17 @@ export class Audio
             return;
         }
 
-        // Choose the earliest allowed start time to avoid overlapping notes.
-        const currentTime = this.audioContext.currentTime;
-        const startTime = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
+        const now = this.audioContext.currentTime;
         const vel = Math.round(velocity * this.volume / 100);
 
-        // Schedule the note in the synth.
         this.synth.setProgram(voice, config.program);
-        this.synth.noteOn(voice, midiNote, vel, startTime);
-        this.synth.noteOff(voice, midiNote, startTime + duration);
-
-        // Record scheduling metadata for status queries and sequencing.
-        this.recordScheduledNote(voice, midiNote, startTime, duration, vel);
-        this.nextNoteTime.set(voice, startTime + duration);
+        this.synth.noteOn(voice, midiNote, vel, now);
+        this.recordScheduledNote(voice, midiNote, now, duration, vel);
+        setTimeout(() =>
+        {
+            const stopTime = this.audioContext?.currentTime ?? now + duration;
+            this.synth?.noteOff(voice, midiNote, stopTime);
+        }, duration * 1000);
     }
 
     /**
@@ -411,98 +417,143 @@ export class Audio
      */
     public playSequence(voiceIndex: number, mml: string): void
     {
-        // Ignore sequence requests until the runtime is ready.
         if (!this.ready || !this.audioContext)
         {
             return;
         }
 
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const entries = this.parseMml(mml);
+        const queue = this.voiceQueues.get(voice) ?? [];
+
+        if (queue.length + entries.length > MAX_QUEUE_SIZE)
+        {
+            throw new Error('Music Overflow');
+        }
+
         if (this.audioContext.state === 'suspended')
         {
-            // Resume the context (requires user gesture in many browsers) and then play.
+            this.enqueueOnly(voiceIndex, entries);
             this.audioContext.resume().then(() =>
             {
-                this.playSequenceInternal(voiceIndex, mml);
+                this.processVoiceQueue(voice);
             }).catch(() =>
             {
             });
             return;
         }
 
-        // Context is already running; play immediately.
-        this.playSequenceInternal(voiceIndex, mml);
+        this.enqueueAndKick(voiceIndex, entries);
     }
 
     /**
-     * Internal implementation for `playSequence()` once the audio context is running.
+     * Append to queue without starting the player (used when context is suspended).
      */
-    private playSequenceInternal(voiceIndex: number, mml: string): void
+    private enqueueOnly(voiceIndex: number, entries: QueueEntry[]): void
     {
-        // Ignore sequence requests until the runtime is ready.
+        const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
+        const queue = this.voiceQueues.get(voice) ?? [];
+        this.voiceQueues.set(voice, [...queue, ...entries]);
+    }
+
+    /**
+     * Append to queue and start the player if it is not already running.
+     */
+    private enqueueAndKick(voiceIndex: number, entries: QueueEntry[]): void
+    {
         if (!this.ready || !this.synth || !this.audioContext)
         {
             return;
         }
 
-        // Parse the MML-like input and compute scheduling parameters.
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
-        const notes = this.parseMml(mml);
-        const currentTime = this.audioContext.currentTime;
-        let time = Math.max(currentTime, this.nextNoteTime.get(voice) || currentTime);
-        const beatDuration = 60 / this.tempo;
-
-        // Schedule notes/rests sequentially, advancing the running time.
-        for (const note of notes)
-        {
-            switch (note.type)
-            {
-                case 'rest':
-                    time += note.duration * beatDuration;
-                    break;
-                case 'note':
-                    if (note.midiNote !== undefined)
-                    {
-                        const duration = note.duration * beatDuration;
-                        const vel = Math.round((note.velocity ?? 64) * this.volume / 100);
-
-                        this.synth.setProgram(voice, this.voiceConfigs.get(voice)?.program ?? 0);
-                        this.synth.noteOn(voice, note.midiNote, vel, time);
-                        this.synth.noteOff(voice, note.midiNote, time + duration);
-
-                        this.recordScheduledNote(voice, note.midiNote, time, duration, vel);
-                        time += duration;
-                    }
-                    break;
-            }
-        }
-
-        // Persist the next scheduling time so subsequent calls continue after this sequence.
-        this.nextNoteTime.set(voice, time);
+        const queue = this.voiceQueues.get(voice) ?? [];
+        this.voiceQueues.set(voice, [...queue, ...entries]);
+        this.processVoiceQueue(voice);
     }
 
     /**
-     * Return the number of scheduled notes that have not finished yet for a voice.
+     * Process one entry from the voice queue: dequeue, play (or wait for rest), pause for duration, then continue.
+     * No scheduling: noteOn(now), setTimeout(duration), noteOff(now), then process next.
+     */
+    private processVoiceQueue(voice: number): void
+    {
+        if (!this.ready || !this.synth || !this.audioContext)
+        {
+            return;
+        }
+
+        if (this.voicePlaying.get(voice))
+        {
+            return;
+        }
+
+        const queue = this.voiceQueues.get(voice) ?? [];
+        const beatDuration = 60 / this.tempo;
+
+        while (queue.length > 0)
+        {
+            const entry = queue.shift()!;
+
+            if (entry.kind === 'length' || entry.kind === 'octave' || entry.kind === 'velocity')
+            {
+                continue;
+            }
+
+            if (entry.kind === 'rest')
+            {
+                const durationMs = (entry.duration * beatDuration) * 1000;
+                this.voicePlaying.set(voice, true);
+                const id = setTimeout(() =>
+                {
+                    this.voicePlaying.set(voice, false);
+                    this.voiceTimeouts.delete(voice);
+                    this.processVoiceQueue(voice);
+                }, durationMs);
+                this.voiceTimeouts.set(voice, id);
+                return;
+            }
+
+            if (entry.kind === 'note')
+            {
+                const durationSec = entry.duration * beatDuration;
+                const durationMs = durationSec * 1000;
+                const vel = Math.round(entry.velocity * this.volume / 100);
+                const now = this.audioContext.currentTime;
+
+                this.synth.setProgram(voice, this.voiceConfigs.get(voice)?.program ?? 0);
+                this.synth.noteOn(voice, entry.midiNote, vel, now);
+                this.recordScheduledNote(voice, entry.midiNote, now, durationSec, vel);
+
+                this.voicePlaying.set(voice, true);
+                const id = setTimeout(() =>
+                {
+                    const stopTime = this.audioContext?.currentTime ?? now + durationSec;
+                    this.synth?.noteOff(voice, entry.midiNote, stopTime);
+                    this.voicePlaying.set(voice, false);
+                    this.voiceTimeouts.delete(voice);
+                    this.processVoiceQueue(voice);
+                }, durationMs);
+                this.voiceTimeouts.set(voice, id);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Return the number of entries remaining: queue length plus 1 if a note/rest is currently playing (paused in its duration).
      */
     public getNotesRemaining(voiceIndex: number): number
     {
-        // If audio is not ready, treat as no notes scheduled.
         if (!this.ready || !this.audioContext)
         {
             return 0;
         }
 
-        // Normalize voice index and collect tracked notes.
         const voice = Math.max(0, Math.min(7, Math.floor(voiceIndex)));
-        const notes = this.scheduledNotes.get(voice) ?? [];
-        const now = this.audioContext.currentTime;
-
-        // Keep only notes that have not finished yet; then replace stored list for future calls.
-        const remainingNotes = notes.filter((n) => (n.startTime + n.duration) > now);
-
-        // Persist the filtered list so future calls stay cheap.
-        this.scheduledNotes.set(voice, remainingNotes);
-
-        return remainingNotes.length;
+        const queueLen = (this.voiceQueues.get(voice) ?? []).length;
+        const playing = this.voicePlaying.get(voice) ? 1 : 0;
+        return queueLen + playing;
     }
 
     /**
@@ -522,43 +573,55 @@ export class Audio
     }
 
     /**
-     * Parse a simple MML-like string into timed note/rest tokens.
+     * Parse MML into queue entries (one per token, including O, L, V, >, <) for the note queue.
      */
-    private parseMml(mml: string): Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }>
+    private parseMml(mml: string): QueueEntry[]
     {
-        // Initialize parser state (shared defaults).
-        const result: Array<{ type: 'note' | 'rest'; midiNote?: number; duration: number; velocity?: number }> = [];
+        const result: QueueEntry[] = [];
         let i = 0;
         let octave = 4;
         let defaultLength = 4;
         let velocity = 64;
 
-        // Consume the string left-to-right, handling one token at a time.
         while (i < mml.length)
         {
             const char = mml[i].toUpperCase();
 
             if (char === 'O' && i + 1 < mml.length)
             {
-                // Octave change (O<digits>).
                 const octaveMatch = mml.substring(i + 1).match(/^\d+/);
-
                 if (octaveMatch)
                 {
                     octave = parseInt(octaveMatch[0], 10);
+                    result.push({ kind: 'octave', value: octave });
                     i += 1 + octaveMatch[0].length;
                     continue;
                 }
             }
 
+            if (mml[i] === '>')
+            {
+                octave = Math.min(9, octave + 1);
+                result.push({ kind: 'octave', value: octave });
+                i++;
+                continue;
+            }
+
+            if (mml[i] === '<')
+            {
+                octave = Math.max(0, octave - 1);
+                result.push({ kind: 'octave', value: octave });
+                i++;
+                continue;
+            }
+
             if (char === 'L' && i + 1 < mml.length)
             {
-                // Default note length change (L<digits>).
                 const lengthMatch = mml.substring(i + 1).match(/^\d+/);
-
                 if (lengthMatch)
                 {
                     defaultLength = parseInt(lengthMatch[0], 10);
+                    result.push({ kind: 'length', value: defaultLength });
                     i += 1 + lengthMatch[0].length;
                     continue;
                 }
@@ -566,12 +629,11 @@ export class Audio
 
             if (char === 'V' && i + 1 < mml.length)
             {
-                // Velocity change (V<digits>).
                 const velocityMatch = mml.substring(i + 1).match(/^\d+/);
-
                 if (velocityMatch)
                 {
                     velocity = parseInt(velocityMatch[0], 10);
+                    result.push({ kind: 'velocity', value: velocity });
                     i += 1 + velocityMatch[0].length;
                     continue;
                 }
@@ -579,122 +641,95 @@ export class Audio
 
             if (char === 'R')
             {
-                // Rest token (R[length][.]).
                 let length = defaultLength;
                 let hasDot = false;
-
                 if (i + 1 < mml.length)
                 {
                     const lengthMatch = mml.substring(i + 1).match(/^(\d+)(\.?)/);
-
                     if (lengthMatch)
                     {
                         length = parseInt(lengthMatch[1], 10);
                         hasDot = lengthMatch[2] === '.';
                     }
                 }
-
-                // Encode duration as a fraction of a beat (optionally dotted).
                 result.push({
-                    type: 'rest',
-                    duration: hasDot ? 1.5 / length : 1 / length,
+                    kind: 'rest',
+                    duration: hasDot ? 6 / length : 4 / length
                 });
-
-                // Advance past the token (and optional dot).
                 i++;
-
                 if (i < mml.length && mml[i] === '.')
                 {
                     i++;
                 }
-
                 continue;
             }
 
             if (char === 'N' && i + 1 < mml.length)
             {
-                // Numeric note token (N<digits>[length][.]).
                 const noteMatch = mml.substring(i + 1).match(/^(\d+)/);
-
                 if (noteMatch)
                 {
                     const midiNote = parseInt(noteMatch[0], 10);
                     let length = defaultLength;
                     let hasDot = false;
-
                     if (i + 1 + noteMatch[0].length < mml.length)
                     {
                         const lengthMatch = mml.substring(i + 1 + noteMatch[0].length).match(/^(\d+)(\.?)/);
-
                         if (lengthMatch)
                         {
                             length = parseInt(lengthMatch[1], 10);
                             hasDot = lengthMatch[2] === '.';
                         }
                     }
-
-                    // Emit a note token with duration as a fraction of a beat (optionally dotted).
                     result.push({
-                        type: 'note',
+                        kind: 'note',
                         midiNote,
-                        duration: hasDot ? 1.5 / length : 1 / length,
-                        velocity,
+                        duration: hasDot ? 6 / length : 4 / length,
+                        velocity
                     });
-
-                    // Advance past the token (and optional dot).
                     i += 1 + noteMatch[0].length;
-
                     if (i < mml.length && mml[i] === '.')
                     {
                         i++;
                     }
-
                     continue;
                 }
             }
 
-            // Letter note tokens (A..G with optional #/b and optional length).
             const baseNoteNames = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
             const noteIndexMap: Record<string, number> = {
-                'C': 0, 'C#': 1, 'Db': 1,
-                'D': 2, 'D#': 3, 'Eb': 3,
-                'E': 4,
-                'F': 5, 'F#': 6, 'Gb': 6,
-                'G': 7, 'G#': 8, 'Ab': 8,
-                'A': 9, 'A#': 10, 'Bb': 10,
-                'B': 11,
+                'C': 0, 'C+': 1, 'C#': 1, 'C-': 11,
+                'D': 2, 'D+': 3, 'D#': 3, 'D-': 1,
+                'E': 4, 'E+': 4, 'E#': 4, 'E-': 3,
+                'F': 5, 'F+': 6, 'F#': 6, 'F-': 4,
+                'G': 7, 'G+': 8, 'G#': 8, 'G-': 6,
+                'A': 9, 'A+': 10, 'A#': 10, 'A-': 8,
+                'B': 11, 'B+': 12, 'B#': 12, 'B-': 10,
             };
 
             if (baseNoteNames.includes(char))
             {
-                // Parse accidental (#/b) if present.
                 let noteName = char;
-                let noteIndex: number;
-
                 if (i + 1 < mml.length)
                 {
-                    if (mml[i + 1] === '#')
+                    const next = mml[i + 1];
+                    if (next === '#' || next === '+')
                     {
-                        noteName = char + '#';
+                        noteName = char + next;
                         i++;
                     }
-                    else if (mml[i + 1].toLowerCase() === 'b' && char !== 'B')
+                    else if (next === '-')
                     {
-                        noteName = char + 'b';
+                        noteName = char + '-';
                         i++;
                     }
                 }
-
-                // Determine semitone index and parse optional length/dot modifier.
-                noteIndex = noteIndexMap[noteName] ?? 0;
-
+                const noteIndex = noteIndexMap[noteName] ?? 0;
                 let length = defaultLength;
                 let hasDot = false;
-
                 if (i + 1 < mml.length)
                 {
                     const lengthMatch = mml.substring(i + 1).match(/^(\d+)(\.?)/);
-
                     if (lengthMatch)
                     {
                         length = parseInt(lengthMatch[1], 10);
@@ -702,27 +737,20 @@ export class Audio
                         i += lengthMatch[0].length;
                     }
                 }
-
-                // Emit a note token with duration as a fraction of a beat (optionally dotted).
                 const midiNote = octave * 12 + noteIndex;
-
                 result.push({
-                    type: 'note',
+                    kind: 'note',
                     midiNote,
-                    duration: hasDot ? 1.5 / length : 1 / length,
-                    velocity,
+                    duration: hasDot ? 6 / length : 4 / length,
+                    velocity
                 });
-
-                // Advance past the note token.
                 i++;
                 continue;
             }
 
-            // Unknown/unhandled characters are skipped.
             i++;
         }
 
-        // Return parsed tokens for scheduling.
         return result;
     }
 
@@ -740,11 +768,17 @@ export class Audio
             }
         }
 
-        // Clear all scheduling metadata so status queries reset immediately.
         for (let i = 0; i < 8; i++)
         {
+            const timeoutId = this.voiceTimeouts.get(i);
+            if (timeoutId !== undefined)
+            {
+                clearTimeout(timeoutId);
+                this.voiceTimeouts.delete(i);
+            }
+            this.voicePlaying.set(i, false);
             this.scheduledNotes.set(i, []);
-            this.nextNoteTime.set(i, 0);
+            this.voiceQueues.set(i, []);
         }
     }
 }

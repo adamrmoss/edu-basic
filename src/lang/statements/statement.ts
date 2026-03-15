@@ -14,6 +14,7 @@ export enum ExecutionResult
     End,
     Goto,
     Return,
+    WaitingForInput,
 }
 
 /**
@@ -30,6 +31,12 @@ export interface ExecutionStatus
      * Target program counter (0-based statement index) for `Goto`.
      */
     gotoTarget?: number;
+
+    /**
+     * When result is WaitingForInput, prompt message and optional default for the input modal.
+     */
+    inputMessage?: string;
+    inputDefault?: string;
 }
 
 /**

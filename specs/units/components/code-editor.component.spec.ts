@@ -83,7 +83,7 @@ describe('CodeEditorComponent', () => {
             getAudio: jest.fn()
         } as any;
 
-        const tabSwitchServiceMock = {} as any;
+        const tabSwitchServiceMock = { requestTabSwitch: jest.fn() } as any;
 
         const fileSystemServiceMock = {} as any;
 
@@ -166,14 +166,15 @@ describe('CodeEditorComponent', () => {
 
                 const mockEvent = {
                     key: 'Enter',
-                    target: textarea
+                    target: textarea,
+                    preventDefault: jest.fn()
                 } as unknown as KeyboardEvent;
 
                 component.onKeyDown(mockEvent);
 
                 setTimeout(() => {
-                    expect(component.lines).toEqual(['LET x = 42']);
-                    expect(diskService.programCode).toBe('LET x = 42');
+                    expect(component.lines).toEqual(['LET x = 42', '']);
+                    expect(diskService.programCode).toBe('LET x = 42\n');
                     done();
                 }, 10);
             }

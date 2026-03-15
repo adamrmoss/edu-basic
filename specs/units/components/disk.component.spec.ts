@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
+import { of } from 'rxjs';
 import { DiskComponent } from '@/app/disk/disk.component';
 import { DiskService } from '@/app/disk/disk.service';
+import { LunaModalService } from 'ng-luna';
 import { BehaviorSubject } from 'rxjs';
 import { DirectoryNode, FileNode } from '@/app/disk/filesystem-node';
 
@@ -9,6 +11,7 @@ describe('DiskComponent', () => {
     let component: DiskComponent;
     let fixture: ComponentFixture<DiskComponent>;
     let diskService: jest.Mocked<DiskService>;
+    let mockModalService: { prompt: jest.Mock; confirm: jest.Mock };
 
     let diskNameSubject: BehaviorSubject<string>;
     let filesChangedSubject: BehaviorSubject<void>;
@@ -16,6 +19,11 @@ describe('DiskComponent', () => {
     beforeEach(async () => {
         diskNameSubject = new BehaviorSubject<string>('TestDisk');
         filesChangedSubject = new BehaviorSubject<void>(undefined);
+
+        mockModalService = {
+            prompt: jest.fn().mockReturnValue(of({ button: 'cancel' as const })),
+            confirm: jest.fn().mockReturnValue(of(false))
+        };
 
         const mockRoot = new DirectoryNode('', '');
 
@@ -43,7 +51,8 @@ describe('DiskComponent', () => {
         await TestBed.configureTestingModule({
             imports: [DiskComponent, FormsModule],
             providers: [
-                { provide: DiskService, useValue: diskServiceMock }
+                { provide: DiskService, useValue: diskServiceMock },
+                { provide: LunaModalService, useValue: mockModalService }
             ]
         }).compileComponents();
 
@@ -107,20 +116,20 @@ describe('DiskComponent', () => {
             expect(diskService.diskName).toBe('NewName');
         });
 
-        it('should create new disk with prompt', () => {
-            jest.spyOn(window, 'prompt').mockReturnValue('MyDisk');
+        it('should create new disk with prompt', async () => {
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'ok' as const, promptValue: 'MyDisk' }));
 
-            component.onNewDisk();
+            await component.onNewDisk();
 
             expect(diskService.newDisk).toHaveBeenCalledWith('MyDisk');
             expect(component.selectedFile).toBeNull();
             expect(component.editorLines).toEqual(['']);
         });
 
-        it('should not create new disk if prompt cancelled', () => {
-            jest.spyOn(window, 'prompt').mockReturnValue(null);
+        it('should not create new disk if prompt cancelled', async () => {
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'cancel' as const }));
 
-            component.onNewDisk();
+            await component.onNewDisk();
 
             expect(diskService.newDisk).not.toHaveBeenCalled();
         });
@@ -185,40 +194,40 @@ describe('DiskComponent', () => {
             fixture.detectChanges();
         });
 
-        it('should create new file with prompt', () => {
-            jest.spyOn(window, 'prompt').mockReturnValue('newfile.txt');
+        it('should create new file with prompt', async () => {
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'ok' as const, promptValue: 'newfile.txt' }));
 
-            component.onNewFile();
+            await component.onNewFile();
 
             expect(diskService.createFile).toHaveBeenCalledWith('newfile.txt');
         });
 
-        it('should not create file if prompt cancelled', () => {
-            jest.spyOn(window, 'prompt').mockReturnValue(null);
+        it('should not create file if prompt cancelled', async () => {
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'cancel' as const }));
 
-            component.onNewFile();
+            await component.onNewFile();
 
             expect(diskService.createFile).not.toHaveBeenCalled();
         });
 
-        it('should delete file with confirmation', () => {
+        it('should delete file with confirmation', async () => {
             const fileNode = { name: 'delete.txt', path: 'delete.txt', type: 'file' as const, expanded: false };
             component.selectedFile = fileNode;
-            jest.spyOn(window, 'confirm').mockReturnValue(true);
+            mockModalService.confirm.mockReturnValueOnce(of(true));
 
-            component.onDeleteFile();
+            await component.onDeleteFile();
 
             expect(diskService.deleteFile).toHaveBeenCalledWith('delete.txt');
             expect(component.selectedFile).toBeNull();
             expect(component.editorLines).toEqual(['']);
         });
 
-        it('should not delete file if not confirmed', () => {
+        it('should not delete file if not confirmed', async () => {
             const fileNode = { name: 'keep.txt', path: 'keep.txt', type: 'file' as const, expanded: false };
             component.selectedFile = fileNode;
-            jest.spyOn(window, 'confirm').mockReturnValue(false);
+            mockModalService.confirm.mockReturnValueOnce(of(false));
 
-            component.onDeleteFile();
+            await component.onDeleteFile();
 
             expect(diskService.deleteFile).not.toHaveBeenCalled();
             expect(component.selectedFile).not.toBeNull();
@@ -440,28 +449,28 @@ describe('DiskComponent', () => {
             fixture.detectChanges();
         });
 
-        it('should create new directory with prompt', () => {
-            jest.spyOn(window, 'prompt').mockReturnValue('newdir');
+        it('should create new directory with prompt', async () => {
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'ok' as const, promptValue: 'newdir' }));
 
-            component.onNewDirectory();
+            await component.onNewDirectory();
 
             expect(diskService.createDirectory).toHaveBeenCalledWith('newdir');
         });
 
-        it('should create directory in parent path', () => {
-            jest.spyOn(window, 'prompt').mockReturnValue('subdir');
+        it('should create directory in parent path', async () => {
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'ok' as const, promptValue: 'subdir' }));
 
-            component.onNewDirectory('parent');
+            await component.onNewDirectory('parent');
 
             expect(diskService.createDirectory).toHaveBeenCalledWith('parent/subdir');
         });
 
-        it('should delete directory with confirmation', () => {
+        it('should delete directory with confirmation', async () => {
             const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
             component.selectedFile = dirNode;
-            jest.spyOn(window, 'confirm').mockReturnValue(true);
+            mockModalService.confirm.mockReturnValueOnce(of(true));
 
-            component.onDeleteFile();
+            await component.onDeleteFile();
 
             expect(diskService.deleteDirectory).toHaveBeenCalledWith('dir');
         });
@@ -472,24 +481,24 @@ describe('DiskComponent', () => {
             fixture.detectChanges();
         });
 
-        it('should rename a file', () => {
+        it('should rename a file', async () => {
             const fileNode = { name: 'old.txt', path: 'old.txt', type: 'file' as const, expanded: false };
             component.selectedFile = fileNode;
-            jest.spyOn(window, 'prompt').mockReturnValue('new.txt');
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'ok' as const, promptValue: 'new.txt' }));
 
-            component.onRenameFile();
+            await component.onRenameFile();
 
             expect(diskService.renameFile).toHaveBeenCalledWith('old.txt', 'new.txt');
             expect(component.selectedFile).toBeNull();
             expect(component.editorLines).toEqual(['']);
         });
 
-        it('should rename a directory', () => {
+        it('should rename a directory', async () => {
             const dirNode = { name: 'dir', path: 'dir', type: 'directory' as const, expanded: false, children: [] };
             component.selectedFile = dirNode;
-            jest.spyOn(window, 'prompt').mockReturnValue('dir2');
+            mockModalService.prompt.mockReturnValueOnce(of({ button: 'ok' as const, promptValue: 'dir2' }));
 
-            component.onRenameFile();
+            await component.onRenameFile();
 
             expect(diskService.renameDirectory).toHaveBeenCalledWith('dir', 'dir2');
             expect(component.selectedFile).toBeNull();
@@ -525,7 +534,7 @@ describe('DiskComponent', () => {
             expect(component.showContextMenu).toBe(true);
         });
 
-        it('should delete a context-menu-selected file when confirmed', () => {
+        it('should delete a context-menu-selected file when confirmed', async () => {
             component.fileTree = [
                 {
                     name: 'dir',
@@ -538,7 +547,7 @@ describe('DiskComponent', () => {
                 }
             ];
 
-            jest.spyOn(window, 'confirm').mockReturnValue(true);
+            mockModalService.confirm.mockReturnValueOnce(of(true));
 
             component.onContextMenu({
                 preventDefault: jest.fn(),
@@ -547,7 +556,7 @@ describe('DiskComponent', () => {
                 clientY: 20
             } as any, 'dir/a.txt');
 
-            component.onContextMenuDelete();
+            await component.onContextMenuDelete();
 
             expect(diskService.deleteFile).toHaveBeenCalledWith('dir/a.txt');
             expect(component.selectedFile).toBeNull();

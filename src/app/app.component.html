@@ -1,26 +1,35 @@
-<luna-window id="main-window" [showClose]="false" [showHelp]="false" [showMaximize]="false" [showMinimize]="false" [title]="title">
-    <div class="window-header-actions">
-        <button class="mute-button" (click)="toggleMute()" [title]="muted ? 'Unmute audio' : 'Mute audio'">
-            <luna-icon size="16" [svg]="muted ? muteIcon : unmuteIcon"></luna-icon>
-            <span>{{ muted ? 'Unmute' : 'Mute' }}</span>
-        </button>
-    </div>
-    <div class="app-layout">
-        <div class="tabs-container">
-            <luna-tabs #tabsComponent>
-                <luna-tab id="console" label="Console">
-                    <app-console></app-console>
-                </luna-tab>
-                <luna-tab id="code" label="Code">
-                    <app-code-editor></app-code-editor>
-                </luna-tab>
-                <luna-tab id="disk" label="Disk">
-                    <app-disk></app-disk>
-                </luna-tab>
-            </luna-tabs>
+<luna-window id="main-window" [showClose]="false" [showHelp]="false" [showMaximize]="false" [showMinimize]="false"
+    [title]="title">
+    <div class="window-content">
+        <luna-menu-bar>
+            <luna-menu [items]="diskMenuItems" (itemSelect)="onDiskMenuSelect($event)">
+                <button lunaMenuTrigger type="button">Disk</button>
+            </luna-menu>
+            <luna-menu [items]="outputMenuItems" (itemSelect)="onOutputMenuSelect($event)">
+                <button lunaMenuTrigger type="button">Output</button>
+            </luna-menu>
+            <luna-menu [items]="debugMenuItems" (itemSelect)="onDebugMenuSelect($event)">
+                <button lunaMenuTrigger type="button">Debug</button>
+            </luna-menu>
+        </luna-menu-bar>
+        <div class="app-layout">
+            <div class="tabs-container" *ngIf="!fullScreen">
+                <luna-tabs #tabsComponent>
+                    <luna-tab id="console" label="Console">
+                        <app-console></app-console>
+                    </luna-tab>
+                    <luna-tab id="code" label="Code">
+                        <app-code-editor></app-code-editor>
+                    </luna-tab>
+                    <luna-tab id="disk" label="Disk">
+                        <app-disk></app-disk>
+                    </luna-tab>
+                </luna-tabs>
+            </div>
+            <div class="output-panel" *ngIf="!isDiskTabActive() || fullScreen">
+                <app-output></app-output>
+            </div>
         </div>
-        <div class="output-panel" *ngIf="!isDiskTabActive()">
-            <app-output></app-output>
-        </div>
     </div>
+    <luna-overlay></luna-overlay>
 </luna-window>
